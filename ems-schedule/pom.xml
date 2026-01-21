@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>info.zhihui</groupId>
+        <artifactId>ems</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <artifactId>ems-schedule</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Boot Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- MQ API 依赖 -->
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-mq-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 业务依赖：订单校验服务 -->
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-finance</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 业务依赖：设备服务 -->
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-device</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

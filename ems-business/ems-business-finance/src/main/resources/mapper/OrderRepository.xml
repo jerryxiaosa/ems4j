@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.order.OrderRepository">
+    <select id="selectByOrderSn" resultType="info.zhihui.ems.business.finance.entity.order.OrderEntity">
+        select *
+        from purchase_order
+        where order_sn = #{orderSn} limit 1;
+    </select>
+
+    <update id="updateByOrderSn">
+        update purchase_order
+        set order_status = #{orderStatus}
+        <if test="orderSuccessTime != null">
+            ,order_success_time = #{orderSuccessTime}
+        </if>
+        where order_sn = #{orderSn} limit 1;
+    </update>
+
+    <select id="findList" resultType="info.zhihui.ems.business.finance.entity.order.OrderEntity">
+        SELECT *
+        FROM purchase_order t
+        <where>
+            t.is_deleted = 0
+            <if test="orderStatus != null">
+                AND t.order_status = #{orderStatus}
+            </if>
+            <if test="createStartTime != null">
+                AND t.order_create_time &gt;= #{createStartTime}
+            </if>
+            <if test="createEndTime != null">
+                AND t.order_create_time &lt; #{createEndTime}
+            </if>
+            <if test="paymentChannel != null">
+                AND t.payment_channel = #{paymentChannel}
+            </if>
+            <if test="userId != null">
+                AND t.user_id = #{userId}
+            </if>
+        </where>
+        ORDER BY t.order_create_time DESC
+    </select>
+</mapper>
+

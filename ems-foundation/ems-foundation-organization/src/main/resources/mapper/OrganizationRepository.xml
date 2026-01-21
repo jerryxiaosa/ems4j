@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.organization.repository.OrganizationRepository">
+
+    <select id="selectByQo" resultType="info.zhihui.ems.foundation.organization.entity.OrganizationEntity">
+        select *
+        from sys_organization t
+        <where>
+            t.is_deleted = 0
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                and t.id in
+                <foreach item="item" index="index" collection="qo.ids" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.organizationNameLike != null and qo.organizationNameLike != ''">
+                and t.organization_name like concat('%', #{qo.organizationNameLike}, '%')
+            </if>
+            <if test="qo.creditCode != null and qo.creditCode != ''">
+                and t.credit_code = #{qo.creditCode}
+            </if>
+            <if test="qo.managerNameLike != null and qo.managerNameLike != ''">
+                and t.manager_name like concat('%', #{qo.managerNameLike}, '%')
+            </if>
+        </where>
+        order by t.create_time desc, id desc
+    </select>
+
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.integration.core.repository.DeviceTypeRepository">
+
+  <select id="findList" resultType="info.zhihui.ems.foundation.integration.core.entity.DeviceTypeEntity">
+      select *
+      from device_type t
+      <where>
+          t.is_deleted = 0
+          <if test="pid != null">
+              and t.pid = #{pid}
+          </if>
+          <if test="typeKey != null and typeKey != ''">
+              and type_key = #{typeKey}
+          </if>
+          <if test="ids != null and ids.size() > 0">
+              and id in
+              <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+          </if>
+      </where>
+      order by t.id
+  </select>
+
+</mapper>

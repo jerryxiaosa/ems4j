@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.user.repository.MenuPathRepository">
+
+    <!-- 从父级继承闭包路径 -->
+    <insert id="insertPathsFromParent">
+        INSERT INTO sys_menu_path (ancestor_id, descendant_id, depth)
+        SELECT p.ancestor_id,
+               #{menuId},
+               p.depth + 1
+        FROM sys_menu_path p
+        WHERE p.descendant_id = #{pid}
+    </insert>
+
+    <!-- 删除菜单子树对应的闭包记录
+        假设menuId=100
+        1
+        └── 10
+            └── 100          ← ancestor_id = 100（我们要找它的后代）
+                ├── 101
+                └── 102
+                    └── 103
+    -->
+    <delete id="deleteSubtreePaths">
+        DELETE FROM sys_menu_path
+        WHERE descendant_id IN (
+            SELECT descendant_id
+            FROM (
+                SELECT descendant_id
+                FROM sys_menu_path
+                WHERE ancestor_id = #{menuId}
+            ) temp
+        )
+    </delete>
+
+
+</mapper>

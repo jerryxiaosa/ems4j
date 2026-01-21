@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.BalanceRepository">
+    <update id="balanceTopUp">
+        update energy_account_balance
+        set balance = balance + #{amount}
+        where
+        balance_type = #{balanceType}
+        and balance_relation_id = #{balanceRelationId}
+        and account_id = #{accountId}
+    </update>
+
+    <select id="balanceQuery" resultType="info.zhihui.ems.business.finance.entity.BalanceEntity">
+        select *
+        from energy_account_balance
+        where
+        1=1
+        and balance_type = #{balanceType}
+        and balance_relation_id = #{balanceRelationId}
+        limit 1;
+    </select>
+
+    <delete id="deleteBalance">
+        delete from energy_account_balance
+        where
+        balance_type = #{balanceType}
+        and balance_relation_id = #{balanceRelationId}
+    </delete>
+</mapper>

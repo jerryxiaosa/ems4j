@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.device.repository.GatewayRepository">
+
+  <select id="findList" resultType="info.zhihui.ems.business.device.entity.GatewayEntity">
+    select *
+    from energy_gateway t
+    <where>
+      is_deleted = 0
+      <if test="searchKey != null and searchKey != ''">
+        and (gateway_name like concat('%',#{searchKey},'%') or gateway_no like concat('%',#{searchKey},'%'))
+      </if>
+      <if test="iotId != null">
+        and iot_id = #{iotId}
+      </if>
+      <if test="eqSn != null and eqSn != ''">
+        and t.sn = #{eqSn}
+      </if>
+
+      <if test="sn != null and sn != ''">
+        and t.sn like concat('%', #{sn}, '%')
+      </if>
+
+      <if test="isOnline != null">
+        and t.is_online = #{isOnline}
+      </if>
+      <if test="spaceIds != null and spaceIds.size() > 0">
+        and t.space_id in
+        <foreach item="item" index="index" collection="spaceIds" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+
+    </where>
+    order by t.create_time desc
+  </select>
+
+  <select id="getCommunicationOption" resultType="java.lang.String">
+    select distinct communicate_model
+    from energy_gateway
+    where is_deleted = 0
+  </select>
+</mapper>

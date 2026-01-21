@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.system.repository.ConfigRepository">
+
+    <select id="getByKey" resultType="info.zhihui.ems.foundation.system.entity.ConfigEntity">
+        select *
+        from sys_config
+        where is_deleted = 0 and config_key = #{key}
+    </select>
+
+    <select id="selectByQo" parameterType="info.zhihui.ems.foundation.system.qo.ConfigQueryQo"
+            resultType="info.zhihui.ems.foundation.system.entity.ConfigEntity">
+        select *
+        from sys_config
+        <where>
+            is_deleted = 0
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                and id in
+                <foreach item="item" collection="qo.ids" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.configModuleName != null and qo.configModuleName != ''">
+                and config_module_name = #{qo.configModuleName}
+            </if>
+            <if test="qo.configKeyLike != null and qo.configKeyLike != ''">
+                and config_key like concat('%', #{qo.configKeyLike}, '%')
+            </if>
+            <if test="qo.configNameLike != null and qo.configNameLike != ''">
+                and config_name like concat('%', #{qo.configNameLike}, '%')
+            </if>
+            <if test="qo.isSystem != null">
+                and is_system = #{qo.isSystem}
+            </if>
+        </where>
+        order by create_time desc, id desc
+    </select>
+
+</mapper>

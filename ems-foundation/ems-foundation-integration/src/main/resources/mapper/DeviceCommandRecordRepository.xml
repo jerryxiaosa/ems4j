@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandRecordRepository">
+    <select id="findList"
+            resultType="info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity">
+        select t.*
+        from device_command_record t
+        <where>
+            <if test="operateUserName != null and operateUserName != ''">
+                t.create_user_name like concat('%', #{operateUserName}, '%')
+            </if>
+            <if test="commandType != null">
+                and t.command_type = #{commandType}
+            </if>
+            <if test="success != null and success">
+                and t.success = 1
+            </if>
+            <if test="success != null and !success">
+                and t.success = 0
+            </if>
+            <if test="organizationName != null and organizationName != ''">
+                and t.organization_name like concat('%', #{organizationName}, '%')
+            </if>
+            <if test="spaceName != null and spaceName != ''">
+                and t.space_name like concat('%', #{spaceName}, '%')
+            </if>
+            <if test="deviceName != null and deviceName != ''">
+                and t.device_name like concat('%', #{deviceName}, '%')
+            </if>
+            <if test="deviceNo != null and deviceNo != ''">
+                and t.device_no like concat('%', #{deviceNo}, '%')
+            </if>
+            <if test="deviceType != null and deviceType != '' ">
+                and t.device_type_key = #{deviceType}
+            </if>
+            <if test="executeTimes != null">
+                and t.execute_times <![CDATA[ <= ]]> #{executeTimes}
+            </if>
+        </where>
+        <choose>
+            <when test="asc == true">
+                order by id asc
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="limit != null and limit > 0">
+            limit #{limit}
+        </if>
+    </select>
+
+    <update id="cancelDeviceCommand"
+            parameterType="info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandCancelQo">
+        update device_command_record
+        set ensure_success = 0,
+        remark = #{reason}
+        where 1 = 1
+        and ensure_success = 1
+        and success = 0
+        <if test="commandType != null">
+            and command_type = #{commandType}
+        </if>
+        and device_type_key = #{deviceType}
+        and device_id = #{deviceId}
+    </update>
+
+    <update id="updateCommandExecuteInfo"
+            parameterType="info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity">
+        update device_command_record
+        set
+        success = #{success},
+        <if test="successTime != null">
+            success_time = #{successTime},
+        </if>
+        last_execute_time = #{lastExecuteTime},
+        execute_times = execute_times + 1
+        where id = #{id}
+    </update>
+</mapper>

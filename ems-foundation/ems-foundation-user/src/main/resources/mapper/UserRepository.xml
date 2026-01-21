@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.user.repository.UserRepository">
+
+    <select id="selectByQo" resultType="info.zhihui.ems.foundation.user.entity.UserEntity">
+        select *
+        from sys_user t
+        <where>
+            t.is_deleted = 0
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                and t.id in
+                <foreach item="item" index="index" collection="qo.ids" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.userNameLike != null and qo.userNameLike != ''">
+                and t.user_name like concat('%', #{qo.userNameLike}, '%')
+            </if>
+            <if test="qo.realNameLike != null and qo.realNameLike != ''">
+                and t.real_name like concat('%', #{qo.realNameLike}, '%')
+            </if>
+            <if test="qo.userName != null and qo.userName != ''">
+                and t.user_name = #{qo.userName}
+            </if>
+            <if test="qo.userPhone != null and qo.userPhone != ''">
+                and t.user_phone = #{qo.userPhone}
+            </if>
+            <if test="qo.organizationId != null">
+                and t.organization_id = #{qo.organizationId}
+            </if>
+        </where>
+        order by t.create_time desc, t.id desc
+    </select>
+
+</mapper>

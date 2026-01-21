@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.device.repository.MeterStepRepository">
+    <select id="getOne" resultType="info.zhihui.ems.business.device.entity.MeterStepEntity">
+        select *
+        from energy_account_meter_step
+        where account_id = #{accountId}
+          and meter_type = #{meterType}
+          and meter_id = #{meterId}
+          and is_deleted = 0
+          and is_latest = 1
+        order by current_year desc, id desc
+        limit 1
+    </select>
+
+    <update id="clearLatestFlag">
+        update energy_account_meter_step
+        set is_latest = 0
+        where account_id = #{accountId}
+          and meter_type = #{meterType}
+          and meter_id = #{meterId}
+          and is_deleted = 0
+          and is_latest = 1
+    </update>
+</mapper>

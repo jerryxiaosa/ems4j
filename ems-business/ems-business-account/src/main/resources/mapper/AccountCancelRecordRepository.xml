@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.account.repository.AccountCancelRecordRepository">
+
+    <select id="selectListByCondition"
+            parameterType="info.zhihui.ems.business.account.qo.AccountCancelRecordQo"
+            resultType="info.zhihui.ems.business.account.entity.AccountCancelRecordEntity">
+        SELECT *
+        FROM energy_account_cancel_record
+        <where>
+            is_deleted = 0
+            <if test="ownerName != null and ownerName != ''">
+                AND owner_name LIKE CONCAT('%', #{ownerName}, '%')
+            </if>
+            <if test="cleanBalanceType != null">
+                AND clean_balance_type = #{cleanBalanceType}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByCancelNo"
+            parameterType="string"
+            resultType="info.zhihui.ems.business.account.entity.AccountCancelRecordEntity">
+        SELECT *
+        FROM energy_account_cancel_record
+        WHERE is_deleted = 0
+          AND cancel_no = #{cancelNo}
+        limit 1
+    </select>
+
+</mapper>

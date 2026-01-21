@@ -1,0 +1,37 @@
+server:
+  port: 8880
+
+transport:
+  netty:
+    port: 18801
+    bossThreads: 1
+    workerThreads: 4
+
+spring:
+  application:
+    name: EMS-SERVICE
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:13306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true
+    type: com.alibaba.druid.pool.DruidDataSource
+    username: root
+    password: Gw@123456
+    druid:
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+
+mybatis-plus:
+  repositoryPackage: info.zhihui.ems.**.repository
+  mapperLocations: classpath*:mapper/**/*Repository.xml
+  typeAliasesPackage: info.zhihui.ems.**.entity

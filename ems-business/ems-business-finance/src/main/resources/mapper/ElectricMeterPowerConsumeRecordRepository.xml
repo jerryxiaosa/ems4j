@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.ElectricMeterPowerConsumeRecordRepository">
+    <select id="getMeterLastConsumeRecord" resultType="info.zhihui.ems.business.finance.entity.ElectricMeterPowerConsumeRecordEntity">
+        select *
+        from energy_electric_meter_power_consume_record
+        where is_deleted = 0
+          and meter_id = #{meterId}
+        order by meter_consume_time desc limit 1
+    </select>
+</mapper>

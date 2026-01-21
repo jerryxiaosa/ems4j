@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.user.repository.MenuAuthRepository">
+
+    <!-- 根据菜单ID查询权限标识列表 -->
+    <select id="selectPermissionCodesByMenuId" resultType="string">
+        SELECT permission_code
+        FROM sys_menu_auth
+        WHERE menu_id = #{menuId}
+        AND permission_code IS NOT NULL
+        AND permission_code != ''
+    </select>
+
+    <!-- 根据菜单ID删除权限 -->
+    <delete id="deleteByMenuId">
+        DELETE FROM sys_menu_auth
+        WHERE menu_id = #{menuId}
+    </delete>
+
+</mapper>

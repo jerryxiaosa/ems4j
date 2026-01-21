@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.space.repository.SpaceRepository">
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, name, pid, full_path, type, area, sort_index, is_deleted,
+        create_user, create_user_name, create_time, update_user, update_user_name, update_time, own_area_id
+    </sql>
+
+    <!-- 根据查询条件查询空间列表 -->
+    <select id="selectByQo" resultType="info.zhihui.ems.foundation.space.entity.SpaceEntity">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_space
+        <where>
+            is_deleted = 0
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                AND id IN
+                <foreach collection="qo.ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="qo.pid != null">
+                AND pid = #{qo.pid}
+            </if>
+            <if test="qo.nameLike != null and qo.nameLike != ''">
+                AND name LIKE CONCAT('%', #{qo.nameLike}, '%')
+            </if>
+            <if test="qo.types != null and qo.types.size() > 0">
+                AND type IN
+                <foreach collection="qo.types" item="type" open="(" separator="," close=")">
+                    #{type}
+                </foreach>
+            </if>
+            <if test="qo.fullPathPrefix != null and qo.fullPathPrefix != ''">
+                AND full_path LIKE CONCAT(#{qo.fullPathPrefix}, '%')
+            </if>
+        </where>
+        ORDER BY sort_index ASC, id ASC
+    </select>
+
+    <!-- 统计同一父节点下指定名称的空间数量 -->
+    <select id="countByParentAndName" resultType="int">
+        SELECT COUNT(*)
+        FROM sys_space
+        WHERE pid = #{pid}
+          AND name = #{name}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 统计指定父节点下未删除的子空间数量 -->
+    <select id="countChildrenByPid" resultType="int">
+        SELECT COUNT(*)
+        FROM sys_space
+        WHERE pid = #{pid}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 批量更新全路径 -->
+    <update id="updateFullPathBatch">
+        <foreach collection="entities" item="entity" separator=";">
+            UPDATE sys_space
+            SET full_path = #{entity.fullPath}
+            WHERE id = #{entity.id}
+        </foreach>
+    </update>
+
+</mapper>

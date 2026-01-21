@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.device.repository.MeterCancelRecordRepository">
+
+    <select id="selectByCancelNo"
+            parameterType="string"
+            resultType="info.zhihui.ems.business.device.entity.MeterCancelRecordEntity">
+        SELECT *
+        FROM energy_meter_cancel_record
+        WHERE is_deleted = 0
+          AND cancel_no = #{cancelNo}
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectLatestByMeter"
+            parameterType="int"
+            resultType="info.zhihui.ems.business.device.entity.MeterCancelRecordEntity">
+        SELECT *
+        FROM energy_meter_cancel_record
+        WHERE is_deleted = 0
+          AND meter_id = #{meterId}
+        ORDER BY create_time DESC, id DESC
+        LIMIT 1
+    </select>
+
+</mapper>

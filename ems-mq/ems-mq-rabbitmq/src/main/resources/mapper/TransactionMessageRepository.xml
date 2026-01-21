@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository">
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, business_type, sn, destination, route, payload_type, payload, last_run_at, try_times, create_time, is_success
+    </sql>
+
+    <!-- 根据业务类型和编号查询 -->
+    <select id="getByBusinessTypeAndSn" resultType="info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_transaction_message
+        WHERE business_type = #{businessType}
+        AND sn = #{sn}
+        LIMIT 1
+    </select>
+
+    <select id="getPastUnsuccessful" resultType="info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_transaction_message
+        WHERE is_success = 0
+        AND try_times  <![CDATA[ < ]]> #{maxRetry}
+        AND create_time  <![CDATA[ > ]]> #{pastTime}
+        ORDER BY create_time ASC
+        limit #{limit}
+    </select>
+
+    <!-- 更新事务消息 -->
+    <update id="updateTransactionMessage" parameterType="info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity">
+        UPDATE sys_transaction_message
+        SET last_run_at = #{lastRunAt},
+            is_success = #{isSuccess},
+            try_times = try_times + 1
+        WHERE business_type = #{businessType,jdbcType=VARCHAR}
+          AND sn = #{sn,jdbcType=VARCHAR}
+    </update>
+
+
+</mapper>

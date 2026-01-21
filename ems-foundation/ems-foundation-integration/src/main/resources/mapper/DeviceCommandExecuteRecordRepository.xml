@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository">
+    <select id="findList"
+            resultType="info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandExecuteRecordEntity">
+        select t.*
+        from device_command_execute_record t
+        where t.command_id = #{commandId}
+        order by id desc
+    </select>
+</mapper>

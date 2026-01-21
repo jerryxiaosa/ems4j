@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.plan.repository.ElectricPricePlanRepository">
+
+    <select id="findList" resultType="info.zhihui.ems.business.plan.entity.ElectricPricePlanEntity">
+        select *
+        from energy_electric_price_plan t
+        <where>
+            t.is_deleted = 0
+            <if test="name != null and name != ''">
+                and t.name like concat('%', #{name}, '%')
+            </if>
+            <if test="isCustomPrice != null">
+                and t.is_custom_price = #{isCustomPrice}
+            </if>
+            <if test="neId != null">
+                and t.id != #{neId}
+            </if>
+            <if test="eqName != null and eqName != ''">
+                and t.name = #{eqName}
+            </if>
+        </where>
+        order by t.create_time desc
+    </select>
+
+</mapper>

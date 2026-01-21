@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.user.repository.MenuRepository">
+
+    <!-- 根据查询条件查询菜单列表 -->
+    <select id="selectByQo" resultType="info.zhihui.ems.foundation.user.entity.MenuEntity">
+        SELECT * FROM sys_menu
+        <where>
+            is_deleted = 0
+            <if test="qo.menuNameLike != null and qo.menuNameLike != ''">
+                AND menu_name LIKE CONCAT('%', #{qo.menuNameLike}, '%')
+            </if>
+            <if test="qo.menuKey != null and qo.menuKey != ''">
+                AND menu_key = #{qo.menuKey}
+            </if>
+            <if test="qo.pid != null">
+                AND pid = #{qo.pid}
+            </if>
+            <if test="qo.menuSource != null">
+                AND menu_source = #{qo.menuSource}
+            </if>
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                AND id IN
+                <foreach collection="qo.ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="qo.excludeIds != null and qo.excludeIds.size() > 0">
+                AND id NOT IN
+                <foreach collection="qo.excludeIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY sort_num ASC, id ASC
+    </select>
+
+</mapper>

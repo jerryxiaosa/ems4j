@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.AccountBalanceConsumeRecordRepository">
+
+    <select id="selectByQo" resultType="info.zhihui.ems.business.finance.entity.AccountBalanceConsumeRecordEntity">
+        SELECT
+            id,
+            consume_no,
+            account_id,
+            owner_name,
+            begin_balance,
+            pay_amount,
+            end_balance,
+            consume_time,
+            create_time
+        FROM energy_account_balance_consume_record
+        WHERE is_deleted = 0
+        <if test="accountId != null">
+            AND account_id = #{accountId}
+        </if>
+        <if test="consumeTimeStart != null">
+            AND consume_time &gt;= #{consumeTimeStart}
+        </if>
+        <if test="consumeTimeEnd != null">
+            AND consume_time &lt;= #{consumeTimeEnd}
+        </if>
+        <if test="consumeNoLike != null and consumeNoLike != ''">
+            AND consume_no LIKE CONCAT('%', #{consumeNoLike}, '%')
+        </if>
+        ORDER BY consume_time DESC, id DESC
+    </select>
+
+    <select id="countMonthlyConsume" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM energy_account_balance_consume_record
+        WHERE is_deleted = 0
+          AND consume_type = 0
+          AND account_id = #{accountId}
+          AND consume_time &gt;= #{monthStart}
+          AND consume_time &lt; #{monthEnd}
+    </select>
+
+</mapper>

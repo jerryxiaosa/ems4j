@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.iot.infrastructure.persistence.repository.DeviceRepository">
+
+    <select id="getByDeviceNo" resultType="info.zhihui.ems.iot.infrastructure.persistence.entity.DeviceEntity">
+        select *
+        from iot_device
+        where device_no = #{deviceNo}
+        limit 1
+    </select>
+
+    <select id="getByParentIdAndPortNoAndMeterAddress" resultType="info.zhihui.ems.iot.infrastructure.persistence.entity.DeviceEntity">
+        select *
+        from iot_device
+        where parent_id = #{parentId}
+          and port_no = #{portNo}
+          and meter_address = #{meterAddress}
+        limit 1
+    </select>
+
+</mapper>

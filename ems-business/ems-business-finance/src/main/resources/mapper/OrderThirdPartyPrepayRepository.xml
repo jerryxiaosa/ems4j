@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.order.OrderThirdPartyPrepayRepository">
+    <update id="updateByOrderSn">
+        update order_third_party_prepay
+        <set>
+            <if test="prepayId != null">
+                prepay_id = #{prepayId,jdbcType=VARCHAR},
+            </if>
+            <if test="thirdPartyUserId != null">
+                third_party_user_id = #{thirdPartyUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="thirdPartySn!= null">
+                third_party_sn = #{thirdPartySn,jdbcType=VARCHAR},
+            </if>
+            <if test="prepayAt != null">
+                prepay_at = #{prepayAt,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where order_sn = #{orderSn} limit 1;
+    </update>
+</mapper>
+

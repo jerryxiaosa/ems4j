@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.device.repository.ElectricMeterRepository">
+    <select id="findList" resultType="info.zhihui.ems.business.device.entity.ElectricMeterEntity">
+        select *
+        from energy_electric_meter t
+        <where>
+            t.is_deleted = 0
+
+            <if test="meterId != null">
+                and t.id = #{meterId}
+            </if>
+            <if test="meterName != null and meterName != ''">
+                and t.meter_name like concat('%'
+                , #{meterName}
+                , '%')
+            </if>
+            <if test="meterNo != null and meterNo != ''">
+                and t.meter_no like concat('%', #{meterNo}, '%')
+            </if>
+            <if test="accountId != null">
+                and t.account_id = #{accountId}
+            </if>
+            <if test="iotId != null">
+                and t.iot_id = #{iotId}
+            </if>
+            <if test="gatewayId != null">
+                and t.gateway_id = #{gatewayId}
+            </if>
+            <if test="isOnline != null">
+                and t.is_online = #{isOnline}
+            </if>
+            <if test="isCutOff != null">
+                and t.is_cut_off = #{isCutOff}
+            </if>
+            <if test="isCalculate != null">
+                and t.is_calculate = #{isCalculate}
+            </if>
+            <if test="calculateType != null">
+                and t.calculate_type = #{calculateType}
+            </if>
+            <if test="isPrepay != null">
+                and t.is_prepay = #{isPrepay}
+            </if>
+            <if test="portNo != null">
+                and t.port_no = #{portNo}
+            </if>
+            <if test="meterAddress != null">
+                and t.meter_address = #{meterAddress}
+            </if>
+            <if test="areaId != null">
+                and t.own_area_id = #{areaId}
+            </if>
+            <if test="imei != null and imei != ''">
+                and t.imei = #{imei}
+            </if>
+            <if test="searchKey != null and searchKey != ''">
+                and (t.meter_name like concat('%',#{searchKey},'%') or t.meter_no like concat('%',#{searchKey},'%'))
+            </if>
+            <if test="neId != null">
+                and t.id != #{neId}
+            </if>
+            <if test="inIds != null and inIds.size() > 0">
+                and t.id in
+                <foreach item="item" index="index" collection="inIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="spaceIds != null and spaceIds.size() > 0">
+                and t.space_id in
+                <foreach collection="spaceIds" item="i" open="(" close=")" separator=",">
+                    #{i}
+                </foreach>
+            </if>
+        </where>
+        order by t.create_time desc, t.id desc
+    </select>
+
+    <update id="batchUpdate">
+        update energy_electric_meter t
+        <set>
+            <if test="protectedModel != null">
+                t.protected_model = #{protectedModel},
+            </if>
+            <if test="pricePlanId != null">
+                t.price_plan_id = #{pricePlanId},
+            </if>
+            <if test="warnPlanId != null">
+                t.warn_plan_id = #{warnPlanId},
+            </if>
+            <if test="warnType != null">
+                t.warn_type = #{warnType},
+            </if>
+            <if test="updateUser != null">
+                t.update_user = #{updateUser},
+            </if>
+            <if test="updateUserName != null">
+                t.update_user_name = #{updateUserName},
+            </if>
+            <if test="updateTime != null">
+                t.update_time = #{updateTime},
+            </if>
+        </set>
+        where t.id in
+        <foreach collection="meterIds" separator="," open="(" close=")" item="i">
+            #{i}
+        </foreach>
+    </update>
+
+    <update id="resetMeterAccountInfo">
+        update energy_electric_meter
+        <set>
+            protected_model = false,
+            warn_type = null,
+            warn_plan_id = null,
+            price_plan_id = null,
+            account_id = null,
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="updateUserName != null">
+                update_user_name = #{updateUserName},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id in
+        <foreach item="item" index="index" collection="meterIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+
+    <update id="updateWithCalculateTypeControl">
+        update energy_electric_meter
+        <set>
+            <if test="entity.spaceId != null">
+                space_id = #{entity.spaceId},
+            </if>
+            <if test="entity.meterName != null">
+                meter_name = #{entity.meterName},
+            </if>
+            <if test="entity.deviceNo != null">
+                device_no = #{entity.deviceNo},
+            </if>
+            <if test="entity.isCalculate != null">
+                is_calculate = #{entity.isCalculate},
+            </if>
+            <if test="entity.isPrepay != null">
+                is_prepay = #{entity.isPrepay},
+            </if>
+            <if test="entity.ownAreaId != null">
+                own_area_id = #{entity.ownAreaId},
+            </if>
+            <if test="entity.updateUser != null">
+                update_user = #{entity.updateUser},
+            </if>
+            <if test="entity.updateUserName != null">
+                update_user_name = #{entity.updateUserName},
+            </if>
+            <if test="entity.updateTime != null">
+                update_time = #{entity.updateTime},
+            </if>
+            <!-- 动态控制 calculate_type 的更新逻辑 -->
+            <choose>
+                <!-- 当 resetCalculateType 为 true 时，将 calculate_type 设置为 NULL -->
+                <when test="resetCalculateType == true">
+                    calculate_type = null,
+                </when>
+                <!-- 当 resetCalculateType 为 false 且 calculateType 不为 null 时，正常更新 calculate_type -->
+                <when test="resetCalculateType == false and entity.calculateType != null">
+                    calculate_type = #{entity.calculateType},
+                </when>
+                <!-- 当 resetCalculateType 为 false 且 calculateType 为 null 时，不更新该列（保持既有行为） -->
+            </choose>
+        </set>
+        where id = #{entity.id}
+    </update>
+
+</mapper>

@@ -1,0 +1,99 @@
+# 测试环境配置
+spring:
+  datasource:
+    # 使用内存数据库进行测试
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
+    console:
+      enabled: true
+    druid:
+      test-while-idle: false
+
+  sql:
+    init:
+      platform: h2
+      schema-locations: classpath:h2-schema.sql
+      data-locations: classpath:h2-data.sql
+      encoding: utf-8
+
+  # 不连接真实队列
+  rabbitmq:
+    listener:
+      simple:
+        prefetch: 20
+        concurrency: 1
+        max-concurrency: 3
+        auto-startup: false
+        missing-queues-fatal: false
+        retry:
+          max-attempts: 3
+          initial-interval: 1000
+          max-interval: 60000
+          multiplier: 4
+
+  data:
+    redis:
+      host: 127.0.0.1
+      # 使用embedded redis需要避免与实际运行中的redis冲突
+      port: 6399
+      database: 10
+      timeout: 5s
+      ssl.enabled: false
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+
+redisson:
+  # redis key前缀
+  keyPrefix: ems-v202510-
+  # 线程池数量
+  threads: 4
+  # Netty线程池数量
+  nettyThreads: 8
+  # 单节点配置
+  singleServerConfig:
+    # 客户端名称
+    clientName: ems-redisson-client
+    # 最小空闲连接数
+    connectionMinimumIdleSize: 8
+    # 连接池大小
+    connectionPoolSize: 32
+    # 连接空闲超时，单位：毫秒
+    idleConnectionTimeout: 10000
+    # 命令等待超时，单位：毫秒
+    timeout: 3000
+
+
+mybatis-plus:
+  repositoryPackage: info.zhihui.ems.**.repository
+  mapperLocations: classpath*:mapper/**/*Repository.xml
+  typeAliasesPackage: info.zhihui.ems.**.entity
+
+# 日志配置
+logging:
+  level:
+    info.zhihui.ems: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+useRealDevice: false
+
+schedule:
+  aspect:
+    enabled: false
+
+sa-token:
+  # jwt秘钥
+  jwt-secret-key: sdfadsueafasfdals
+
+mq:
+  type: mock
+
+permission:
+  excludes: /doc.html,/v3/api-docs/**,/**/*.css,/**/*.js,/**/*.ico,/**/error

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.finance.repository.ElectricMeterBalanceConsumeRecordRepository">
+
+    <select id="selectByQo" resultType="info.zhihui.ems.business.finance.entity.ElectricMeterBalanceConsumeRecordEntity">
+        SELECT
+            id,
+            meter_consume_record_id,
+            consume_no,
+            consume_type,
+            meter_type,
+            meter_id,
+            meter_name,
+            meter_no,
+            space_id,
+            space_name,
+            account_id,
+            electric_account_type,
+            owner_id,
+            owner_type,
+            owner_name,
+            begin_balance,
+            end_balance,
+            consume_amount,
+            consume_amount_higher,
+            consume_amount_high,
+            consume_amount_low,
+            consume_amount_lower,
+            consume_amount_deep_low,
+            meter_consume_time,
+            create_time,
+            is_deleted
+        FROM energy_electric_meter_balance_consume_record
+        WHERE is_deleted = 0
+        <if test="meterNameLike != null and meterNameLike != ''">
+            AND meter_name LIKE CONCAT('%', #{meterNameLike}, '%')
+        </if>
+        <if test="spaceNameLike != null and spaceNameLike != ''">
+            AND space_name LIKE CONCAT('%', #{spaceNameLike}, '%')
+        </if>
+        <if test="accountId != null">
+            AND account_id = #{accountId}
+        </if>
+        <if test="meterId != null">
+            AND meter_id = #{meterId}
+        </if>
+        <if test="consumeType != null">
+            AND consume_type = #{consumeType}
+        </if>
+        <if test="beginTime != null">
+            AND meter_consume_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND meter_consume_time &lt;= #{endTime}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

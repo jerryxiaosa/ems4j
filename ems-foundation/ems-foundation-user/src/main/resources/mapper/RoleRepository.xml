@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.foundation.user.repository.RoleRepository">
+
+    <select id="selectByQo" resultType="info.zhihui.ems.foundation.user.entity.RoleEntity">
+        select *
+        from sys_role t
+        <where>
+            t.is_deleted = 0
+            <if test="qo.ids != null and qo.ids.size() > 0">
+                and t.id in
+                <foreach item="item" index="index" collection="qo.ids" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.excludeIds != null and qo.excludeIds.size() > 0">
+                and t.id not in
+                <foreach item="item" index="index" collection="qo.excludeIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.roleNameLike != null and qo.roleNameLike != ''">
+                and t.role_name like concat('%', #{qo.roleNameLike}, '%')
+            </if>
+            <if test="qo.roleKey != null and qo.roleKey != ''">
+                and t.role_key = #{qo.roleKey}
+            </if>
+            <if test="qo.isSystem != null">
+                and t.is_system = #{qo.isSystem}
+            </if>
+            <if test="qo.isDisabled != null">
+                and t.is_disabled = #{qo.isDisabled}
+            </if>
+        </where>
+        order by t.sort_num asc, t.id asc
+    </select>
+
+    <!-- 根据角色ID集合查询菜单权限 -->
+    <select id="selectPermissionsByRoleId" resultType="string">
+        SELECT DISTINCT maa.permission_code
+        FROM sys_menu_auth maa
+                 INNER JOIN sys_menu m ON maa.menu_id = m.id
+                 INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
+        WHERE rm.role_id = #{roleId}
+          AND maa.permission_code IS NOT NULL
+          AND maa.permission_code != ''
+    </select>
+
+    <!-- 判断角色集合是否拥有指定权限 -->
+    <select id="existsPermission" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM sys_menu_auth maa
+                     INNER JOIN sys_menu m ON maa.menu_id = m.id
+                     INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
+            WHERE rm.role_id IN
+            <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+                #{roleId}
+            </foreach>
+              AND maa.permission_code = #{permission}
+            LIMIT 1
+        )
+    </select>
+
+</mapper>
