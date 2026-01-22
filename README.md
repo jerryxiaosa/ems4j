@@ -4,7 +4,7 @@ EMS4J is a comprehensive energy management platform with capabilities for device
 
 ## Tech Stack
 
-- Java 17 / Spring Boot / Maven
+- Java 17 / Spring Boot 3 / Maven
 - MyBatis / JUnit 5 / Mockito
 - Netty (IoT access and protocol handling)
 - RabbitMQ (messaging, optional)

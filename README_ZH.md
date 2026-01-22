@@ -5,7 +5,7 @@ EMS4J是一个专注于能耗管理的综合性业务平台，具备设备接入
 
 ## 技术栈
 
-- Java 17 / Spring Boot / Maven
+- Java 17 / Spring Boot 3 / Maven
 - MyBatis / JUnit 5 / Mockito
 - Netty（IoT 接入与协议处理）
 - RabbitMQ（消息能力，可选）
@@ -94,7 +94,7 @@ mvn -pl ems-business/ems-business-device -am test
   - `doc/modules/integration/ems-foundation-integration-overview.md`
 
 ## IoT 模块说明
-目前已实现安科瑞、斯菲尔、仪歌、燕赵等设备和表具的对接
+目前已实现安科瑞、斯菲尔、仪歌、燕赵等品牌的设备和表具的对接
 
 - 设计与分层：`doc/modules/iot/architecture-layering.md`
 - 协议接入指南：`doc/modules/iot/protocol-integration-guide.md`
