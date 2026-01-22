@@ -1,6 +1,6 @@
 # EMS4J
 
-EMS4J is a comprehensive platform for energy metering and device management. It provides device access, metering and billing, account management, financial accounting, and operations support. The platform offers a highly abstracted integration model for IoT platforms and also supports direct device access via the built-in IoT module.
+EMS4J is a comprehensive energy management platform with capabilities for device access, metering and billing, account management, financial accounting, and operations support. It provides an abstract integration model for IoT platforms and also supports direct device access via the built-in IoT module.
 
 ## Tech Stack
 
@@ -94,6 +94,8 @@ There are two integration approaches:
 
 ## IoT Module Docs
 
+Currently integrated vendors include Acrel, Sfere, Yige, and Yke devices/meters.
+
 - Architecture & layering: `doc/modules/iot/architecture-layering.md`
 - Protocol integration guide: `doc/modules/iot/protocol-integration-guide.md`
 - Device identity mapping: `doc/modules/iot/device-identity-mapping.md`
@@ -110,3 +112,7 @@ There are two integration approaches:
 ## License
 
 - This project is licensed under the MIT License. See `LICENSE`.
+
+## Contact
+
+- Email: jerryxiaoff@163.com

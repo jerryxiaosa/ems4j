@@ -1,6 +1,6 @@
 # EMS4J
 
-EMS4J是一个专注于能耗与设备管理的综合性业务平台，具备设备接入、计量计费、账户管理、财务核算与运维支持等核心能力。
+EMS4J是一个专注于能耗管理的综合性业务平台，具备设备接入、计量计费、账户管理、财务核算与运维支持等核心能力。
 该平台提供了高度抽象的设备对接方案，能够灵活适配各类物联网平台，同时也支持通过内置的IoT模块自主实现设备接入，具备良好的扩展性。
 
 ## 技术栈
@@ -94,6 +94,7 @@ mvn -pl ems-business/ems-business-device -am test
   - `doc/modules/integration/ems-foundation-integration-overview.md`
 
 ## IoT 模块说明
+目前已实现安科瑞、斯菲尔、仪歌、燕赵等设备和表具的对接
 
 - 设计与分层：`doc/modules/iot/architecture-layering.md`
 - 协议接入指南：`doc/modules/iot/protocol-integration-guide.md`
@@ -111,3 +112,7 @@ mvn -pl ems-business/ems-business-device -am test
 ## 许可证
 
 - 本项目采用 MIT 许可证，详见 `LICENSE`。
+
+## 联系方式
+
+- 邮箱：jerryxiaoff@163.com
