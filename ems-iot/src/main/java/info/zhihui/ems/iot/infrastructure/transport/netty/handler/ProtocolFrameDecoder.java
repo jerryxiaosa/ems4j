@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.handler;
 
 import info.zhihui.ems.iot.config.DeviceAdapterProperties;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelAttributes;
@@ -44,6 +44,7 @@ public class ProtocolFrameDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        log.debug("开始探测协议，channel id: {}", ctx.channel().id());
         Attribute<ProtocolSignature> attr = ctx.channel().attr(ChannelAttributes.PROTOCOL_SIGNATURE);
         if (!in.isReadable() || attr.get() != null) {
             return;

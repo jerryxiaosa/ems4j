@@ -1,10 +1,11 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
-import info.zhihui.ems.iot.protocol.port.DeviceBinder;
-import info.zhihui.ems.iot.protocol.port.ProtocolInboundPublisher;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
@@ -42,19 +43,23 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
         }
         DataUploadMessage upload = (DataUploadMessage) message;
         String deviceNo = upload.getSerialNumber();
-        if (StringUtils.isNotBlank(deviceNo)) {
+
+        if (StringUtils.isBlank(context.getDeviceNo()) && StringUtils.isBlank(deviceNo)) {
+            log.warn("4G 注册缺少序列号，session={}", session.getSessionId());
+            reportAbnormal(context, AbnormalReasonEnum.ILLEGAL_DEVICE, "数据上报缺少序列号");
+            return;
+        }
+
+        if (StringUtils.isNotBlank(deviceNo) && !deviceNo.equals(context.getDeviceNo())) {
             try {
                 deviceBinder.bind(context, deviceNo);
             } catch (Exception ex) {
-                log.warn("4G 处理上报信息绑定设备失败 deviceNo={} session={}", deviceNo, session.getSessionId(), ex);
+                log.warn("4G 对时绑定设备失败 deviceNo={} session={}", deviceNo, session.getSessionId(), ex);
+                reportAbnormal(context, AbnormalReasonEnum.BUSINESS_ERROR, " 数据上报绑定设备失败");
                 return;
             }
         } else {
             deviceNo = context.getDeviceNo();
-            if (StringUtils.isBlank(deviceNo)) {
-                log.warn("4G 数据上报无法绑定设备，session={}", session.getSessionId());
-                return;
-            }
         }
 
         LocalDateTime receivedAt = context.getReceivedAt() != null ? context.getReceivedAt() : LocalDateTime.now();

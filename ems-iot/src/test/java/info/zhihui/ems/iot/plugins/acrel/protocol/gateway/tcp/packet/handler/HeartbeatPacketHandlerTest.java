@@ -5,13 +5,15 @@ import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+
+import java.nio.charset.StandardCharsets;
 
 class HeartbeatPacketHandlerTest {
 
@@ -59,7 +61,17 @@ class HeartbeatPacketHandlerTest {
         Mockito.verify(frameCodec).encode(Mockito.eq(GatewayPacketCode.HEARTBEAT), Mockito.any());
         Mockito.verify(context.getSession()).send(encoded);
         byte[] payload = payloadCaptor.getValue();
-        Assertions.assertEquals(14, payload.length);
+        String xml = new String(payload, StandardCharsets.UTF_8);
+        Assertions.assertTrue(xml.startsWith(
+                "<?xml version=\"1.0\"?><root><common><building_id></building_id><gateway_id>gw-1</gateway_id>" +
+                        "<type>heart_beat</type></common><heart_beat operation=\"time\"><time>"));
+        Assertions.assertTrue(xml.endsWith("</time></heart_beat></root>"));
+        int start = xml.indexOf("<time>");
+        int end = xml.indexOf("</time>");
+        Assertions.assertTrue(start > 0);
+        Assertions.assertTrue(end > start);
+        String time = xml.substring(start + 6, end);
+        Assertions.assertTrue(time.matches("\\d{14}"));
     }
 
     private ProtocolMessageContext buildContext() {

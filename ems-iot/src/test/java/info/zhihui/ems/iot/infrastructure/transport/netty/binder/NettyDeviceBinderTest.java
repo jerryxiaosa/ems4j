@@ -4,11 +4,12 @@ import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
-import info.zhihui.ems.iot.protocol.port.DeviceSessionRegistry;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,45 +21,46 @@ class NettyDeviceBinderTest {
     @Test
     void bind_whenContextNull_shouldSkip() {
         DeviceRegistry registry = Mockito.mock(DeviceRegistry.class);
-        DeviceSessionRegistry sessionRegistry = Mockito.mock(DeviceSessionRegistry.class);
-        NettyDeviceBinder binder = new NettyDeviceBinder(registry, sessionRegistry);
+        ChannelManager channelManager = Mockito.mock(ChannelManager.class);
+        NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
 
         binder.bind(null, "dev-1");
 
-        Mockito.verifyNoInteractions(registry, sessionRegistry);
+        Mockito.verifyNoInteractions(registry, channelManager);
     }
 
     @Test
     void bind_whenChannelNull_shouldSkip() {
         DeviceRegistry registry = Mockito.mock(DeviceRegistry.class);
-        DeviceSessionRegistry sessionRegistry = Mockito.mock(DeviceSessionRegistry.class);
-        NettyDeviceBinder binder = new NettyDeviceBinder(registry, sessionRegistry);
+        ChannelManager channelManager = Mockito.mock(ChannelManager.class);
+        NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext();
 
         binder.bind(context, "dev-1");
 
-        Mockito.verifyNoInteractions(registry, sessionRegistry);
+        Mockito.verifyNoInteractions(registry, channelManager);
     }
 
     @Test
     void bind_whenDeviceNoBlank_shouldSkip() {
         DeviceRegistry registry = Mockito.mock(DeviceRegistry.class);
-        DeviceSessionRegistry sessionRegistry = Mockito.mock(DeviceSessionRegistry.class);
-        NettyDeviceBinder binder = new NettyDeviceBinder(registry, sessionRegistry);
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(new EmbeddedChannel()));
+        ChannelManager channelManager = Mockito.mock(ChannelManager.class);
+        NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(
+                new NettyProtocolSession(new EmbeddedChannel(), new ChannelManager()));
 
         binder.bind(context, " ");
 
-        Mockito.verifyNoInteractions(registry, sessionRegistry);
+        Mockito.verifyNoInteractions(registry, channelManager);
     }
 
     @Test
     void bind_whenValid_shouldFillContextAndRegister() {
         DeviceRegistry registry = Mockito.mock(DeviceRegistry.class);
-        DeviceSessionRegistry sessionRegistry = Mockito.mock(DeviceSessionRegistry.class);
-        NettyDeviceBinder binder = new NettyDeviceBinder(registry, sessionRegistry);
+        ChannelManager channelManager = Mockito.mock(ChannelManager.class);
+        NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel);
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
 
         Product product = new Product()
@@ -72,12 +74,12 @@ class NettyDeviceBinderTest {
         binder.bind(context, "dev-1");
 
         Mockito.verify(registry).getByDeviceNo("dev-1");
-        ArgumentCaptor<Device> deviceCaptor = ArgumentCaptor.forClass(Device.class);
-        ArgumentCaptor<ProtocolSession> sessionCaptor = ArgumentCaptor.forClass(ProtocolSession.class);
-        Mockito.verify(sessionRegistry).register(deviceCaptor.capture(), sessionCaptor.capture());
-
-        Assertions.assertSame(device, deviceCaptor.getValue());
-        Assertions.assertSame(session, sessionCaptor.getValue());
+        ArgumentCaptor<ChannelSession> channelCaptor = ArgumentCaptor.forClass(ChannelSession.class);
+        Mockito.verify(channelManager).register(channelCaptor.capture());
+        ChannelSession channelSession = channelCaptor.getValue();
+        Assertions.assertEquals("dev-1", channelSession.getDeviceNo());
+        Assertions.assertEquals(DeviceTypeEnum.ELECTRIC, channelSession.getDeviceType());
+        Assertions.assertSame(channel, channelSession.getChannel());
         Assertions.assertEquals("dev-1", context.getDeviceNo());
         Assertions.assertEquals("dev-1", session.getAttribute(CommonProtocolSessionKeys.DEVICE_NO));
     }

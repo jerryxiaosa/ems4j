@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.definition;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler.DataUploadPacketHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser.DataUploadPacketParser;

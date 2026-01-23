@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.command;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
-import info.zhihui.ems.iot.protocol.port.ProtocolCommandTransport;
+import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class NettyCommandTransport implements ProtocolCommandTransport {
         if (payload == null) {
             throw new IllegalArgumentException("payload 不能为空");
         }
-        return channelManager.sendWithAck(deviceNo, Unpooled.wrappedBuffer(payload));
+        return channelManager.sendInQueue(deviceNo, Unpooled.wrappedBuffer(payload));
     }
 
     @Override

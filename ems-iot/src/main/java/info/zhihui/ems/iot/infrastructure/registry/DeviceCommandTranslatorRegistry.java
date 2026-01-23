@@ -1,9 +1,9 @@
 package info.zhihui.ems.iot.infrastructure.registry;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.iot.protocol.port.DeviceCommandTranslator;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
-import info.zhihui.ems.iot.protocol.port.DeviceCommandTranslatorResolver;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

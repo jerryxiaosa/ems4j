@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.session;
 
 /**
  * 协议会话常用属性键集合。

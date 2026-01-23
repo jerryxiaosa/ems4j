@@ -1,6 +1,8 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.session;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSessionKey;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSessionKey;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -27,7 +29,7 @@ class NettyProtocolSessionTest {
 
     @Test
     void testGetSessionId_ChannelNull_ReturnsNull() {
-        NettyProtocolSession session = new NettyProtocolSession(null);
+        NettyProtocolSession session = buildSession(null);
 
         Assertions.assertNull(session.getSessionId());
     }
@@ -35,14 +37,14 @@ class NettyProtocolSessionTest {
     @Test
     void testGetSessionId_ChannelProvided_ReturnsId() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         Assertions.assertEquals(channel.id().asLongText(), session.getSessionId());
     }
 
     @Test
     void testIsActive_ChannelNull_ReturnsFalse() {
-        NettyProtocolSession session = new NettyProtocolSession(null);
+        NettyProtocolSession session = buildSession(null);
 
         Assertions.assertFalse(session.isActive());
     }
@@ -50,7 +52,7 @@ class NettyProtocolSessionTest {
     @Test
     void testIsActive_ChannelClosed_ReturnsFalse() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         channel.close();
 
@@ -60,7 +62,7 @@ class NettyProtocolSessionTest {
     @Test
     void testSend_PayloadProvided_WritesToChannel() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
         byte[] payload = new byte[]{1, 2, 3};
 
         session.send(payload);
@@ -77,7 +79,7 @@ class NettyProtocolSessionTest {
     @Test
     void testSend_PayloadNull_NoOutboundWrite() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         session.send(null);
 
@@ -93,7 +95,7 @@ class NettyProtocolSessionTest {
                 captured.set(evt);
             }
         });
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
         Object event = new Object();
 
         session.publishEvent(event);
@@ -110,7 +112,7 @@ class NettyProtocolSessionTest {
                 captured.set(evt);
             }
         });
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         session.publishEvent(null);
 
@@ -120,7 +122,7 @@ class NettyProtocolSessionTest {
     @Test
     void testGetSetRemoveAttribute_DefaultFlow() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         session.setAttribute(TOKEN_KEY, "v1");
 
@@ -134,7 +136,7 @@ class NettyProtocolSessionTest {
     @Test
     void testGetAttribute_KeyNull_ReturnsNull() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         Assertions.assertNull(session.getAttribute(null));
     }
@@ -142,10 +144,19 @@ class NettyProtocolSessionTest {
     @Test
     void testClose_ChannelProvided_ClosesChannel() {
         EmbeddedChannel channel = new EmbeddedChannel();
-        NettyProtocolSession session = new NettyProtocolSession(channel);
+        NettyProtocolSession session = buildSession(channel);
 
         session.close();
 
         Assertions.assertFalse(channel.isActive());
+    }
+
+    private NettyProtocolSession buildSession(EmbeddedChannel channel) {
+        ChannelManager manager = new ChannelManager();
+        if (channel != null) {
+            ChannelSession session = new ChannelSession().setChannel(channel);
+            manager.register(session);
+        }
+        return new NettyProtocolSession(channel, manager);
     }
 }

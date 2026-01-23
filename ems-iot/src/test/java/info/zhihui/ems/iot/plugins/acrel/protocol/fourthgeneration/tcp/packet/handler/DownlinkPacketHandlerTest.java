@@ -1,10 +1,11 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
-import info.zhihui.ems.iot.protocol.port.ProtocolCommandTransport;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -28,7 +29,7 @@ class DownlinkPacketHandlerTest {
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
         byte[] modbusFrame = new byte[]{0x01, 0x02};
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber("dev-1")
@@ -44,7 +45,7 @@ class DownlinkPacketHandlerTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel);
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-2");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
         byte[] modbusFrame = new byte[]{0x05, 0x06};
@@ -64,7 +65,7 @@ class DownlinkPacketHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         byte[] rawPayload = new byte[]{0x11, 0x22};
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
                 .setRawPayload(rawPayload);
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber("dev-3")
@@ -81,7 +82,7 @@ class DownlinkPacketHandlerTest {
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber(" ");
 

@@ -2,9 +2,13 @@ package info.zhihui.ems.iot.application;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.iot.config.IotOnlineProperties;
 import info.zhihui.ems.iot.domain.command.DeviceCommandRequest;
 import info.zhihui.ems.iot.domain.command.concrete.*;
+import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
+import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.vo.electric.ElectricDateDurationVo;
 import info.zhihui.ems.iot.vo.electric.ElectricDurationUpdateVo;
 import info.zhihui.ems.iot.vo.electric.ElectricDurationVo;
@@ -14,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 public class DeviceVendorFacade {
 
     private final CommandAppService commandAppService;
+    private final DeviceRegistry deviceRegistry;
+    private final IotOnlineProperties onlineProperties;
 
     public Integer getCt(Integer deviceId) {
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, new GetCtCommand(), "CT读取");
@@ -91,7 +99,15 @@ public class DeviceVendorFacade {
     }
 
     public Boolean getOnline(Integer deviceId) {
-        throw new BusinessRuntimeException("暂不支持读取在线状态");
+        Device device = deviceRegistry.getById(deviceId);
+        DeviceAccessModeEnum accessMode = device.getProduct() == null ? null : device.getProduct().getAccessMode();
+        if (accessMode == null) {
+            throw new BusinessRuntimeException("设备接入方式缺失");
+        }
+        if (DeviceAccessModeEnum.GATEWAY.equals(accessMode)) {
+            return probeGatewayChildOnline(device);
+        }
+        return isDirectOnline(device);
     }
 
     private DeviceCommandResult sendAndAssertSuccess(Integer deviceId, DeviceCommandRequest request,
@@ -189,5 +205,37 @@ public class DeviceVendorFacade {
             return number.intValue();
         }
         throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+    }
+
+    private boolean isDirectOnline(Device device) {
+        if (device == null || device.getLastOnlineAt() == null) {
+            return false;
+        }
+        if (!isWithinOnlineWindow(device.getLastOnlineAt(), LocalDateTime.now())) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isWithinOnlineWindow(LocalDateTime lastOnlineAt, LocalDateTime now) {
+        long timeoutSeconds = onlineProperties.getTimeoutSeconds();
+        if (timeoutSeconds <= 0) {
+            return true;
+        }
+        long seconds = Duration.between(lastOnlineAt, now).getSeconds();
+        return seconds <= timeoutSeconds;
+    }
+
+    private boolean probeGatewayChildOnline(Device device) {
+        Integer parentId = device.getParentId();
+        if (parentId == null) {
+            throw new BusinessRuntimeException("网关设备缺失");
+        }
+        Device gateway = deviceRegistry.getById(parentId);
+        if (!isDirectOnline(gateway)) {
+            return false;
+        }
+        sendAndAssertSuccess(device.getId(), new GetTotalEnergyCommand(), "在线探测");
+        return true;
     }
 }

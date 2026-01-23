@@ -37,7 +37,7 @@ class ChannelManagerTest {
 
     @Test
     void sendToDevice_shouldReturnFuture_andCompleteOnWrite() throws Exception {
-        CompletableFuture<byte[]> future = channelManager.sendWithAck("dev-1", new byte[]{1, 2, 3});
+        CompletableFuture<byte[]> future = channelManager.sendInQueue("dev-1", new byte[]{1, 2, 3});
         channelManager.completePending("dev-1", new byte[]{9});
 
         future.get(1, TimeUnit.SECONDS); // 无异常即为通过
@@ -45,8 +45,8 @@ class ChannelManagerTest {
 
     @Test
     void sendToDevice_shouldQueueAndDispatchInOrder() throws Exception {
-        CompletableFuture<byte[]> first = channelManager.sendWithAck("dev-1", new byte[]{1});
-        CompletableFuture<byte[]> second = channelManager.sendWithAck("dev-1", new byte[]{2});
+        CompletableFuture<byte[]> first = channelManager.sendInQueue("dev-1", new byte[]{1});
+        CompletableFuture<byte[]> second = channelManager.sendInQueue("dev-1", new byte[]{2});
 
         // 模拟按顺序收到两个响应
         channelManager.completePending("dev-1", new byte[]{9});
@@ -60,7 +60,7 @@ class ChannelManagerTest {
     void sendToDevice_shouldFailWhenChannelInactive() {
         channel.close();
         Assertions.assertThrows(IllegalStateException.class,
-                () -> channelManager.sendWithAck("dev-1", new byte[]{1}));
+                () -> channelManager.sendInQueue("dev-1", new byte[]{1}));
     }
 
     @Test
@@ -70,7 +70,7 @@ class ChannelManagerTest {
         int success = 0;
         CompletableFuture<byte[]> rejected = null;
         for (int i = 0; i < 20; i++) {
-            CompletableFuture<byte[]> future = channelManager.sendWithAck("dev-1", new byte[]{(byte) i});
+            CompletableFuture<byte[]> future = channelManager.sendInQueue("dev-1", new byte[]{(byte) i});
             if (future.isCompletedExceptionally()) {
                 rejected = future;
                 break;
@@ -84,7 +84,7 @@ class ChannelManagerTest {
 
     @Test
     void completePending_shouldResolveFuture() throws Exception {
-        CompletableFuture<byte[]> future = channelManager.sendWithAck("dev-1", new byte[]{1, 2});
+        CompletableFuture<byte[]> future = channelManager.sendInQueue("dev-1", new byte[]{1, 2});
         boolean completed = channelManager.completePending("dev-1", new byte[]{9, 9});
         Assertions.assertTrue(completed);
         Assertions.assertArrayEquals(new byte[]{9, 9}, future.get(1, TimeUnit.SECONDS));
@@ -92,7 +92,7 @@ class ChannelManagerTest {
 
     @Test
     void removeShouldClearQueueAndPending() {
-        CompletableFuture<byte[]> future = channelManager.sendWithAck("dev-1", new byte[]{1});
+        CompletableFuture<byte[]> future = channelManager.sendInQueue("dev-1", new byte[]{1});
         channelManager.remove(channel.id().asLongText());
         Assertions.assertTrue(future.isCompletedExceptionally());
     }
@@ -101,7 +101,7 @@ class ChannelManagerTest {
     void sendToDevice_shouldThrowWhenDeviceNotFound() {
         ChannelManager manager = new ChannelManager();
         Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.sendWithAck("not-exist", new byte[]{1}));
+                () -> manager.sendInQueue("not-exist", new byte[]{1}));
     }
 
     @Test
@@ -130,8 +130,8 @@ class ChannelManagerTest {
                 .setChannel(failThenSuccess);
         manager.register(otherSession);
 
-        CompletableFuture<byte[]> first = manager.sendWithAck("dev-2", new byte[]{1});
-        CompletableFuture<byte[]> second = manager.sendWithAck("dev-2", new byte[]{2});
+        CompletableFuture<byte[]> first = manager.sendInQueue("dev-2", new byte[]{1});
+        CompletableFuture<byte[]> second = manager.sendInQueue("dev-2", new byte[]{2});
 
         Assertions.assertThrows(ExecutionException.class, () -> first.get(500, TimeUnit.MILLISECONDS));
 
@@ -141,8 +141,8 @@ class ChannelManagerTest {
     }
 
     @Test
-    void sendFireAndForget_shouldCompleteOnWrite() {
-        channelManager.sendFireAndForget("dev-1", new byte[]{1, 2, 3});
+    void sendInQueueWithoutWaiting_shouldCompleteOnWrite() {
+        channelManager.sendInQueueWithoutWaiting("dev-1", new byte[]{1, 2, 3});
         Assertions.assertNull(session.getPendingFuture());
     }
 
@@ -163,9 +163,9 @@ class ChannelManagerTest {
         manager.register(second);
 
         Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.sendWithAck("dev-1", new byte[]{1}));
+                () -> manager.sendInQueue("dev-1", new byte[]{1}));
 
-        CompletableFuture<byte[]> future = manager.sendWithAck("dev-2", new byte[]{1});
+        CompletableFuture<byte[]> future = manager.sendInQueue("dev-2", new byte[]{1});
         Object outbound = channel.readOutbound();
         ReferenceCountUtil.release(outbound);
         manager.completePending("dev-2", new byte[]{1});
@@ -191,7 +191,7 @@ class ChannelManagerTest {
 
         Assertions.assertFalse(firstChannel.isActive());
 
-        CompletableFuture<byte[]> future = manager.sendWithAck("dev-1", new byte[]{1});
+        CompletableFuture<byte[]> future = manager.sendInQueue("dev-1", new byte[]{1});
         Object outbound = secondChannel.readOutbound();
         ReferenceCountUtil.release(outbound);
         manager.completePending("dev-1", new byte[]{1});
@@ -210,8 +210,8 @@ class ChannelManagerTest {
 
         localSession.getSending().set(true);
         List<CompletableFuture<byte[]>> futures = new ArrayList<>();
-        futures.add(manager.sendWithAck("dev-1", new byte[]{1}));
-        futures.add(manager.sendWithAck("dev-1", new byte[]{2}));
+        futures.add(manager.sendInQueue("dev-1", new byte[]{1}));
+        futures.add(manager.sendInQueue("dev-1", new byte[]{2}));
 
         manager.remove(channel.id().asLongText());
 
@@ -249,7 +249,7 @@ class ChannelManagerTest {
         Map<String, String> mapping = (Map<String, String>) mappingField.get(manager);
         mapping.put("dev-1", "missing-channel");
 
-        CompletableFuture<byte[]> future = manager.sendWithAck("dev-1", new byte[]{1});
+        CompletableFuture<byte[]> future = manager.sendInQueue("dev-1", new byte[]{1});
         Object outbound = channel.readOutbound();
         ReferenceCountUtil.release(outbound);
         manager.completePending("dev-1", new byte[]{1});

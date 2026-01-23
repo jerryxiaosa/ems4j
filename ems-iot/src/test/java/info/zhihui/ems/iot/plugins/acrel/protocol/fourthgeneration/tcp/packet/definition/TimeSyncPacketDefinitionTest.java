@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.definition;
 
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler.TimeSyncPacketHandler;

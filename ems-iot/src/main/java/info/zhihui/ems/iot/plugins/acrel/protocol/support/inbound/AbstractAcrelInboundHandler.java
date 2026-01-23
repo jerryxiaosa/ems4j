@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.protocol.inbound;
+package info.zhihui.ems.iot.plugins.acrel.protocol.support.inbound;
 
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
@@ -6,8 +6,8 @@ import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
 import info.zhihui.ems.iot.protocol.packet.PacketDefinition;
 import info.zhihui.ems.iot.protocol.packet.ProtocolMessage;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +33,8 @@ public abstract class AbstractAcrelInboundHandler {
             return;
         }
         String commandKey = frame.commandKey();
+        log.debug("{} 收到命令 {}={} session={}", handlerName(), commandLabel(), commandKey, sessionId(context));
+
         PacketDefinition<? extends ProtocolMessage> definition = resolveDefinition(commandKey);
         if (definition == null) {
             logUnknownCommand(sessionId(context), commandKey);

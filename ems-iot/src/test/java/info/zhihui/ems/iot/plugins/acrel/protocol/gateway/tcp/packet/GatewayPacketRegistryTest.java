@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition.GatewayPacketDefinition;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

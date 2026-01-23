@@ -1,17 +1,19 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
-import info.zhihui.ems.iot.protocol.port.ProtocolInboundPublisher;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.util.HexUtil;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.protocol.port.DeviceBinder;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ReferenceCountUtil;
@@ -43,7 +45,7 @@ class DataUploadPacketHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         LocalDateTime receivedAt = LocalDateTime.of(2024, 2, 3, 4, 5, 6);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(buildSession(channel))
                 .setRawPayload(new byte[]{0x01, 0x02})
                 .setReceivedAt(receivedAt)
                 .setTransportType(TransportProtocolEnum.TCP);
@@ -93,7 +95,7 @@ class DataUploadPacketHandlerTest {
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel);
+        ProtocolSession session = buildSession(channel);
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-2");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
                 .setSession(session)
@@ -126,7 +128,7 @@ class DataUploadPacketHandlerTest {
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(buildSession(channel))
                 .setRawPayload(new byte[]{0x01})
                 .setTransportType(TransportProtocolEnum.TCP);
         DataUploadMessage message = new DataUploadMessage().setSerialNumber("dev-3");
@@ -146,7 +148,7 @@ class DataUploadPacketHandlerTest {
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(buildSession(channel))
                 .setRawPayload(new byte[]{0x01})
                 .setTransportType(TransportProtocolEnum.TCP);
         DataUploadMessage message = new DataUploadMessage().setSerialNumber(" ");
@@ -170,5 +172,12 @@ class DataUploadPacketHandlerTest {
         buf.readBytes(data);
         ReferenceCountUtil.release(buf);
         return data;
+    }
+
+    private NettyProtocolSession buildSession(EmbeddedChannel channel) {
+        ChannelManager manager = new ChannelManager();
+        ChannelSession session = new ChannelSession().setChannel(channel);
+        manager.register(session);
+        return new NettyProtocolSession(channel, manager);
     }
 }

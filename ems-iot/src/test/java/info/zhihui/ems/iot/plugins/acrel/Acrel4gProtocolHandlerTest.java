@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -8,7 +9,7 @@ import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpInboundHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpCommandSender;
 import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class Acrel4gProtocolHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
                 .setTransportType(TransportProtocolEnum.TCP)
-                .setSession(new NettyProtocolSession(channel));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
 
         handler.onMessage(context);
 

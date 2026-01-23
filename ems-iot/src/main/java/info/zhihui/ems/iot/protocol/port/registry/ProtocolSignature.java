@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.registry;
 
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;

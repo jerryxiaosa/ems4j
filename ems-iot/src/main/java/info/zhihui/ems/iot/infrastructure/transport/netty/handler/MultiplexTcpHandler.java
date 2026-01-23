@@ -3,9 +3,9 @@ package info.zhihui.ems.iot.infrastructure.transport.netty.handler;
 import info.zhihui.ems.iot.infrastructure.registry.DeviceProtocolHandlerRegistry;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelAttributes;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
@@ -39,7 +39,7 @@ public class MultiplexTcpHandler extends SimpleChannelInboundHandler<byte[]> {
             return;
         }
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(ctx.channel()))
+                .setSession(new NettyProtocolSession(ctx.channel(), channelManager))
                 .setRawPayload(payload)
                 .setReceivedAt(LocalDateTime.now())
                 .setTransportType(TransportProtocolEnum.TCP);

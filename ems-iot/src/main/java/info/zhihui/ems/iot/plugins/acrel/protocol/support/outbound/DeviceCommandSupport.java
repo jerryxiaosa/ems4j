@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.support;
+package info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;

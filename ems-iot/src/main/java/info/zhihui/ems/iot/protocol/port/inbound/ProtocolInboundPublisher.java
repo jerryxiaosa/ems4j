@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.inbound;
 
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolInboundEvent;
 

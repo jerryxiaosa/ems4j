@@ -1,5 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.channel;
 
+import info.zhihui.ems.iot.util.HexUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,11 @@ public class ChannelManager {
      */
     public void register(ChannelSession session) {
         String channelId = session.getChannel().id().asLongText();
+        log.debug("开始注册通道 {} 到设备No {} 类型 {}", channelId, session.getDeviceNo(), session.getDeviceType());
         ChannelSession existing = sessions.get(channelId);
         // 如果已经存在，替换信息
         if (existing != null) {
+            log.debug("通道 {} 已存在，更新信息", channelId);
             String oldDeviceNo = existing.getDeviceNo();
             String newDeviceNo = session.getDeviceNo();
             if (StringUtils.isNotBlank(oldDeviceNo) && !oldDeviceNo.equals(newDeviceNo)) {
@@ -50,11 +54,7 @@ public class ChannelManager {
             String oldChannelId = deviceNoToChannelId.put(deviceNo, channelId);
             // 原来就已经存在，并且channelId不一致
             if (oldChannelId != null && !oldChannelId.equals(channelId)) {
-                ChannelSession oldSession = sessions.get(oldChannelId);
-                remove(oldChannelId);
-                if (oldSession != null && oldSession.getChannel() != null && oldSession.getChannel().isActive()) {
-                    oldSession.getChannel().close();
-                }
+                closeAndRemove(oldChannelId);
             }
         }
         log.info("绑定通道 {} 到设备No {} 类型 {}", channelId, session.getDeviceNo(), session.getDeviceType());
@@ -125,7 +125,7 @@ public class ChannelManager {
      * @param message  消息
      * @return 响应数据
      */
-    public CompletableFuture<byte[]> sendWithAck(String deviceNo, Object message) {
+    public CompletableFuture<byte[]> sendInQueue(String deviceNo, Object message) {
         return enqueue(deviceNo, message, true);
     }
 
@@ -135,8 +135,39 @@ public class ChannelManager {
      * @param deviceNo 设备No
      * @param message  消息
      */
-    public void sendFireAndForget(String deviceNo, Object message) {
-        enqueue(deviceNo, message, false);
+    public void sendInQueueWithoutWaiting(String deviceNo, Object message) {
+        try {
+            CompletableFuture<byte[]> future = enqueue(deviceNo, message, false);
+            future.whenComplete((payload, ex) -> {
+                if (ex != null) {
+                    log.warn("通道发送失败（不等待响应），deviceNo={}", deviceNo, ex);
+                }
+            });
+        } catch (RuntimeException ex) {
+            log.warn("通道发送失败（不等待响应），deviceNo={}", deviceNo, ex);
+        }
+    }
+
+    /**
+     * 发送数据（不进行等待）
+     * @param channelId 通道ID
+     * @param payload 数据
+     */
+    public void sendDirectly(String channelId, byte[] payload) {
+        ChannelSession session = sessions.get(channelId);
+
+        if (session != null && session.getChannel() != null && session.getChannel().isActive() && payload != null) {
+            session.getChannel().writeAndFlush(Unpooled.wrappedBuffer(payload));
+            log.debug("通道 {} 发送数据 {}", channelId, HexUtil.bytesToHexString(payload));
+        }
+    }
+
+    public void closeAndRemove(String channelId) {
+        ChannelSession oldSession = sessions.get(channelId);
+        remove(channelId);
+        if (oldSession != null && oldSession.getChannel() != null && oldSession.getChannel().isActive()) {
+            oldSession.getChannel().close();
+        }
     }
 
     private CompletableFuture<byte[]> enqueue(String deviceNo, Object message, boolean requireAck) {

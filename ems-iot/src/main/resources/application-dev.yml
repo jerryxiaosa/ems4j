@@ -3,7 +3,7 @@ server:
 
 transport:
   netty:
-    port: 18801
+    port: 19500
     bossThreads: 1
     workerThreads: 4
 
@@ -35,3 +35,17 @@ mybatis-plus:
   repositoryPackage: info.zhihui.ems.**.repository
   mapperLocations: classpath*:mapper/**/*Repository.xml
   typeAliasesPackage: info.zhihui.ems.**.entity
+
+logging:
+  file:
+    name: ./logs/iot.log
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+    info.zhihui.ems: debug
+  logback:
+    rolling policy:
+      max-file-size: 20MB
+      max-history: 30
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"

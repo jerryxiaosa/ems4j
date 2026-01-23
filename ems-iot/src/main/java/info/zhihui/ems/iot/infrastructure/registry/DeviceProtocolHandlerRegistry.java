@@ -1,9 +1,9 @@
 package info.zhihui.ems.iot.infrastructure.registry;
 
-import info.zhihui.ems.iot.protocol.port.DeviceProtocolHandlerResolver;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandlerResolver;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.protocol.port.DeviceProtocolHandler;
+import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandler;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

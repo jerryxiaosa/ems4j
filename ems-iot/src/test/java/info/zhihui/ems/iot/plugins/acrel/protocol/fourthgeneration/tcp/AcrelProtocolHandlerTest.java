@@ -1,8 +1,9 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
@@ -11,7 +12,7 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.de
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -32,7 +33,7 @@ class AcrelProtocolHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(capture);
 
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
                 .setRawPayload(new byte[]{0x01});
 
         handler.handle(context);
@@ -50,7 +51,7 @@ class AcrelProtocolHandlerTest {
 
         byte[] frame = codec.encode((byte) 0x11, new byte[0]);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
                 .setRawPayload(frame);
 
         handler.handle(context);
@@ -83,7 +84,7 @@ class AcrelProtocolHandlerTest {
 
         byte[] frame = codec.encode((byte) 0x12, new byte[]{0x01});
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
                 .setRawPayload(frame);
 
         handler.handle(context);

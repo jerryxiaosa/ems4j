@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.spi;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 
 /**
  * 协议探测 SPI。

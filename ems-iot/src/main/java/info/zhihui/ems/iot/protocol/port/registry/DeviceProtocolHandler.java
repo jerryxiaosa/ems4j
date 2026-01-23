@@ -1,9 +1,10 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.registry;
 
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.Set;
