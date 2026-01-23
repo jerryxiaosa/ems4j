@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.command;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
-import info.zhihui.ems.iot.protocol.port.ProtocolCommandTransport;
+import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

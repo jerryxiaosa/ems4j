@@ -6,11 +6,11 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAut
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
-import info.zhihui.ems.iot.protocol.port.DeviceBinder;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

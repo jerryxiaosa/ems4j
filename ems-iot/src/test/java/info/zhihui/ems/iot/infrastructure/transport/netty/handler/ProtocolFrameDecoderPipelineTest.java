@@ -8,7 +8,7 @@ import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame.AcrelDelimitedFrameDecoder;
 import info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame.AcrelGatewayFrameDecoder;
 import info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame.AcrelTcpFrameDecoderProvider;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;

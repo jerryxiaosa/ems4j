@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.session;
 
 /**
  * 协议会话抽象，屏蔽具体传输实现。

@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.infrastructure.registry;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.protocol.port.DeviceCommandTranslator;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import org.junit.jupiter.api.Assertions;

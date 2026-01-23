@@ -1,8 +1,8 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.session;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.ProtocolSessionKey;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSessionKey;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;

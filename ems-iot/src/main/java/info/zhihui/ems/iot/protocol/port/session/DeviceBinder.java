@@ -1,4 +1,6 @@
-package info.zhihui.ems.iot.protocol.port;
+package info.zhihui.ems.iot.protocol.port.session;
+
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 
 /**
  * Port for binding a device to a protocol session.

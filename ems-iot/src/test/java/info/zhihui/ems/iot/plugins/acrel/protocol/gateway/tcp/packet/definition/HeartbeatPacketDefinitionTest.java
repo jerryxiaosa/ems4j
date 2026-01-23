@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler.HeartbeatPacketHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser.HeartbeatPacketParser;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

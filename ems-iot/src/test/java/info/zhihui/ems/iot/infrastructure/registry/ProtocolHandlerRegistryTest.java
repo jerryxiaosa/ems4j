@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.registry;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
-import info.zhihui.ems.iot.protocol.port.DeviceProtocolHandler;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandler;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import org.junit.jupiter.api.Assertions;

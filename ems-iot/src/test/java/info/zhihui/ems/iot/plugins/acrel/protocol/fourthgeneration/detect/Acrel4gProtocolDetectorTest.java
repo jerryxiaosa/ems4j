@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.detect;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;

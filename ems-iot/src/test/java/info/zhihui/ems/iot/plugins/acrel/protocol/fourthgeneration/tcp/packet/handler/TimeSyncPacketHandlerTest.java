@@ -2,14 +2,14 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.h
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
-import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.TimeSyncMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
-import info.zhihui.ems.iot.protocol.port.DeviceBinder;
+import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Assertions;

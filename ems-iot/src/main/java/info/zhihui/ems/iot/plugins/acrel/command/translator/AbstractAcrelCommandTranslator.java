@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.command.translator;
 
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.protocol.port.DeviceCommandTranslator;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.plugins.acrel.command.modbus.AcrelModbusMappingRegistry;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;

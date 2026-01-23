@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.protocol.packet;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 
 /**
  * Packet definition binds parser and handler for a command.

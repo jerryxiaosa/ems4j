@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.infrastructure.transport.netty.session;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
-import info.zhihui.ems.iot.protocol.port.ProtocolSessionKey;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSessionKey;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.channel;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.util.AttributeKey;
 
 /**

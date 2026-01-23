@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.event;
 
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolInboundEvent;
-import info.zhihui.ems.iot.protocol.port.ProtocolInboundPublisher;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

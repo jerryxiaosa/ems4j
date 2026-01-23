@@ -5,7 +5,7 @@ import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelAttributes;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;

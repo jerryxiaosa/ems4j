@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame;
 
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;

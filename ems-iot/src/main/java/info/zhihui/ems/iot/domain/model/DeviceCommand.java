@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.domain.model;
 
 import info.zhihui.ems.iot.domain.command.DeviceCommandRequest;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
-import info.zhihui.ems.iot.protocol.port.ProtocolSignature;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
