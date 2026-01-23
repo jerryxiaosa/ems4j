@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.channel;
 
+import info.zhihui.ems.iot.util.HexUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
@@ -157,7 +158,7 @@ public class ChannelManager {
 
         if (session != null && session.getChannel() != null && session.getChannel().isActive() && payload != null) {
             session.getChannel().writeAndFlush(Unpooled.wrappedBuffer(payload));
-            log.debug("通道 {} 发送数据 {}", channelId, payload);
+            log.debug("通道 {} 发送数据 {}", channelId, HexUtil.bytesToHexString(payload));
         }
     }
 
