@@ -1,5 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.port.SimpleProtocolMessageContext;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
@@ -36,7 +38,7 @@ class RegisterPacketHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(capture);
 
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel));
+                .setSession(buildSession(channel));
         RegisterMessage message = new RegisterMessage().setSerialNumber("");
 
         handler.handle(context, message);
@@ -53,7 +55,7 @@ class RegisterPacketHandlerTest {
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         RegisterPacketHandler handler = new RegisterPacketHandler(deviceBinder, codec);
         EmbeddedChannel channel = new EmbeddedChannel();
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel));
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(buildSession(channel));
         RegisterMessage message = new RegisterMessage().setSerialNumber("dev-1");
 
         handler.handle(context, message);
@@ -74,7 +76,7 @@ class RegisterPacketHandlerTest {
         RegisterPacketHandler handler = new RegisterPacketHandler(deviceBinder, codec);
         EventCaptureHandler capture = new EventCaptureHandler();
         EmbeddedChannel channel = new EmbeddedChannel(capture);
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel));
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(buildSession(channel));
         RegisterMessage message = new RegisterMessage().setSerialNumber("dev-1");
         Mockito.doThrow(new NotFoundException("not found")).when(deviceBinder).bind(context, "dev-1");
 
@@ -93,7 +95,7 @@ class RegisterPacketHandlerTest {
         RegisterPacketHandler handler = new RegisterPacketHandler(deviceBinder, codec);
         EventCaptureHandler capture = new EventCaptureHandler();
         EmbeddedChannel channel = new EmbeddedChannel(capture);
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel));
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(buildSession(channel));
         RegisterMessage message = new RegisterMessage().setSerialNumber("dev-1");
         Mockito.doThrow(new IllegalStateException("fail")).when(deviceBinder).bind(context, "dev-1");
 
@@ -103,6 +105,13 @@ class RegisterPacketHandlerTest {
         Assertions.assertEquals(AbnormalReasonEnum.BUSINESS_ERROR, capture.event.reason());
         Assertions.assertTrue(capture.event.forceClose());
         Assertions.assertNull(channel.readOutbound());
+    }
+
+    private NettyProtocolSession buildSession(EmbeddedChannel channel) {
+        ChannelManager manager = new ChannelManager();
+        ChannelSession session = new ChannelSession().setChannel(channel);
+        manager.register(session);
+        return new NettyProtocolSession(channel, manager);
     }
 
     private static class EventCaptureHandler extends ChannelInboundHandlerAdapter {

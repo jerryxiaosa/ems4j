@@ -39,7 +39,7 @@ public class MultiplexTcpHandler extends SimpleChannelInboundHandler<byte[]> {
             return;
         }
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(ctx.channel()))
+                .setSession(new NettyProtocolSession(ctx.channel(), channelManager))
                 .setRawPayload(payload)
                 .setReceivedAt(LocalDateTime.now())
                 .setTransportType(TransportProtocolEnum.TCP);

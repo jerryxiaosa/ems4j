@@ -53,6 +53,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
         ProtocolSession session = context.getSession();
         if (session != null) {
             session.send(frame);
+            log.debug("网关心跳响应成功，网关：{}，channel：{}，时间：{}", gateway.getDeviceNo(), sessionId(context), time);
         }
     }
 

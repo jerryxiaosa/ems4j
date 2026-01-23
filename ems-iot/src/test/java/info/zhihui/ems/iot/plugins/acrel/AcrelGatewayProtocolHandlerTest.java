@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
@@ -59,7 +60,7 @@ class AcrelGatewayProtocolHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
                 .setTransportType(TransportProtocolEnum.TCP)
-                .setSession(new NettyProtocolSession(channel));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
 
         handler.onMessage(context);
 

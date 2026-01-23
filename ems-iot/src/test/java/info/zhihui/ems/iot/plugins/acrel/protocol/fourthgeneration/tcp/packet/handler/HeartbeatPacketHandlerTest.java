@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
 import info.zhihui.ems.iot.protocol.port.ProtocolInboundPublisher;
@@ -33,7 +34,7 @@ class HeartbeatPacketHandlerTest {
         ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel));
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel, new ChannelManager()));
 
         handler.handle(context, new HeartbeatMessage());
 
@@ -45,7 +46,7 @@ class HeartbeatPacketHandlerTest {
         ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel);
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-1");
         LocalDateTime receivedAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
@@ -73,7 +74,7 @@ class HeartbeatPacketHandlerTest {
                 .when(publisher).publish(Mockito.any());
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel);
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-1");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
 

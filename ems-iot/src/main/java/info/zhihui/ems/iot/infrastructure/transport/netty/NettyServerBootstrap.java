@@ -6,6 +6,7 @@ import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderP
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.handler.AbnormalEventHandler;
+import info.zhihui.ems.iot.infrastructure.transport.netty.handler.ExceptionCaughtHandler;
 import info.zhihui.ems.iot.infrastructure.transport.netty.handler.MultiplexTcpHandler;
 import info.zhihui.ems.iot.infrastructure.transport.netty.handler.ProtocolFrameDecoder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -67,6 +68,7 @@ public class NettyServerBootstrap implements SmartLifecycle {
                         pipeline.addLast(businessGroup, "abnormalEventHandler", new AbnormalEventHandler(channelManager));
                         pipeline.addLast(businessGroup, "multiplexTcpHandler",
                                 new MultiplexTcpHandler(handlerRegistry, channelManager));
+                        pipeline.addLast(businessGroup, "exceptionCaughtHandler", new ExceptionCaughtHandler(channelManager));
                     }
                 });
         try {

@@ -1,15 +1,16 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.domain.model.Device;
-import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
-import info.zhihui.ems.iot.protocol.port.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
+import info.zhihui.ems.iot.protocol.port.CommonProtocolSessionKeys;
+import info.zhihui.ems.iot.protocol.port.DeviceBinder;
+import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
+import info.zhihui.ems.iot.protocol.port.ProtocolSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,9 +31,10 @@ public class AuthPacketHandler implements GatewayPacketHandler {
     private static final String OPERATION_MD5 = "md5";
     private static final String OPERATION_RESULT = "result";
 
-    private final AcrelGatewayDeviceResolver deviceResolver;
     private final AcrelGatewayCryptoService cryptoService;
     private final AcrelGatewayFrameCodec frameCodec;
+    private final DeviceRegistry deviceRegistry;
+    private final DeviceBinder deviceBinder;
 
     @Override
     public String command() {
@@ -50,10 +52,20 @@ public class AuthPacketHandler implements GatewayPacketHandler {
             log.warn("网关认证报文缺少 gatewayId，session={}", session.getSessionId());
             return;
         }
-        Device gateway = deviceResolver.bindGateway(context, payload.gatewayId());
-        if (gateway == null) {
+
+        // 避免反复绑定，重制链接
+        if (!StringUtils.hasLength(context.getDeviceNo())) {
+            deviceBinder.bind(context, payload.gatewayId());
+        }
+
+        Device gateway;
+        try {
+            gateway = deviceRegistry.getByDeviceNo(payload.gatewayId());
+        } catch (Exception ex) {
+            log.warn("网关信息查询失败，{}", payload.gatewayId(), ex);
             return;
         }
+
         String operation = payload.operation();
         if (OPERATION_REQUEST.equalsIgnoreCase(operation)) {
             String sequence = buildSequence();

@@ -27,13 +27,13 @@ class NettyCommandTransportTest {
         NettyCommandTransport transport = new NettyCommandTransport(channelManager);
         byte[] payload = new byte[]{1, 2, 3};
         CompletableFuture<byte[]> expected = CompletableFuture.completedFuture(new byte[]{9});
-        Mockito.when(channelManager.sendWithAck(Mockito.eq("dev-1"), Mockito.any())).thenReturn(expected);
+        Mockito.when(channelManager.sendInQueue(Mockito.eq("dev-1"), Mockito.any())).thenReturn(expected);
 
         CompletableFuture<byte[]> result = transport.sendWithAck("dev-1", payload);
 
         Assertions.assertSame(expected, result);
         ArgumentCaptor<ByteBuf> bufferCaptor = ArgumentCaptor.forClass(ByteBuf.class);
-        Mockito.verify(channelManager).sendWithAck(Mockito.eq("dev-1"), bufferCaptor.capture());
+        Mockito.verify(channelManager).sendInQueue(Mockito.eq("dev-1"), bufferCaptor.capture());
         ByteBuf buffer = bufferCaptor.getValue();
         byte[] actual = new byte[buffer.readableBytes()];
         buffer.getBytes(0, actual);

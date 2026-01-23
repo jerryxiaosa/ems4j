@@ -25,9 +25,8 @@ public class AbnormalEventHandler extends ChannelInboundHandlerAdapter {
         String channelId = ctx.channel().id().asLongText();
         boolean exceeded = channelManager.recordAbnormal(channelId, event.reason(), event.timestampMillis());
         if (event.forceClose() || exceeded) {
-            log.warn("通道 {} 异常关闭，原因={} 详情={} 强制={}", channelId, event.reason(), event.detail(), event.forceClose());
-            ctx.close();
-            channelManager.remove(channelId);
+            log.info("通道 {} 异常关闭，原因={} 详情={} 强制={}", channelId, event.reason(), event.detail(), event.forceClose());
+            channelManager.closeAndRemove(channelId);
             return;
         }
         ctx.fireUserEventTriggered(evt);

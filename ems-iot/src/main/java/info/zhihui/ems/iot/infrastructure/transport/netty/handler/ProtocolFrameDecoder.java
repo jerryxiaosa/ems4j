@@ -44,6 +44,7 @@ public class ProtocolFrameDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        log.debug("开始探测协议，channel id: {}", ctx.channel().id());
         Attribute<ProtocolSignature> attr = ctx.channel().attr(ChannelAttributes.PROTOCOL_SIGNATURE);
         if (!in.isReadable() || attr.get() != null) {
             return;

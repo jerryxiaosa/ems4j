@@ -51,7 +51,6 @@ class AbnormalEventHandlerTest {
         AbnormalEvent event = new AbnormalEvent(AbnormalReasonEnum.CRC_INVALID, 2L, "crc");
         channel.pipeline().fireUserEventTriggered(event);
 
-        Assertions.assertFalse(channel.isActive());
         Assertions.assertEquals(channel.id().asLongText(), manager.removedChannelId);
         Assertions.assertNull(capture.event);
     }
@@ -66,7 +65,6 @@ class AbnormalEventHandlerTest {
         AbnormalEvent event = new AbnormalEvent(AbnormalReasonEnum.BUSINESS_ERROR, 3L, "force", true);
         channel.pipeline().fireUserEventTriggered(event);
 
-        Assertions.assertFalse(channel.isActive());
         Assertions.assertEquals(channel.id().asLongText(), manager.removedChannelId);
         Assertions.assertNull(capture.event);
     }
@@ -88,7 +86,7 @@ class AbnormalEventHandlerTest {
         }
 
         @Override
-        public void remove(String channelId) {
+        public void closeAndRemove(String channelId) {
             removedChannelId = channelId;
         }
     }

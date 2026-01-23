@@ -33,6 +33,8 @@ public abstract class AbstractAcrelInboundHandler {
             return;
         }
         String commandKey = frame.commandKey();
+        log.debug("{} 收到命令 {}={} session={}", handlerName(), commandLabel(), commandKey, sessionId(context));
+
         PacketDefinition<? extends ProtocolMessage> definition = resolveDefinition(commandKey);
         if (definition == null) {
             logUnknownCommand(sessionId(context), commandKey);

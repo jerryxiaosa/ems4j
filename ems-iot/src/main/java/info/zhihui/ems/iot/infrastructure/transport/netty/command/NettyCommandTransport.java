@@ -22,7 +22,7 @@ public class NettyCommandTransport implements ProtocolCommandTransport {
         if (payload == null) {
             throw new IllegalArgumentException("payload 不能为空");
         }
-        return channelManager.sendWithAck(deviceNo, Unpooled.wrappedBuffer(payload));
+        return channelManager.sendInQueue(deviceNo, Unpooled.wrappedBuffer(payload));
     }
 
     @Override

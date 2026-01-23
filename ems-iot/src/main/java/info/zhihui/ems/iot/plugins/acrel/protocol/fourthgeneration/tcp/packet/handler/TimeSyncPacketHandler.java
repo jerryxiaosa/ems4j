@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.port.DeviceBinder;
 import info.zhihui.ems.iot.protocol.port.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.ProtocolSession;
@@ -38,13 +39,20 @@ public class TimeSyncPacketHandler implements Acrel4gPacketHandler {
         }
         TimeSyncMessage msg = (TimeSyncMessage) message;
         String deviceNo = msg.getSerialNumber();
-        if (StringUtils.isBlank(deviceNo)) {
-            log.debug("4G 对时报文缺少序列号，session={}", session.getSessionId());
-        } else {
+
+        if (StringUtils.isBlank(context.getDeviceNo()) && StringUtils.isBlank(deviceNo)) {
+            log.warn("4G 注册缺少序列号，session={}", session.getSessionId());
+            reportAbnormal(context, AbnormalReasonEnum.ILLEGAL_DEVICE, "对时缺少序列号");
+            return;
+        }
+
+        if (StringUtils.isNotBlank(deviceNo) && !deviceNo.equals(context.getDeviceNo())) {
             try {
                 deviceBinder.bind(context, deviceNo);
             } catch (Exception ex) {
                 log.warn("4G 对时绑定设备失败 deviceNo={} session={}", deviceNo, session.getSessionId(), ex);
+                reportAbnormal(context, AbnormalReasonEnum.BUSINESS_ERROR, "对时绑定设备失败");
+                return;
             }
         }
 

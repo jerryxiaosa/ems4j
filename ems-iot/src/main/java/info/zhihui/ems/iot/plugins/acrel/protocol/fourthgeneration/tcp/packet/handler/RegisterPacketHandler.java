@@ -58,14 +58,4 @@ public class RegisterPacketHandler implements Acrel4gPacketHandler {
         }
     }
 
-    private void reportAbnormal(ProtocolMessageContext context, AbnormalReasonEnum reason, String detail) {
-        if (context == null || reason == null) {
-            return;
-        }
-        ProtocolSession session = context.getSession();
-        if (session == null) {
-            return;
-        }
-        session.publishEvent(new AbnormalEvent(reason, System.currentTimeMillis(), detail, true));
-    }
 }
