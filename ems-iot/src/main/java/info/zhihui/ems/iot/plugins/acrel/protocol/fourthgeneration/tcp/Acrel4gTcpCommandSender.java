@@ -12,7 +12,7 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Ac
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
-import info.zhihui.ems.iot.plugins.acrel.support.DeviceCommandSupport;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.DeviceCommandSupport;
 import info.zhihui.ems.iot.util.ProtocolTimeoutSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

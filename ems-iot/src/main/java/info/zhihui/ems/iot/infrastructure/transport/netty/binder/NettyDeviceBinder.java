@@ -46,6 +46,6 @@ public class NettyDeviceBinder implements DeviceBinder {
                 .setChannel(nettySession.getChannel());
         channelManager.register(channelSession);
         context.setDeviceNo(deviceNo);
-        log.info("4G 绑定设备 deviceNo={} session={}", deviceNo, session.getSessionId());
+        log.info("绑定设备 deviceNo={} session={}", deviceNo, session.getSessionId());
     }
 }
