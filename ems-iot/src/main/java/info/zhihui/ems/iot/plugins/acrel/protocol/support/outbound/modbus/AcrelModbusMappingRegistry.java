@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.command.modbus;
+package info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.modbus;
 
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;

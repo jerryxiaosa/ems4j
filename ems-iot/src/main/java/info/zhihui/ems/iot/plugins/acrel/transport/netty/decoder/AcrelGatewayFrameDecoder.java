@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame;
+package info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -6,7 +6,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
 
-import static info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants.GATEWAY_HEAD;
+import static info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants.GATEWAY_HEAD;
 
 /**
  * 网关协议解码器：Head=0x1F1F, Type=1B, Length=4B（大端，Data 长度），Data 可为明文或加密。

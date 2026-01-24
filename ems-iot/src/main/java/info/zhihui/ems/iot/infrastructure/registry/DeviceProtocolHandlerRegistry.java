@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * 协议处理器解析器
+ * 根据签名返回对应的解析器
+ */
 @Component
 @RequiredArgsConstructor
 public class DeviceProtocolHandlerRegistry implements DeviceProtocolHandlerResolver {

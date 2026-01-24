@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.constants;
+package info.zhihui.ems.iot.plugins.acrel.protocol.constants;
 
 /**
  * 安科瑞协议帧常量，供探测器与解码器复用。

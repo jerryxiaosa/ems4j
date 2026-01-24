@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.command.translator;
 
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
-import info.zhihui.ems.iot.plugins.acrel.command.modbus.AcrelModbusMappingRegistry;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.modbus.AcrelModbusMappingRegistry;
 import org.springframework.stereotype.Component;
 
 /**
