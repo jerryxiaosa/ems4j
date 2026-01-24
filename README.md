@@ -8,6 +8,15 @@
 
 EMS4J is a comprehensive energy management platform with capabilities for device access, metering and billing, account management, financial accounting, and operations support. It provides an abstract integration model for IoT platforms and also supports direct device access via the built-in IoT module.
 
+## Motivation
+In an era where AI can churn out runnable code in seconds, merely “working” code is losing its value; what is becoming precious is the taste and design embodied in that code. Such taste is never born overnight—it is forged through long-term architectural refinement and deep design reflection.
+
+This project is exactly that kind of practice: I refactored and distilled the architecture of production-grade code—through crisp layer separation and thorough module decoupling—so that the core logic becomes purer and more adaptable to ever-changing requirements.
+
+A few design gems are woven into the codebase, and I hope they spark inspiration. As the saying goes, “Give a man a fish and you feed him for a day; teach a man to fish and you feed him for a lifetime.” What I would rather share is the design thinking and architectural philosophy behind the code.
+
+If this project helps you in any way, I will be deeply honored.
+
 ## Features
 
 - Multi-protocol device access 
@@ -176,7 +185,7 @@ mvn -pl ems-business/ems-business-device -am test
 | Acrel (安科瑞) | Meter / Gateway |
 | Sfere (斯菲尔) | Meter |
 | Yige (仪歌) | Meter |
-| Yke (燕赵/耀科) | Meter |
+| Yke (燕赵) | Meter |
 
 ## IoT Integration
 
