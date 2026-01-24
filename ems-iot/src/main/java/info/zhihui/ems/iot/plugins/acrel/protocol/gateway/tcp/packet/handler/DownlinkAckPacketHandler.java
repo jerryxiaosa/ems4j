@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayTransparentMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;

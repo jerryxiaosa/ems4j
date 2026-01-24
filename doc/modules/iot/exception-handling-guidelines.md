@@ -64,3 +64,9 @@
 解析失败 → `parser` 返回 `null` → 统一处理（日志 + 事件） → 结束  
 处理异常 → 捕获并记录 → 结束（必要时关闭通道）
 
+## 6. 设备协议处理器异常处理
+
+- `DeviceProtocolHandler` 的 `onMessage` 方法不应抛出异常，应在内部捕获并处理。
+- 命令下发失败时，通过 `CompletableFuture` 返回 `DeviceCommandResult` 表示失败状态。
+- 通过 `DeviceProtocolHandlerRegistry` 解析协议时，异常应被捕获并转换为适当的错误响应。
+

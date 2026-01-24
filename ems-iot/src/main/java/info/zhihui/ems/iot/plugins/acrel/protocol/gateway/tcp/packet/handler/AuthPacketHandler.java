@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;

@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support;
 
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import info.zhihui.ems.iot.util.HexUtil;
 import org.junit.jupiter.api.Assertions;

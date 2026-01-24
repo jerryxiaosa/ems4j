@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.domain.command.concrete.SetCtCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
-import info.zhihui.ems.iot.plugins.acrel.command.modbus.AcrelModbusMappingRegistry;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.modbus.AcrelModbusMappingRegistry;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import org.springframework.stereotype.Component;

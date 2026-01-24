@@ -1,9 +1,10 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support;
 
+import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelDelimitedFrameDecoder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ import java.util.Arrays;
 public class Acrel4gFrameCodec {
 
     /**
-     * 解码由 {@link info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame.AcrelDelimitedFrameDecoder}
+     * 解码由 {@link AcrelDelimitedFrameDecoder}
      * 切分后的完整帧，不在此处重复校验起止符。
      */
     public FrameDecodeResult decode(byte[] frame) {

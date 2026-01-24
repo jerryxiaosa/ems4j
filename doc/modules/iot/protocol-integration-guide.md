@@ -15,6 +15,7 @@
 - Handler 中完成设备绑定、事件发布、回包下发等业务。
 
 3) 下发与回执
+- 实现 `DeviceProtocolHandler`（继承 `AbstractAcrelInboundHandler` 或类似基类）。
 - 增加 `DeviceCommandTranslator`（命令 -> 传输请求）。
 - 处理回执/响应并填充 `DeviceCommandResult`。
 
@@ -26,15 +27,13 @@
 plugins/
   vendorx/
     VendorxProtocolHandler.java
-    constants/
-    message/
-    model/
     protocol/
       devicea/
         detect/
           VendorxDeviceaProtocolDetector.java
         tcp/
-          VendorxDeviceaTcpHandler.java
+          VendorxDeviceaTcpInboundHandler.java
+          VendorxDeviceaTcpCommandSender.java
           message/
           packet/
             definition/
@@ -42,11 +41,13 @@ plugins/
             handler/
           support/
             VendorxDeviceaFrameCodec.java
+            VendorxDeviceaDeviceResolver.java
       gateway/
         detect/
           VendorxGatewayProtocolDetector.java
         tcp/
           VendorxGatewayTcpInboundHandler.java
+          VendorxGatewayTcpCommandSender.java
           message/
           packet/
             definition/
@@ -54,41 +55,51 @@ plugins/
             handler/
           support/
             VendorxGatewayFrameCodec.java
+            VendorxGatewayDeviceResolver.java
     command/
       translator/
+        AbstractVendorxCommandTranslator.java
         VendorxGetStatusTranslator.java
+        VendorxSetCtTranslator.java
+        ...
     transport/
-      tcp/
-        frame/
+      netty/
+        decoder/
           VendorxFrameDecoderProvider.java
+        detect/
+          VendorxProtocolDetector.java
 ```
 
 说明：
 - `protocol/*/tcp`：协议的 TCP 处理入口，按接入方式拆分（直连/网关）。
 - `packet/*`：命令层的定义/解析/处理，按命令字拆分。
 - `support/*FrameCodec`：负责编解码，`decode` 统一输出 `FrameDecodeResult`。
+- `command/translator`：命令转换器，实现 `DeviceCommandTranslator` 接口。
+- `transport/netty`：Netty 传输层扩展，包括协议探测和解码器提供者。
 
 ## 3. 关键文件职责
 
 - `NettyProtocolDetector`：只做识别，返回 `ProtocolSignature`。
 - `NettyFrameDecoderProvider`：根据签名返回解码器链（长度型/起止符型等）。
 - `*FrameCodec`：帧编解码，`decode` 返回 `FrameDecodeResult`。
-- `*TcpHandler`：协议入口，路由到 `PacketDefinition`。
+- `*TcpInboundHandler`：协议入口，处理上行消息。
+- `*TcpCommandSender`：命令发送器，处理下行消息。
 - `PacketDefinition/Parser/Handler`：命令定义、解析与处理（入参统一为 `ProtocolMessageContext`，接口位于 `protocol/packet`）。
 - `DeviceCommandTranslator`：命令下发转换与响应解析。
+- `DeviceProtocolHandler`：设备协议处理器，实现 `DeviceProtocolHandler` 接口，负责上行解析与命令下发。
 
 ## 4. 建议的落地顺序
 
 1) 确定协议的首包特征、分包策略与帧格式。
 2) 实现 `NettyProtocolDetector` + `NettyFrameDecoderProvider` + `FrameCodec`。
-3) 完成命令层 `definition/parser/handler` 并注册到 registry。
-4) 完成下发 translator 与回执处理。
-5) 补充单元测试（解帧、解析、handler、translator）。
+3) 实现 `DeviceProtocolHandler`，继承相应的基类处理上行消息。
+4) 完成命令层 `definition/parser/handler` 并注册到 registry。
+5) 完成下发 `DeviceCommandTranslator` 与回执处理。
+6) 补充单元测试（解帧、解析、handler、translator）。
 
 ## 5. 示例：新增 VendorX 直连协议（TCP）
 
-以下示例仅展示骨架，具体字段请按协议调整。`FrameDecodeResult` 统一使用
-`info.zhihui.ems.iot.protocol.decode.FrameDecodeResult`。
+以下示例仅展示骨架，具体字段请按协议调整。
 
 ### 5.1 协议探测
 
@@ -128,79 +139,46 @@ public class VendorxFrameDecoderProvider implements NettyFrameDecoderProvider {
 }
 ```
 
-### 5.3 编解码器
+### 5.3 设备协议处理器
 
 ```java
 @Component
-public class VendorxFrameCodec {
-    public FrameDecodeResult decode(byte[] frame) {
-        // 校验帧头/长度/CRC 等
-        String commandKey = String.format("%02x", Byte.toUnsignedInt(command));
-        return new FrameDecodeResult(commandKey, payload, null);
+public class VendorxProtocolHandler extends AbstractAcrelInboundHandler implements DeviceProtocolHandler {
+    
+    @Override
+    public String getVendor() {
+        return "VENDORX";
     }
 
-    public byte[] encode(byte command, byte[] payload) {
-        // 拼装帧头/长度/CRC 等
-        return frame;
+    @Override
+    public DeviceAccessModeEnum getAccessMode() {
+        return DeviceAccessModeEnum.DIRECT;
+    }
+
+    @Override
+    public void onMessage(ProtocolMessageContext context) {
+        // 处理上行消息
+        // 1. 解析帧
+        // 2. 路由到具体处理器
+        // 3. 更新设备状态
+        // 4. 发布事件
+    }
+
+    @Override
+    public CompletableFuture<DeviceCommandResult> sendCommand(DeviceCommand command) {
+        // 处理下行命令
+        // 1. 通过 DeviceCommandTranslator 转换命令
+        // 2. 通过 CommandSender 发送
+        // 3. 返回异步结果
     }
 }
 ```
 
-### 5.4 命令定义/解析/处理
-
-```java
-public interface VendorxPacketDefinition {
-    String command();
-    VendorxMessage parse(ProtocolMessageContext context, byte[] payload);
-    void handle(ProtocolMessageContext context, VendorxMessage message);
-}
-
-@Component
-public class VendorxHeartbeatPacketDefinition implements VendorxPacketDefinition {
-    @Override
-    public String command() {
-        return "11";
-    }
-
-    @Override
-    public VendorxMessage parse(ProtocolMessageContext context, byte[] payload) {
-        return new VendorxHeartbeatMessage();
-    }
-
-    @Override
-    public void handle(ProtocolMessageContext context, VendorxMessage message) {
-        // 绑定设备/更新在线/下发响应
-    }
-}
-```
-
-### 5.5 协议入口与路由
+### 5.4 命令转换器
 
 ```java
 @Component
-@RequiredArgsConstructor
-public class VendorxTcpHandler {
-    private final VendorxFrameCodec frameCodec;
-    private final VendorxPacketRegistry registry;
-
-    public void handle(ProtocolMessageContext context) {
-        FrameDecodeResult frame = frameCodec.decode(context.getRawPayload());
-        if (frame.reason() != null) {
-            // 上报异常
-            return;
-        }
-        VendorxPacketDefinition definition = registry.resolve(frame.commandKey());
-        VendorxMessage message = definition.parse(context, frame.payload());
-        definition.handle(context, message);
-    }
-}
-```
-
-### 5.6 下发与回执
-
-```java
-@Component
-public class VendorxGetCtTranslator implements DeviceCommandTranslator<ModbusRtuRequest> {
+public class VendorxGetCtTranslator implements DeviceCommandTranslator {
     @Override
     public String vendor() {
         return "VENDORX";
@@ -212,20 +190,20 @@ public class VendorxGetCtTranslator implements DeviceCommandTranslator<ModbusRtu
     }
 
     @Override
-    public ModbusRtuRequest toRequest(DeviceCommand command) {
-        // 命令转请求
+    public Object toRequest(DeviceCommand command) {
+        // 将领域命令转换为协议特定请求
         return request;
     }
 
     @Override
-    public Class<ModbusRtuRequest> requestType() {
-        return ModbusRtuRequest.class;
+    public Class<?> requestType() {
+        return VendorxRequest.class;
     }
 
     @Override
     public DeviceCommandResult parseResponse(DeviceCommand command, byte[] payload) {
-        // 解析回执
-        return result;
+        // 解析响应并转换为命令结果
+        return DeviceCommandResult.success(data);
     }
 }
 ```
@@ -244,31 +222,25 @@ DeviceVendorFacade
 CommandAppService.sendCommand
    |  (DeviceRegistry.findById / Product)
    v
-ProtocolHandlerRegistry.resolve(signature)
+DeviceProtocolHandlerRegistry.resolve(signature)
    |
    v
-DeviceProtocolHandler.sendCommand (如 Acrel4g/AcrelGateway)
+DeviceProtocolHandler.sendCommand (如 VendorxProtocolHandler)
    |
    v
-DeviceCommandTranslatorResolver.resolve(vendor, product, type, ModbusRtuRequest.class)
+DeviceCommandTranslatorResolver.resolve(vendor, type, requestType)
    |
    v
-DeviceCommandTranslator.toRequest -> ModbusRtuBuilder
+DeviceCommandTranslator.toRequest -> 协议特定请求
    |
    v
-FrameCodec.encode (Acrel4gFrameCodec/AcrelGatewayFrameCodec)
-   |
-   v
-ProtocolCommandTransport.sendWithAck -> Netty Channel.writeAndFlush
+VendorxTcpCommandSender.sendWithAck -> Netty Channel.writeAndFlush
    |
    v
 [设备返回响应帧]
    |
    v
-ProtocolFrameDecoder -> MultiplexTcpHandler -> *TcpHandler
-   |
-   v
-PacketRegistry -> PacketDefinition.parse(context, payload)
+ProtocolFrameDecoder -> MultiplexTcpHandler -> VendorxTcpInboundHandler
    |
    v
 DownlinkAckPacketHandler.handle -> ProtocolCommandTransport.completePending
@@ -293,7 +265,7 @@ MultiplexTcpHandler
 DeviceProtocolHandler.onMessage
    |
    v
-*TcpInboundHandler (Acrel4gTcpInboundHandler/AcrelGatewayTcpInboundHandler)
+VendorxTcpInboundHandler.handle
    |
    v
 FrameCodec.decode -> FrameDecodeResult
@@ -311,3 +283,20 @@ PacketDefinition.handle -> PacketHandler
    +--> 发布 DeviceEnergyReportEvent / 其他业务事件
    +--> 异常上报（AbnormalEvent）
 ```
+
+## 7. 新增厂商/协议接入清单
+
+1) 新增 `NettyProtocolDetector`：根据协议魔数/特征返回 `ProtocolSignature`（包含 `transportType`）。  
+2) 新增 `NettyFrameDecoderProvider`：签名命中后返回专用解码器链（分包/粘包在此解决）。  
+3) 新增插件 `DeviceProtocolHandler`：解析完整帧，负责设备绑定、事件发布、命令回执归还（`completePending`）。  
+4) 若有下发命令：提供协议编码器/帧封装工具，调用 `sendWithAck/sendFireAndForget`。  
+5) 补齐单元测试：CRC、分包、ACK 等关键路径。  
+
+### 7.1 同厂商新增特殊产品（productCode）接入要点
+
+1) 设备录入时必须保存 `productCode`，并保证绑定后可通过 `deviceNo` 查询到该值。  
+2) 命令差异：新增对应的 `DeviceCommandTranslator`，`productCode()` 返回特殊型号编码；注册后会优先命中该产品专用翻译器。  
+3) Modbus 映射差异：在该产品专用翻译器中使用对应的地址/长度/倍率（不要复用默认映射）。  
+4) 上报差异：若上报解析依赖 `productCode`，在 handler 解析出 `deviceNo` 后查询设备，再按产品分发到专用 parser；无法在 `NettyProtocolDetector` 阶段完成判定。  
+5) 兼容回退：若未配置专用翻译器/解析器，继续回退到默认产品实现（`productCode` 为空的 translator/parser）。  
+6) 测试补齐：为该 `productCode` 的 translator/parser 增加单测，覆盖"产品优先 + 默认回退"路径。

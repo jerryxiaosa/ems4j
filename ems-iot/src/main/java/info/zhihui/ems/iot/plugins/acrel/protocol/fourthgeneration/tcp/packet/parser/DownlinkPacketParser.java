@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.p
 
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import org.springframework.stereotype.Component;

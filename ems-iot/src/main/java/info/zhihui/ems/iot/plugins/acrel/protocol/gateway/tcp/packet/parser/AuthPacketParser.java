@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayXmlParser;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

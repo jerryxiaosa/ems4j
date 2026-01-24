@@ -8,7 +8,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpInboundHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpCommandSender;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;

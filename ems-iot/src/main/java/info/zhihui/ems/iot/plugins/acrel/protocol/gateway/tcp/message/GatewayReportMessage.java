@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message;
 
-import info.zhihui.ems.iot.plugins.acrel.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandler;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpInboundHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpCommandSender;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;

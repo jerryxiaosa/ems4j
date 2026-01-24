@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
-import info.zhihui.ems.iot.plugins.acrel.command.modbus.AcrelModbusMappingRegistry;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.modbus.AcrelModbusMappingRegistry;
 
 /**
  * 安科瑞电量读取命令翻译器基类。

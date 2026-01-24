@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame;
+package info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 
-import static info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants.DELIMITER;
-import static info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants.DELIMITER_END;
+import static info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants.DELIMITER;
+import static info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants.DELIMITER_END;
 
 /**
  * 起止符分隔的报文解码器：默认识别 0x7B7B 开头，0x7D7D 结尾，支持分包缓存。

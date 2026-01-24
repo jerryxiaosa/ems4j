@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.detect;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

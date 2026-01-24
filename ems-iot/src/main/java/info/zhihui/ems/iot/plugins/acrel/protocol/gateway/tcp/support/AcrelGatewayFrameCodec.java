@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
+import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelGatewayFrameDecoder;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.plugins.acrel.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 public class AcrelGatewayFrameCodec {
 
     /**
-     * 解码由 {@link info.zhihui.ems.iot.plugins.acrel.transport.tcp.frame.AcrelGatewayFrameDecoder}
+     * 解码由 {@link AcrelGatewayFrameDecoder}
      * 切分后的完整帧，不在此处重复校验帧头与长度边界。
      */
     public FrameDecodeResult decode(byte[] frame) {
