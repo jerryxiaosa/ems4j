@@ -2,12 +2,12 @@
 
 ## 1. 分层职责
 
-- **api**：对外 HTTP API；仅做参数校验/组装并调用 application。
-- **application**：用例编排（注册设备、下发命令、查询状态）；负责事务边界与跨领域协调。
-- **domain**：领域模型与端口契约（如 `Device`、`DeviceCommandType`），不依赖技术细节。
-- **protocol**：协议层契约与抽象（如 `ProtocolSignature`、`DeviceProtocolHandler`、`DeviceCommandTranslator`），不依赖基础设施实现。
-- **infrastructure**：Netty/MQ、路由注册、通道管理、事件发布等技术实现；协议扩展点集中在 `infrastructure.transport.netty.spi`。
-- **plugins**：厂商插件（如安科瑞），实现 `DeviceProtocolHandler`，并可提供协议探测/解码器扩展（`NettyProtocolDetector`、`NettyFrameDecoderProvider`）。
+- **api**：对外 HTTP API；仅做参数校验/组装并调用 application。主要包括 `DeviceController` 和 `CommandController`。
+- **application**：用例编排（设备管理、命令下发、状态查询）；负责事务边界与跨领域协调。主要包括 `DeviceAppService`、`CommandAppService`、`EnergyReportAppService` 和 `DeviceVendorFacade`。
+- **domain**：领域模型与端口契约（如 `Device`、`DeviceCommand`、`DeviceCommandRequest`），不依赖技术细节。包含 `port`、`model`、`command` 等子包。
+- **protocol**：协议层契约与抽象（如 `ProtocolSignature`、`DeviceProtocolHandler`、`ProtocolMessageContext`），不依赖基础设施实现。包含 `port`、`packet`、`inbound`、`outbound` 等子包。
+- **infrastructure**：Netty/MQ、设备持久化、路由注册、会话管理等技术实现；协议扩展点集中在 `infrastructure.transport.netty.spi`。包含 `persistence`、`registry`、`transport` 等子包。
+- **plugins**：厂商插件（如安科瑞），实现 `DeviceProtocolHandler`，并可提供协议探测/解码器扩展（`ProtocolDetector`、`FrameDecoderProvider`）。
 
 ## 2. 边界与依赖约束
 
