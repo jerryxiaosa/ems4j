@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder;
+package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

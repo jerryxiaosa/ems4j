@@ -9,6 +9,7 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 /**
  * 安科瑞命令翻译器基础能力。
  */
+@Slf4j
 public abstract class AbstractAcrelCommandTranslator implements DeviceCommandTranslator<ModbusRtuRequest> {
 
     protected final AcrelModbusMappingRegistry mappingRegistry;
@@ -181,6 +183,7 @@ public abstract class AbstractAcrelCommandTranslator implements DeviceCommandTra
      * 构造成功结果。
      */
     private DeviceCommandResult success(DeviceCommand command, Object data, byte[] payload) {
+        log.debug("Modbus 响应成功，command={}, data={}", command, data);
         return new DeviceCommandResult()
                 .setType(command.getType())
                 .setSuccess(true)

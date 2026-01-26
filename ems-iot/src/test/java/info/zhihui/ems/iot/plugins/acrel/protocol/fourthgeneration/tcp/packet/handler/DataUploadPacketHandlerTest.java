@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 class DataUploadPacketHandlerTest {
@@ -69,12 +70,12 @@ class DataUploadPacketHandlerTest {
         ProtocolEnergyReportInboundEvent event = captor.getValue();
         Assertions.assertEquals("dev-1", event.getDeviceNo());
         Assertions.assertEquals("1-1", event.getMeterAddress());
-        Assertions.assertEquals(100, event.getTotalEnergy());
-        Assertions.assertEquals(10, event.getHigherEnergy());
-        Assertions.assertEquals(20, event.getHighEnergy());
-        Assertions.assertEquals(30, event.getLowEnergy());
-        Assertions.assertEquals(40, event.getLowerEnergy());
-        Assertions.assertEquals(50, event.getDeepLowEnergy());
+        Assertions.assertEquals(new BigDecimal("1.00"), event.getTotalEnergy());
+        Assertions.assertEquals(new BigDecimal("0.10"), event.getHigherEnergy());
+        Assertions.assertEquals(new BigDecimal("0.20"), event.getHighEnergy());
+        Assertions.assertEquals(new BigDecimal("0.30"), event.getLowEnergy());
+        Assertions.assertEquals(new BigDecimal("0.40"), event.getLowerEnergy());
+        Assertions.assertEquals(new BigDecimal("0.50"), event.getDeepLowEnergy());
         Assertions.assertEquals(time, event.getReportedAt());
         Assertions.assertEquals(receivedAt, event.getReceivedAt());
         Assertions.assertEquals(TransportProtocolEnum.TCP, event.getTransportType());

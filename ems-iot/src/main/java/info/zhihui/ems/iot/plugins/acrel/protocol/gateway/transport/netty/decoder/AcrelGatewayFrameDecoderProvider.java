@@ -1,14 +1,17 @@
-package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.detect;
+package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder;
 
-import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
+import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
+import io.netty.channel.ChannelHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
-public class AcrelGatewayProtocolDetector implements NettyProtocolDetector {
+public class AcrelGatewayFrameDecoderProvider implements NettyFrameDecoderProvider {
 
     @Override
     public ProtocolSignature detectTcp(byte[] payload) {
@@ -23,6 +26,11 @@ public class AcrelGatewayProtocolDetector implements NettyProtocolDetector {
                 .setVendor(AcrelProtocolConstants.VENDOR)
                 .setAccessMode(DeviceAccessModeEnum.GATEWAY)
                 .setTransportType(TransportProtocolEnum.TCP);
+    }
+
+    @Override
+    public List<ChannelHandler> createDecoders(ProtocolSignature signature) {
+        return List.of(new AcrelGatewayFrameDecoder());
     }
 
     private short toShort(byte high, byte low) {

@@ -3,7 +3,6 @@ package info.zhihui.ems.iot.infrastructure.transport.netty;
 import info.zhihui.ems.iot.config.DeviceAdapterProperties;
 import info.zhihui.ems.iot.infrastructure.registry.DeviceProtocolHandlerRegistry;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
-import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.handler.AbnormalEventHandler;
 import info.zhihui.ems.iot.infrastructure.transport.netty.handler.ExceptionCaughtHandler;
@@ -37,7 +36,6 @@ public class NettyServerBootstrap implements SmartLifecycle {
     private final DeviceAdapterProperties adapterProperties;
     private final DeviceProtocolHandlerRegistry handlerRegistry;
     private final ChannelManager channelManager;
-    private final List<NettyProtocolDetector> protocolDetectors;
     private final List<NettyFrameDecoderProvider> frameDecoderProviders;
 
     private EventLoopGroup bossGroup;
@@ -63,8 +61,7 @@ public class NettyServerBootstrap implements SmartLifecycle {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast(new ProtocolFrameDecoder(protocolDetectors, frameDecoderProviders,
-                                props.getUnknownProtocol()));
+                        pipeline.addLast(new ProtocolFrameDecoder(frameDecoderProviders, props.getUnknownProtocol()));
                         pipeline.addLast(businessGroup, "abnormalEventHandler", new AbnormalEventHandler(channelManager));
                         pipeline.addLast(businessGroup, "multiplexTcpHandler",
                                 new MultiplexTcpHandler(handlerRegistry, channelManager));

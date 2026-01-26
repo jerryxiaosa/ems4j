@@ -72,6 +72,11 @@ class AcrelGatewayXmlParserTest {
                     <time>20250101123000</time>
                     <meter id="01">
                       <function id="WPP">123.45</function>
+                      <function id="PowerHigher">10.11</function>
+                      <function id="PowerHigh">20.22</function>
+                      <function id="PowerFlat">30.33</function>
+                      <function id="PowerLow">40.44</function>
+                      <function id="EPISG">50.55</function>
                     </meter>
                   </data>
                 </root>
@@ -87,6 +92,11 @@ class AcrelGatewayXmlParserTest {
         MeterEnergyPayload payload = report.meters().get(0);
         Assertions.assertEquals("01", payload.meterId());
         Assertions.assertEquals(new BigDecimal("123.45"), payload.totalEnergy());
+        Assertions.assertEquals(new BigDecimal("10.11"), payload.higherEnergy());
+        Assertions.assertEquals(new BigDecimal("20.22"), payload.highEnergy());
+        Assertions.assertEquals(new BigDecimal("30.33"), payload.lowEnergy());
+        Assertions.assertEquals(new BigDecimal("40.44"), payload.lowerEnergy());
+        Assertions.assertEquals(new BigDecimal("50.55"), payload.deepLowEnergy());
     }
 
     @Test
@@ -134,6 +144,11 @@ class AcrelGatewayXmlParserTest {
         List<MeterEnergyPayload> meters = report.meters();
         Assertions.assertEquals(1, meters.size());
         Assertions.assertNull(meters.get(0).totalEnergy());
+        Assertions.assertNull(meters.get(0).higherEnergy());
+        Assertions.assertNull(meters.get(0).highEnergy());
+        Assertions.assertNull(meters.get(0).lowEnergy());
+        Assertions.assertNull(meters.get(0).lowerEnergy());
+        Assertions.assertNull(meters.get(0).deepLowEnergy());
     }
 
     @Test

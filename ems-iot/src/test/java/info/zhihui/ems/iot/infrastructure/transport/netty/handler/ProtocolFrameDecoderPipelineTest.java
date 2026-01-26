@@ -1,14 +1,11 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.handler;
 
 import info.zhihui.ems.iot.config.DeviceAdapterProperties;
-import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
-import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
-import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelDelimitedFrameDecoder;
-import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelGatewayFrameDecoder;
-import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelTcpFrameDecoderProvider;
-import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.Acrel4gFrameDecoderProvider;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.AcrelDelimitedFrameDecoder;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder.AcrelGatewayFrameDecoder;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder.AcrelGatewayFrameDecoderProvider;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
@@ -20,13 +17,8 @@ class ProtocolFrameDecoderPipelineTest {
 
     @Test
     void testDecode_WhenGatewaySignature_ShouldInstallGatewayFrameDecoderAndOutputFrame() {
-        ProtocolSignature signature = new ProtocolSignature()
-                .setVendor(AcrelProtocolConstants.VENDOR)
-                .setAccessMode(DeviceAccessModeEnum.GATEWAY)
-                .setTransportType(TransportProtocolEnum.TCP);
-        NettyProtocolDetector detector = payload -> signature;
-        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(detector),
-                List.of(new AcrelTcpFrameDecoderProvider()),
+        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(
+                List.of(new AcrelGatewayFrameDecoderProvider(), new Acrel4gFrameDecoderProvider()),
                 new DeviceAdapterProperties.UnknownProtocolProperties());
         EmbeddedChannel channel = new EmbeddedChannel(decoder);
         byte[] frame = new byte[]{
@@ -45,17 +37,13 @@ class ProtocolFrameDecoderPipelineTest {
 
     @Test
     void testDecode_WhenDirectSignature_ShouldInstallDelimitedFrameDecoderAndOutputFrame() {
-        ProtocolSignature signature = new ProtocolSignature()
-                .setVendor(AcrelProtocolConstants.VENDOR)
-                .setAccessMode(DeviceAccessModeEnum.DIRECT)
-                .setTransportType(TransportProtocolEnum.TCP);
-        NettyProtocolDetector detector = payload -> signature;
-        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(detector),
-                List.of(new AcrelTcpFrameDecoderProvider()),
+        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(
+                List.of(new AcrelGatewayFrameDecoderProvider(), new Acrel4gFrameDecoderProvider()),
                 new DeviceAdapterProperties.UnknownProtocolProperties());
         EmbeddedChannel channel = new EmbeddedChannel(decoder);
         byte[] frame = new byte[]{
-                0x7b, 0x7b, 0x01, 0x02, 0x03, 0x7d, 0x7d
+                AcrelProtocolConstants.DELIMITER, AcrelProtocolConstants.DELIMITER,
+                0x01, 0x02, 0x03, 0x7d, 0x7d
         };
 
         channel.writeInbound(Unpooled.wrappedBuffer(frame));

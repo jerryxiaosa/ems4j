@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 安科瑞网关 XML 解析器。
@@ -73,11 +75,18 @@ public class AcrelGatewayXmlParser {
      *   <data>
      *     <time>20250101123000</time>
      *     <meter id="01">
-     *       <function id="WPP">123.45</function>
+     *     <function id="WPP" error="">433.31</function>
+     *     <function id="PowerHigher" error="">34.55</function>
+     *     <function id="PowerHigh" error="">75.57</function>
+     *     <function id="PowerFlat" error="">192.93</function>
+     *     <function id="PowerLow" error="">128.04</function>
+     *     <function id="EPISG" error="">2.22</function>
      *     </meter>
      *   </data>
      * </root>
      * }
+     *
+     * @NOTICE 注意这里的属性id需要在网关上对应配置
      */
     public GatewayReportMessage parseReport(String xml) {
         Element root = parseRoot(xml);
@@ -141,23 +150,39 @@ public class AcrelGatewayXmlParser {
         for (int i = 0; i < meterNodes.getLength(); i++) {
             Element meter = (Element) meterNodes.item(i);
             String meterId = meter.getAttribute("id");
-            BigDecimal value = parseWppValue(meter);
-            meters.add(new MeterEnergyPayload(meterId, value));
+            meters.add(parseMeterEnergyPayload(meterId, meter));
         }
         return meters;
     }
 
-    private BigDecimal parseWppValue(Element meter) {
+    private MeterEnergyPayload parseMeterEnergyPayload(String meterId, Element meter) {
+        BigDecimal totalEnergy = null;
+        BigDecimal higherEnergy = null;
+        BigDecimal highEnergy = null;
+        BigDecimal lowEnergy = null;
+        BigDecimal lowerEnergy = null;
+        BigDecimal deepLowEnergy = null;
+        Integer ct = null;
         NodeList functions = meter.getElementsByTagName("function");
         for (int i = 0; i < functions.getLength(); i++) {
             Element function = (Element) functions.item(i);
             String id = function.getAttribute("id");
-            if ("WPP".equalsIgnoreCase(id)) {
-                String text = function.getTextContent();
-                return parseDecimal(text);
+            if (StringUtils.isBlank(id)) {
+                continue;
+            }
+            BigDecimal value = parseDecimal(function.getTextContent());
+            switch (id.trim().toUpperCase(Locale.ROOT)) {
+                case "WPP" -> totalEnergy = value;
+                case "POWERHIGHER" -> higherEnergy = value;
+                case "POWERHIGH" -> highEnergy = value;
+                case "POWERFLAT" -> lowEnergy = value;
+                case "POWERLOW" -> lowerEnergy = value;
+                case "EPISG" -> deepLowEnergy = value;
+                default -> {
+                }
             }
         }
-        return null;
+        return new MeterEnergyPayload(meterId, totalEnergy, higherEnergy, highEnergy, lowEnergy, lowerEnergy, deepLowEnergy, ct);
     }
 
     private LocalDateTime parseTime(String value) {

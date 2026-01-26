@@ -75,18 +75,8 @@ public class DeviceVendorFacade {
         DeviceCommandRequest request = buildEnergyCommand(period);
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, request, "电量读取");
         Integer energyValue = requireInteger(result, "电量读取");
-        Integer ctValue;
-        try {
-            ctValue = getCt(deviceId);
-        } catch (Exception ex) {
-            log.warn("获取CT值失败，将使用默认值1", ex);
-            // 没有获取到CT值，默认为1
-            ctValue = 1;
-        }
-
-        // 返回的是单位为瓦的整数，需要转换成瓦的浮点数，同时需要乘以CT值
+        // 返回的是单位为瓦的整数，需要转换成瓦的浮点数
         return BigDecimal.valueOf(energyValue)
-                .multiply(BigDecimal.valueOf(ctValue))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
@@ -101,9 +91,7 @@ public class DeviceVendorFacade {
     public Boolean getOnline(Integer deviceId) {
         Device device = deviceRegistry.getById(deviceId);
         DeviceAccessModeEnum accessMode = device.getProduct() == null ? null : device.getProduct().getAccessMode();
-        if (accessMode == null) {
-            throw new BusinessRuntimeException("设备接入方式缺失");
-        }
+
         if (DeviceAccessModeEnum.GATEWAY.equals(accessMode)) {
             return probeGatewayChildOnline(device);
         }
@@ -201,16 +189,13 @@ public class DeviceVendorFacade {
         if (data == null) {
             throw new BusinessRuntimeException(action + "失败：返回数据为空");
         }
-        if (data instanceof Number number) {
+        if (data instanceof Number number && number.intValue() > 0) {
             return number.intValue();
         }
         throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
     }
 
     private boolean isDirectOnline(Device device) {
-        if (device == null || device.getLastOnlineAt() == null) {
-            return false;
-        }
         if (!isWithinOnlineWindow(device.getLastOnlineAt(), LocalDateTime.now())) {
             return false;
         }

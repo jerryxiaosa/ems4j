@@ -4,7 +4,6 @@ import info.zhihui.ems.iot.config.DeviceAdapterProperties;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelAttributes;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
-import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -24,9 +23,8 @@ class ProtocolFrameDecoderTest {
         ProtocolSignature signature = new ProtocolSignature()
                 .setVendor("ACREL")
                 .setTransportType(TransportProtocolEnum.TCP);
-        NettyProtocolDetector detector = payload -> signature;
         NettyFrameDecoderProvider provider = new StubProvider(signature);
-        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(detector), List.of(provider),
+        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(provider),
                 new DeviceAdapterProperties.UnknownProtocolProperties());
         EmbeddedChannel channel = new EmbeddedChannel(decoder);
         byte[] payload = new byte[]{0x01, 0x02, 0x03};
@@ -50,11 +48,10 @@ class ProtocolFrameDecoderTest {
         ProtocolSignature signature = new ProtocolSignature()
                 .setVendor("ACREL")
                 .setTransportType(TransportProtocolEnum.TCP);
-        NettyProtocolDetector detector = payload -> signature;
         NettyFrameDecoderProvider provider = new NettyFrameDecoderProvider() {
             @Override
-            public boolean supports(ProtocolSignature sig) {
-                return false;
+            public ProtocolSignature detectTcp(byte[] payload) {
+                return signature;
             }
 
             @Override
@@ -62,7 +59,7 @@ class ProtocolFrameDecoderTest {
                 return List.of();
             }
         };
-        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(detector), List.of(provider),
+        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(provider),
                 new DeviceAdapterProperties.UnknownProtocolProperties());
         EmbeddedChannel channel = new EmbeddedChannel(decoder);
 
@@ -73,8 +70,18 @@ class ProtocolFrameDecoderTest {
 
     @Test
     void decode_whenUndetected_shouldKeepDecoder() {
-        NettyProtocolDetector detector = payload -> null;
-        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(detector), List.of(),
+        NettyFrameDecoderProvider provider = new NettyFrameDecoderProvider() {
+            @Override
+            public ProtocolSignature detectTcp(byte[] payload) {
+                return null;
+            }
+
+            @Override
+            public List<ChannelHandler> createDecoders(ProtocolSignature signature) {
+                return List.of(new StubHandler());
+            }
+        };
+        ProtocolFrameDecoder decoder = new ProtocolFrameDecoder(List.of(provider),
                 new DeviceAdapterProperties.UnknownProtocolProperties());
         EmbeddedChannel channel = new EmbeddedChannel(decoder);
 
@@ -94,8 +101,8 @@ class ProtocolFrameDecoderTest {
         }
 
         @Override
-        public boolean supports(ProtocolSignature sig) {
-            return signature.getVendor().equalsIgnoreCase(sig.getVendor());
+        public ProtocolSignature detectTcp(byte[] payload) {
+            return signature;
         }
 
         @Override

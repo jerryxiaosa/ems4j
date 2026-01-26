@@ -16,11 +16,11 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatew
 import info.zhihui.ems.iot.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,6 +63,7 @@ public class DataPacketHandler implements GatewayPacketHandler {
             return;
         }
         for (MeterEnergyPayload meter : meters) {
+            log.debug("网关数据上报，gateway={} meterId={}", gateway.getDeviceNo(), meter.meterId());
             if (!StringUtils.hasText(meter.meterId())) {
                 continue;
             }
@@ -79,14 +80,27 @@ public class DataPacketHandler implements GatewayPacketHandler {
                 log.warn("网关电表未注册，gateway={} meterId={}", gateway.getDeviceNo(), meter.meterId());
                 continue;
             }
-            int totalEnergy = toEnergyInt(meter.totalEnergy());
+            BigDecimal totalEnergy = meter.totalEnergy();
+            BigDecimal higherEnergy = meter.higherEnergy();
+            BigDecimal highEnergy = meter.highEnergy();
+            BigDecimal lowEnergy = meter.lowEnergy();
+            BigDecimal lowerEnergy = meter.lowerEnergy();
+            BigDecimal deepLowEnergy = meter.deepLowEnergy();
+            LocalDateTime receivedAt = resolveReceivedAt(context);
+            LocalDateTime reportedAt =report.reportedAt() != null ? report.reportedAt() : receivedAt;
+
             ProtocolEnergyReportInboundEvent event = new ProtocolEnergyReportInboundEvent()
                     .setDeviceNo(device.getDeviceNo())
                     .setGatewayDeviceNo(gateway.getDeviceNo())
                     .setMeterAddress(String.valueOf(identity.meterAddress()))
                     .setTotalEnergy(totalEnergy)
-                    .setReportedAt(resolveReportedAt(report.reportedAt()))
-                    .setReceivedAt(resolveReceivedAt(context))
+                    .setHigherEnergy(higherEnergy)
+                    .setHighEnergy(highEnergy)
+                    .setLowEnergy(lowEnergy)
+                    .setLowerEnergy(lowerEnergy)
+                    .setDeepLowEnergy(deepLowEnergy)
+                    .setReportedAt(reportedAt)
+                    .setReceivedAt(receivedAt)
                     .setTransportType(context.getTransportType())
                     .setSessionId(sessionId(context))
                     .setRawPayload(buildRawPayload(HexUtil.bytesToHexString(context.getRawPayload()), rawXml));
@@ -98,19 +112,8 @@ public class DataPacketHandler implements GatewayPacketHandler {
         }
     }
 
-    private LocalDateTime resolveReportedAt(LocalDateTime reportedAt) {
-        return reportedAt == null ? LocalDateTime.now() : reportedAt;
-    }
-
     private LocalDateTime resolveReceivedAt(ProtocolMessageContext context) {
         return context.getReceivedAt() == null ? LocalDateTime.now() : context.getReceivedAt();
-    }
-
-    private int toEnergyInt(BigDecimal value) {
-        if (value == null) {
-            return 0;
-        }
-        return value.setScale(0, RoundingMode.DOWN).intValue();
     }
 
     private String buildRawPayload(String rawHex, String rawXml) {

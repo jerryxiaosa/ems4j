@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * 4G 数据上报命令处理器。
@@ -67,12 +69,12 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
         ProtocolEnergyReportInboundEvent event = new ProtocolEnergyReportInboundEvent()
                 .setDeviceNo(deviceNo)
                 .setMeterAddress(upload.getMeterAddress())
-                .setTotalEnergy(upload.getTotalEnergy())
-                .setHigherEnergy(upload.getHigherEnergy())
-                .setHighEnergy(upload.getHighEnergy())
-                .setLowEnergy(upload.getLowEnergy())
-                .setLowerEnergy(upload.getLowerEnergy())
-                .setDeepLowEnergy(upload.getDeepLowEnergy())
+                .setTotalEnergy(scaleEnergy(upload.getTotalEnergy()))
+                .setHigherEnergy(scaleEnergy(upload.getHigherEnergy()))
+                .setHighEnergy(scaleEnergy(upload.getHighEnergy()))
+                .setLowEnergy(scaleEnergy(upload.getLowEnergy()))
+                .setLowerEnergy(scaleEnergy(upload.getLowerEnergy()))
+                .setDeepLowEnergy(scaleEnergy(upload.getDeepLowEnergy()))
                 .setReportedAt(reportedAt)
                 .setReceivedAt(receivedAt)
                 .setTransportType(context.getTransportType())
@@ -85,5 +87,13 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
             return;
         }
         session.send(frameCodec.encodeAck(Acrel4gPacketCode.DATA_UPLOAD));
+    }
+
+
+
+
+    private BigDecimal scaleEnergy(int energyValue) {
+        return BigDecimal.valueOf(energyValue)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 }

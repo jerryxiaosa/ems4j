@@ -28,9 +28,7 @@ import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.finance.entity.ElectricMeterPowerRecordEntity;
-import info.zhihui.ems.business.finance.qo.ElectricMeterPowerRecordQo;
-import info.zhihui.ems.business.finance.repository.ElectricMeterPowerRecordRepository;
+import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.business.finance.service.consume.MeterConsumeService;
 import info.zhihui.ems.business.plan.bo.WarnPlanBo;
@@ -98,7 +96,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     private final MeterConsumeService meterConsumeService;
     private final BalanceService balanceService;
     private final MeterStepRepository meterStepRepository;
-    private final ElectricMeterPowerRecordRepository electricMeterPowerRecordRepository;
+    private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
     private final RequestContext requestContext;
     private final GatewayService gatewayService;
     private final DeviceCommandService deviceCommandService;
@@ -853,7 +851,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (devicePower != null) {
             return devicePower;
         }
-        return readMeterPowerFromRecord(meterId);
+        return electricMeterPowerRecordService.findLatestPower(meterId);
     }
 
     private BigDecimal readMeterPowerFromDevice(Integer meterId) {
@@ -865,15 +863,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
             log.warn("读取电表{}实时电量失败，将回退至历史记录", meterId, ex);
             return null;
         }
-    }
-
-    private BigDecimal readMeterPowerFromRecord(Integer meterId) {
-        List<ElectricMeterPowerRecordEntity> latestRecords = electricMeterPowerRecordRepository.findRecordList(
-                new ElectricMeterPowerRecordQo().setMeterId(meterId).setLimit(1));
-        if (CollectionUtils.isEmpty(latestRecords)) {
-            return null;
-        }
-        return latestRecords.get(0).getPower();
     }
 
     /**
