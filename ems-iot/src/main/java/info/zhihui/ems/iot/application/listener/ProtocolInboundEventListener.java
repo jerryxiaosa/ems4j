@@ -3,7 +3,6 @@ package info.zhihui.ems.iot.application.listener;
 import info.zhihui.ems.iot.domain.event.DeviceEnergyReportEvent;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
-import info.zhihui.ems.iot.application.EnergyReportAppService;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import java.time.LocalDateTime;
 public class ProtocolInboundEventListener {
 
     private final DeviceRegistry deviceRegistry;
-    private final EnergyReportAppService energyReportAppService;
 
     @EventListener
     public void handleHeartbeat(ProtocolHeartbeatInboundEvent event) {
@@ -32,7 +30,7 @@ public class ProtocolInboundEventListener {
             Device device = deviceRegistry.getByDeviceNo(event.getDeviceNo());
             device.setLastOnlineAt(receivedAt);
             deviceRegistry.update(device);
-            log.debug("协议心跳 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId());
+            log.debug("---- 协议心跳 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId());
         } catch (Exception ex) {
             log.warn("心跳处理异常 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId(), ex);
         }
@@ -59,10 +57,9 @@ public class ProtocolInboundEventListener {
                 .setReceivedAt(receivedAt)
                 .setSource(event.getTransportType() != null ? event.getTransportType().name() : null)
                 .setRaw(event.getRawPayload());
-        try {
-            energyReportAppService.handleEnergyReport(reportEvent);
-        } catch (Exception ex) {
-            log.error("能耗上报处理异常 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId(), ex);
-        }
+        log.info("---- 能耗上报: {}", reportEvent);
     }
+
+
+
 }

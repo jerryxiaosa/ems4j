@@ -1,15 +1,18 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.domain.model.Device;
-import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
+import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
+import info.zhihui.ems.iot.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -27,7 +30,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
     private static final DateTimeFormatter HEARTBEAT_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final AcrelGatewayDeviceResolver deviceResolver;
-    private final DeviceRegistry deviceRegistry;
+    private final ProtocolInboundPublisher protocolInboundPublisher;
     private final AcrelGatewayFrameCodec frameCodec;
 
     @Override
@@ -42,12 +45,25 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
             log.warn("网关心跳未绑定设备，session={}", sessionId(context));
             return;
         }
-        try {
-            gateway.setLastOnlineAt(LocalDateTime.now());
-            deviceRegistry.update(gateway);
-        } catch (Exception ex) {
-            log.warn("网关心跳更新在线时间失败，gateway={} session={}", gateway.getDeviceNo(), sessionId(context), ex);
+        String deviceNo = gateway.getDeviceNo();
+        if (StringUtils.isBlank(deviceNo)) {
+            log.warn("网关心跳缺少 deviceNo，session={}", sessionId(context));
+            return;
         }
+        try {
+            LocalDateTime receivedAt = context.getReceivedAt() != null ? context.getReceivedAt() : LocalDateTime.now();
+            ProtocolHeartbeatInboundEvent event = new ProtocolHeartbeatInboundEvent()
+                    .setDeviceNo(deviceNo)
+                    .setSessionId(sessionId(context))
+                    .setReceivedAt(receivedAt)
+                    .setTransportType(context.getTransportType())
+                    .setRawPayloadHex(HexUtil.bytesToHexString(context.getRawPayload()));
+            protocolInboundPublisher.publish(event);
+            log.debug("收到网关心跳 {}，session={}", deviceNo, sessionId(context));
+        } catch (Exception ex) {
+            log.warn("网关心跳事件发布异常 deviceNo={} session={}", deviceNo, sessionId(context), ex);
+        }
+
         String time = HEARTBEAT_TIME_FORMAT.format(LocalDateTime.now());
         String xml = buildHeartbeatXml(gateway.getDeviceNo(), time);
         byte[] frame = frameCodec.encode(GatewayPacketCode.HEARTBEAT, xml.getBytes(StandardCharsets.UTF_8));

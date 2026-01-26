@@ -24,9 +24,7 @@ import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.finance.entity.ElectricMeterPowerRecordEntity;
-import info.zhihui.ems.business.finance.qo.ElectricMeterPowerRecordQo;
-import info.zhihui.ems.business.finance.repository.ElectricMeterPowerRecordRepository;
+import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.business.finance.service.consume.MeterConsumeService;
 import info.zhihui.ems.business.plan.bo.WarnPlanBo;
@@ -70,6 +68,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -133,7 +132,7 @@ class ElectricMeterManagerServiceImplTest {
     private MeterCancelRecordRepository meterCancelRecordRepository;
 
     @Mock
-    private ElectricMeterPowerRecordRepository electricMeterPowerRecordRepository;
+    private ElectricMeterPowerRecordService electricMeterPowerRecordService;
 
     @InjectMocks
     private ElectricMeterManagerServiceImpl electricMeterService;
@@ -3797,9 +3796,7 @@ class ElectricMeterManagerServiceImplTest {
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(300))).thenReturn(energyService);
         when(energyService.getMeterEnergy(any())).thenThrow(new RuntimeException("mock energy failure"));
         BigDecimal snapshotPower = new BigDecimal("150.50");
-        ElectricMeterPowerRecordEntity recordEntity = new ElectricMeterPowerRecordEntity().setPower(snapshotPower);
-        when(electricMeterPowerRecordRepository.findRecordList(any(ElectricMeterPowerRecordQo.class)))
-                .thenReturn(List.of(recordEntity));
+        when(electricMeterPowerRecordService.findLatestPower(anyInt())).thenReturn(snapshotPower);
 
         int expectedYear = LocalDateTime.now().getYear();
         assertDoesNotThrow(() -> electricMeterService.resetCurrentYearMeterStepRecord(resetDto));
@@ -3828,7 +3825,7 @@ class ElectricMeterManagerServiceImplTest {
         electricMeterService.resetCurrentYearMeterStepRecord(resetDto);
 
         verify(accountMeterStepRepository, never()).insert(any(MeterStepEntity.class));
-        verify(electricMeterPowerRecordRepository, never()).findRecordList(any());
+        verify(electricMeterPowerRecordService, never()).findLatestPower(any());
     }
 
     @Test
@@ -3846,7 +3843,7 @@ class ElectricMeterManagerServiceImplTest {
         electricMeterService.resetCurrentYearMeterStepRecord(resetDto);
 
         verify(accountMeterStepRepository, never()).insert(any(MeterStepEntity.class));
-        verify(electricMeterPowerRecordRepository, never()).findRecordList(any());
+        verify(electricMeterPowerRecordService, never()).findLatestPower(any());
     }
 
 }

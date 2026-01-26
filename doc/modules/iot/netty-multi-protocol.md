@@ -8,15 +8,14 @@
   - `ProtocolFrameDecoder`：首包探测并安装专用解码器链。
   - `MultiplexTcpHandler`：消费“完整帧”，构造 `SimpleProtocolMessageContext` 并路由到插件 handler。
 - `ProtocolFrameDecoder` 行为：
-  1) 截取快照（前 N 字节）依次调用 `NettyProtocolDetector.detectTcp`
+  1) 截取快照（前 N 字节）按优先级调用 `NettyFrameDecoderProvider.detectTcp`
   2) 探测到 `ProtocolSignature` 后写入 `ChannelAttributes.PROTOCOL_SIGNATURE`
-  3) 根据签名选择 `NettyFrameDecoderProvider`，把对应解码器链插入 pipeline（长度型/起止符型等）
+  3) 命中 provider 后直接安装其 `createDecoders` 返回的解码器链（长度型/起止符型等）
   4) 将缓存字节重新投递给新解码器，再移除自身
 
 ## 2. 关键扩展点
 
-- `NettyProtocolDetector`：只做“识别”，返回 `ProtocolSignature`（vendor/accessMode/productCode/transportType）。
-- `NettyFrameDecoderProvider`：只做“签名 → 解码器链”，返回一组 `ChannelHandler`（可多个）。
+- `NettyFrameDecoderProvider`：负责“首包探测 + 解码器链”，`detectTcp` 返回 `ProtocolSignature`，`createDecoders` 返回一组 `ChannelHandler`（可多个）。
 - `ProtocolHandlerRegistry`：按 `ProtocolSignature`（vendor/accessMode/productCode/transportType）路由到 `DeviceProtocolHandler`。
 
 ## 3. 插件解码与路由流程（ASCII）
@@ -25,7 +24,7 @@
 TCP Connection
    |
    v
-ProtocolFrameDecoder  --首包探测-->  ProtocolSignature (vendor, accessMode, productCode, transportType)
+ProtocolFrameDecoder  --NettyFrameDecoderProvider.detectTcp-->  ProtocolSignature (vendor, accessMode, productCode, transportType)
    |                                     |
    |                                     v
    |                            NettyFrameDecoderProvider (由插件提供)

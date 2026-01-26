@@ -20,10 +20,9 @@ EMS4J 是一个专注于能耗管理的综合性业务平台，具备设备接�
 
 - 多协议设备接入
 - 计量计费（尖峰平谷、阶梯电价）
-- 账户管理（开户 / 销户 / 充值 / 余额）
-- 远程控制（合闸 / 分闸 / 功率限制）
+- 账户管理（开户 / 销户 / 充值）
+- 远程控制（合闸 / 分闸 / 复费率设置）
 - 财务核算（账单 / 流水 / 对账）
-- 多租户组织架构
 
 ## 环境要求
 
@@ -135,6 +134,11 @@ mvn -pl ems-business/ems-business-device -am test
        +---------------+
 ```
 
+说明：
+- ems-web 可直接依赖 ems-business 与 ems-foundation（用户/组织/空间/系统等基础域）。
+- ems-web 仅依赖 service/dto，避免直接引用 repository/entity/mapper。
+- ems-foundation 不反向依赖 ems-business/ems-web，保持基础域可复用。
+
 ## 数据流向
 
 ```
@@ -153,7 +157,6 @@ mvn -pl ems-business/ems-business-device -am test
                         |   MySQL  |
                         +----------+
 ```
-
 
 
 ## 模块说明

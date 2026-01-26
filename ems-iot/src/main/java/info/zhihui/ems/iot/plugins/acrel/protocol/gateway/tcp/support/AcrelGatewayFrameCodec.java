@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
-import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelGatewayFrameDecoder;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder.AcrelGatewayFrameDecoder;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;

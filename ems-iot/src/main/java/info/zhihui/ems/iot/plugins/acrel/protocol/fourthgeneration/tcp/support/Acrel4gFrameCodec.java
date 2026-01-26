@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support;
 
-import info.zhihui.ems.iot.plugins.acrel.transport.netty.decoder.AcrelDelimitedFrameDecoder;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.AcrelDelimitedFrameDecoder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;

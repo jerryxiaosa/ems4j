@@ -1,14 +1,19 @@
-package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.detect;
+package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder;
 
-import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyProtocolDetector;
+import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
+import io.netty.channel.ChannelHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
-public class Acrel4gProtocolDetector implements NettyProtocolDetector {
+public class Acrel4gFrameDecoderProvider implements NettyFrameDecoderProvider {
+
+    private static final int MAX_FRAME_LENGTH = 2048;
 
     @Override
     public ProtocolSignature detectTcp(byte[] payload) {
@@ -18,13 +23,14 @@ public class Acrel4gProtocolDetector implements NettyProtocolDetector {
         if (payload[0] != AcrelProtocolConstants.DELIMITER || payload[1] != AcrelProtocolConstants.DELIMITER) {
             return null;
         }
-        return signature();
-    }
-
-    private ProtocolSignature signature() {
         return new ProtocolSignature()
                 .setVendor(AcrelProtocolConstants.VENDOR)
                 .setAccessMode(DeviceAccessModeEnum.DIRECT)
                 .setTransportType(TransportProtocolEnum.TCP);
+    }
+
+    @Override
+    public List<ChannelHandler> createDecoders(ProtocolSignature signature) {
+        return List.of(new AcrelDelimitedFrameDecoder(MAX_FRAME_LENGTH));
     }
 }

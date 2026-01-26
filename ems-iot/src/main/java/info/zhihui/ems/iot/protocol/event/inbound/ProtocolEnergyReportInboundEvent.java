@@ -4,6 +4,7 @@ import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -16,12 +17,12 @@ public class ProtocolEnergyReportInboundEvent implements ProtocolInboundEvent {
     private String gatewayDeviceNo;
     private String sessionId;
     private String meterAddress;
-    private int totalEnergy;
-    private int higherEnergy;
-    private int highEnergy;
-    private int lowEnergy;
-    private int lowerEnergy;
-    private int deepLowEnergy;
+    private BigDecimal totalEnergy;
+    private BigDecimal higherEnergy;
+    private BigDecimal highEnergy;
+    private BigDecimal lowEnergy;
+    private BigDecimal lowerEnergy;
+    private BigDecimal deepLowEnergy;
     private LocalDateTime reportedAt;
     private LocalDateTime receivedAt;
     private TransportProtocolEnum transportType;

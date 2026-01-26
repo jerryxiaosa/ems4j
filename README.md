@@ -20,11 +20,10 @@ If this project helps you in any way, I will be deeply honored.
 ## Features
 
 - Multi-protocol device access 
-- Metering and billing (time-of-use pricing, tiered rates)
-- Account management (opening / closing / recharge / balance)
-- Remote control (switch on/off, power limit)
+- Metering and billing (peak/off-peak/valley, tiered rates)
+- Account management (opening / closing / recharge)
+- Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
-- Multi-tenant organization structure
 
 ## Requirements
 
@@ -137,6 +136,11 @@ mvn -pl ems-business/ems-business-device -am test
        +---------------+
 ```
 
+Notes:
+- ems-web can depend on both ems-business and ems-foundation (user/org/space/system, etc.).
+- ems-web should depend on service/dto only; avoid direct repository/entity/mapper access.
+- ems-foundation should not depend on ems-business/ems-web to keep base domains reusable.
+
 ## Data Flow
 
 ```
@@ -156,7 +160,6 @@ mvn -pl ems-business/ems-business-device -am test
                            |   MySQL  |
                            +----------+
 ```
-
 
 ## Module Details
 

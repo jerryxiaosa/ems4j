@@ -9,7 +9,7 @@ transport:
 
 spring:
   application:
-    name: EMS-SERVICE
+    name: IOT-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:13306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true

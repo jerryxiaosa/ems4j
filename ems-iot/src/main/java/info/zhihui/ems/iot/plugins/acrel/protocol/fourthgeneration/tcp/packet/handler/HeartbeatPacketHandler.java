@@ -50,7 +50,7 @@ public class HeartbeatPacketHandler implements Acrel4gPacketHandler {
                     .setTransportType(context.getTransportType())
                     .setRawPayloadHex(HexUtil.bytesToHexString(context.getRawPayload()));
             protocolInboundPublisher.publish(event);
-            log.debug("4G 心跳 {}", deviceNo);
+            log.debug("收到4G 心跳 {}，无须返回数据", deviceNo);
         } catch (Exception e) {
             log.warn("4G 心跳事件发布异常 deviceNo={}", deviceNo, e);
         }

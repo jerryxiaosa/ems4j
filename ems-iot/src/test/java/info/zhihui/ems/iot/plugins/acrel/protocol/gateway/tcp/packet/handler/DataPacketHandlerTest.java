@@ -36,7 +36,9 @@ class DataPacketHandlerTest {
         Mockito.when(deviceRegistry.getByParentIdAndPortNoAndMeterAddress(1, 1, 2)).thenReturn(meterDevice);
         LocalDateTime reportedAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
         GatewayReportMessage report = new GatewayReportMessage("gw-1", reportedAt,
-                List.of(new MeterEnergyPayload("01002", new BigDecimal("123.45"))));
+                List.of(new MeterEnergyPayload("01002", new BigDecimal("123.45"),
+                        new BigDecimal("10.10"), new BigDecimal("20.20"),
+                        new BigDecimal("30.30"), new BigDecimal("40.40"), new BigDecimal("50.50"), null)));
         GatewayDataMessage message = new GatewayDataMessage(report, "<xml>data</xml>");
         ProtocolMessageContext context = buildContext();
 
@@ -49,7 +51,12 @@ class DataPacketHandlerTest {
         Assertions.assertEquals("meter-1", event.getDeviceNo());
         Assertions.assertEquals("gw-1", event.getGatewayDeviceNo());
         Assertions.assertEquals("2", event.getMeterAddress());
-        Assertions.assertEquals(123, event.getTotalEnergy());
+        Assertions.assertEquals(new BigDecimal("123.45"), event.getTotalEnergy());
+        Assertions.assertEquals(new BigDecimal("10.10"), event.getHigherEnergy());
+        Assertions.assertEquals(new BigDecimal("20.20"), event.getHighEnergy());
+        Assertions.assertEquals(new BigDecimal("30.30"), event.getLowEnergy());
+        Assertions.assertEquals(new BigDecimal("40.40"), event.getLowerEnergy());
+        Assertions.assertEquals(new BigDecimal("50.50"), event.getDeepLowEnergy());
         Assertions.assertEquals(reportedAt, event.getReportedAt());
         Assertions.assertEquals(LocalDateTime.of(2024, 2, 3, 4, 5, 6), event.getReceivedAt());
         Assertions.assertEquals(TransportProtocolEnum.TCP, event.getTransportType());
