@@ -76,7 +76,9 @@ class HeartbeatPacketHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-1");
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
+                .setSession(session)
+                .setRawPayload(new byte[]{0x01});
 
         handler.handle(context, new HeartbeatMessage());
 

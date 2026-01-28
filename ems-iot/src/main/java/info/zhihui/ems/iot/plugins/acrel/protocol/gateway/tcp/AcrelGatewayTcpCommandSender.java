@@ -4,21 +4,22 @@ import info.zhihui.ems.iot.config.IotCommandProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
-import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
-import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayMeterIdCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.DeviceCommandSupport;
+import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
+import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
-import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.DeviceCommandSupport;
 import info.zhihui.ems.iot.util.ProtocolTimeoutSupport;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AcrelGatewayTcpCommandSender {
 
     private final ProtocolCommandTransport commandTransport;
@@ -56,16 +58,22 @@ public class AcrelGatewayTcpCommandSender {
         DeviceCommandTranslator<ModbusRtuRequest> translator = translatorRegistry.resolve(
                 device.getProduct().getVendor(), device.getProduct().getCode(), command.getType(), ModbusRtuRequest.class);
         ModbusRtuRequest rtuRequest = translator.toRequest(command);
-        byte[] rtuFrame = ModbusRtuBuilder.build(rtuRequest);
-        String meterId = AcrelGatewayMeterIdCodec.format(device.getPortNo(), device.getMeterAddress());
-        String transparent = gatewayTransparentCodec.encode(meterId, rtuFrame);
+        log.debug("转换网关设备命令，deviceNo={}, rtuRequest={}", device.getDeviceNo(), rtuRequest);
 
-        byte[] encrypted = gatewayCryptoService.encrypt(transparent.getBytes(StandardCharsets.UTF_8), gateway.getDeviceSecret());
+        byte[] rtuFrame = ModbusRtuBuilder.build(rtuRequest);
+        log.debug("转换成Modbus RTU帧，rtuFrame={}", HexUtils.toHexString(rtuFrame));
+
+        byte[] transparent = gatewayTransparentCodec.encode(device.getPortNo(), device.getMeterAddress(), rtuFrame);
+        log.debug("网关透明转发编码，transparent={}", new String(transparent, StandardCharsets.UTF_8));
+
+        byte[] encrypted = gatewayCryptoService.encrypt(transparent, gateway.getDeviceSecret());
         byte[] frame = gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
+        log.debug("发送网关帧，frame={}", HexUtils.toHexString(frame));
 
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(gateway.getDeviceNo(), frame);
         ProtocolTimeoutSupport.applyTimeout(future, commandProperties.getTimeoutMillis(),
                 ex -> commandTransport.failPending(gateway.getDeviceNo(), ex));
         return future.thenApply(payload -> translator.parseResponse(command, payload));
     }
+
 }

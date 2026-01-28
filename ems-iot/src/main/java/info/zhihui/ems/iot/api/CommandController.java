@@ -55,7 +55,7 @@ public class CommandController {
 
     @GetMapping("/{deviceId}/date-duration/{plan}")
     public List<ElectricDateDurationVo> getDateDuration(@PathVariable Integer deviceId,
-                                                         @PathVariable String plan) {
+                                                         @PathVariable Integer plan) {
         return deviceVendorFacade.getDateDuration(deviceId, plan);
     }
 

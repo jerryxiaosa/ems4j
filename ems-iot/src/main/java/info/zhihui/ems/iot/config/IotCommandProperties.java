@@ -15,5 +15,5 @@ public class IotCommandProperties {
     /**
      * 默认超时时间（毫秒），用于等待设备响应。
      */
-    private long timeoutMillis = 5000L;
+    private long timeoutMillis = 10_000L;
 }

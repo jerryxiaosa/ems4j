@@ -4,6 +4,7 @@ import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**

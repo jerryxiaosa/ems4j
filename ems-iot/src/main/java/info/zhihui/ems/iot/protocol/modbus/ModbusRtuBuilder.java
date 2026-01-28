@@ -1,10 +1,14 @@
 package info.zhihui.ems.iot.protocol.modbus;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.buf.HexUtils;
+
 import java.util.Arrays;
 
 /**
  * Modbus RTU 报文构建器。
  */
+@Slf4j
 public final class ModbusRtuBuilder {
 
     public static final int FUNCTION_READ = 0x03;
@@ -42,7 +46,7 @@ public final class ModbusRtuBuilder {
             throw new IllegalArgumentException("读取寄存器数量必须在 1~" + MAX_READ_QUANTITY + " 之间");
         }
         byte[] body = new byte[6];
-        body[0] = (byte) request.getSlaveAddress();
+        body[0] = (byte) (request.getSlaveAddress() & 0xFF);
         body[1] = (byte) FUNCTION_READ;
         body[2] = (byte) ((start >> 8) & 0xFF);
         body[3] = (byte) (start & 0xFF);
@@ -57,7 +61,7 @@ public final class ModbusRtuBuilder {
         int quantity = request.getQuantity();
         byte[] data = getBytes(request, quantity);
         byte[] body = new byte[7 + data.length];
-        body[0] = (byte) request.getSlaveAddress();
+        body[0] = (byte) (request.getSlaveAddress() & 0xFF);
         body[1] = (byte) FUNCTION_WRITE;
         body[2] = (byte) ((start >> 8) & 0xFF);
         body[3] = (byte) (start & 0xFF);

@@ -36,7 +36,7 @@ public final class AcrelGatewayMeterIdCodec {
 
     public static String format(Integer portNo, Integer meterAddress) {
         if (portNo == null || meterAddress == null) {
-            return null;
+            throw new IllegalArgumentException("电表标识格式化参数不能为空");
         }
         return String.format("%02d%03d", portNo, meterAddress);
     }

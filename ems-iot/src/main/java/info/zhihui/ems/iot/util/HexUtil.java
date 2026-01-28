@@ -1,8 +1,11 @@
 package info.zhihui.ems.iot.util;
 
-public class HexUtil {
+import java.nio.charset.StandardCharsets;
 
-    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+public class HexUtil {
+    private static final String DIGITS = "0123456789abcdef";
+    private static final char[] HEX_DIGITS = DIGITS.toCharArray();
+    private static final byte[] HEX_DIGITS_LOWER = DIGITS.getBytes(StandardCharsets.US_ASCII);
 
     private HexUtil() {
     }
@@ -32,7 +35,7 @@ public class HexUtil {
 
     public static String bytesToHexString(byte[] src) {
         if ((src == null) || (src.length == 0)) {
-            return null;
+            throw new IllegalArgumentException("src is empty");
         }
         char[] out = new char[src.length * 2];
         int index = 0;
@@ -42,6 +45,20 @@ public class HexUtil {
             out[index++] = HEX_DIGITS[v & 0x0F];
         }
         return new String(out);
+    }
+
+    public static byte[] bytesToHexBytesLower(byte[] src) {
+        if (src == null || src.length == 0) {
+            return new byte[0];
+        }
+        byte[] out = new byte[src.length * 2];
+        int index = 0;
+        for (byte value : src) {
+            int v = value & 0xFF;
+            out[index++] = HEX_DIGITS_LOWER[v >>> 4];
+            out[index++] = HEX_DIGITS_LOWER[v & 0x0F];
+        }
+        return out;
     }
 
 }

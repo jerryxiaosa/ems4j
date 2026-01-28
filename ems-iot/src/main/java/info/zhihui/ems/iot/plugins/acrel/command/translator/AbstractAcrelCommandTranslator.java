@@ -9,6 +9,7 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -92,6 +93,8 @@ public abstract class AbstractAcrelCommandTranslator implements DeviceCommandTra
         if (!isValidFrame(payload)) {
             return failure(command, "Modbus 响应格式不正确或 CRC 校验失败", payload);
         }
+        log.debug("写命令 响应数据：{}", HexUtil.bytesToHexString(payload));
+
         byte function = payload[1];
         if ((function & 0x80) != 0) {
             return failure(command, buildExceptionMessage(function, payload[2]), payload);
@@ -109,6 +112,8 @@ public abstract class AbstractAcrelCommandTranslator implements DeviceCommandTra
         if (!isValidFrame(payload)) {
             return failure(command, "Modbus 响应格式不正确或 CRC 校验失败", payload);
         }
+        log.debug("读命令 响应数据：{}", HexUtil.bytesToHexString(payload));
+
         byte function = payload[1];
         if ((function & 0x80) != 0) {
             return failure(command, buildExceptionMessage(function, payload[2]), payload);
@@ -123,6 +128,8 @@ public abstract class AbstractAcrelCommandTranslator implements DeviceCommandTra
             return failure(command, "Modbus 响应数据长度不正确", payload);
         }
         byte[] data = Arrays.copyOfRange(payload, dataStart, dataEnd);
+        log.debug("Modbus 响应数据：{}", HexUtil.bytesToHexString(data));
+
         try {
             Object value = parser == null ? data : parser.apply(data);
             return success(command, value, payload);

@@ -33,18 +33,18 @@ class HexUtilTest {
 
     @Test
     void bytesToHexString_whenNull_shouldReturnNull() {
-        Assertions.assertNull(HexUtil.bytesToHexString(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HexUtil.bytesToHexString(null));
     }
 
     @Test
     void bytesToHexString_whenEmpty_shouldReturnNull() {
-        Assertions.assertNull(HexUtil.bytesToHexString(new byte[0]));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HexUtil.bytesToHexString(new byte[0]));
     }
 
     @Test
     void bytesToHexString_shouldReturnUppercaseHex() {
         byte[] data = new byte[]{0x0a, 0x1b, (byte) 0xFF};
-        Assertions.assertEquals("0A1BFF", HexUtil.bytesToHexString(data));
+        Assertions.assertEquals("0a1bff", HexUtil.bytesToHexString(data));
     }
 
     @Test

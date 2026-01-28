@@ -22,6 +22,10 @@ public class AcrelModbusMappingRegistry {
     private static final int LOW_ENERGY_REGISTER = 0x0006;
     private static final int LOWER_ENERGY_REGISTER = 0x0008;
     private static final int DEEP_LOW_ENERGY_REGISTER = 0x5030;
+    private static final int GET_DAILY_ENERGY_PLAN = 0x2006;
+    private static final int SET_DAILY_ENERGY_PLAN = 0x2006;
+    private static final int GET_DATE_PLAN = 0x2000;
+    private static final int SET_DATE_PLAN = 0x2000;
 
     private final Map<DeviceCommandTypeEnum, ModbusMapping> mappingByType;
 
@@ -48,6 +52,10 @@ public class AcrelModbusMappingRegistry {
         map.put(DeviceCommandTypeEnum.GET_LOW_ENERGY, mapping(LOW_ENERGY_REGISTER, 2));
         map.put(DeviceCommandTypeEnum.GET_LOWER_ENERGY, mapping(LOWER_ENERGY_REGISTER, 2));
         map.put(DeviceCommandTypeEnum.GET_DEEP_LOW_ENERGY, mapping(DEEP_LOW_ENERGY_REGISTER, 2));
+        map.put(DeviceCommandTypeEnum.GET_DAILY_ENERGY_PLAN, mapping(GET_DAILY_ENERGY_PLAN, 21));
+        map.put(DeviceCommandTypeEnum.SET_DAILY_ENERGY_PLAN, mapping(SET_DAILY_ENERGY_PLAN, 21));
+        map.put(DeviceCommandTypeEnum.GET_DATE_PLAN, mapping(GET_DATE_PLAN, 6));
+        map.put(DeviceCommandTypeEnum.SET_DATE_PLAN, mapping(SET_DATE_PLAN, 6));
         return map;
     }
 
