@@ -158,7 +158,7 @@ public class ChannelManager {
 
         if (session != null && session.getChannel() != null && session.getChannel().isActive() && payload != null) {
             session.getChannel().writeAndFlush(Unpooled.wrappedBuffer(payload));
-            log.debug("通道 {} 发送数据 {}", channelId, HexUtil.bytesToHexString(payload));
+            log.debug("通道 {} 直接发送数据 {}", channelId, HexUtil.bytesToHexString(payload));
         }
     }
 

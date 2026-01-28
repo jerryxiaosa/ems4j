@@ -10,7 +10,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DatePlanItem {
 
-    private Integer month;
-    private Integer day;
-    private Integer plan;
+    private String month;
+    private String day;
+
+    /**
+     * 这里的plan指的是用哪个DailyEnergySlot
+     */
+    private String plan;
 }

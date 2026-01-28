@@ -85,8 +85,15 @@ public class DeviceCommandTranslatorRegistry implements DeviceCommandTranslatorR
         if (byType == null) {
             throw new BusinessRuntimeException("未找到命令翻译器产品，vendor=" + vendor + ", product=" + productCode);
         }
-        // 按命令类型取最终翻译器
+        // 按命令类型取最终翻译器，若产品专用缺失则回退到默认产品
         DeviceCommandTranslator<?> translator = byType.get(type);
+        if (translator == null && StringUtils.hasText(normalizedProduct)) {
+            Map<DeviceCommandTypeEnum, DeviceCommandTranslator<?>> defaultByType =
+                    translatorMap.get(new VendorProductKey(normalizedVendor, DEFAULT_PRODUCT));
+            if (defaultByType != null) {
+                translator = defaultByType.get(type);
+            }
+        }
         if (translator == null) {
             throw new BusinessRuntimeException("未找到命令翻译器，vendor=" + vendor + ", product=" + productCode + ", type=" + type);
         }

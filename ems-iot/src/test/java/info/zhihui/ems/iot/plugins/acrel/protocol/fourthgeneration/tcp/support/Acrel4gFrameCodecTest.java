@@ -58,7 +58,7 @@ class Acrel4gFrameCodecTest {
         byte[] expected = codec.encodeAck(command);
         String expectedHex = HexUtil.bytesToHexString(expected);
 
-        Assertions.assertEquals("7B7B84BF237D7D", expectedHex);
+        Assertions.assertEquals("7b7b84bf237d7d", expectedHex);
     }
 
     @Test

@@ -4,20 +4,34 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayTra
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
 class AcrelGatewayTransparentCodecTest {
 
     @Test
-    void testEncode_WhenMeterIdNull_ShouldReturnNull() {
+    void testEncode_WhenMeterIdNull_ShouldThrow() {
         AcrelGatewayTransparentCodec codec = new AcrelGatewayTransparentCodec();
 
-        Assertions.assertNull(codec.encode(null, new byte[]{0x01}));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> codec.encode(null, 1, new byte[]{0x01}));
     }
 
     @Test
-    void testEncode_WhenPayloadNull_ShouldReturnNullPayloadText() {
+    void testEncode_WhenPayloadNull_ShouldThrow() {
         AcrelGatewayTransparentCodec codec = new AcrelGatewayTransparentCodec();
 
-        Assertions.assertEquals("m1|null", codec.encode("m1", null));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> codec.encode(1, 2, null));
+    }
+
+    @Test
+    void testEncode_WhenPayloadPresent_ShouldReturnBytes() {
+        AcrelGatewayTransparentCodec codec = new AcrelGatewayTransparentCodec();
+
+        byte[] encoded = codec.encode(1, 2, new byte[]{0x0A, 0x0B});
+
+        Assertions.assertNotNull(encoded);
+        Assertions.assertEquals("01002|0a0b", new String(encoded, StandardCharsets.UTF_8));
     }
 
     @Test

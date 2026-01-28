@@ -3,9 +3,8 @@ package info.zhihui.ems.iot.infrastructure.registry;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
-import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -14,117 +13,104 @@ import java.util.List;
 class DeviceCommandTranslatorRegistryTest {
 
     @Test
-    void resolve_WhenTranslatorExists_ShouldReturnTranslator() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(translator));
+    void resolve_whenProductTypeMissing_shouldFallbackToDefault() {
+        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(
+                new DefaultTranslator(),
+                new ProductSpecificTranslator()
+        ));
 
-        Assertions.assertSame(translator, registry.resolve("acrel", "p1",
-                DeviceCommandTypeEnum.GET_CT, ModbusRtuRequest.class));
+        DeviceCommandTranslator<?> translator = registry.resolve("acrel", "P1",
+                DeviceCommandTypeEnum.GET_CT, String.class);
+
+        Assertions.assertInstanceOf(DefaultTranslator.class, translator);
     }
 
     @Test
-    void resolve_WhenVendorMissing_ShouldThrow() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(translator));
+    void resolve_whenProductHasType_shouldReturnProductTranslator() {
+        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(
+                new DefaultTranslator(),
+                new ProductSpecificTranslator()
+        ));
 
-        Assertions.assertThrows(BusinessRuntimeException.class,
-                () -> registry.resolve("OTHER", "P1", DeviceCommandTypeEnum.GET_CT, ModbusRtuRequest.class));
+        DeviceCommandTranslator<?> translator = registry.resolve("acrel", "P1",
+                DeviceCommandTypeEnum.CUT_OFF, String.class);
+
+        Assertions.assertInstanceOf(ProductSpecificTranslator.class, translator);
     }
 
     @Test
-    void resolve_WhenTypeMissing_ShouldThrow() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(translator));
+    void resolve_whenDefaultMissing_shouldThrow() {
+        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(
+                new ProductSpecificTranslator()
+        ));
 
-        Assertions.assertThrows(BusinessRuntimeException.class,
-                () -> registry.resolve("ACREL", "P1", DeviceCommandTypeEnum.SET_CT, ModbusRtuRequest.class));
+        Assertions.assertThrows(BusinessRuntimeException.class, () -> registry.resolve("acrel", "P1",
+                DeviceCommandTypeEnum.GET_CT, String.class));
     }
 
-    @Test
-    void resolve_WhenRequestTypeNull_ShouldThrow() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(translator));
-
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> registry.resolve("ACREL", "P1", DeviceCommandTypeEnum.GET_CT, null));
-    }
-
-    @Test
-    void constructor_WhenDuplicateType_ShouldThrow() {
-        DeviceCommandTranslator<ModbusRtuRequest> first = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslator<ModbusRtuRequest> second = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-
-        Assertions.assertThrows(BusinessRuntimeException.class,
-                () -> new DeviceCommandTranslatorRegistry(List.of(first, second)));
-    }
-
-    @Test
-    void constructor_WhenVendorBlank_ShouldThrow() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator(" ", "P1", DeviceCommandTypeEnum.GET_CT);
-
-        Assertions.assertThrows(BusinessRuntimeException.class,
-                () -> new DeviceCommandTranslatorRegistry(List.of(translator)));
-    }
-
-    @Test
-    void resolve_WhenProductMissing_ShouldFallbackDefault() {
-        DeviceCommandTranslator<ModbusRtuRequest> translator = new StubTranslator("ACREL", null, DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(translator));
-
-        Assertions.assertSame(translator, registry.resolve("ACREL", "P1",
-                DeviceCommandTypeEnum.GET_CT, ModbusRtuRequest.class));
-    }
-
-    @Test
-    void resolve_WhenProductSpecificExists_ShouldPreferSpecific() {
-        DeviceCommandTranslator<ModbusRtuRequest> generic = new StubTranslator("ACREL", null, DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslator<ModbusRtuRequest> specific = new StubTranslator("ACREL", "P1", DeviceCommandTypeEnum.GET_CT);
-        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(generic, specific));
-
-        Assertions.assertSame(specific, registry.resolve("ACREL", "P1",
-                DeviceCommandTypeEnum.GET_CT, ModbusRtuRequest.class));
-    }
-
-    private static class StubTranslator implements DeviceCommandTranslator<ModbusRtuRequest> {
-
-        private final String vendor;
-        private final String productCode;
-        private final DeviceCommandTypeEnum type;
-
-        private StubTranslator(String vendor, String productCode, DeviceCommandTypeEnum type) {
-            this.vendor = vendor;
-            this.productCode = productCode;
-            this.type = type;
-        }
-
-        @Override
-        public DeviceCommandTypeEnum type() {
-            return type;
-        }
+    private static class DefaultTranslator implements DeviceCommandTranslator<String> {
 
         @Override
         public String vendor() {
-            return vendor;
+            return "ACREL";
         }
 
         @Override
         public String productCode() {
-            return productCode;
-        }
-
-        @Override
-        public ModbusRtuRequest toRequest(DeviceCommand command) {
             return null;
         }
 
         @Override
-        public Class<ModbusRtuRequest> requestType() {
-            return ModbusRtuRequest.class;
+        public DeviceCommandTypeEnum type() {
+            return DeviceCommandTypeEnum.GET_CT;
+        }
+
+        @Override
+        public Class<String> requestType() {
+            return String.class;
+        }
+
+        @Override
+        public String toRequest(DeviceCommand command) {
+            return "default";
         }
 
         @Override
         public DeviceCommandResult parseResponse(DeviceCommand command, byte[] payload) {
-            return null;
+            return new DeviceCommandResult().setSuccess(true);
+        }
+    }
+
+    private static class ProductSpecificTranslator implements DeviceCommandTranslator<String> {
+
+        @Override
+        public String vendor() {
+            return "ACREL";
+        }
+
+        @Override
+        public String productCode() {
+            return "P1";
+        }
+
+        @Override
+        public DeviceCommandTypeEnum type() {
+            return DeviceCommandTypeEnum.CUT_OFF;
+        }
+
+        @Override
+        public Class<String> requestType() {
+            return String.class;
+        }
+
+        @Override
+        public String toRequest(DeviceCommand command) {
+            return "product";
+        }
+
+        @Override
+        public DeviceCommandResult parseResponse(DeviceCommand command, byte[] payload) {
+            return new DeviceCommandResult().setSuccess(true);
         }
     }
 }

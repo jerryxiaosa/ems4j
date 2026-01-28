@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
@@ -174,9 +173,9 @@ class AcrelGatewayTcpCommandSenderTest {
         ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
         Mockito.verify(commandTransport).sendWithAck(Mockito.eq("gw-1"), captor.capture());
         byte[] rtuFrame = ModbusRtuBuilder.build(request);
-        String transparent = gatewayTransparentCodec.encode("01002", rtuFrame);
+        byte[] transparent = gatewayTransparentCodec.encode(device.getPortNo(), device.getMeterAddress(), rtuFrame);
         byte[] encrypted = gatewayCryptoService.encrypt(
-                transparent.getBytes(StandardCharsets.UTF_8), "1234567890abcdef");
+                transparent, "1234567890abcdef");
         byte[] expectedFrame = gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
         Assertions.assertArrayEquals(expectedFrame, captor.getValue());
     }
@@ -244,4 +243,5 @@ class AcrelGatewayTcpCommandSenderTest {
                 new AcrelGatewayTransparentCodec()
         );
     }
+
 }

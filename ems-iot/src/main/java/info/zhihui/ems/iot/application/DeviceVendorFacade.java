@@ -45,7 +45,9 @@ public class DeviceVendorFacade {
     }
 
     public List<ElectricDurationVo> getDuration(Integer deviceId, Integer plan) {
-        throw new BusinessRuntimeException("暂不支持读取时段电价");
+        GetDailyEnergyPlanCommand command = new GetDailyEnergyPlanCommand().setPlan(plan);
+        DeviceCommandResult result = sendAndAssertSuccess(deviceId, command, "时段电价读取");
+        return parseDurationResult(result, "时段电价读取");
     }
 
     public void setDuration(Integer deviceId, ElectricDurationUpdateVo dto) {
@@ -56,8 +58,10 @@ public class DeviceVendorFacade {
         sendAndAssertSuccess(deviceId, command, "时段电价下发");
     }
 
-    public List<ElectricDateDurationVo> getDateDuration(Integer deviceId, String plan) {
-        throw new BusinessRuntimeException("暂不支持读取日期电价");
+    public List<ElectricDateDurationVo> getDateDuration(Integer deviceId, Integer plan) {
+        GetDatePlanCommand command = new GetDatePlanCommand().setPlan(plan);
+        DeviceCommandResult result = sendAndAssertSuccess(deviceId, command, "日期电价读取");
+        return parseDatePlanResult(result, "日期电价读取");
     }
 
     public void setDateDuration(Integer deviceId, String plan, List<ElectricDateDurationVo> dto) {
@@ -142,9 +146,9 @@ public class DeviceVendorFacade {
         }
         for (ElectricDateDurationVo dto : dtoList) {
             items.add(new DatePlanItem()
-                    .setMonth(parseNumber(dto.getMonth()))
-                    .setDay(parseNumber(dto.getDay()))
-                    .setPlan(parseNumber(dto.getPlan())));
+                    .setMonth(dto.getMonth())
+                    .setDay(dto.getDay())
+                    .setPlan(dto.getPlan()));
         }
         return items;
     }
@@ -189,10 +193,79 @@ public class DeviceVendorFacade {
         if (data == null) {
             throw new BusinessRuntimeException(action + "失败：返回数据为空");
         }
-        if (data instanceof Number number && number.intValue() > 0) {
+        if (data instanceof Number number && number.intValue() >= 0) {
             return number.intValue();
         }
         throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+    }
+
+    private List<ElectricDurationVo> parseDurationResult(DeviceCommandResult result, String action) {
+        List<DailyEnergySlot> slots = castDailySlots(result.getData(), action);
+
+        List<ElectricDurationVo> durations = new ArrayList<>(slots.size());
+        for (DailyEnergySlot slot : slots) {
+            ElectricPricePeriodEnum period = slot.getPeriod();
+            LocalTime time = slot.getTime();
+            if (period == null || time == null) {
+                throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+            }
+            durations.add(new ElectricDurationVo()
+                    .setType(String.valueOf(period.getCode()))
+                    .setHour(formatTwoDigits(time.getHour()))
+                    .setMin(formatTwoDigits(time.getMinute())));
+        }
+        return durations;
+    }
+
+    private List<DailyEnergySlot> castDailySlots(Object data, String action) {
+        if (!(data instanceof List<?> list)) {
+            throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+        }
+
+        List<DailyEnergySlot> slots = new ArrayList<>();
+        for (Object item : list) {
+            if (!(item instanceof DailyEnergySlot slot)) {
+                throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+            }
+            slots.add(slot);
+        }
+        return slots;
+    }
+
+    private List<ElectricDateDurationVo> parseDatePlanResult(DeviceCommandResult result, String action) {
+        List<DatePlanItem> items = castDatePlanItems(result.getData(), action);
+        if (items.isEmpty()) {
+            return List.of();
+        }
+        List<ElectricDateDurationVo> vos = new ArrayList<>(items.size());
+        for (DatePlanItem item : items) {
+            if (item.getMonth() == null || item.getDay() == null || item.getPlan() == null) {
+                throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+            }
+            vos.add(new ElectricDateDurationVo()
+                    .setMonth(item.getMonth())
+                    .setDay(item.getDay())
+                    .setPlan(item.getPlan()));
+        }
+        return vos;
+    }
+
+    private List<DatePlanItem> castDatePlanItems(Object data, String action) {
+        if (!(data instanceof List<?> list)) {
+            throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+        }
+        List<DatePlanItem> items = new ArrayList<>();
+        for (Object item : list) {
+            if (!(item instanceof DatePlanItem planItem)) {
+                throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
+            }
+            items.add(planItem);
+        }
+        return items;
+    }
+
+    private String formatTwoDigits(int value) {
+        return String.format("%02d", value);
     }
 
     private boolean isDirectOnline(Device device) {
