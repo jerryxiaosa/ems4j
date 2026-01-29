@@ -175,9 +175,13 @@ mvn -pl ems-business/ems-business-device -am test
 | `ems-foundation-system` | 系统配置 |
 | `ems-foundation-integration` | 第三方平台对接 |
 | `ems-components-*` | 通用组件（数据源/锁/上下文） |
-| `ems-mq-*` | 消息 API 与 RabbitMQ 实现 |
+| `ems-mq-*` | 消息基础设施 API（ems-mq-api）与业务消息应用层实现（ems-mq-rabbitmq） |
 | `ems-iot` | Netty 设备接入、协议解析 |
 | `ems-schedule` | 定时任务 |
+
+说明：
+- ems-mq-api 提供消息契约与基础服务接口（基础设施层）。
+- ems-mq-rabbitmq 属于业务消息应用层实现，承载业务消息监听与编排。
 
 ## 已支持设备
 

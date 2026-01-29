@@ -58,12 +58,16 @@
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-foundation-system</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-components-datasource</artifactId>
         </dependency>
 
         <dependency>

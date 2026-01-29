@@ -13,7 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class SetDailyEnergyPlanCommand implements DeviceCommandRequest {
 
-    private Integer plan;
+    private Integer dailyPlanId;
     private List<DailyEnergySlot> slots;
 
     @Override
@@ -23,8 +23,8 @@ public class SetDailyEnergyPlanCommand implements DeviceCommandRequest {
 
     @Override
     public void validate() {
-        if (plan == null) {
-            throw new IllegalArgumentException("方案编号不能为空");
+        if (dailyPlanId == null) {
+            throw new IllegalArgumentException("日方案编号不能为空");
         }
         if (slots == null || slots.isEmpty()) {
             throw new IllegalArgumentException("时段配置不能为空");

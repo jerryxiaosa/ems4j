@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
-import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

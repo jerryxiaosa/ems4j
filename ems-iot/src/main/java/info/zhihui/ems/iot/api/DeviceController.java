@@ -1,5 +1,7 @@
 package info.zhihui.ems.iot.api;
 
+import info.zhihui.ems.common.utils.ResultUtil;
+import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.iot.application.DeviceAppService;
 import info.zhihui.ems.iot.application.DeviceVendorFacade;
 import info.zhihui.ems.iot.vo.DeviceSaveVo;
@@ -18,22 +20,24 @@ public class DeviceController {
     private final DeviceVendorFacade deviceVendorFacade;
 
     @PostMapping
-    public Integer addDevice(@Valid @RequestBody DeviceSaveVo body) {
-        return deviceAppService.addDevice(body);
+    public RestResult<Integer> addDevice(@Valid @RequestBody DeviceSaveVo body) {
+        return ResultUtil.success(deviceAppService.addDevice(body));
     }
 
     @PutMapping("/{deviceId}")
-    public void updateDevice(@PathVariable Integer deviceId, @Valid @RequestBody DeviceSaveVo body) {
+    public RestResult<Void> updateDevice(@PathVariable Integer deviceId, @Valid @RequestBody DeviceSaveVo body) {
         deviceAppService.updateDevice(deviceId, body);
+        return ResultUtil.success();
     }
 
     @DeleteMapping("/{deviceId}")
-    public void deleteDevice(@PathVariable Integer deviceId) {
+    public RestResult<Void> deleteDevice(@PathVariable Integer deviceId) {
         deviceAppService.deleteDevice(deviceId);
+        return ResultUtil.success();
     }
 
     @GetMapping("/{deviceId}/online")
-    public Boolean getOnline(@PathVariable Integer deviceId) {
-        return deviceVendorFacade.getOnline(deviceId);
+    public RestResult<Boolean> getOnline(@PathVariable Integer deviceId) {
+        return ResultUtil.success(deviceVendorFacade.getOnline(deviceId));
     }
 }

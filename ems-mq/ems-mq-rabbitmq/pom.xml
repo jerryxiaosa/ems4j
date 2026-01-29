@@ -57,19 +57,16 @@
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-business-device</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-business-finance</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-business-account</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
     </dependencies>

@@ -12,6 +12,6 @@ public class ElectricDateDurationVo {
     private String month;
     @NotBlank(message = "日期不能为空")
     private String day;
-    @NotBlank(message = "计划不能为空")
-    private String plan;
+    @NotBlank(message = "日方案不能为空")
+    private String dailyPlanId;
 }

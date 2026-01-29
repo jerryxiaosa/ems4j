@@ -61,7 +61,15 @@ public class DeviceCommandTranslatorRegistry implements DeviceCommandTranslatorR
     }
 
     /**
-     * 按 vendor + product(可空) + type 解析翻译器，并校验请求类型。
+     * 按 vendor + productCode(可空) + type 解析翻译器，并校验请求类型。
+     * productCode为空，即默认实现
+     * 如果有某个产品某个特定的命令需要重写，那么只需要单独定义这个命令翻译器
+     * 其他的命令还是可以路由到默认实现
+     *
+     * @param vendor 厂商标识
+     * @param productCode 产品标识
+     * @param type 命令类型
+     * @param requestType DeviceCommandTranslator的协议请求类型
      */
     @Override
     public <R> DeviceCommandTranslator<R> resolve(String vendor, String productCode,

@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message;
 
-import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

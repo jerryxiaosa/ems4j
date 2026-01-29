@@ -48,7 +48,6 @@
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- MyBatis-Plus 与通用数据源配置 -->

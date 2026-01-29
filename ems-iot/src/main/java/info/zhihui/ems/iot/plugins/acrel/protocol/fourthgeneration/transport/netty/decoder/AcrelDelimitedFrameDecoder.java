@@ -7,11 +7,12 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 
-import static info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants.DELIMITER;
-import static info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants.DELIMITER_END;
+import static info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants.DELIMITER;
+import static info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants.DELIMITER_END;
 
 /**
  * 起止符分隔的报文解码器：默认识别 0x7B7B 开头，0x7D7D 结尾，支持分包缓存。
+ * 目前仅用于安科瑞 4G 协议，网关协议不复用该解码器。
  */
 @AllArgsConstructor
 public class AcrelDelimitedFrameDecoder extends ByteToMessageDecoder {

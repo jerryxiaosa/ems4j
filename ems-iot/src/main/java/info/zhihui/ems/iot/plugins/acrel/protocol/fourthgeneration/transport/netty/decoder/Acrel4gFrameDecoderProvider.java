@@ -3,7 +3,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.ne
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class Acrel4gFrameDecoderProvider implements NettyFrameDecoderProvider {
             return null;
         }
         return new ProtocolSignature()
-                .setVendor(AcrelProtocolConstants.VENDOR)
+                .setVendor(AcrelPluginConstants.VENDOR)
                 .setAccessMode(DeviceAccessModeEnum.DIRECT)
                 .setTransportType(TransportProtocolEnum.TCP);
     }

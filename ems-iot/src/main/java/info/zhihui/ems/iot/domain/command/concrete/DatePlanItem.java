@@ -14,7 +14,7 @@ public class DatePlanItem {
     private String day;
 
     /**
-     * 这里的plan指的是用哪个DailyEnergySlot
+     * 对应每日电价方案编号。
      */
-    private String plan;
+    private String dailyPlanId;
 }
