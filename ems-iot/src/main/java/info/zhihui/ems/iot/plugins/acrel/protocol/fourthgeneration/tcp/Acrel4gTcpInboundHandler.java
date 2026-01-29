@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.definition.Acrel4gPacketDefinition;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
-import info.zhihui.ems.iot.plugins.acrel.protocol.support.inbound.AbstractAcrelInboundHandler;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AbstractAcrelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

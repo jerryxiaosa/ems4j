@@ -21,10 +21,21 @@
    - 通过调用ProtocolCommandTransport，实现下发命令的回复回执
    - 因为下发命令是从应用层往底层传输，需要通过DeviceCommandTranslatorResolver找到对应的命令转换器DeviceCommandTranslator，再转换成各自设备的命令进行发送。
 
-### 注意
-实际每个厂商可能会有多个型号的设备，不同设备间略有差异。所以还需要维护多设备的情况
+## 2. 更复杂的情况
+如果不单单对接一个设备，而且要对接某个厂商的多个设备，情况会复杂一些。 总的来说还是处理设备上下行的协议。
 
-## 2. 目录结构示例
+典型的场景会是
+* 首先是会有多个不同的通信协议，同一种通信协议下命令大多是相同的
+* 其次是会有多个不同的产品型号，可能会有少量的差异
+* 第三是同一产品同一个命令，也可能会有新旧多个实现方式
+
+那么就需要对这个插件下的实现进行更加细致的分层。
+- 上行命令因为是响应客户端传来的数据，所以只要能被路由到就可以，不需要分的很细
+- 下行命令要符合统一的命令规范，才能被DeviceCommandTranslatorResolver找到
+
+**参考 plugins/acrel/的实现**
+
+## 3. 目录结构示例
 
 以 `acrel` 为例，当前目录结构如下（按接入方式拆分为 4G 直连与网关）：
 
@@ -33,13 +44,17 @@ plugins/
   acrel/
     Acrel4gProtocolHandler.java
     AcrelGatewayProtocolHandler.java
+    constant/
+      AcrelPluginConstants.java
     protocol/
-      constants/
-      message/
+      constant/
+        AcrelProtocolConstants.java
+      common/
+        message/
+          AcrelMessage.java
       support/
-        inbound/
-        outbound/
-          modbus/
+        AbstractAcrelInboundHandler.java
+        DeviceCommandSupport.java
       fourthgeneration/
         tcp/
           Acrel4gTcpInboundHandler.java
@@ -79,22 +94,30 @@ plugins/
               AcrelGatewayFrameDecoder.java
         mqtt/
     command/
+      constant/
+        AcrelRegisterMappingEnum.java
+      support/
+        AcrelTripleSlotParser.java
       translator/
-        AbstractAcrelCommandTranslator.java
-        AbstractAcrelEnergyTranslator.java
-        AcrelGetTotalEnergyTranslator.java
-        AcrelSetCtTranslator.java
-        ...
+        standard/
+          AbstractAcrelCommandTranslator.java
+          AbstractAcrelEnergyTranslator.java
+          AcrelGetTotalEnergyTranslator.java
+          AcrelSetCtTranslator.java
+          ...
 ```
 
 说明：
+- `constant/`：插件级常量（如 vendor 编码）。
+- `protocol/constant`：协议帧相关常量（起止符、帧头等）。
+- `protocol/common/message`：协议公共报文对象。
 - `protocol/*/tcp`：协议的 TCP 处理入口，按接入方式拆分（4G 直连/网关）。
 - `protocol/*/transport/netty/decoder`：Netty 传输层解码器与探测入口。
 - `packet/*`：命令层的定义/解析/处理，按命令字拆分。
 - `support/*FrameCodec`：负责编解码，`decode` 统一输出 `FrameDecodeResult`。
-- `command/translator`：命令转换器，实现 `DeviceCommandTranslator` 接口。
+- `command/translator/standard`：默认命令转换器，实现 `DeviceCommandTranslator` 接口。
 
-## 3. 关键文件职责
+## 4. 关键文件职责
 
 - `NettyFrameDecoderProvider`：首包探测并返回 `ProtocolSignature`，同时提供对应解码器链（长度型/起止符型等）。
 - `*FrameCodec`：帧编解码，`decode` 返回 `FrameDecodeResult`。
@@ -106,7 +129,7 @@ plugins/
 - `DeviceCommandTranslator`：命令下发转换与响应解析。
 - `DeviceProtocolHandler`：设备协议处理器，实现 `DeviceProtocolHandler` 接口，负责上行解析与命令下发。
 
-## 4. 建议的落地顺序
+## 5. 建议的落地顺序
 
 1) 确定协议的首包特征、分包策略与帧格式。
 2) 实现 `NettyFrameDecoderProvider`（探测 + 解码器链）+ `FrameCodec`。
@@ -115,11 +138,11 @@ plugins/
 5) 完成下发 `DeviceCommandTranslator` 与回执处理。
 6) 补充单元测试（解帧、解析、handler、translator）。
 
-## 5. 示例：新增 VendorX 直连协议（TCP）
+## 6. 示例：新增 VendorX 直连协议（TCP）
 
 以下示例仅展示骨架，具体字段请按协议调整。
 
-### 5.1 协议探测与解码器链
+### 6.1 协议探测与解码器链
 
 ```java
 @Component
@@ -145,7 +168,7 @@ public class VendorxFrameDecoderProvider implements NettyFrameDecoderProvider {
 }
 ```
 
-### 5.2 探测优先级（可选）
+### 6.2 探测优先级（可选）
 
 ```java
 @Override
@@ -154,7 +177,7 @@ public int getOrder() {
 }
 ```
 
-### 5.3 设备协议处理器
+### 6.3 设备协议处理器
 
 ```java
 @Component
@@ -189,7 +212,7 @@ public class VendorxProtocolHandler implements DeviceProtocolHandler {
 }
 ```
 
-### 5.4 命令转换器
+### 6.4 命令转换器
 
 ```java
 @Component
@@ -223,9 +246,9 @@ public class VendorxGetCtTranslator implements DeviceCommandTranslator {
 }
 ```
 
-## 6. 代码流向（下发命令 / 上报解析）
+## 7. 代码流向（下发命令 / 上报解析）
 
-### 6.1 下发命令（DeviceCommand → 设备）
+### 7.1 下发命令（DeviceCommand → 设备）
 
 ```
 [API/业务]
@@ -264,7 +287,7 @@ DownlinkAckPacketHandler.handle -> ProtocolCommandTransport.completePending
 CompletableFuture 完成 -> translator.parseResponse -> DeviceCommandResult
 ```
 
-### 6.2 上报解析（设备 → 业务事件）
+### 7.2 上报解析（设备 → 业务事件）
 
 ```
 [设备上报]
@@ -311,7 +334,7 @@ PacketDefinition.handle -> PacketHandler
 - 4G 设备上报电量为 100 倍整数，需在对应的 `PacketHandler` 中除以 100（保留 2 位小数）。
 - 网关上报电量为 XML 解析出的 `BigDecimal`，可直接透传到事件中。
 
-## 7. 新增厂商/协议接入清单
+## 8. 新增厂商/协议接入清单
 
 1) 新增 `NettyFrameDecoderProvider`：实现 `detectTcp` 负责首包探测，命中后返回 `ProtocolSignature`（包含 `transportType`）。  
 2) 在 `NettyFrameDecoderProvider.createDecoders` 中返回专用解码器链（分包/粘包在此解决）。  
@@ -319,7 +342,7 @@ PacketDefinition.handle -> PacketHandler
 4) 若有下发命令：提供协议编码器/帧封装工具，调用 `sendWithAck/sendFireAndForget`。  
 5) 补齐单元测试：CRC、分包、ACK 等关键路径。  
 
-### 7.1 同厂商新增特殊产品（productCode）接入要点
+### 8.1 同厂商新增特殊产品（productCode）接入要点
 
 1) 设备录入时必须保存 `productCode`，并保证绑定后可通过 `deviceNo` 查询到该值。  
 2) 命令差异：新增对应的 `DeviceCommandTranslator`，`productCode()` 返回特殊型号编码；注册后会优先命中该产品专用翻译器。  

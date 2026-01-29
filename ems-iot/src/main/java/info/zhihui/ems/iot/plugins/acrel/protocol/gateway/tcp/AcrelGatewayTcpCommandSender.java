@@ -10,7 +10,7 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPack
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
-import info.zhihui.ems.iot.plugins.acrel.protocol.support.outbound.DeviceCommandSupport;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.DeviceCommandSupport;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
@@ -55,6 +55,7 @@ public class AcrelGatewayTcpCommandSender {
         if (device.getPortNo() == null || device.getMeterAddress() == null) {
             throw new IllegalArgumentException("子设备标识缺失，deviceNo=" + device.getDeviceNo());
         }
+
         DeviceCommandTranslator<ModbusRtuRequest> translator = translatorRegistry.resolve(
                 device.getProduct().getVendor(), device.getProduct().getCode(), command.getType(), ModbusRtuRequest.class);
         ModbusRtuRequest rtuRequest = translator.toRequest(command);

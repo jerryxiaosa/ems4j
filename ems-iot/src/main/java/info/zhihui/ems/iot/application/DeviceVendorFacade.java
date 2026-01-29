@@ -44,8 +44,8 @@ public class DeviceVendorFacade {
         sendAndAssertSuccess(deviceId, command, "CT 下发");
     }
 
-    public List<ElectricDurationVo> getDuration(Integer deviceId, Integer plan) {
-        GetDailyEnergyPlanCommand command = new GetDailyEnergyPlanCommand().setPlan(plan);
+    public List<ElectricDurationVo> getDuration(Integer deviceId, Integer dailyPlanId) {
+        GetDailyEnergyPlanCommand command = new GetDailyEnergyPlanCommand().setDailyPlanId(dailyPlanId);
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, command, "时段电价读取");
         return parseDurationResult(result, "时段电价读取");
     }
@@ -53,21 +53,20 @@ public class DeviceVendorFacade {
     public void setDuration(Integer deviceId, ElectricDurationUpdateVo dto) {
         List<ElectricDurationVo> copy = new ArrayList<>(dto.getElectricDurations());
         SetDailyEnergyPlanCommand command = new SetDailyEnergyPlanCommand()
-                .setPlan(dto.getPlan())
+                .setDailyPlanId(dto.getDailyPlanId())
                 .setSlots(toDailySlots(copy));
         sendAndAssertSuccess(deviceId, command, "时段电价下发");
     }
 
-    public List<ElectricDateDurationVo> getDateDuration(Integer deviceId, Integer plan) {
-        GetDatePlanCommand command = new GetDatePlanCommand().setPlan(plan);
+    public List<ElectricDateDurationVo> getDateDuration(Integer deviceId) {
+        GetDatePlanCommand command = new GetDatePlanCommand();
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, command, "日期电价读取");
         return parseDatePlanResult(result, "日期电价读取");
     }
 
-    public void setDateDuration(Integer deviceId, String plan, List<ElectricDateDurationVo> dto) {
+    public void setDateDuration(Integer deviceId, List<ElectricDateDurationVo> dto) {
         List<ElectricDateDurationVo> copy = new ArrayList<>(dto);
         SetDatePlanCommand command = new SetDatePlanCommand()
-                .setPlan(parsePlan(plan))
                 .setItems(toDatePlanItems(copy));
         sendAndAssertSuccess(deviceId, command, "指定日期电价下发");
     }
@@ -133,7 +132,7 @@ public class DeviceVendorFacade {
         }
         for (ElectricDurationVo duration : durations) {
             slots.add(new DailyEnergySlot()
-                    .setPeriod(parsePeriod(duration.getType()))
+                    .setPeriod(parsePeriod(duration.getPeriod()))
                     .setTime(parseTime(duration.getHour(), duration.getMin())));
         }
         return slots;
@@ -148,13 +147,13 @@ public class DeviceVendorFacade {
             items.add(new DatePlanItem()
                     .setMonth(dto.getMonth())
                     .setDay(dto.getDay())
-                    .setPlan(dto.getPlan()));
+                    .setDailyPlanId(dto.getDailyPlanId()));
         }
         return items;
     }
 
-    private ElectricPricePeriodEnum parsePeriod(String code) {
-        Integer value = parseNumber(code);
+    private ElectricPricePeriodEnum parsePeriod(Integer code) {
+        Integer value = requireNumber(code);
         return ElectricPricePeriodEnum.fromCode(value);
     }
 
@@ -162,8 +161,11 @@ public class DeviceVendorFacade {
         return LocalTime.of(parseNumber(hour), parseNumber(minute));
     }
 
-    private Integer parsePlan(String plan) {
-        return parseNumber(plan);
+    private Integer requireNumber(Integer value) {
+        if (value == null) {
+            throw new IllegalArgumentException("参数不能为空");
+        }
+        return value;
     }
 
     private Integer parseNumber(String value) {
@@ -210,7 +212,7 @@ public class DeviceVendorFacade {
                 throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
             }
             durations.add(new ElectricDurationVo()
-                    .setType(String.valueOf(period.getCode()))
+                    .setPeriod(period.getCode())
                     .setHour(formatTwoDigits(time.getHour()))
                     .setMin(formatTwoDigits(time.getMinute())));
         }
@@ -239,13 +241,13 @@ public class DeviceVendorFacade {
         }
         List<ElectricDateDurationVo> vos = new ArrayList<>(items.size());
         for (DatePlanItem item : items) {
-            if (item.getMonth() == null || item.getDay() == null || item.getPlan() == null) {
+            if (item.getMonth() == null || item.getDay() == null || item.getDailyPlanId() == null) {
                 throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
             }
             vos.add(new ElectricDateDurationVo()
                     .setMonth(item.getMonth())
                     .setDay(item.getDay())
-                    .setPlan(item.getPlan()));
+                    .setDailyPlanId(item.getDailyPlanId()));
         }
         return vos;
     }

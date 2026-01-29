@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.h
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
-import info.zhihui.ems.iot.plugins.acrel.protocol.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
 import lombok.RequiredArgsConstructor;

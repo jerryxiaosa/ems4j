@@ -4,8 +4,8 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.net
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

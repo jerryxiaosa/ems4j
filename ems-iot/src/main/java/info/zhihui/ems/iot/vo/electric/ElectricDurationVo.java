@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ElectricDurationVo {
 
-    private String type;
+    private Integer period;
     private String min;
     private String hour;
 }

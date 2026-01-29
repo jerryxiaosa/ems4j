@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.handler;
 
 import info.zhihui.ems.iot.config.DeviceAdapterProperties;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.Acrel4gFrameDecoderProvider;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.AcrelDelimitedFrameDecoder;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder.AcrelGatewayFrameDecoder;

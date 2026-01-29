@@ -14,7 +14,6 @@ import java.util.List;
 @Accessors(chain = true)
 public class SetDatePlanCommand implements DeviceCommandRequest {
 
-    private Integer plan;
     private List<DatePlanItem> items;
 
     @Override
@@ -24,9 +23,6 @@ public class SetDatePlanCommand implements DeviceCommandRequest {
 
     @Override
     public void validate() {
-        if (plan == null) {
-            throw new IllegalArgumentException("方案编号不能为空");
-        }
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("日期方案不能为空");
         }

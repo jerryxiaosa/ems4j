@@ -177,9 +177,13 @@ Notes:
 | `ems-foundation-system` | System configuration |
 | `ems-foundation-integration` | Third-party platform integration |
 | `ems-components-*` | Common components (datasource/lock/context) |
-| `ems-mq-*` | Messaging API and RabbitMQ implementation |
+| `ems-mq-*` | Messaging infrastructure API (ems-mq-api) and business messaging app layer (ems-mq-rabbitmq) |
 | `ems-iot` | Netty device access, protocol parsing |
 | `ems-schedule` | Scheduled jobs |
+
+Notes:
+- ems-mq-api provides message contracts and base messaging services (infrastructure layer).
+- ems-mq-rabbitmq is the business messaging app layer, hosting message listeners and orchestration.
 
 ## Supported Devices
 

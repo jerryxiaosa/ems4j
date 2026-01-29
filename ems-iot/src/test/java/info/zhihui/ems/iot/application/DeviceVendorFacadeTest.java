@@ -86,10 +86,10 @@ class DeviceVendorFacadeTest {
         List<ElectricDurationVo> durations = facade.getDuration(1, 1);
 
         Assertions.assertEquals(2, durations.size());
-        Assertions.assertEquals(String.valueOf(ElectricPricePeriodEnum.HIGHER.getCode()), durations.get(0).getType());
+        Assertions.assertEquals(ElectricPricePeriodEnum.HIGHER.getCode(), durations.get(0).getPeriod());
         Assertions.assertEquals("06", durations.get(0).getHour());
         Assertions.assertEquals("00", durations.get(0).getMin());
-        Assertions.assertEquals(String.valueOf(ElectricPricePeriodEnum.LOW.getCode()), durations.get(1).getType());
+        Assertions.assertEquals(ElectricPricePeriodEnum.LOW.getCode(), durations.get(1).getPeriod());
         Assertions.assertEquals("23", durations.get(1).getHour());
         Assertions.assertEquals("59", durations.get(1).getMin());
     }
@@ -115,8 +115,8 @@ class DeviceVendorFacadeTest {
         IotOnlineProperties onlineProperties = new IotOnlineProperties();
         CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
         List<DatePlanItem> items = List.of(
-                new DatePlanItem().setMonth("1").setDay("2").setPlan("3"),
-                new DatePlanItem().setMonth("4").setDay("5").setPlan("6")
+                new DatePlanItem().setMonth("1").setDay("2").setDailyPlanId("3"),
+                new DatePlanItem().setMonth("4").setDay("5").setDailyPlanId("6")
         );
         DeviceCommandResult result = new DeviceCommandResult()
                 .setSuccess(true)
@@ -125,15 +125,15 @@ class DeviceVendorFacadeTest {
                 .thenReturn(CompletableFuture.completedFuture(result));
         DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
 
-        List<ElectricDateDurationVo> durations = facade.getDateDuration(1, 1);
+        List<ElectricDateDurationVo> durations = facade.getDateDuration(1);
 
         Assertions.assertEquals(2, durations.size());
         Assertions.assertEquals("1", durations.get(0).getMonth());
         Assertions.assertEquals("2", durations.get(0).getDay());
-        Assertions.assertEquals("3", durations.get(0).getPlan());
+        Assertions.assertEquals("3", durations.get(0).getDailyPlanId());
         Assertions.assertEquals("4", durations.get(1).getMonth());
         Assertions.assertEquals("5", durations.get(1).getDay());
-        Assertions.assertEquals("6", durations.get(1).getPlan());
+        Assertions.assertEquals("6", durations.get(1).getDailyPlanId());
     }
 
     @Test
@@ -148,6 +148,6 @@ class DeviceVendorFacadeTest {
                 .thenReturn(CompletableFuture.completedFuture(result));
         DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
 
-        Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.getDateDuration(1, 1));
+        Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.getDateDuration(1));
     }
 }

@@ -45,6 +45,12 @@
 - 可返回 `null`（ORM 查询未命中），由上层 `DeviceRegistry` 统一转换为 `NotFoundException`。  
 - 入站链路仍需捕获该异常，避免冒泡到 Netty 线程。
 
+### 2.7 HTTP API 层
+
+- API 统一返回 `RestResult`，成功与失败均通过 `ResultUtil` 封装。  
+- 全局异常由 `RuntimeExceptionHandler` 处理并转换为标准错误码与错误信息（如参数校验、业务异常、系统异常）。  
+- 对外错误信息应避免泄露内部实现细节，系统异常统一返回通用提示。
+
 ## 3. 何时返回 null
 
 - **解析失败**（解密失败、XML 解析失败、字段缺失）：返回 `null`。  
@@ -69,4 +75,3 @@
 - `DeviceProtocolHandler` 的 `onMessage` 方法不应抛出异常，应在内部捕获并处理。
 - 命令下发失败时，通过 `CompletableFuture` 返回 `DeviceCommandResult` 表示失败状态。
 - 通过 `DeviceProtocolHandlerRegistry` 解析协议时，异常应被捕获并转换为适当的错误响应。
-

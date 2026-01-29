@@ -8,7 +8,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpInboundHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.Acrel4gTcpCommandSender;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constants.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +23,7 @@ class Acrel4gProtocolHandlerTest {
     void testGetVendor_Default_ReturnsAcrelVendor() {
         Acrel4gProtocolHandler handler = buildHandler();
 
-        Assertions.assertEquals(AcrelProtocolConstants.VENDOR, handler.getVendor());
+        Assertions.assertEquals(AcrelPluginConstants.VENDOR, handler.getVendor());
     }
 
     @Test

@@ -11,9 +11,9 @@ import java.util.List;
 @Accessors(chain = true)
 public class ElectricDurationUpdateVo {
 
-    @NotEmpty(message = "计划周期不能为空")
+    @NotEmpty(message = "日方案时段不能为空")
     private List<ElectricDurationVo> electricDurations;
 
-    @NotNull(message = "计划不能为空")
-    private Integer plan;
+    @NotNull(message = "日方案编号不能为空")
+    private Integer dailyPlanId;
 }

@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class GetDailyEnergyPlanCommand implements DeviceCommandRequest {
 
-    private Integer plan;
+    private Integer dailyPlanId;
 
     @Override
     public DeviceCommandTypeEnum type() {

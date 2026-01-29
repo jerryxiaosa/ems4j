@@ -22,25 +22,21 @@
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-mq-api</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-mq-rabbitmq</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-schedule</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>info.zhihui</groupId>
             <artifactId>ems-web</artifactId>
-            <version>0.1.0</version>
         </dependency>
 
         <dependency>
