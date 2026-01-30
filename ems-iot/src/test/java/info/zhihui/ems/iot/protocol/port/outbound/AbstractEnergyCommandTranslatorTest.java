@@ -1,10 +1,9 @@
-package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
+package info.zhihui.ems.iot.protocol.port.outbound;
 
 import info.zhihui.ems.iot.domain.command.concrete.GetTotalEnergyCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.plugins.acrel.command.constant.AcrelRegisterMappingEnum;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
@@ -14,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-class AbstractAcrelEnergyTranslatorTest {
+class AbstractEnergyCommandTranslatorTest {
 
     @Test
     void toRequest_shouldBuildReadRequest() {
@@ -69,18 +68,23 @@ class AbstractAcrelEnergyTranslatorTest {
         return frame;
     }
 
-    private static class TestEnergyTranslator extends AbstractAcrelEnergyTranslator {
-
-        private TestEnergyTranslator() {
-        }
+    private static class TestEnergyTranslator extends AbstractEnergyCommandTranslator {
 
         @Override
         public DeviceCommandTypeEnum type() {
             return DeviceCommandTypeEnum.GET_TOTAL_ENERGY;
         }
+
+        @Override
+        public String vendor() {
+            return "TEST";
+        }
+
         @Override
         protected ModbusMapping resolveMapping(DeviceCommand command) {
-            return AcrelRegisterMappingEnum.TOTAL_ENERGY.toMapping();
+            return new ModbusMapping()
+                    .setStartRegister(0x0000)
+                    .setQuantity(2);
         }
     }
 }

@@ -50,11 +50,6 @@ public abstract class AbstractModbusCommandTranslator implements DeviceCommandTr
     protected abstract ModbusRtuRequest buildRequest(DeviceCommand command);
 
     /**
-     * 获取命令对应的 Modbus 地址映射。
-     */
-    protected abstract ModbusMapping resolveMapping(DeviceCommand command);
-
-    /**
      * 获取设备从站地址。
      */
     protected int resolveSlaveAddress(DeviceCommand command) {
@@ -168,7 +163,7 @@ public abstract class AbstractModbusCommandTranslator implements DeviceCommandTr
     /**
      * 构造成功结果。
      */
-    private DeviceCommandResult success(DeviceCommand command, Object data, byte[] payload) {
+    protected DeviceCommandResult success(DeviceCommand command, Object data, byte[] payload) {
         log.debug("Modbus 响应成功，command={}, data={}", command, data);
         return new DeviceCommandResult()
                 .setType(command.getType())
@@ -180,7 +175,7 @@ public abstract class AbstractModbusCommandTranslator implements DeviceCommandTr
     /**
      * 构造失败结果。
      */
-    private DeviceCommandResult failure(DeviceCommand command, String message, byte[] payload) {
+    protected DeviceCommandResult failure(DeviceCommand command, String message, byte[] payload) {
         return new DeviceCommandResult()
                 .setType(command.getType())
                 .setSuccess(false)

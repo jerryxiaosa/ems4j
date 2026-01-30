@@ -1,7 +1,6 @@
 package info.zhihui.ems.iot.protocol.modbus;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.buf.HexUtils;
 
 import java.util.Arrays;
 
@@ -38,6 +37,13 @@ public final class ModbusRtuBuilder {
         throw new IllegalArgumentException("不支持的功能码: " + function);
     }
 
+    /*
+     * 地址码 1字节
+     * 功能码 1字节
+     * 寄存器起始地址 2字节
+     * 寄存器长度 2字节
+     * 校验码 2字节
+     */
     private static byte[] buildRead(ModbusRtuRequest request) {
         int start = request.getStartRegister();
         validateRegisterRange(start);
@@ -50,11 +56,20 @@ public final class ModbusRtuBuilder {
         body[1] = (byte) FUNCTION_READ;
         body[2] = (byte) ((start >> 8) & 0xFF);
         body[3] = (byte) (start & 0xFF);
-        body[4] = (byte) ((quantity >> 8) & 0xFF); // 高字节必然为 0
+        body[4] = (byte) ((quantity >> 8) & 0xFF);
         body[5] = (byte) (quantity & 0xFF);
         return appendCrc(body);
     }
 
+    /*
+     * 地址码 1字节
+     * 功能码 1字节
+     * 寄存器起始地址 2字节
+     * 寄存器长度 2字节
+     * 寄存器字节数（写入值字节数） 1字节
+     * 写入值 1~123字节
+     * 校验码 2字节
+     */
     private static byte[] buildWrite(ModbusRtuRequest request) {
         int start = request.getStartRegister();
         validateRegisterRange(start);

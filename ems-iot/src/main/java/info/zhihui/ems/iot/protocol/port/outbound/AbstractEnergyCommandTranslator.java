@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
+package info.zhihui.ems.iot.protocol.port.outbound;
 
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -6,12 +6,17 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 
 /**
- * 安科瑞电量读取命令翻译器基类。
+ * 电量读取命令翻译器基础能力。
  */
-abstract class AbstractAcrelEnergyTranslator extends AbstractAcrelCommandTranslator {
+public abstract class AbstractEnergyCommandTranslator extends AbstractModbusCommandTranslator {
 
-    protected AbstractAcrelEnergyTranslator() {
+    protected AbstractEnergyCommandTranslator() {
     }
+
+    /**
+     * 获取命令对应的 Modbus 地址映射。
+     */
+    protected abstract ModbusMapping resolveMapping(DeviceCommand command);
 
     @Override
     protected ModbusRtuRequest buildRequest(DeviceCommand command) {

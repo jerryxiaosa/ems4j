@@ -7,6 +7,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
+import info.zhihui.ems.iot.protocol.port.outbound.MultiStepDeviceCommandTranslator;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
@@ -18,6 +19,7 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatew
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
+import info.zhihui.ems.iot.protocol.port.outbound.StepResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -181,6 +183,77 @@ class AcrelGatewayTcpCommandSenderTest {
     }
 
     @Test
+    void send_whenMultiStepTranslator_shouldSendMultipleSteps() {
+        ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
+        DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        IotCommandProperties properties = new IotCommandProperties();
+        properties.setTimeoutMillis(0);
+        AcrelGatewayCryptoService gatewayCryptoService = new AcrelGatewayCryptoService();
+        AcrelGatewayTransparentCodec gatewayTransparentCodec = new AcrelGatewayTransparentCodec();
+        AcrelGatewayFrameCodec gatewayFrameCodec = new AcrelGatewayFrameCodec();
+        AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
+                commandTransport, translatorRegistry, properties, deviceRegistry,
+                gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec);
+
+        Device device = new Device()
+                .setDeviceNo("dev-1")
+                .setParentId(1)
+                .setPortNo(1)
+                .setMeterAddress(2)
+                .setSlaveAddress(1)
+                .setProduct(new Product().setVendor("ACREL").setCode("P1").setAccessMode(DeviceAccessModeEnum.GATEWAY));
+        DeviceCommand command = new DeviceCommand()
+                .setDevice(device)
+                .setType(DeviceCommandTypeEnum.GET_CT)
+                .setPayload(new GetCtCommand());
+        Device gateway = new Device().setDeviceNo("gw-1").setDeviceSecret("1234567890abcdef");
+        Mockito.when(deviceRegistry.getById(1)).thenReturn(gateway);
+
+        @SuppressWarnings("unchecked")
+        MultiStepDeviceCommandTranslator<ModbusRtuRequest> translator =
+                Mockito.mock(MultiStepDeviceCommandTranslator.class);
+        ModbusRtuRequest firstRequest = new ModbusRtuRequest()
+                .setSlaveAddress(1)
+                .setFunction(ModbusRtuBuilder.FUNCTION_READ)
+                .setStartRegister(0x0001)
+                .setQuantity(1);
+        ModbusRtuRequest secondRequest = new ModbusRtuRequest()
+                .setSlaveAddress(1)
+                .setFunction(ModbusRtuBuilder.FUNCTION_READ)
+                .setStartRegister(0x0002)
+                .setQuantity(1);
+        byte[] response1 = new byte[]{0x01, 0x03};
+        byte[] response2 = new byte[]{0x01, 0x03, 0x02};
+        DeviceCommandResult expected = new DeviceCommandResult()
+                .setType(DeviceCommandTypeEnum.GET_CT)
+                .setSuccess(true);
+
+        Mockito.when(translatorRegistry.resolve("ACREL", "P1", DeviceCommandTypeEnum.GET_CT, ModbusRtuRequest.class))
+                .thenReturn((DeviceCommandTranslator<ModbusRtuRequest>) translator);
+        Mockito.when(translator.firstRequest(command)).thenReturn(firstRequest);
+        Mockito.when(commandTransport.sendWithAck(Mockito.eq("gw-1"), Mockito.any()))
+                .thenReturn(CompletableFuture.completedFuture(response1), CompletableFuture.completedFuture(response2));
+        Mockito.when(translator.parseStep(Mockito.eq(command), Mockito.eq(response1), Mockito.any()))
+                .thenReturn(StepResult.next(secondRequest));
+        Mockito.when(translator.parseStep(Mockito.eq(command), Mockito.eq(response2), Mockito.any()))
+                .thenReturn(StepResult.done(expected));
+
+        DeviceCommandResult result = sender.send(command).join();
+
+        Assertions.assertSame(expected, result);
+        ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+        Mockito.verify(commandTransport, Mockito.times(2)).sendWithAck(Mockito.eq("gw-1"), captor.capture());
+        byte[] frame1 = buildExpectedFrame(gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec,
+                device, gateway, firstRequest);
+        byte[] frame2 = buildExpectedFrame(gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec,
+                device, gateway, secondRequest);
+        Assertions.assertEquals(2, captor.getAllValues().size());
+        Assertions.assertArrayEquals(frame1, captor.getAllValues().get(0));
+        Assertions.assertArrayEquals(frame2, captor.getAllValues().get(1));
+    }
+
+    @Test
     void send_whenGatewayTimeout_shouldFailPending() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
@@ -242,6 +315,21 @@ class AcrelGatewayTcpCommandSenderTest {
                 new AcrelGatewayCryptoService(),
                 new AcrelGatewayTransparentCodec()
         );
+    }
+
+    /**
+     * 构造期望的网关下行帧。
+     */
+    private byte[] buildExpectedFrame(AcrelGatewayFrameCodec gatewayFrameCodec,
+                                      AcrelGatewayCryptoService gatewayCryptoService,
+                                      AcrelGatewayTransparentCodec gatewayTransparentCodec,
+                                      Device device,
+                                      Device gateway,
+                                      ModbusRtuRequest request) {
+        byte[] rtuFrame = ModbusRtuBuilder.build(request);
+        byte[] transparent = gatewayTransparentCodec.encode(device.getPortNo(), device.getMeterAddress(), rtuFrame);
+        byte[] encrypted = gatewayCryptoService.encrypt(transparent, gateway.getDeviceSecret());
+        return gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
     }
 
 }

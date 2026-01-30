@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decod
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
-import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
+import info.zhihui.ems.iot.enums.VendorEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
@@ -24,7 +24,7 @@ public class AcrelGatewayFrameDecoderProvider implements NettyFrameDecoderProvid
             return null;
         }
         return new ProtocolSignature()
-                .setVendor(AcrelPluginConstants.VENDOR)
+                .setVendor(VendorEnum.ACREL.name())
                 .setAccessMode(DeviceAccessModeEnum.GATEWAY)
                 .setTransportType(TransportProtocolEnum.TCP);
     }
