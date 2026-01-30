@@ -2,19 +2,26 @@ package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
 
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
+import info.zhihui.ems.iot.enums.VendorEnum;
 import info.zhihui.ems.iot.plugins.acrel.command.constant.AcrelRegisterMappingEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
+import info.zhihui.ems.iot.protocol.port.outbound.AbstractEnergyCommandTranslator;
 import org.springframework.stereotype.Component;
 
 /**
  * 读取深谷电量命令翻译器。
  */
 @Component
-public class AcrelGetDeepLowEnergyTranslator extends AbstractAcrelEnergyTranslator {
+public class AcrelGetDeepLowEnergyTranslator extends AbstractEnergyCommandTranslator {
 
     @Override
     public DeviceCommandTypeEnum type() {
         return DeviceCommandTypeEnum.GET_DEEP_LOW_ENERGY;
+    }
+
+    @Override
+    public String vendor() {
+        return VendorEnum.ACREL.name();
     }
 
     @Override

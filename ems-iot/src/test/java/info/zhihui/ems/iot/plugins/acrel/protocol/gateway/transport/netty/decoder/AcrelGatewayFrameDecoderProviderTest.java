@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decod
 
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
+import info.zhihui.ems.iot.enums.VendorEnum;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
 import org.junit.jupiter.api.Assertions;
@@ -20,7 +20,7 @@ class AcrelGatewayFrameDecoderProviderTest {
         ProtocolSignature signature = provider.detectTcp(payload);
 
         Assertions.assertNotNull(signature);
-        Assertions.assertEquals(AcrelPluginConstants.VENDOR, signature.getVendor());
+        Assertions.assertEquals(VendorEnum.ACREL.name(), signature.getVendor());
         Assertions.assertEquals(DeviceAccessModeEnum.GATEWAY, signature.getAccessMode());
         Assertions.assertEquals(TransportProtocolEnum.TCP, signature.getTransportType());
     }
@@ -37,7 +37,7 @@ class AcrelGatewayFrameDecoderProviderTest {
     void createDecoders_shouldReturnGatewayDecoder() {
         AcrelGatewayFrameDecoderProvider provider = new AcrelGatewayFrameDecoderProvider();
         ProtocolSignature signature = new ProtocolSignature()
-                .setVendor(AcrelPluginConstants.VENDOR)
+                .setVendor(VendorEnum.ACREL.name())
                 .setAccessMode(DeviceAccessModeEnum.GATEWAY)
                 .setTransportType(TransportProtocolEnum.TCP);
 

@@ -7,7 +7,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
-import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
+import info.zhihui.ems.iot.enums.VendorEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.AcrelGatewayTcpCommandSender;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.AcrelGatewayTcpInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -25,7 +25,7 @@ class AcrelGatewayProtocolHandlerTest {
                 Mockito.mock(AcrelGatewayTcpInboundHandler.class),
                 Mockito.mock(AcrelGatewayTcpCommandSender.class));
 
-        Assertions.assertEquals(AcrelPluginConstants.VENDOR, handler.getVendor());
+        Assertions.assertEquals(VendorEnum.ACREL.name(), handler.getVendor());
     }
 
     @Test

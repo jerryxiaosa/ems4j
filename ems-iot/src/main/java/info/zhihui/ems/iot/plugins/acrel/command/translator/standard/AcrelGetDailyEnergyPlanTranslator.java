@@ -58,6 +58,7 @@ public class AcrelGetDailyEnergyPlanTranslator extends AbstractAcrelCommandTrans
 
         List<DailyEnergySlot> slots = new ArrayList<>();
         for (AcrelTripleSlotParser.TripleSlot triple : triples) {
+            // 尖峰平谷对应的是1234
             ElectricPricePeriodEnum period = ElectricPricePeriodEnum.fromCode(triple.type());
             slots.add(new DailyEnergySlot()
                     .setPeriod(period)

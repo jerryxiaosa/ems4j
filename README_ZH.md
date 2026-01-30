@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 [English](README.md)
+
 EMS4J 是一个专注于能耗管理的综合性业务平台，具备设备接入、计量计费、账户管理、财务核算与运维支持等核心能力。该平台提供了高度抽象的设备对接方案，能够灵活适配各类物联网平台，同时也支持通过内置的 IoT 模块自主实现设备接入，具备良好的扩展性。
 
 ## 动机

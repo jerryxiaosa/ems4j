@@ -16,10 +16,11 @@
    - 通过`PacketDefinition + Parser + Handler`，实现命令解析与处理。
    - 因为响应设备上报是从底层往应用层传输，理论上可以各自实现onMessage方法，不一定需要统一处理。
 
-   2. 下发与回执：实现系统定义的需要下发的命令。从而使上层可以统一管理、操作设备
-   - 每一个下发的命令，按命令字/类型定义 `DeviceCommandTranslator + DeviceCommandResult`。
-   - 通过调用ProtocolCommandTransport，实现下发命令的回复回执
-   - 因为下发命令是从应用层往底层传输，需要通过DeviceCommandTranslatorResolver找到对应的命令转换器DeviceCommandTranslator，再转换成各自设备的命令进行发送。
+   2. 下发与回执：实现系统定义的需要下发的命令，从而使上层可以统一管理、操作设备
+   - 单步命令：按命令字/类型定义 `DeviceCommandTranslator + DeviceCommandResult`。
+   - 多步命令：实现 `MultiStepDeviceCommandTranslator`，通过 `firstRequest/parseStep` 组织“请求-响应-再请求”的链路。
+   - 通过调用 `ProtocolCommandTransport` 实现下发命令的回复回执。
+   - 下发命令从应用层往底层传输，需要通过 `DeviceCommandTranslatorResolver` 找到对应的命令转换器，再转换成各自设备的命令进行发送。
 
 ## 2. 更复杂的情况
 如果不单单对接一个设备，而且要对接某个厂商的多个设备，情况会复杂一些。 总的来说还是处理设备上下行的协议。
@@ -44,8 +45,6 @@ plugins/
   acrel/
     Acrel4gProtocolHandler.java
     AcrelGatewayProtocolHandler.java
-    constant/
-      AcrelPluginConstants.java
     protocol/
       constant/
         AcrelProtocolConstants.java
@@ -101,14 +100,13 @@ plugins/
       translator/
         standard/
           AbstractAcrelCommandTranslator.java
-          AbstractAcrelEnergyTranslator.java
           AcrelGetTotalEnergyTranslator.java
           AcrelSetCtTranslator.java
           ...
 ```
 
 说明：
-- `constant/`：插件级常量（如 vendor 编码）。
+- `protocol/port/outbound`：协议层公共基类（如 `AbstractEnergyCommandTranslator`），供各厂商能量类命令复用。
 - `protocol/constant`：协议帧相关常量（起止符、帧头等）。
 - `protocol/common/message`：协议公共报文对象。
 - `protocol/*/tcp`：协议的 TCP 处理入口，按接入方式拆分（4G 直连/网关）。
@@ -127,6 +125,7 @@ plugins/
 - `ProtocolInboundPublisher`：协议上行事件发布（如 `ProtocolEnergyReportInboundEvent`）。
 - `ProtocolInboundEventListener`：监听协议上行事件，构建领域事件（如 `DeviceEnergyReportEvent`）并处理业务逻辑（当前为日志输出）。
 - `DeviceCommandTranslator`：命令下发转换与响应解析。
+- `MultiStepDeviceCommandTranslator`：多步下发命令的转换与分步解析，配合 `StepContext/StepResult` 使用。
 - `DeviceProtocolHandler`：设备协议处理器，实现 `DeviceProtocolHandler` 接口，负责上行解析与命令下发。
 
 ## 5. 建议的落地顺序

@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.ne
 
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
-import info.zhihui.ems.iot.plugins.acrel.constant.AcrelPluginConstants;
+import info.zhihui.ems.iot.enums.VendorEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
@@ -21,7 +21,7 @@ class Acrel4gFrameDecoderProviderTest {
         ProtocolSignature signature = provider.detectTcp(payload);
 
         Assertions.assertNotNull(signature);
-        Assertions.assertEquals(AcrelPluginConstants.VENDOR, signature.getVendor());
+        Assertions.assertEquals(VendorEnum.ACREL.name(), signature.getVendor());
         Assertions.assertEquals(DeviceAccessModeEnum.DIRECT, signature.getAccessMode());
         Assertions.assertEquals(TransportProtocolEnum.TCP, signature.getTransportType());
     }
@@ -38,7 +38,7 @@ class Acrel4gFrameDecoderProviderTest {
     void createDecoders_shouldReturnDelimitedDecoder() {
         Acrel4gFrameDecoderProvider provider = new Acrel4gFrameDecoderProvider();
         ProtocolSignature signature = new ProtocolSignature()
-                .setVendor(AcrelPluginConstants.VENDOR)
+                .setVendor(VendorEnum.ACREL.name())
                 .setAccessMode(DeviceAccessModeEnum.DIRECT)
                 .setTransportType(TransportProtocolEnum.TCP);
 
