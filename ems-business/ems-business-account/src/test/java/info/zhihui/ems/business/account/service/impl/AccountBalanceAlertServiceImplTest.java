@@ -131,4 +131,24 @@ class AccountBalanceAlertServiceImplTest {
 
         verify(electricMeterManagerService).setMeterWarnLevel(eq(List.of(6)), eq(WarnTypeEnum.FIRST));
     }
+
+    @Test
+    void handleBalanceChange_SkipAccountWarnWhenQuantity() {
+        AccountBo accountBo = new AccountBo()
+                .setId(12)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setWarnPlanId(3)
+                .setElectricWarnType(WarnTypeEnum.FIRST);
+        when(accountInfoService.getById(12)).thenReturn(accountBo);
+
+        BalanceChangedMessage message = new BalanceChangedMessage()
+                .setBalanceType(BalanceTypeEnum.ACCOUNT)
+                .setBalanceRelationId(12)
+                .setNewBalance(new BigDecimal("50"));
+
+        balanceAlertService.handleBalanceChange(message);
+
+        verifyNoInteractions(warnPlanService);
+        verify(accountRepository, never()).updateById(any(AccountEntity.class));
+    }
 }

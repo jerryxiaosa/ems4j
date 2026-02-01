@@ -4,6 +4,7 @@ package info.zhihui.ems.business.account.dto;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.business.device.dto.MeterOpenDetailDto;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -62,6 +63,7 @@ public class OpenAccountDto {
     /**
      * 开户表
      */
+    @Valid
     @NotEmpty(message = "开户表不能为空")
     private List<MeterOpenDetailDto> electricMeterList;
 
