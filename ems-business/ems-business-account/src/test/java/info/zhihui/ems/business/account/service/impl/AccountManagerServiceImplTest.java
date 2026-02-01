@@ -4,9 +4,11 @@ import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountConfigUpdateDto;
 import info.zhihui.ems.business.account.dto.AccountMetersOpenDto;
 import info.zhihui.ems.business.account.dto.CancelAccountDto;
+import info.zhihui.ems.business.account.dto.CancelAccountResponseDto;
 import info.zhihui.ems.business.account.dto.OpenAccountDto;
 import info.zhihui.ems.business.account.entity.AccountCancelRecordEntity;
 import info.zhihui.ems.business.account.entity.AccountEntity;
+import info.zhihui.ems.business.account.enums.CleanBalanceTypeEnum;
 import info.zhihui.ems.business.account.mapper.AccountInfoMapper;
 import info.zhihui.ems.business.account.mapper.AccountManagerMapper;
 import info.zhihui.ems.business.account.repository.AccountCancelRecordRepository;
@@ -479,6 +481,52 @@ class AccountManagerServiceImplTest {
     }
 
     @Test
+    void testUpdateAccountConfig_NoChange_Monthly() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountBo accountBo = new AccountBo()
+                .setId(7)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setMonthlyPayAmount(new BigDecimal("100.00"));
+        when(accountInfoService.getById(7)).thenReturn(accountBo);
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(7)
+                .setMonthlyPayAmount(new BigDecimal("100"));
+
+        accountManagerService.updateAccountConfig(dto);
+
+        verify(repository, never()).updateById(any(AccountEntity.class));
+        verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
+    }
+
+    @Test
+    void testUpdateAccountConfig_NoChange_Quantity() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountBo accountBo = new AccountBo()
+                .setId(8)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setElectricPricePlanId(5)
+                .setWarnPlanId(9);
+        when(accountInfoService.getById(8)).thenReturn(accountBo);
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(8)
+                .setElectricPricePlanId(5)
+                .setWarnPlanId(9);
+
+        accountManagerService.updateAccountConfig(dto);
+
+        verify(repository, never()).updateById(any(AccountEntity.class));
+        verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
+    }
+
+    @Test
     void testUpdateAccountConfig_Error_InvalidForMonthly() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
@@ -851,6 +899,56 @@ class AccountManagerServiceImplTest {
         assertThat(orderDto.getUserPhone()).isEqualTo("13800000000");
         assertThat(orderDto.getUserRealName()).isEqualTo("李四");
         assertThat(orderDto.getThirdPartyUserId()).isEqualTo("100");
+    }
+
+    @Test
+    void testCancelAccount_RoundingSmallPositiveBalance() {
+        CancelAccountDto cancelAccountDto = new CancelAccountDto()
+                .setAccountId(1)
+                .setRemark("小额余额销户")
+                .setMeterList(List.of(new MeterCancelDetailDto().setMeterId(1)));
+
+        AccountBo accountBo = new AccountBo()
+                .setId(1)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setOwnerId(1)
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerName("测试企业");
+
+        ElectricMeterBo electricMeterBo = new ElectricMeterBo()
+                .setId(1)
+                .setAccountId(1);
+
+        List<MeterCancelResultDto> meterCancelBalances = List.of(
+                new MeterCancelResultDto().setMeterId(1).setBalance(new BigDecimal("0.004"))
+        );
+
+        when(lockTemplate.getLock(any(String.class))).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+        when(accountInfoService.getById(1)).thenReturn(accountBo);
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1).setInIds(List.of(1))))
+                .thenReturn(List.of(electricMeterBo));
+        when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
+        when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
+        when(repository.deleteById(1)).thenReturn(1);
+        mockRequestContext();
+
+        CancelAccountResponseDto response = accountManagerService.cancelAccount(cancelAccountDto);
+
+        assertThat(response.getCleanBalanceType()).isEqualTo(CleanBalanceTypeEnum.SKIP);
+        assertThat(response.getAmount()).isEqualByComparingTo("0.00");
+
+        ArgumentCaptor<AccountCancelRecordEntity> recordCaptor = ArgumentCaptor.forClass(AccountCancelRecordEntity.class);
+        verify(cancelRecordRepository).insert(recordCaptor.capture());
+        AccountCancelRecordEntity record = recordCaptor.getValue();
+        assertThat(record.getCleanBalanceType()).isEqualTo(CleanBalanceTypeEnum.SKIP.getCode());
+        assertThat(record.getCleanBalanceReal()).isEqualByComparingTo("0.00");
+        assertThat(record.getCleanBalanceIgnore()).isEqualByComparingTo("0.004");
+
+        ArgumentCaptor<TerminationOrderCreationInfoDto> orderCaptor = ArgumentCaptor.forClass(TerminationOrderCreationInfoDto.class);
+        verify(orderService).createOrder(orderCaptor.capture());
+        assertThat(orderCaptor.getValue().getOrderAmount()).isEqualByComparingTo("0.00");
     }
 
     @Test

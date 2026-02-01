@@ -50,6 +50,7 @@ public class AccountBalanceAlertServiceImpl implements AccountBalanceAlertServic
             } else if (BalanceTypeEnum.ELECTRIC_METER.equals(message.getBalanceType())) {
                 handleMeterBalanceChange(message);
             } else {
+                // @TODO
                 log.warn("未支持的余额类型，message={}", message);
             }
         } catch (Exception e) {
