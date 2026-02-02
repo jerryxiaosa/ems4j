@@ -1,7 +1,6 @@
 package info.zhihui.ems.business.device.dto;
 
 import info.zhihui.ems.common.enums.CalculateTypeEnum;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -45,6 +44,12 @@ public class ElectricMeterUpdateDto {
      * 和is_calculate无关
      */
     private CalculateTypeEnum calculateType;
+
+    /**
+     * 是否清空计量类型
+     * 为 true 时表示清空 calculateType
+     */
+    private Boolean resetCalculateType;
 
     /**
      * 是否为预付费

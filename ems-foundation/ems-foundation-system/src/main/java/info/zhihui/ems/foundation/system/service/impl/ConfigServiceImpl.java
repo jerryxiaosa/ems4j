@@ -5,7 +5,6 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.DataException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
@@ -40,13 +39,13 @@ public class ConfigServiceImpl implements ConfigService {
      *
      * @param key 配置键
      * @return 配置业务对象
-     * @throws DataException 当配置不存在时抛出
+     * @throws NotFoundException 当配置不存在时抛出
      */
     @Override
     public ConfigBo getByKey(String key) {
         ConfigEntity entity = repository.getByKey(key);
         if (entity == null) {
-            throw DataException.notExist("系统配置");
+            throw new NotFoundException("系统配置不存在");
         }
         return mapper.entityToBo(entity);
     }
@@ -80,14 +79,14 @@ public class ConfigServiceImpl implements ConfigService {
      * 更新系统配置
      *
      * @param bo 配置更新DTO
-     * @throws DataException 当配置不存在时抛出
+     * @throws NotFoundException 当配置不存在时抛出
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void update(ConfigUpdateDto bo) {
         ConfigEntity old = repository.getByKey(bo.getConfigKey());
         if (old == null) {
-            throw DataException.notExist("系统参数配置");
+            throw new NotFoundException("系统配置不存在");
         }
 
         ConfigEntity entity = mapper.updateBoToEntity(bo);

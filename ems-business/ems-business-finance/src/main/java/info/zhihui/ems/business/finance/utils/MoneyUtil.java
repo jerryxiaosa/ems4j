@@ -12,7 +12,12 @@ public class MoneyUtil {
         return yuan.multiply(new BigDecimal("100")).intValue();
     }
 
+    /**
+     * 保留两位小数
+     * @param amount 原金额
+     * @return 保留两位后的金额
+     */
     public static BigDecimal scaleToCent(BigDecimal amount) {
-        return amount == null ? null : amount.setScale(2, RoundingMode.FLOOR);
+        return amount == null ? null : amount.setScale(2, RoundingMode.DOWN);
     }
 }

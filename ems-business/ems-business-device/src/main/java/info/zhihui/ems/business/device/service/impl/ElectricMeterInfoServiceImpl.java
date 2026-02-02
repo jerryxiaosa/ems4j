@@ -106,7 +106,7 @@ public class ElectricMeterInfoServiceImpl implements ElectricMeterInfoService {
         if (meterList.isEmpty()) {
             throw new NotFoundException(String.format("能耗系统查询到iotId=%d没有匹配的电表", iotId));
         } else if (meterList.size() > 1) {
-            throw new NotFoundException(String.format("能耗系统查询到iotId=%d的电表数量=%d无法匹配电表", iotId, meterList.size()));
+            throw new BusinessRuntimeException(String.format("能耗系统查询到iotId=%d的电表数量=%d无法匹配电表", iotId, meterList.size()));
         }
 
         return mapper.entityToBo(meterList.get(0));

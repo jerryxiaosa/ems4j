@@ -149,10 +149,10 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         ElectricMeterBo old = electricMeterInfoService.getDetail(dto.getId());
         ElectricMeterEntity entity = mapper.updateDtoToEntity(dto);
 
-        checkAndSetUpdateInfo(entity, old);
+        checkAndSetUpdateInfo(entity, old, dto);
 
-        // 根据 dto.getCalculateType() 是否为 null 来决定 resetCalculateType 参数
-        boolean resetCalculateType = dto.getCalculateType() == null;
+        // 仅当显式指定 resetCalculateType 时才清空 calculate_type
+        boolean resetCalculateType = Boolean.TRUE.equals(dto.getResetCalculateType());
         repository.updateWithCalculateTypeControl(entity, resetCalculateType);
     }
 
@@ -452,12 +452,13 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         // 因为调整了ct之后电量会变化；为防止状态不一致，即使CT未变也执行该流程
         // 注意：可能对统计造成影响
         Integer newMeterId = deleteAndSaveNewMeterForCt(meter);
+        ElectricMeterBo newMeter = electricMeterInfoService.getDetail(newMeterId);
 
         MeterCommandDto ctCommandDto = new MeterCommandDto()
-                .setMeter(meter)
+                .setMeter(newMeter)
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
                 .setCommandSource(CommandSourceEnum.SYSTEM)
-                .setCommandData(meter.getCt().toPlainString());
+                .setCommandData(newMeter.getCt().toPlainString());
         saveMeterCommandAndRun(ctCommandDto);
 
         return newMeterId;
@@ -728,10 +729,10 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (balance == null) {
             return WarnTypeEnum.NONE;
         }
-        if (balance.compareTo(secondLevel) <= 0) {
+        if (secondLevel != null && balance.compareTo(secondLevel) <= 0) {
             return WarnTypeEnum.SECOND;
         }
-        if (balance.compareTo(firstLevel) <= 0) {
+        if (firstLevel != null && balance.compareTo(firstLevel) <= 0) {
             return WarnTypeEnum.FIRST;
         }
         return WarnTypeEnum.NONE;
@@ -1155,13 +1156,16 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
     private void saveMeterCommandAndRun(MeterCommandDto meterCommandDto) {
         ElectricMeterBo meter = meterCommandDto.getMeter();
+        if (meter.getIotId() == null) {
+            throw new BusinessRuntimeException("电表未同步到IoT平台，无法下发命令");
+        }
         String spaceName = Optional.ofNullable(spaceService.getDetail(meter.getSpaceId()))
                 .map(SpaceBo::getName)
                 .orElse("");
 
         DeviceCommandAddDto dto = new DeviceCommandAddDto()
                 .setCommandType(meterCommandDto.getCommandType())
-                .setCommandSource(CommandSourceEnum.USER)
+                .setCommandSource(meterCommandDto.getCommandSource())
                 .setCommandData(meterCommandDto.getCommandData())
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
                 .setDeviceId(meter.getId())
@@ -1399,7 +1403,11 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         saveMeterCommandAndRun(ctCommandDto);
     }
 
-    private void checkAndSetUpdateInfo(ElectricMeterEntity entity, ElectricMeterBo old) {
+    private void checkAndSetUpdateInfo(ElectricMeterEntity entity, ElectricMeterBo old, ElectricMeterUpdateDto dto) {
+        if (Boolean.TRUE.equals(dto.getResetCalculateType()) && dto.getCalculateType() != null) {
+            throw new BusinessRuntimeException("resetCalculateType为true时不允许设置calculateType");
+        }
+
         // 校验预付费修改
         if (entity.getIsPrepay() != null && !entity.getIsPrepay().equals(old.getIsPrepay())) {
             if (old.getAccountId() != null) {

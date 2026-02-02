@@ -357,7 +357,7 @@ class ElectricMeterManagerServiceImplTest {
         // 执行测试
         assertDoesNotThrow(() -> electricMeterService.update(updateDtoWithNullCalculateType));
 
-        // 验证结果 - 应该调用新的统一更新方法，resetCalculateType为true（因为dto.getCalculateType()为null）
+        // 验证结果 - 未显式设置resetCalculateType，不应清空calculateType
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
         ArgumentCaptor<Boolean> resetCaptor = ArgumentCaptor.forClass(Boolean.class);
         verify(repository).updateWithCalculateTypeControl(entityCaptor.capture(), resetCaptor.capture());
@@ -366,10 +366,61 @@ class ElectricMeterManagerServiceImplTest {
         assertEquals(1001, capturedUpdate.getUpdateUser());
         assertEquals("测试用户", capturedUpdate.getUpdateUserName());
         assertNotNull(capturedUpdate.getUpdateTime());
-        assertTrue(resetCaptor.getValue());
+        assertFalse(resetCaptor.getValue());
         verify(repository, never()).updateById(any(ElectricMeterEntity.class));
     }
 
+    @Test
+    void testUpdate_ResetCalculateType_Success() {
+        ElectricMeterBo oldBo = new ElectricMeterBo()
+                .setId(1)
+                .setModelId(200)
+                .setSpaceId(100)
+                .setAccountId(null)
+                .setIsPrepay(false);
+
+        ElectricMeterUpdateDto updateDtoWithReset = new ElectricMeterUpdateDto()
+                .setId(1)
+                .setMeterName("测试电表")
+                .setCalculateType(null)
+                .setResetCalculateType(true)
+                .setIsCalculate(true);
+
+        ElectricMeterEntity updateEntity = new ElectricMeterEntity()
+                .setId(1)
+                .setMeterName("测试电表")
+                .setCalculateType(null)
+                .setIsCalculate(true);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(oldBo);
+        when(mapper.updateDtoToEntity(updateDtoWithReset)).thenReturn(updateEntity);
+        when(requestContext.getUserId()).thenReturn(1001);
+        when(requestContext.getUserRealName()).thenReturn("测试用户");
+
+        assertDoesNotThrow(() -> electricMeterService.update(updateDtoWithReset));
+
+        ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
+        ArgumentCaptor<Boolean> resetCaptor = ArgumentCaptor.forClass(Boolean.class);
+        verify(repository).updateWithCalculateTypeControl(entityCaptor.capture(), resetCaptor.capture());
+        assertTrue(resetCaptor.getValue());
+    }
+
+    @Test
+    void testUpdate_ResetCalculateType_WithCalculateType_ShouldFail() {
+        ElectricMeterUpdateDto updateDtoWithConflict = new ElectricMeterUpdateDto()
+                .setId(1)
+                .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
+                .setResetCalculateType(true);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
+        when(mapper.updateDtoToEntity(updateDtoWithConflict)).thenReturn(new ElectricMeterEntity().setId(1));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterService.update(updateDtoWithConflict));
+
+        assertEquals("resetCalculateType为true时不允许设置calculateType", exception.getMessage());
+        verify(repository, never()).updateWithCalculateTypeControl(any(), anyBoolean());
+    }
     @Test
     void testUpdate_WithCalculateTypeNotNull_Success() {
         // 准备数据 - calculateType不为null的情况
@@ -1036,6 +1087,31 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
+    void testSetSwitchStatusSingle_MissingIotId_ShouldThrow() {
+        ElectricMeterBo meterBo = new ElectricMeterBo();
+        meterBo.setId(1)
+                .setMeterNo("EM202401010001")
+                .setSpaceId(100)
+                .setIotId(null)
+                .setIsOnline(true)
+                .setIsCutOff(true)
+                .setOwnAreaId(1000);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
+
+        ElectricMeterSwitchStatusDto switchStatusDto = new ElectricMeterSwitchStatusDto()
+                .setId(1)
+                .setSwitchStatus(ElectricSwitchStatusEnum.ON)
+                .setCommandSource(CommandSourceEnum.USER);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterService.setSwitchStatus(switchStatusDto));
+
+        assertEquals("设备EM202401010001异常，请联系管理员处理", exception.getMessage());
+        verify(deviceCommandService, never()).saveDeviceCommand(any(DeviceCommandAddDto.class));
+    }
+
+    @Test
     void testSetSwitchStatusSingle_Success_TurnOff() {
         // 准备数据 - 电表当前为合闸状态，需要断闸
         ElectricMeterBo meterBo = new ElectricMeterBo();
@@ -1314,7 +1390,7 @@ class ElectricMeterManagerServiceImplTest {
         assertEquals(1000, updateEntity.getOwnAreaId());
 
         // 验证执行了更新操作
-        verify(repository).updateWithCalculateTypeControl(updateEntity, true);
+        verify(repository).updateWithCalculateTypeControl(updateEntity, false);
         verify(spaceService).getDetail(101);
     }
 
@@ -1385,7 +1461,7 @@ class ElectricMeterManagerServiceImplTest {
         assertDoesNotThrow(() -> electricMeterService.update(updateDto));
 
         // 验证执行了更新操作，但没有调用空间服务
-        verify(repository).updateWithCalculateTypeControl(updateEntity, true);
+        verify(repository).updateWithCalculateTypeControl(updateEntity, false);
         verify(spaceService, never()).getDetail(any());
     }
 
@@ -1413,7 +1489,7 @@ class ElectricMeterManagerServiceImplTest {
         assertDoesNotThrow(() -> electricMeterService.update(updateDto));
 
         // 验证执行了更新操作
-        verify(repository).updateWithCalculateTypeControl(updateEntity, true);
+        verify(repository).updateWithCalculateTypeControl(updateEntity, false);
     }
 
     @Test
@@ -1438,17 +1514,32 @@ class ElectricMeterManagerServiceImplTest {
         // Mock行为
         ElectricMeterBo detailBo = new ElectricMeterBo().setId(1).setModelId(1000).setIotId(123).setCt(new BigDecimal("110"));
         when(electricMeterInfoService.getDetail(1)).thenReturn(detailBo);
+        existingEntity.setCt(dto.getCt());
         when(mapper.boToEntity(detailBo)).thenReturn(existingEntity);
         when(deviceModelService.getDetail(1000)).thenReturn(deviceModel);
+        int newMeterId = 2;
+        when(repository.insert(any(ElectricMeterEntity.class))).thenAnswer(invocation -> {
+            ElectricMeterEntity entity = invocation.getArgument(0);
+            entity.setId(newMeterId);
+            return 1;
+        });
+        ElectricMeterBo newBo = new ElectricMeterBo()
+                .setId(newMeterId)
+                .setModelId(1000)
+                .setIotId(123)
+                .setCt(dto.getCt());
+        when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
 
         // 执行测试
         assertDoesNotThrow(() -> electricMeterService.setMeterCt(dto));
 
         // 验证调用了删除和重建操作
         verify(repository).deleteById(1);
-        existingEntity.setCt(dto.getCt());
-        existingEntity.setId(null);
-        verify(repository).insert(existingEntity);
+        ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
+        verify(repository).insert(entityCaptor.capture());
+        ElectricMeterEntity insertedEntity = entityCaptor.getValue();
+        assertEquals(dto.getCt(), insertedEntity.getCt());
+        assertEquals(newMeterId, insertedEntity.getId());
     }
 
     @Test
@@ -1481,6 +1572,18 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.getDetail(1)).thenReturn(existing);
         when(deviceModelService.getDetail(1000)).thenReturn(deviceModel);
         when(mapper.boToEntity(existing)).thenReturn(entityToInsert);
+        int newMeterId = 2;
+        when(repository.insert(any(ElectricMeterEntity.class))).thenAnswer(invocation -> {
+            ElectricMeterEntity entity = invocation.getArgument(0);
+            entity.setId(newMeterId);
+            return 1;
+        });
+        ElectricMeterBo newBo = new ElectricMeterBo()
+                .setId(newMeterId)
+                .setModelId(1000)
+                .setIotId(123)
+                .setCt(dto.getCt());
+        when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
 
         // 执行测试：不再抛出异常
         assertDoesNotThrow(() -> electricMeterService.setMeterCt(dto));
@@ -1491,7 +1594,7 @@ class ElectricMeterManagerServiceImplTest {
         verify(repository).insert(entityCaptor.capture());
         ElectricMeterEntity insertedEntity = entityCaptor.getValue();
         assertEquals(dto.getCt(), insertedEntity.getCt());
-        assertNull(insertedEntity.getId());
+        assertEquals(newMeterId, insertedEntity.getId());
 
         // 验证设备命令被保存（下发CT指令）
         verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
@@ -1959,6 +2062,19 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.getDetail(1)).thenReturn(existingBo);
         when(mapper.boToEntity(existingBo)).thenReturn(new ElectricMeterEntity().setId(1).setModelId(1000).setIotId(123).setCt(new BigDecimal("100")));
         when(deviceModelService.getDetail(1000)).thenReturn(deviceModel);
+        int newMeterId = 2;
+        when(repository.insert(any(ElectricMeterEntity.class))).thenAnswer(invocation -> {
+            ElectricMeterEntity entity = invocation.getArgument(0);
+            entity.setId(newMeterId);
+            return 1;
+        });
+        ElectricMeterBo newBo = new ElectricMeterBo()
+                .setId(newMeterId)
+                .setModelId(1000)
+                .setIotId(123)
+                .setCt(dto.getCt())
+                .setOwnAreaId(1000);
+        when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
 
         // 执行测试
         assertDoesNotThrow(() -> electricMeterService.setMeterCt(dto));
@@ -1966,18 +2082,20 @@ class ElectricMeterManagerServiceImplTest {
         // 验证调用了删除和重建操作
         verify(repository).deleteById(1);
 
-        // 验证新实体被插入，CT被设置为null以触发setElectricCt
+        // 验证新实体被插入，CT已更新
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
         verify(repository).insert(entityCaptor.capture());
         ElectricMeterEntity insertedEntity = entityCaptor.getValue();
         assertEquals(dto.getCt(), insertedEntity.getCt());
-        assertNull(insertedEntity.getId()); // ID应该被重置为null
+        assertEquals(newMeterId, insertedEntity.getId());
 
         // 验证setElectricCt被调用 - 通过验证saveMeterCommandAndRun被调用
         ArgumentCaptor<DeviceCommandAddDto> commandCaptor = ArgumentCaptor.forClass(DeviceCommandAddDto.class);
         verify(deviceCommandService).saveDeviceCommand(commandCaptor.capture());
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("123", capturedCommand.getDeviceIotId());
+        assertEquals(CommandSourceEnum.SYSTEM, capturedCommand.getCommandSource());
+        assertEquals(newMeterId, capturedCommand.getDeviceId());
     }
 
     /**
@@ -3719,6 +3837,68 @@ class ElectricMeterManagerServiceImplTest {
         assertTrue(updates.stream().anyMatch(q -> "FIRST".equals(q.getWarnType()) && q.getMeterIds().equals(List.of(1))));
         assertTrue(updates.stream().anyMatch(q -> "SECOND".equals(q.getWarnType()) && q.getMeterIds().equals(List.of(2))));
         assertTrue(updates.stream().anyMatch(q -> "NONE".equals(q.getWarnType()) && q.getMeterIds().equals(List.of(3))));
+    }
+
+    @Test
+    void testSetMeterWarnPlan_OnlyFirstLevel_ShouldNotThrow() {
+        List<Integer> meterIds = List.of(21);
+        ElectricMeterBo meter = new ElectricMeterBo().setId(21).setMeterNo("EM021").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(List.of(meter));
+
+        when(warnPlanService.getDetail(1)).thenReturn(new WarnPlanBo()
+                .setFirstLevel(new BigDecimal("100"))
+                .setSecondLevel(null));
+
+        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+                dto != null && Integer.valueOf(21).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
+                .thenReturn(new BalanceBo().setBalance(new BigDecimal("50")));
+
+        when(repository.batchUpdate(any(ElectricMeterBatchUpdateQo.class))).thenAnswer(invocation -> {
+            ElectricMeterBatchUpdateQo qo = invocation.getArgument(0);
+            return qo.getMeterIds() == null ? 0 : qo.getMeterIds().size();
+        });
+
+        ElectricMeterWarnPlanDto dto = new ElectricMeterWarnPlanDto()
+                .setWarnPlanId(1)
+                .setMeterIds(meterIds);
+
+        assertDoesNotThrow(() -> electricMeterService.setMeterWarnPlan(dto));
+
+        ArgumentCaptor<ElectricMeterBatchUpdateQo> captor = ArgumentCaptor.forClass(ElectricMeterBatchUpdateQo.class);
+        verify(repository, times(2)).batchUpdate(captor.capture());
+        List<ElectricMeterBatchUpdateQo> updates = captor.getAllValues();
+        assertTrue(updates.stream().anyMatch(q -> "FIRST".equals(q.getWarnType()) && q.getMeterIds().equals(List.of(21))));
+    }
+
+    @Test
+    void testSetMeterWarnPlan_OnlySecondLevel_ShouldNotThrow() {
+        List<Integer> meterIds = List.of(22);
+        ElectricMeterBo meter = new ElectricMeterBo().setId(22).setMeterNo("EM022").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(List.of(meter));
+
+        when(warnPlanService.getDetail(1)).thenReturn(new WarnPlanBo()
+                .setFirstLevel(null)
+                .setSecondLevel(new BigDecimal("80")));
+
+        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+                dto != null && Integer.valueOf(22).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
+                .thenReturn(new BalanceBo().setBalance(new BigDecimal("50")));
+
+        when(repository.batchUpdate(any(ElectricMeterBatchUpdateQo.class))).thenAnswer(invocation -> {
+            ElectricMeterBatchUpdateQo qo = invocation.getArgument(0);
+            return qo.getMeterIds() == null ? 0 : qo.getMeterIds().size();
+        });
+
+        ElectricMeterWarnPlanDto dto = new ElectricMeterWarnPlanDto()
+                .setWarnPlanId(1)
+                .setMeterIds(meterIds);
+
+        assertDoesNotThrow(() -> electricMeterService.setMeterWarnPlan(dto));
+
+        ArgumentCaptor<ElectricMeterBatchUpdateQo> captor = ArgumentCaptor.forClass(ElectricMeterBatchUpdateQo.class);
+        verify(repository, times(2)).batchUpdate(captor.capture());
+        List<ElectricMeterBatchUpdateQo> updates = captor.getAllValues();
+        assertTrue(updates.stream().anyMatch(q -> "SECOND".equals(q.getWarnType()) && q.getMeterIds().equals(List.of(22))));
     }
 
     /**

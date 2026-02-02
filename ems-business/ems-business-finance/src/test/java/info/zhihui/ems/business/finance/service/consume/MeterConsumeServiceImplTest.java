@@ -27,6 +27,7 @@ import info.zhihui.ems.foundation.organization.service.OrganizationService;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.*;
  *
  * @author jerryxiaosa
  */
+@DisplayName("电表电量消费服务测试")
 @ExtendWith(MockitoExtension.class)
 class MeterConsumeServiceImplTest {
 
@@ -154,8 +156,227 @@ class MeterConsumeServiceImplTest {
     }
 
     /**
-     * 测试正常保存电表记录场景
+     * 测试扣费失败场景
      */
+    @Test
+    @DisplayName("保存电表记录-扣费失败应抛异常且不写余额消费记录")
+    void testSavePowerRecord_DeductFailed_ShouldThrow() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerConsumeRecordEntity lastConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setAccountId(1)
+                .setEndRecordId(100)
+                .setMeterConsumeTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(1)).thenReturn(lastConsumeRecord);
+
+        ElectricMeterPowerRecordEntity lastPowerRecord = new ElectricMeterPowerRecordEntity()
+                .setPower(BigDecimal.valueOf(800))
+                .setPowerHigher(BigDecimal.valueOf(150))
+                .setPowerHigh(BigDecimal.valueOf(250))
+                .setPowerLow(BigDecimal.valueOf(350))
+                .setPowerLower(BigDecimal.valueOf(50))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
+
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
+        when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
+        doThrow(new BusinessRuntimeException("余额不足"))
+                .when(balanceService).deduct(any(BalanceDto.class));
+        when(spaceService.getDetail(1)).thenReturn(spaceBo);
+        when(organizationService.getDetail(1)).thenReturn(organizationBo);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterConsumeService.savePowerRecord(testDto));
+        assertTrue(exception.getMessage().contains("余额扣费失败"));
+
+        verify(electricMeterBalanceConsumeRecordRepository, never()).insert(any(ElectricMeterBalanceConsumeRecordEntity.class));
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-消费记录保存失败应抛异常并跳过扣费")
+    void testSavePowerRecord_ConsumeRecordInsertFailed_ShouldThrow() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerConsumeRecordEntity lastConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setAccountId(1)
+                .setEndRecordId(100)
+                .setMeterConsumeTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(1)).thenReturn(lastConsumeRecord);
+
+        ElectricMeterPowerRecordEntity lastPowerRecord = new ElectricMeterPowerRecordEntity()
+                .setPower(BigDecimal.valueOf(800))
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
+
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class)))
+                .thenThrow(new RuntimeException("插入失败"));
+        when(spaceService.getDetail(1)).thenReturn(spaceBo);
+        when(organizationService.getDetail(1)).thenReturn(organizationBo);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterConsumeService.savePowerRecord(testDto));
+        assertTrue(exception.getMessage().contains("保存消费记录失败"));
+
+        verify(balanceService, never()).deduct(any(BalanceDto.class));
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-accountId为空时仅记录电量并跳过扣费")
+    void testSavePowerRecord_AccountIdNull_ShouldSkipBalanceDeduction() {
+        testDto.setAccountId(null);
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerRecordEntity historyRecord1 = new ElectricMeterPowerRecordEntity()
+                .setId(10)
+                .setPower(BigDecimal.valueOf(900))
+                .setPowerHigher(BigDecimal.valueOf(150))
+                .setPowerHigh(BigDecimal.valueOf(250))
+                .setPowerLow(BigDecimal.valueOf(300))
+                .setPowerLower(BigDecimal.valueOf(80))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(2));
+        ElectricMeterPowerRecordEntity historyRecord2 = new ElectricMeterPowerRecordEntity()
+                .setId(11)
+                .setPower(BigDecimal.valueOf(950))
+                .setPowerHigher(BigDecimal.valueOf(180))
+                .setPowerHigh(BigDecimal.valueOf(260))
+                .setPowerLow(BigDecimal.valueOf(320))
+                .setPowerLower(BigDecimal.valueOf(90))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.findRecordList(any(ElectricMeterPowerRecordQo.class)))
+                .thenReturn(List.of(historyRecord1, historyRecord2));
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
+
+        assertDoesNotThrow(() -> electricMeterConsumeService.savePowerRecord(testDto));
+
+        verify(electricMeterPowerConsumeRecordRepository).insert(any(ElectricMeterPowerConsumeRecordEntity.class));
+        verify(balanceService, never()).deduct(any(BalanceDto.class));
+        verify(electricMeterBalanceConsumeRecordRepository, never()).insert(any(ElectricMeterBalanceConsumeRecordEntity.class));
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-ownerType为空时余额消费记录ownerType为null")
+    void testSavePowerRecord_OwnerTypeNull_ShouldSetNullInBalanceRecord() {
+        testDto.setOwnerType(null);
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerConsumeRecordEntity lastConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setAccountId(1)
+                .setEndRecordId(100)
+                .setMeterConsumeTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(1)).thenReturn(lastConsumeRecord);
+
+        ElectricMeterPowerRecordEntity lastPowerRecord = new ElectricMeterPowerRecordEntity()
+                .setPower(BigDecimal.valueOf(800))
+                .setPowerHigher(BigDecimal.valueOf(150))
+                .setPowerHigh(BigDecimal.valueOf(250))
+                .setPowerLow(BigDecimal.valueOf(350))
+                .setPowerLower(BigDecimal.valueOf(50))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
+
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
+        when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
+        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
+        when(spaceService.getDetail(1)).thenReturn(spaceBo);
+
+        assertDoesNotThrow(() -> electricMeterConsumeService.savePowerRecord(testDto));
+
+        ArgumentCaptor<ElectricMeterBalanceConsumeRecordEntity> captor = ArgumentCaptor.forClass(ElectricMeterBalanceConsumeRecordEntity.class);
+        verify(electricMeterBalanceConsumeRecordRepository).insert(captor.capture());
+        assertNull(captor.getValue().getOwnerType());
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-读数回退导致负用电量应记录负值")
+    void testSavePowerRecord_NegativeConsumePower_ShouldRecordNegative() {
+        meterDetailDto.setIsPrepay(false);
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerConsumeRecordEntity lastConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setAccountId(1)
+                .setEndRecordId(100)
+                .setMeterConsumeTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(1)).thenReturn(lastConsumeRecord);
+
+        ElectricMeterPowerRecordEntity lastPowerRecord = new ElectricMeterPowerRecordEntity()
+                .setPower(BigDecimal.valueOf(1200))
+                .setPowerHigher(BigDecimal.valueOf(300))
+                .setPowerHigh(BigDecimal.valueOf(400))
+                .setPowerLow(BigDecimal.valueOf(500))
+                .setPowerLower(BigDecimal.valueOf(200))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
+        when(spaceService.getDetail(1)).thenReturn(spaceBo);
+        when(organizationService.getDetail(1)).thenReturn(organizationBo);
+
+        electricMeterConsumeService.savePowerRecord(testDto);
+
+        ArgumentCaptor<ElectricMeterPowerConsumeRecordEntity> captor = ArgumentCaptor.forClass(ElectricMeterPowerConsumeRecordEntity.class);
+        verify(electricMeterPowerConsumeRecordRepository).insert(captor.capture());
+        assertTrue(captor.getValue().getConsumePower().compareTo(BigDecimal.ZERO) < 0);
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-余额不足应抛异常")
+    void testSavePowerRecord_BalanceInsufficient_ShouldThrow() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
+        when(electricMeterPowerRelationRepository.insert(any(ElectricMeterPowerRelationEntity.class))).thenReturn(1);
+
+        ElectricMeterPowerConsumeRecordEntity lastConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setAccountId(1)
+                .setEndRecordId(100)
+                .setMeterConsumeTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(1)).thenReturn(lastConsumeRecord);
+
+        ElectricMeterPowerRecordEntity lastPowerRecord = new ElectricMeterPowerRecordEntity()
+                .setPower(BigDecimal.valueOf(800))
+                .setPowerHigher(BigDecimal.valueOf(150))
+                .setPowerHigh(BigDecimal.valueOf(250))
+                .setPowerLow(BigDecimal.valueOf(350))
+                .setPowerLower(BigDecimal.valueOf(50))
+                .setPowerDeepLow(BigDecimal.ZERO)
+                .setRecordTime(LocalDateTime.now().minusHours(1));
+        when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
+
+        when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
+        when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
+        doThrow(new BusinessRuntimeException("余额不足"))
+                .when(balanceService).deduct(any(BalanceDto.class));
+        when(spaceService.getDetail(1)).thenReturn(spaceBo);
+        when(organizationService.getDetail(1)).thenReturn(organizationBo);
+
+        assertThrows(BusinessRuntimeException.class, () -> electricMeterConsumeService.savePowerRecord(testDto));
+        verify(lock).unlock();
+    }
     @Test
     void testSavePowerRecord_Normal() {
         // Given
