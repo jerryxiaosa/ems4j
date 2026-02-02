@@ -30,6 +30,10 @@ public class ServiceRateServiceImpl implements ServiceRateService {
     public BigDecimal getDefaultServiceRate() {
         BigDecimal serviceRate = configService.getValueByKey(SERVICE_RATE_KEY, new TypeReference<>() {});
 
+        if (serviceRate == null) {
+            throw new BusinessRuntimeException("服务费配置为空");
+        }
+
         if (serviceRate.compareTo(BigDecimal.ZERO) < 0 || serviceRate.compareTo(BigDecimal.ONE) > 0) {
             throw new BusinessRuntimeException("数据异常，服务费比例需在0%-100%之间");
         }

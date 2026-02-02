@@ -558,30 +558,34 @@ public class AccountManagerServiceImpl implements AccountManagerService {
 
         if (ElectricAccountTypeEnum.QUANTITY.equals(accountBo.getElectricAccountType())) {
             // 按量计费：汇总所有电表余额
-            allCleanBalance = meterCancelBalanceList.stream()
-                    .map(MeterCancelResultDto::getBalance)
-                    .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (meterCancelBalanceList != null) {
+                allCleanBalance = meterCancelBalanceList.stream()
+                        .map(MeterCancelResultDto::getBalance)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }
         } else if (fullCancel) {
             // 非按量计费且全部销户：查询账户余额
             BalanceBo balanceBo = balanceService.query(new BalanceQueryDto()
                     .setBalanceRelationId(accountBo.getId())
                     .setBalanceType(BalanceTypeEnum.ACCOUNT)
             );
+            if (balanceBo == null || balanceBo.getBalance() == null) {
+                throw new BusinessRuntimeException("账户余额数据缺失");
+            }
             allCleanBalance = balanceBo.getBalance();
         }
 
-        CleanBalanceTypeEnum cleanBalanceType = CleanBalanceTypeEnum.SKIP;
-        BigDecimal realBalance = BigDecimal.ZERO;
-        BigDecimal ignoreBalance = BigDecimal.ZERO;
-
-        if (allCleanBalance.compareTo(BigDecimal.ZERO) != 0) {
-            realBalance = allCleanBalance.setScale(2, RoundingMode.DOWN);
-            ignoreBalance = allCleanBalance.subtract(realBalance);
-
-            cleanBalanceType = realBalance.compareTo(BigDecimal.ZERO) > 0
-                    ? CleanBalanceTypeEnum.REFUND
-                    : CleanBalanceTypeEnum.PAY;
+        BigDecimal realBalance = allCleanBalance.setScale(2, RoundingMode.DOWN);
+        BigDecimal ignoreBalance = allCleanBalance.subtract(realBalance);
+        CleanBalanceTypeEnum cleanBalanceType;
+        int realCompare = realBalance.compareTo(BigDecimal.ZERO);
+        if (realCompare == 0) {
+            cleanBalanceType = CleanBalanceTypeEnum.SKIP;
+        } else if (realCompare > 0) {
+            cleanBalanceType = CleanBalanceTypeEnum.REFUND;
+        } else {
+            cleanBalanceType = CleanBalanceTypeEnum.PAY;
         }
 
         return new BalanceCalculationResultDto(cleanBalanceType, realBalance, ignoreBalance);

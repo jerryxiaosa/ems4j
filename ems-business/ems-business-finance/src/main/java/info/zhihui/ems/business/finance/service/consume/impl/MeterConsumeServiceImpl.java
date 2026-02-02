@@ -50,6 +50,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
@@ -82,6 +83,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
      * @param meterPowerRecordDto 电表抄表数据
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void savePowerRecord(@Valid @NotNull ElectricMeterPowerRecordDto meterPowerRecordDto) {
         Lock lock = getMeterLock(meterPowerRecordDto.getElectricMeterDetailDto().getMeterId());
         if (!lock.tryLock()) {
@@ -185,7 +187,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
         ElectricMeterPowerConsumeRecordEntity lastConsumeRecord =
                 electricMeterPowerConsumeRecordRepository.getMeterLastConsumeRecord(meterPowerRecordEntity.getMeterId());
 
-        if (lastConsumeRecord != null && meterPowerRecordDto.getAccountId().equals(lastConsumeRecord.getAccountId())) {
+        if (lastConsumeRecord != null && Objects.equals(meterPowerRecordDto.getAccountId(), lastConsumeRecord.getAccountId())) {
             return handleExistingConsumeRecord(lastConsumeRecord, meterPowerRecordEntity);
         } else {
             return handleFirstTimeOrDifferentAccount(meterPowerRecordEntity);
@@ -213,12 +215,13 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
         final int MINIMUM_RECORD_COUNT = 2;
         final int PREVIOUS_RECORD_INDEX = 1;
 
-        List<ElectricMeterPowerRecordEntity> recordList = electricMeterPowerRecordRepository.findRecordList(
-                new ElectricMeterPowerRecordQo()
-                        .setMeterId(meterPowerRecordEntity.getMeterId())
-                        .setAccountId(meterPowerRecordEntity.getAccountId())
-                        .setLimit(MINIMUM_RECORD_COUNT)
-        );
+        ElectricMeterPowerRecordQo query = new ElectricMeterPowerRecordQo()
+                .setMeterId(meterPowerRecordEntity.getMeterId())
+                .setLimit(MINIMUM_RECORD_COUNT);
+        if (meterPowerRecordEntity.getAccountId() != null) {
+            query.setAccountId(meterPowerRecordEntity.getAccountId());
+        }
+        List<ElectricMeterPowerRecordEntity> recordList = electricMeterPowerRecordRepository.findRecordList(query);
 
         // 首次上报
         if (CollectionUtils.isEmpty(recordList) || recordList.size() < MINIMUM_RECORD_COUNT) {
@@ -360,9 +363,13 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                 .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setAccountId(meterPowerRecordDto.getAccountId())
-                .setElectricAccountType(meterPowerRecordDto.getElectricAccountType().getCode())
+                .setElectricAccountType(meterPowerRecordDto.getElectricAccountType() == null
+                        ? null
+                        : meterPowerRecordDto.getElectricAccountType().getCode())
                 .setOwnerId(meterPowerRecordDto.getOwnerId())
-                .setOwnerType(meterPowerRecordDto.getOwnerType().getCode())
+                .setOwnerType(meterPowerRecordDto.getOwnerType() == null
+                        ? null
+                        : meterPowerRecordDto.getOwnerType().getCode())
                 .setOwnerName(meterPowerRecordDto.getOwnerName())
                 .setMeterId(meterDetail.getMeterId())
                 .setMeterName(meterDetail.getMeterName())
@@ -574,9 +581,13 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                         electricMeterPowerRecordDto.getElectricMeterDetailDto().getCalculateType().getCode() : null)
                 .setSpaceId(electricMeterPowerRecordDto.getElectricMeterDetailDto().getSpaceId())
                 .setAccountId(electricMeterPowerRecordDto.getAccountId())
-                .setElectricAccountType(electricMeterPowerRecordDto.getElectricAccountType().getCode())
+                .setElectricAccountType(electricMeterPowerRecordDto.getElectricAccountType() == null
+                        ? null
+                        : electricMeterPowerRecordDto.getElectricAccountType().getCode())
                 .setOwnerId(electricMeterPowerRecordDto.getOwnerId())
-                .setOwnerType(electricMeterPowerRecordDto.getOwnerType().getCode())
+                .setOwnerType(electricMeterPowerRecordDto.getOwnerType() == null
+                        ? null
+                        : electricMeterPowerRecordDto.getOwnerType().getCode())
                 .setRecordTime(electricMeterPowerRecordDto.getRecordTime())
                 .setCreateTime(LocalDateTime.now());
     }

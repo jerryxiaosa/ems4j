@@ -15,7 +15,7 @@ This project is exactly that kind of practice: I refactored and distilled the ar
 
 A few design gems are woven into the codebase, and I hope they spark inspiration. As the saying goes, “Give a man a fish and you feed him for a day; teach a man to fish and you feed him for a lifetime.” What I would rather share is the design thinking and architectural philosophy behind the code.
 
-If this project helps you in any way, I will be deeply honored.
+If this project helps you, please consider giving it a Star ⭐️ as support—I would be deeply honored.
 
 ## Features
 
@@ -208,7 +208,7 @@ There are two integration approaches:
 2) **Third-party IoT platforms**
 - Implement platform adapters under `ems-foundation/integration` and coordinate with `ems-iot` and business modules.
 - Reference:
-  - [Integration Overview](doc/modules/integration/ems-foundation-integration-overview.md)
+  - [Integration Module Overview](doc/modules/foundation/ems-foundation-integration.md)
 
 For detailed platform integration solutions, see:
 - [IoT Platform Integration Solutions](doc/iot-platform-integration-solutions.md)

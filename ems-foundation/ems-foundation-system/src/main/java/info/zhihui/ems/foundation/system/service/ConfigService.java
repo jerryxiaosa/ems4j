@@ -3,6 +3,7 @@ package info.zhihui.ems.foundation.system.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.DataException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.system.bo.ConfigBo;
@@ -25,7 +26,7 @@ public interface ConfigService {
      * @return 配置业务对象
      * @throws DataException 当配置不存在时抛出
      */
-    ConfigBo getByKey(String key);
+    ConfigBo getByKey(String key) throws NotFoundException;
 
     /**
      * 根据配置键获取配置值并反序列化为指定类型
@@ -36,7 +37,7 @@ public interface ConfigService {
      * @return 反序列化后的配置值
      * @throws BusinessRuntimeException 当配置不存在或序列化异常时抛出
      */
-    <T> T getValueByKey(String key, TypeReference<T> typeReference) throws BusinessRuntimeException;
+    <T> T getValueByKey(String key, TypeReference<T> typeReference) throws BusinessRuntimeException, NotFoundException;
 
     /**
      * 更新系统配置

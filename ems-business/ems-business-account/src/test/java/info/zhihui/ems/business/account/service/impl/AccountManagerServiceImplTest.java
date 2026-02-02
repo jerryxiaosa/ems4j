@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -1096,6 +1097,49 @@ class AccountManagerServiceImplTest {
         assertThat(orderDto.getUserPhone()).isEqualTo("13800000000");
         assertThat(orderDto.getUserRealName()).isEqualTo("李四");
         assertThat(orderDto.getThirdPartyUserId()).isEqualTo("100");
+    }
+
+    @Test
+    void testCancelAccount_FullCancel_BalanceMissing_ShouldThrow() {
+        CancelAccountDto cancelAccountDto = new CancelAccountDto()
+                .setAccountId(1)
+                .setRemark("包月计费余额缺失")
+                .setMeterList(List.of(new MeterCancelDetailDto().setMeterId(1)));
+
+        AccountBo accountBo = new AccountBo()
+                .setId(1)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setOwnerId(1)
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerName("测试企业");
+
+        ElectricMeterBo electricMeterBo = new ElectricMeterBo()
+                .setId(1)
+                .setAccountId(1);
+
+        List<MeterCancelResultDto> meterCancelBalances = List.of(
+                new MeterCancelResultDto().setMeterId(1).setBalance(BigDecimal.ZERO)
+        );
+
+        ElectricMeterQueryDto query = new ElectricMeterQueryDto()
+                .setAccountId(1)
+                .setInIds(List.of(1));
+
+        when(lockTemplate.getLock(any(String.class))).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+        when(accountInfoService.getById(1)).thenReturn(accountBo);
+        when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
+        when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1))).thenReturn(List.of());
+        when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
+                .thenReturn(new BalanceBo().setBalance(null));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> accountManagerService.cancelAccount(cancelAccountDto));
+
+        assertEquals("销户失败：账户余额数据缺失", exception.getMessage());
+        verify(orderService, never()).createOrder(any());
     }
 
     @Test

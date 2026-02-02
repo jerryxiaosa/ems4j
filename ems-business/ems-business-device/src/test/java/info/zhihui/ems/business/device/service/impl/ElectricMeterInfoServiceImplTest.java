@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.device.service.impl;
 
 import com.github.pagehelper.PageInfo;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
@@ -230,7 +231,7 @@ class ElectricMeterInfoServiceImplTest {
         when(repository.findList(queryQo)).thenReturn(multipleEntityList);
 
         // 执行测试并验证异常
-        NotFoundException exception = assertThrows(NotFoundException.class,
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> electricMeterInfoService.getByIotId(iotId));
 
         assertEquals("能耗系统查询到iotId=12345的电表数量=2无法匹配电表", exception.getMessage());
