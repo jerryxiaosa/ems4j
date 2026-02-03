@@ -75,12 +75,26 @@ public class ElectricPlanValidationUtil {
             throw new BusinessRuntimeException("电价方案不能为空");
         }
 
+        validateTimeStartNotNull(dtoList);
+
         if (dtoList.stream().anyMatch(b -> ElectricPricePeriodEnum.TOTAL.equals(b.getType()))) {
             throw new BusinessRuntimeException("电价方案不能配置总电价");
         }
 
         if (dtoList.stream().allMatch(b -> b.getType() == null)) {
             throw new BusinessRuntimeException("至少配置一个时间点");
+        }
+    }
+
+    /**
+     * 校验时间点不能为空
+     */
+    private static void validateTimeStartNotNull(List<ElectricPriceTimeDto> dtoList) {
+        for (int i = 0; i < dtoList.size(); i++) {
+            ElectricPriceTimeDto dto = dtoList.get(i);
+            if (dto == null || dto.getStart() == null) {
+                throw new BusinessRuntimeException("第" + (i + 1) + "个时间点不能为空");
+            }
         }
     }
 
@@ -178,7 +192,12 @@ public class ElectricPlanValidationUtil {
      */
     public static void checkPriceType(List<ElectricPriceTypeDto> dtoList) {
         validateElectricTypeCount(dtoList);
-        validateElectricTypeConfiguration(dtoList);
+        List<ElectricPriceTypeDto> sortedList = new ArrayList<>(dtoList);
+        sortedList.sort(Comparator.comparing(
+                type -> type == null || type.getType() == null ? null : type.getType().getCode(),
+                Comparator.nullsFirst(Integer::compareTo)));
+
+        validateElectricTypeConfiguration(sortedList);
     }
 
     /**

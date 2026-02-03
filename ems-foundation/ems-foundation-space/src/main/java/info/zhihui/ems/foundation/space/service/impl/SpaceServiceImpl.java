@@ -12,6 +12,7 @@ import info.zhihui.ems.foundation.space.mapstruct.SpaceMapper;
 import info.zhihui.ems.foundation.space.qo.SpaceQueryQo;
 import info.zhihui.ems.foundation.space.repository.SpaceRepository;
 import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.components.lock.core.LockTemplate;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,10 @@ import org.springframework.validation.annotation.Validated;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.concurrent.locks.Lock;
 
 /**
  * 空间服务实现类
@@ -39,9 +43,11 @@ import java.util.Objects;
 public class SpaceServiceImpl implements SpaceService {
 
     private static final int ROOT_PID = 0;
+    private static final String LOCK_SPACE_NAME = "LOCK:SPACE:PID:%d:NAME:%s";
 
     private final SpaceRepository spaceRepository;
     private final SpaceMapper spaceMapper;
+    private final LockTemplate lockTemplate;
 
     // ==================== 公共接口方法 ====================
 
@@ -79,8 +85,8 @@ public class SpaceServiceImpl implements SpaceService {
 
         List<SpaceBo> result = spaceMapper.toBoList(entities);
 
-        // 批量填充祖先信息
-        result.forEach(this::fillAncestorInfo);
+        // 批量填充祖先信息，避免N+1查询
+        fillAncestorInfoBatch(result);
 
         return result;
     }
@@ -96,17 +102,25 @@ public class SpaceServiceImpl implements SpaceService {
     public Integer addSpace(@Valid @NotNull SpaceCreateDto createDto) {
         log.info("开始创建空间，参数：{}", createDto);
 
-        // 校验和获取父空间
-        SpaceEntity parentSpace = validateAndGetParentSpace(createDto.getPid());
+        Lock lock = getSpaceNameLock(createDto.getPid(), createDto.getName());
+        if (!lock.tryLock()) {
+            throw new BusinessRuntimeException("空间名称正在被占用，请稍后重试");
+        }
+        try {
+            // 校验和获取父空间
+            SpaceEntity parentSpace = validateAndGetParentSpace(createDto.getPid());
 
-        // 校验同级名称唯一性
-        validateSiblingNameUniqueness(createDto.getPid(), createDto.getName(), null);
+            // 校验同级名称唯一性
+            validateSiblingNameUniqueness(createDto.getPid(), createDto.getName(), null);
 
-        // 创建空间实体
-        SpaceEntity entity = createSpaceEntity(createDto, parentSpace);
+            // 创建空间实体
+            SpaceEntity entity = createSpaceEntity(createDto, parentSpace);
 
-        log.info("空间创建成功，ID：{}", entity.getId());
-        return entity.getId();
+            log.info("空间创建成功，ID：{}", entity.getId());
+            return entity.getId();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -119,19 +133,27 @@ public class SpaceServiceImpl implements SpaceService {
     public void updateSpace(@Valid @NotNull SpaceUpdateDto updateDto) {
         log.info("开始更新空间，参数：{}", updateDto);
 
-        // 获取现有空间实体
-        SpaceEntity existingEntity = getSpaceEntityById(updateDto.getId());
+        Lock lock = getSpaceNameLock(updateDto.getPid(), updateDto.getName());
+        if (!lock.tryLock()) {
+            throw new BusinessRuntimeException("空间名称正在被占用，请稍后重试");
+        }
+        try {
+            // 获取现有空间实体
+            SpaceEntity existingEntity = getSpaceEntityById(updateDto.getId());
 
-        // 校验父空间变更
-        SpaceEntity newParentSpace = validateParentSpaceChange(existingEntity, updateDto.getPid());
+            // 校验父空间变更
+            SpaceEntity newParentSpace = validateParentSpaceChange(existingEntity, updateDto.getPid());
 
-        // 校验同级名称唯一性
-        validateSiblingNameUniqueness(updateDto.getPid(), updateDto.getName(), existingEntity);
+            // 校验同级名称唯一性
+            validateSiblingNameUniqueness(updateDto.getPid(), updateDto.getName(), existingEntity);
 
-        // 执行更新操作
-        performSpaceUpdate(existingEntity, updateDto, newParentSpace, updateDto.getPid());
+            // 执行更新操作
+            performSpaceUpdate(existingEntity, updateDto, newParentSpace, updateDto.getPid());
 
-        log.info("空间更新成功，ID：{}", updateDto.getId());
+            log.info("空间更新成功，ID：{}", updateDto.getId());
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -317,9 +339,9 @@ public class SpaceServiceImpl implements SpaceService {
             throw new BusinessRuntimeException("更新空间失败");
         }
 
-        // 更新子空间的fullPath
+        // 更新子空间的fullPath与ownAreaId
         if (needUpdateFullPath) {
-            updateDescendantFullPath(existingEntity.getFullPath(), newFullPath);
+            updateDescendantFullPath(existingEntity.getFullPath(), newFullPath, ownAreaId);
         }
     }
 
@@ -368,7 +390,7 @@ public class SpaceServiceImpl implements SpaceService {
     /**
      * 更新子空间的fullPath
      */
-    private void updateDescendantFullPath(String oldFullPath, String newFullPath) {
+    private void updateDescendantFullPath(String oldFullPath, String newFullPath, Integer newOwnAreaId) {
         if (!StringUtils.hasText(oldFullPath) || !StringUtils.hasText(newFullPath)) {
             return;
         }
@@ -379,8 +401,8 @@ public class SpaceServiceImpl implements SpaceService {
             return;
         }
 
-        // 批量更新fullPath
-        List<SpaceEntity> updateList = buildDescendantUpdateList(descendants, oldFullPath, newFullPath);
+        // 先重建fullPath并同步ownAreaId
+        List<SpaceEntity> updateList = buildDescendantUpdateList(descendants, oldFullPath, newFullPath, newOwnAreaId);
         if (!updateList.isEmpty()) {
             spaceRepository.updateFullPathBatch(updateList);
         }
@@ -399,7 +421,9 @@ public class SpaceServiceImpl implements SpaceService {
      * 构建子空间更新列表
      */
     private List<SpaceEntity> buildDescendantUpdateList(List<SpaceEntity> descendants,
-                                                        String oldFullPath, String newFullPath) {
+                                                        String oldFullPath,
+                                                        String newFullPath,
+                                                        Integer newOwnAreaId) {
         List<SpaceEntity> updateList = new ArrayList<>(descendants.size());
 
         for (SpaceEntity descendant : descendants) {
@@ -410,6 +434,7 @@ public class SpaceServiceImpl implements SpaceService {
 
             String rebuildFullPath = rebuildDescendantFullPath(originalPath, oldFullPath, newFullPath);
             descendant.setFullPath(rebuildFullPath);
+            descendant.setOwnAreaId(newOwnAreaId);
             updateList.add(descendant);
         }
 
@@ -448,6 +473,67 @@ public class SpaceServiceImpl implements SpaceService {
         fillAncestorDetails(spaceBo, ancestorIds);
     }
 
+    private void fillAncestorInfoBatch(List<SpaceBo> spaceList) {
+        if (CollectionUtils.isEmpty(spaceList)) {
+            return;
+        }
+
+        List<SpaceBo> needFillList = new ArrayList<>();
+        List<List<Integer>> ancestorIdList = new ArrayList<>();
+        for (SpaceBo spaceBo : spaceList) {
+            if (spaceBo == null || !StringUtils.hasText(spaceBo.getFullPath())) {
+                continue;
+            }
+            List<Integer> ancestorIds = parseAncestorIds(spaceBo.getFullPath(), spaceBo.getId());
+            if (CollectionUtils.isEmpty(ancestorIds)) {
+                setEmptyAncestorInfo(spaceBo);
+                continue;
+            }
+            needFillList.add(spaceBo);
+            ancestorIdList.add(ancestorIds);
+        }
+
+        if (needFillList.isEmpty()) {
+            return;
+        }
+
+        List<Integer> allAncestorIds = ancestorIdList.stream()
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
+        if (CollectionUtils.isEmpty(allAncestorIds)) {
+            return;
+        }
+
+        SpaceQueryQo qo = new SpaceQueryQo().setIds(allAncestorIds);
+        List<SpaceEntity> ancestorEntities = spaceRepository.selectByQo(qo);
+        if (CollectionUtils.isEmpty(ancestorEntities)) {
+            needFillList.forEach(this::setEmptyAncestorInfo);
+            return;
+        }
+
+        Map<Integer, SpaceEntity> ancestorMap = ancestorEntities.stream()
+                .collect(Collectors.toMap(SpaceEntity::getId, item -> item, (a, b) -> a));
+
+        for (int i = 0; i < needFillList.size(); i++) {
+            SpaceBo spaceBo = needFillList.get(i);
+            List<Integer> ancestorIds = ancestorIdList.get(i);
+            List<Integer> orderedIds = new ArrayList<>(ancestorIds.size());
+            List<String> orderedNames = new ArrayList<>(ancestorIds.size());
+
+            for (Integer ancestorId : ancestorIds) {
+                SpaceEntity entity = ancestorMap.get(ancestorId);
+                if (entity != null) {
+                    orderedIds.add(entity.getId());
+                    orderedNames.add(entity.getName());
+                }
+            }
+
+            spaceBo.setParentsIds(orderedIds);
+            spaceBo.setParentsNames(orderedNames);
+        }
+    }
+
     /**
      * 计算所属主区域ID
      */
@@ -477,6 +563,7 @@ public class SpaceServiceImpl implements SpaceService {
 
         throw new BusinessRuntimeException("未找到关联的主区域，请检查空间层级配置");
     }
+
 
     /**
      * 解析祖先ID列表
@@ -550,5 +637,9 @@ public class SpaceServiceImpl implements SpaceService {
                 .filter(item -> Objects.equals(item.getId(), id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private Lock getSpaceNameLock(Integer pid, String name) {
+        return lockTemplate.getLock(String.format(LOCK_SPACE_NAME, pid, name));
     }
 }

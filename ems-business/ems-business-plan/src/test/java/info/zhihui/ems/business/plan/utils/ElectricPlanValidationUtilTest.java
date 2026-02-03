@@ -203,6 +203,21 @@ class ElectricPlanValidationUtilTest {
     }
 
     @Test
+    void testGetValidElectricPlanTime_StartNull() {
+        // 准备测试数据 - start为空
+        ElectricPriceTimeDto time1 = new ElectricPriceTimeDto();
+        time1.setStart(null);
+        time1.setType(ElectricPricePeriodEnum.HIGH);
+
+        List<ElectricPriceTimeDto> boList = List.of(time1);
+
+        // 执行测试并验证异常
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> ElectricPlanValidationUtil.getValidElectricPlanTime(boList));
+        assertEquals("第1个时间点不能为空", exception.getMessage());
+    }
+
+    @Test
     void testCheckPriceType_Success() {
         // 准备测试数据 - 正确的5个电价类型
         ElectricPriceTypeDto type1 = new ElectricPriceTypeDto();
@@ -224,6 +239,35 @@ class ElectricPlanValidationUtilTest {
         ElectricPriceTypeDto type5 = new ElectricPriceTypeDto();
         type5.setType(ElectricPricePeriodEnum.DEEP_LOW);
         type5.setPrice(new BigDecimal("0.2"));
+
+        List<ElectricPriceTypeDto> boList = List.of(type1, type2, type3, type4, type5);
+
+        // 执行测试 - 应该不抛出异常
+        assertDoesNotThrow(() -> ElectricPlanValidationUtil.checkPriceType(boList));
+    }
+
+    @Test
+    void testCheckPriceType_UnorderedButValid() {
+        // 准备测试数据 - 顺序打乱但类型完整
+        ElectricPriceTypeDto type1 = new ElectricPriceTypeDto();
+        type1.setType(ElectricPricePeriodEnum.LOW);
+        type1.setPrice(new BigDecimal("0.6"));
+
+        ElectricPriceTypeDto type2 = new ElectricPriceTypeDto();
+        type2.setType(ElectricPricePeriodEnum.DEEP_LOW);
+        type2.setPrice(new BigDecimal("0.2"));
+
+        ElectricPriceTypeDto type3 = new ElectricPriceTypeDto();
+        type3.setType(ElectricPricePeriodEnum.HIGHER);
+        type3.setPrice(new BigDecimal("1.0"));
+
+        ElectricPriceTypeDto type4 = new ElectricPriceTypeDto();
+        type4.setType(ElectricPricePeriodEnum.LOWER);
+        type4.setPrice(new BigDecimal("0.4"));
+
+        ElectricPriceTypeDto type5 = new ElectricPriceTypeDto();
+        type5.setType(ElectricPricePeriodEnum.HIGH);
+        type5.setPrice(new BigDecimal("0.8"));
 
         List<ElectricPriceTypeDto> boList = List.of(type1, type2, type3, type4, type5);
 

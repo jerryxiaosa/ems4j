@@ -13,7 +13,7 @@ public class RequestContextSetter {
 
     public static void doSet(Integer userId) {
         ThreadLocalUtil.put(RequestContextConstant.USER_ID, userId);
-        ThreadLocalUtil.put(RequestContextConstant.USER_REQUEST_DATA, null);
+        ThreadLocalUtil.remove(RequestContextConstant.USER_REQUEST_DATA);
     }
 
     public static void doSet(Integer userId, UserRequestData userRequestData) {

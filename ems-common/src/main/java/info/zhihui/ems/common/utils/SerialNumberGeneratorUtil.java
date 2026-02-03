@@ -18,6 +18,7 @@ public class SerialNumberGeneratorUtil {
     /**
      * 生成电表编号
      * 编号规则：前缀(EM) + 日期(yyyyMMdd) + 序号(4位)
+     * 说明：序号仅保留ID后4位，假设单日生成量不超过9999，超过会产生重复风险。
      *
      * @param meterId 电表ID
      * @return 电表编号
@@ -32,6 +33,7 @@ public class SerialNumberGeneratorUtil {
     /**
      * 生成网关编号
      * 编号规则：前缀(GW) + 日期(yyyyMMdd) + 序号(4位)
+     * 说明：序号仅保留ID后4位，假设单日生成量不超过9999，超过会产生重复风险。
      *
      * @param gatewayId 网关ID
      * @return 网关编号

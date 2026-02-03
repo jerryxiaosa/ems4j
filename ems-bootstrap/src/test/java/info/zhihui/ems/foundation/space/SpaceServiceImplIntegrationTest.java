@@ -10,7 +10,9 @@ import info.zhihui.ems.foundation.space.enums.SpaceTypeEnum;
 import info.zhihui.ems.foundation.space.repository.SpaceRepository;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -31,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("integrationtest")
 @Transactional
 @Rollback
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class SpaceServiceImplIntegrationTest {
 
     @Autowired
@@ -374,6 +377,100 @@ public class SpaceServiceImplIntegrationTest {
         assertThrows(RuntimeException.class, () -> {
             spaceService.updateSpace(updateDto);
         });
+    }
+
+    /**
+     * 测试updateSpace方法 - 移动空间后子孙ownAreaId应同步更新
+     */
+    @Test
+    void testUpdateSpace_OwnAreaId_ShouldUpdateForDescendant() {
+        // 创建新的主空间
+        SpaceEntity newMain = new SpaceEntity();
+        newMain.setId(2000);
+        newMain.setName("新主空间");
+        newMain.setPid(0);
+        newMain.setType(SpaceTypeEnum.MAIN.getCode());
+        newMain.setArea(new BigDecimal("600.00"));
+        newMain.setSortIndex(1);
+        newMain.setCreateTime(LocalDateTime.now());
+        newMain.setUpdateTime(LocalDateTime.now());
+        newMain.setFullPath("2000");
+        spaceRepository.insert(newMain);
+
+        // 创建子孙空间
+        SpaceEntity grandChild = new SpaceEntity();
+        grandChild.setId(1020);
+        grandChild.setName("测试孙空间");
+        grandChild.setPid(childSpace.getId());
+        grandChild.setType(SpaceTypeEnum.ROOM.getCode());
+        grandChild.setArea(new BigDecimal("100.00"));
+        grandChild.setSortIndex(1);
+        grandChild.setCreateTime(LocalDateTime.now());
+        grandChild.setUpdateTime(LocalDateTime.now());
+        grandChild.setFullPath("1000,1010,1020");
+        grandChild.setOwnAreaId(parentSpace.getId());
+        spaceRepository.insert(grandChild);
+
+        // 将子空间移动到新主空间下
+        SpaceUpdateDto updateDto = new SpaceUpdateDto();
+        updateDto.setId(childSpace.getId());
+        updateDto.setName(childSpace.getName());
+        updateDto.setPid(newMain.getId());
+        updateDto.setType(SpaceTypeEnum.INNER_SPACE);
+        updateDto.setArea(childSpace.getArea());
+        updateDto.setSortIndex(childSpace.getSortIndex());
+        spaceService.updateSpace(updateDto);
+
+        SpaceEntity refreshedGrandChild = spaceRepository.selectById(grandChild.getId());
+        assertNotNull(refreshedGrandChild);
+        assertEquals("2000,1010,1020", refreshedGrandChild.getFullPath());
+        assertEquals(newMain.getId(), refreshedGrandChild.getOwnAreaId());
+    }
+
+    /**
+     * 测试updateSpace方法 - fullPath前缀碰撞导致误更新非子孙
+     */
+    @Test
+    void testUpdateSpace_ZzFullPathPrefixCollision_ShouldNotUpdateNonDescendant() {
+        // 创建另一个主空间作为新父节点
+        SpaceEntity newParent = new SpaceEntity();
+        newParent.setId(2000);
+        newParent.setName("新主空间");
+        newParent.setPid(0);
+        newParent.setType(SpaceTypeEnum.MAIN.getCode());
+        newParent.setArea(new BigDecimal("800.00"));
+        newParent.setSortIndex(1);
+        newParent.setCreateTime(LocalDateTime.now());
+        newParent.setUpdateTime(LocalDateTime.now());
+        newParent.setFullPath("2000");
+        spaceRepository.insert(newParent);
+
+        // 创建前缀碰撞的同级空间：fullPath 以 1000,1010 开头但不是子孙
+        SpaceEntity collisionSpace = new SpaceEntity();
+        collisionSpace.setId(10101);
+        collisionSpace.setName("前缀碰撞空间");
+        collisionSpace.setPid(parentSpace.getId());
+        collisionSpace.setType(SpaceTypeEnum.INNER_SPACE.getCode());
+        collisionSpace.setArea(new BigDecimal("200.00"));
+        collisionSpace.setSortIndex(2);
+        collisionSpace.setCreateTime(LocalDateTime.now());
+        collisionSpace.setUpdateTime(LocalDateTime.now());
+        collisionSpace.setFullPath("1000,10101");
+        spaceRepository.insert(collisionSpace);
+
+        // 将子空间移动到新主空间下
+        SpaceUpdateDto updateDto = new SpaceUpdateDto();
+        updateDto.setId(childSpace.getId());
+        updateDto.setName(childSpace.getName());
+        updateDto.setPid(newParent.getId());
+        updateDto.setType(SpaceTypeEnum.INNER_SPACE);
+        updateDto.setArea(childSpace.getArea());
+        updateDto.setSortIndex(childSpace.getSortIndex());
+        spaceService.updateSpace(updateDto);
+
+        SpaceEntity refreshedCollision = spaceRepository.selectById(collisionSpace.getId());
+        assertNotNull(refreshedCollision);
+        assertEquals("1000,10101", refreshedCollision.getFullPath());
     }
 
     /**

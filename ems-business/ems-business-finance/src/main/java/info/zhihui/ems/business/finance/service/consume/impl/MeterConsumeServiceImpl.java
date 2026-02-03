@@ -168,8 +168,21 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
             return;
         }
 
+        // 构建消费记录
+        ElectricMeterPowerConsumeRecordEntity consumeRecord = buildConsumeRecordEntity(
+                meterPowerRecordDto, meterPowerRecordEntity, consumeBeginRecord);
+
+        // 负差异常：标记为不参与计算，保存记录并跳过扣费
+        if (hasNegativeConsume(consumeRecord)) {
+            consumeRecord.setIsCalculate(false);
+            saveConsumeRecord(consumeRecord);
+            log.warn("能耗用电：电量回退或乱序，跳过扣费，meterId: {}, beginRecordId: {}, endRecordId: {}",
+                    meterPowerRecordEntity.getMeterId(), consumeBeginRecord.getId(), meterPowerRecordEntity.getId());
+            return;
+        }
+
         // 保存消费记录
-        ElectricMeterPowerConsumeRecordEntity consumeRecord = saveConsumeRecord(meterPowerRecordDto, meterPowerRecordEntity, consumeBeginRecord);
+        saveConsumeRecord(consumeRecord);
 
         // 处理余额扣费
         if (shouldSkipBalanceDeduction(meterPowerRecordDto)) {
@@ -204,7 +217,13 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                     lastConsumeRecord.getId(), meterPowerRecordEntity.getId());
             return null;
         }
-        return electricMeterPowerRecordRepository.selectById(lastConsumeRecord.getEndRecordId());
+        ElectricMeterPowerRecordEntity recordEntity = electricMeterPowerRecordRepository.selectById(lastConsumeRecord.getEndRecordId());
+        if (recordEntity == null) {
+            log.warn("能耗用电：消费起始记录缺失，meterId: {}, consumeRecordId: {}, recordId: {}",
+                    meterPowerRecordEntity.getMeterId(), lastConsumeRecord.getId(), lastConsumeRecord.getEndRecordId());
+            return null;
+        }
+        return recordEntity;
     }
 
     /**
@@ -236,21 +255,29 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     /**
      * 保存消费记录
      */
-    private ElectricMeterPowerConsumeRecordEntity saveConsumeRecord(ElectricMeterPowerRecordDto meterPowerRecordDto,
-                                                                    ElectricMeterPowerRecordEntity meterPowerRecordEntity,
-                                                                    ElectricMeterPowerRecordEntity consumeBeginRecord) {
+    private void saveConsumeRecord(ElectricMeterPowerConsumeRecordEntity consumeRecord) {
         try {
-            ElectricMeterPowerConsumeRecordEntity consumeRecord = buildConsumeRecordEntity(
-                    meterPowerRecordDto, meterPowerRecordEntity, consumeBeginRecord);
             electricMeterPowerConsumeRecordRepository.insert(consumeRecord);
             log.debug("成功保存消费记录，电表ID: {}, 消费记录ID: {}, 消费电量: {}",
-                    meterPowerRecordEntity.getMeterId(), consumeRecord.getId(), consumeRecord.getConsumePower());
-            return consumeRecord;
+                    consumeRecord.getMeterId(), consumeRecord.getId(), consumeRecord.getConsumePower());
         } catch (Exception e) {
             log.error("保存消费记录失败，电表ID: {}, 错误信息: {}",
-                    meterPowerRecordEntity.getMeterId(), e.getMessage(), e);
+                    consumeRecord.getMeterId(), e.getMessage(), e);
             throw new BusinessRuntimeException("保存消费记录失败: " + e.getMessage());
         }
+    }
+
+    private boolean hasNegativeConsume(ElectricMeterPowerConsumeRecordEntity consumeRecord) {
+        return isNegative(consumeRecord.getConsumePower())
+                || isNegative(consumeRecord.getConsumePowerHigher())
+                || isNegative(consumeRecord.getConsumePowerHigh())
+                || isNegative(consumeRecord.getConsumePowerLow())
+                || isNegative(consumeRecord.getConsumePowerLower())
+                || isNegative(consumeRecord.getConsumePowerDeepLow());
+    }
+
+    private boolean isNegative(BigDecimal value) {
+        return value != null && value.compareTo(BigDecimal.ZERO) < 0;
     }
 
     /**

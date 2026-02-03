@@ -1,27 +1,31 @@
 package info.zhihui.ems.business.finance.service.consume;
 
 import info.zhihui.ems.business.finance.bo.BalanceBo;
-import info.zhihui.ems.business.finance.dto.*;
-import info.zhihui.ems.business.finance.entity.*;
-import info.zhihui.ems.business.finance.enums.CorrectionTypeEnum;
-import info.zhihui.ems.business.finance.service.consume.impl.MeterConsumeServiceImpl;
-import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.business.finance.dto.BalanceDto;
+import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
+import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
+import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
+import info.zhihui.ems.business.finance.entity.ElectricMeterBalanceConsumeRecordEntity;
+import info.zhihui.ems.business.finance.entity.ElectricMeterPowerConsumeRecordEntity;
+import info.zhihui.ems.business.finance.entity.ElectricMeterPowerRecordEntity;
+import info.zhihui.ems.business.finance.entity.ElectricMeterPowerRelationEntity;
 import info.zhihui.ems.business.finance.qo.ElectricMeterPowerRecordQo;
 import info.zhihui.ems.business.finance.repository.ElectricMeterBalanceConsumeRecordRepository;
 import info.zhihui.ems.business.finance.repository.ElectricMeterPowerConsumeRecordRepository;
 import info.zhihui.ems.business.finance.repository.ElectricMeterPowerRecordRepository;
 import info.zhihui.ems.business.finance.repository.ElectricMeterPowerRelationRepository;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.finance.service.consume.impl.MeterConsumeServiceImpl;
+import info.zhihui.ems.business.plan.bo.ElectricPricePlanDetailBo;
+import info.zhihui.ems.business.plan.bo.StepPriceBo;
+import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CalculateTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.ParamException;
 import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.components.lock.core.LockTemplate;
-import info.zhihui.ems.business.plan.bo.ElectricPricePlanDetailBo;
-import info.zhihui.ems.business.plan.bo.StepPriceBo;
-import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
 import info.zhihui.ems.foundation.organization.bo.OrganizationBo;
 import info.zhihui.ems.foundation.organization.service.OrganizationService;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
@@ -308,9 +312,8 @@ class MeterConsumeServiceImplTest {
     }
 
     @Test
-    @DisplayName("保存电表记录-读数回退导致负用电量应记录负值")
-    void testSavePowerRecord_NegativeConsumePower_ShouldRecordNegative() {
-        meterDetailDto.setIsPrepay(false);
+    @DisplayName("保存电表记录-读数回退导致负用电量应标记异常并跳过扣费")
+    void testSavePowerRecord_NegativeConsumePower_ShouldSkipBalanceDeduction() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class))).thenReturn(1);
@@ -335,11 +338,14 @@ class MeterConsumeServiceImplTest {
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);
 
-        electricMeterConsumeService.savePowerRecord(testDto);
+        assertDoesNotThrow(() -> electricMeterConsumeService.savePowerRecord(testDto));
 
         ArgumentCaptor<ElectricMeterPowerConsumeRecordEntity> captor = ArgumentCaptor.forClass(ElectricMeterPowerConsumeRecordEntity.class);
         verify(electricMeterPowerConsumeRecordRepository).insert(captor.capture());
         assertTrue(captor.getValue().getConsumePower().compareTo(BigDecimal.ZERO) < 0);
+        assertEquals(Boolean.FALSE, captor.getValue().getIsCalculate());
+        verify(balanceService, never()).deduct(any(BalanceDto.class));
+        verify(electricMeterBalanceConsumeRecordRepository, never()).insert(any(ElectricMeterBalanceConsumeRecordEntity.class));
         verify(lock).unlock();
     }
 

@@ -1,6 +1,6 @@
 package info.zhihui.ems.common.utils;
 
-import cn.hutool.core.util.StrUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -40,15 +40,15 @@ public class SysDateUtil {
     }
 
     public static LocalDateTime toDateTime(String dateTimeString) {
-        return StrUtil.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER);
+        return StringUtils.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER);
     }
 
     public static LocalDateTime toDateTimeWithT(String dateTimeString) {
-        return StrUtil.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER_T);
+        return StringUtils.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER_T);
     }
 
     public static LocalDateTime toDateTimeWithMillis(String dateTimeString) {
-        return StrUtil.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER_SSS);
+        return StringUtils.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER_SSS);
     }
 
     public static String toDateString(LocalDate date) {
@@ -76,11 +76,11 @@ public class SysDateUtil {
     }
 
     public static LocalDateTime toDateTimeMinute(String dateTimeString) {
-        return StrUtil.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_MINUTE_FORMATTER);
+        return StringUtils.isBlank(dateTimeString) ? null : LocalDateTime.parse(dateTimeString, DATETIME_MINUTE_FORMATTER);
     }
 
     public static LocalDate toDate(String dateString) {
-        return StrUtil.isBlank(dateString) ? null : LocalDate.parse(dateString, DATE_FORMATTER);
+        return StringUtils.isBlank(dateString) ? null : LocalDate.parse(dateString, DATE_FORMATTER);
     }
 
     public static LocalDate toDate(Integer dateInt) {
@@ -97,7 +97,7 @@ public class SysDateUtil {
 
     // 形如：2024-08
     public static LocalDate toYearMonth(String dateString) {
-        if (dateString.length() != 7) {
+        if (StringUtils.isBlank(dateString) || dateString.length() != 7) {
             throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM");
         }
         return LocalDate.of(Integer.parseInt(dateString.substring(0, 4)), Integer.parseInt(dateString.substring(5)), 1);
@@ -112,6 +112,9 @@ public class SysDateUtil {
     }
 
     public static String toOffsetDateTime(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            throw new IllegalArgumentException("localDateTime must not be null");
+        }
         // 将LocalDateTime转换为带时区的ZonedDateTime（假设需要东八区时间）
         ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(ZONE_SHANGHAI));
 
@@ -119,6 +122,10 @@ public class SysDateUtil {
     }
 
     public static String toDateString(String dateTimeString) {
+        if (StringUtils.isBlank(dateTimeString)) {
+            throw new IllegalArgumentException("dateTimeString must not be blank");
+        }
+
         LocalDateTime dateTime = LocalDateTime.parse(dateTimeString, DATETIME_FORMATTER);
         return dateTime.format(DATE_FORMATTER);
     }

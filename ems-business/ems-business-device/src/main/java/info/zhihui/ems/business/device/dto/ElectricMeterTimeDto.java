@@ -2,6 +2,8 @@ package info.zhihui.ems.business.device.dto;
 
 import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -20,6 +22,7 @@ public class ElectricMeterTimeDto {
     @NotNull(message = "命令来源不能为空")
     private CommandSourceEnum commandSource;
 
-    @NotNull(message = "电表时间段不能为空")
+    @Valid
+    @NotEmpty(message = "电表时间段不能为空")
     private List<ElectricPriceTimeDto> timeList;
 }

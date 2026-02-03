@@ -33,6 +33,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -187,7 +188,7 @@ class ElectricPlanServiceImplTest {
         when(repository.selectById(id)).thenReturn(null);
 
         // 执行测试并验证异常
-        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+        NotFoundException exception = assertThrows(NotFoundException.class,
                 () -> service.getDetail(id));
         assertEquals("电价方案数据不存在", exception.getMessage());
     }
@@ -395,19 +396,55 @@ class ElectricPlanServiceImplTest {
         try (MockedStatic<JacksonUtil> jacksonUtilMock = mockStatic(JacksonUtil.class)) {
             // 准备测试数据
             List<ElectricPriceTimeDto> boList = createValidElectricTimes();
-            List<ElectricPriceTimeDto> boListCopy = createValidElectricTimes();
             ConfigBo existingConfig = new ConfigBo();
 
             // Mock行为
-            when(mapper.listTimeBoCopy(boList)).thenReturn(boListCopy);
             when(configService.getByKey(SystemConfigConstant.ELECTRIC_PRICE_TIME_KEY)).thenReturn(existingConfig);
-            jacksonUtilMock.when(() -> JacksonUtil.toJson(boListCopy)).thenReturn("{}");
+            jacksonUtilMock.when(() -> JacksonUtil.toJson(any())).thenReturn("{}");
 
             // 执行测试
             assertDoesNotThrow(() -> service.editElectricTime(boList));
 
             // 验证
             verify(configService).update(any(ConfigUpdateDto.class));
+        }
+    }
+
+    @Test
+    void testEditDefaultElectricTime_NormalizesTimeList() {
+        try (MockedStatic<JacksonUtil> jacksonUtilMock = mockStatic(JacksonUtil.class)) {
+            // 准备测试数据：乱序且缺少00:00
+            List<ElectricPriceTimeDto> boList = new ArrayList<>();
+            boList.add(new ElectricPriceTimeDto()
+                    .setStart(LocalTime.of(18, 0))
+                    .setType(ElectricPricePeriodEnum.LOW));
+            boList.add(new ElectricPriceTimeDto()
+                    .setStart(LocalTime.of(8, 0))
+                    .setType(ElectricPricePeriodEnum.HIGH));
+            ConfigBo existingConfig = new ConfigBo();
+
+            // Mock行为
+            AtomicReference<List<ElectricPriceTimeDto>> captured = new AtomicReference<>();
+            when(configService.getByKey(SystemConfigConstant.ELECTRIC_PRICE_TIME_KEY)).thenReturn(existingConfig);
+            jacksonUtilMock.when(() -> JacksonUtil.toJson(any())).thenAnswer(invocation -> {
+                captured.set((List<ElectricPriceTimeDto>) invocation.getArgument(0));
+                return "{}";
+            });
+
+            // 执行测试
+            service.editElectricTime(boList);
+
+            // 验证保存时使用的是规范化后的列表
+            List<ElectricPriceTimeDto> normalizedList = captured.get();
+
+            assertNotNull(normalizedList);
+            assertEquals(3, normalizedList.size());
+            assertEquals(LocalTime.of(0, 0), normalizedList.get(0).getStart());
+            assertEquals(ElectricPricePeriodEnum.LOW, normalizedList.get(0).getType());
+            assertEquals(LocalTime.of(8, 0), normalizedList.get(1).getStart());
+            assertEquals(ElectricPricePeriodEnum.HIGH, normalizedList.get(1).getType());
+            assertEquals(LocalTime.of(18, 0), normalizedList.get(2).getStart());
+            assertEquals(ElectricPricePeriodEnum.LOW, normalizedList.get(2).getType());
         }
     }
 
@@ -442,6 +479,30 @@ class ElectricPlanServiceImplTest {
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> service.getElectricPrice());
         assertEquals("请先配置默认尖峰平谷电价", exception.getMessage());
+    }
+
+    @Test
+    void testGetDefaultElectricPrice_TypeOrPriceNull() {
+        try (MockedStatic<JacksonUtil> jacksonUtilMock = mockStatic(JacksonUtil.class)) {
+            // 准备测试数据
+            ConfigBo config = new ConfigBo();
+            config.setConfigValue("{\"prices\":[{\"type\":1,\"price\":1.0}]}");
+
+            ElectricPriceTypeDto typeDto = new ElectricPriceTypeDto();
+            typeDto.setType(ElectricPricePeriodEnum.HIGHER);
+            typeDto.setPrice(null);
+            List<ElectricPriceTypeDto> typeBos = List.of(typeDto);
+
+            // Mock行为
+            when(configService.getByKey(SystemConfigConstant.ELECTRIC_PRICE_TYPE_KEY)).thenReturn(config);
+            jacksonUtilMock.when(() -> JacksonUtil.fromJson(anyString(), any(TypeReference.class)))
+                    .thenReturn(typeBos);
+
+            // 执行测试并验证异常
+            BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                    () -> service.getElectricPrice());
+            assertEquals("默认尖峰平谷电价配置不完整，类型或价格不能为空", exception.getMessage());
+        }
     }
 
     @Test
@@ -586,9 +647,6 @@ class ElectricPlanServiceImplTest {
         // 准备测试数据 - 空列表
         List<ElectricPriceTimeDto> boList = new ArrayList<>();
 
-        // 可选：为空列表的拷贝提供返回，避免不必要的空指针风险
-        when(mapper.listTimeBoCopy(boList)).thenReturn(boList);
-
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> service.editElectricTime(boList));
@@ -612,8 +670,6 @@ class ElectricPlanServiceImplTest {
         time3.setType(ElectricPricePeriodEnum.LOW);
         boList.add(time3);
 
-        when(mapper.listTimeBoCopy(boList)).thenReturn(boList);
-
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> service.editElectricTime(boList));
@@ -632,8 +688,6 @@ class ElectricPlanServiceImplTest {
         time2.setStart(LocalTime.of(12, 0));
         time2.setType(ElectricPricePeriodEnum.HIGH);
         boList.add(time2);
-
-        when(mapper.listTimeBoCopy(boList)).thenReturn(boList);
 
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
@@ -654,8 +708,6 @@ class ElectricPlanServiceImplTest {
         time2.setType(ElectricPricePeriodEnum.LOW);
         boList.add(time2);
 
-        when(mapper.listTimeBoCopy(boList)).thenReturn(boList);
-
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> service.editElectricTime(boList));
@@ -672,8 +724,6 @@ class ElectricPlanServiceImplTest {
             time.setType(i % 2 == 0 ? ElectricPricePeriodEnum.HIGH : ElectricPricePeriodEnum.LOW);
             boList.add(time);
         }
-
-        when(mapper.listTimeBoCopy(boList)).thenReturn(boList);
 
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
@@ -821,6 +871,32 @@ class ElectricPlanServiceImplTest {
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
                 () -> service.add(dto));
         assertEquals("倍率不能为空", exception.getMessage());
+    }
+
+    @Test
+    void testCheckEntity_BasePriceNull() {
+        ElectricPricePlanEntity entity = new ElectricPricePlanEntity();
+        entity.setName("测试方案");
+        entity.setIsCustomPrice(false);
+        entity.setPriceHigher(new BigDecimal("1.20"));
+        entity.setPriceHigherBase(null);
+        entity.setPriceHigherMultiply(BigDecimal.ONE);
+        entity.setPriceHigh(new BigDecimal("1.10"));
+        entity.setPriceHighBase(new BigDecimal("1.00"));
+        entity.setPriceHighMultiply(BigDecimal.ONE);
+        entity.setPriceLow(new BigDecimal("1.00"));
+        entity.setPriceLowBase(new BigDecimal("1.00"));
+        entity.setPriceLowMultiply(BigDecimal.ONE);
+        entity.setPriceLower(new BigDecimal("0.90"));
+        entity.setPriceLowerBase(new BigDecimal("1.00"));
+        entity.setPriceLowerMultiply(BigDecimal.ONE);
+        entity.setPriceDeepLow(new BigDecimal("0.80"));
+        entity.setPriceDeepLowBase(new BigDecimal("1.00"));
+        entity.setPriceDeepLowMultiply(BigDecimal.ONE);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> service.checkEntity(entity));
+        assertEquals("尖电价配置不完整", exception.getMessage());
     }
 
     @Test
@@ -1225,6 +1301,94 @@ class ElectricPlanServiceImplTest {
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> service.edit(dto));
         assertTrue(exception.getMessage().contains("默认尖峰平谷电价配置不完整"));
+        verify(repository, never()).updateById(any(ElectricPricePlanEntity.class));
+    }
+
+    @Test
+    void testEdit_BaseConfigPriceNullThrowsException() {
+        ElectricPricePlanSaveDto dto = new ElectricPricePlanSaveDto();
+        dto.setId(10);
+        dto.setIsCustomPrice(false);
+        dto.setIsStep(false);
+        dto.setName("invalid-price-plan");
+        dto.setPriceHigherMultiply(new BigDecimal("1.20"));
+        dto.setPriceHighMultiply(new BigDecimal("1.10"));
+        dto.setPriceLowMultiply(new BigDecimal("1.00"));
+        dto.setPriceLowerMultiply(new BigDecimal("0.90"));
+        dto.setPriceDeepLowMultiply(new BigDecimal("0.80"));
+
+        ElectricPricePlanEntity oldEntity = new ElectricPricePlanEntity();
+        oldEntity.setId(10);
+
+        ElectricPricePlanEntity entity = new ElectricPricePlanEntity();
+        entity.setId(10);
+        entity.setName("invalid-price-plan");
+        entity.setIsCustomPrice(false);
+        entity.setPriceHigherMultiply(new BigDecimal("1.20"));
+        entity.setPriceHighMultiply(new BigDecimal("1.10"));
+        entity.setPriceLowMultiply(new BigDecimal("1.00"));
+        entity.setPriceLowerMultiply(new BigDecimal("0.90"));
+        entity.setPriceDeepLowMultiply(new BigDecimal("0.80"));
+
+        when(repository.selectById(anyInt())).thenReturn(oldEntity);
+        when(mapper.saveDtoToEntity(dto)).thenReturn(entity);
+
+        ConfigBo invalidConfig = new ConfigBo();
+        invalidConfig.setConfigValue(JacksonUtil.toJson(List.of(
+                buildBaseType(ElectricPricePeriodEnum.HIGHER, null),
+                buildBaseType(ElectricPricePeriodEnum.HIGH, new BigDecimal("0.80")),
+                buildBaseType(ElectricPricePeriodEnum.LOW, new BigDecimal("0.60")),
+                buildBaseType(ElectricPricePeriodEnum.LOWER, new BigDecimal("0.40")),
+                buildBaseType(ElectricPricePeriodEnum.DEEP_LOW, new BigDecimal("0.20"))
+        )));
+        when(configService.getByKey(SystemConfigConstant.ELECTRIC_PRICE_TYPE_KEY)).thenReturn(invalidConfig);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> service.edit(dto));
+        assertEquals("默认尖峰平谷电价配置不完整，类型或价格不能为空", exception.getMessage());
+        verify(repository, never()).updateById(any(ElectricPricePlanEntity.class));
+    }
+
+    @Test
+    void testEdit_BaseConfigPriceNegativeThrowsException() {
+        ElectricPricePlanSaveDto dto = new ElectricPricePlanSaveDto();
+        dto.setId(10);
+        dto.setIsCustomPrice(false);
+        dto.setIsStep(false);
+        dto.setName("invalid-price-plan");
+        dto.setPriceHigherMultiply(new BigDecimal("1.20"));
+        dto.setPriceHighMultiply(new BigDecimal("1.10"));
+        dto.setPriceLowMultiply(new BigDecimal("1.00"));
+        dto.setPriceLowerMultiply(new BigDecimal("0.90"));
+        dto.setPriceDeepLowMultiply(new BigDecimal("0.80"));
+
+        ElectricPricePlanEntity oldEntity = new ElectricPricePlanEntity();
+        oldEntity.setId(10);
+
+        ElectricPricePlanEntity entity = new ElectricPricePlanEntity();
+        entity.setId(10);
+        entity.setName("invalid-price-plan");
+        entity.setIsCustomPrice(false);
+        entity.setPriceHigherMultiply(new BigDecimal("1.20"));
+        entity.setPriceHighMultiply(new BigDecimal("1.10"));
+        entity.setPriceLowMultiply(new BigDecimal("1.00"));
+        entity.setPriceLowerMultiply(new BigDecimal("0.90"));
+        entity.setPriceDeepLowMultiply(new BigDecimal("0.80"));
+
+        when(repository.selectById(anyInt())).thenReturn(oldEntity);
+        when(mapper.saveDtoToEntity(dto)).thenReturn(entity);
+
+        ConfigBo invalidConfig = new ConfigBo();
+        invalidConfig.setConfigValue(JacksonUtil.toJson(List.of(
+                buildBaseType(ElectricPricePeriodEnum.HIGHER, new BigDecimal("-1.00")),
+                buildBaseType(ElectricPricePeriodEnum.HIGH, new BigDecimal("0.80")),
+                buildBaseType(ElectricPricePeriodEnum.LOW, new BigDecimal("0.60")),
+                buildBaseType(ElectricPricePeriodEnum.LOWER, new BigDecimal("0.40")),
+                buildBaseType(ElectricPricePeriodEnum.DEEP_LOW, new BigDecimal("0.20"))
+        )));
+        when(configService.getByKey(SystemConfigConstant.ELECTRIC_PRICE_TYPE_KEY)).thenReturn(invalidConfig);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> service.edit(dto));
+        assertEquals("默认尖峰平谷电价配置不正确，HIGHER价格不能为负数", exception.getMessage());
         verify(repository, never()).updateById(any(ElectricPricePlanEntity.class));
     }
 

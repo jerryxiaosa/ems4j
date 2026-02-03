@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SysDateUtilTest {
 
@@ -49,6 +50,11 @@ public class SysDateUtilTest {
         LocalDateTime endOfYearDateTime = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
         result = SysDateUtil.toOffsetDateTime(endOfYearDateTime);
         assertEquals("2024-12-31T23:59:59.000+08:00", result);
+
+        // 测试空值处理
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SysDateUtil.toOffsetDateTime(null));
+        assertEquals("localDateTime must not be null", exception.getMessage());
     }
 
     @Test
@@ -91,5 +97,29 @@ public class SysDateUtilTest {
         // 测试空值处理
         result = SysDateUtil.toDateTimeZoneString(null);
         assertEquals("", result);
+    }
+
+    @Test
+    public void testToYearMonth_NullOrBlank() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SysDateUtil.toYearMonth(null));
+        assertEquals("Invalid date format. Expected format: yyyy-MM", exception.getMessage());
+        exception = assertThrows(IllegalArgumentException.class,
+                () -> SysDateUtil.toYearMonth(" "));
+        assertEquals("Invalid date format. Expected format: yyyy-MM", exception.getMessage());
+    }
+
+    @Test
+    public void testToYearMonth_InvalidLength() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SysDateUtil.toYearMonth("2024-8"));
+        assertEquals("Invalid date format. Expected format: yyyy-MM", exception.getMessage());
+    }
+
+    @Test
+    public void testToDateString_Blank() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SysDateUtil.toDateString((String) null));
+        assertEquals("dateTimeString must not be blank", exception.getMessage());
     }
 }

@@ -77,7 +77,7 @@ public class ElectricPricePlanServiceImpl implements ElectricPricePlanService {
     public ElectricPricePlanDetailBo getDetail(@NotNull Integer id) {
         ElectricPricePlanEntity entity = repository.selectById(id);
         if (entity == null) {
-            throw new BusinessRuntimeException("电价方案数据不存在");
+            throw new NotFoundException("电价方案数据不存在");
         }
         ElectricPricePlanDetailBo detailBo = mapper.detailEntityToBo(entity);
         if (BooleanUtil.isTrue(detailBo.getIsCustomPrice())) {
@@ -197,11 +197,10 @@ public class ElectricPricePlanServiceImpl implements ElectricPricePlanService {
      * @param dtoList 时间段列表
      */
     @Override
-    public void editElectricTime(@NotEmpty List<ElectricPriceTimeDto> dtoList) {
-        List<ElectricPriceTimeDto> dtoListCopy = mapper.listTimeBoCopy(dtoList);
-        // 校验时间段配置
-        ElectricPlanValidationUtil.getValidElectricPlanTime(dtoList);
-        updateSystemConfig(SystemConfigConstant.ELECTRIC_PRICE_TIME_KEY, JacksonUtil.toJson(dtoListCopy));
+    public void editElectricTime(@Valid @NotEmpty List<ElectricPriceTimeDto> dtoList) {
+        // 校验时间段配置并返回规范化结果
+        List<ElectricPriceTimeDto> normalizedList = ElectricPlanValidationUtil.getValidElectricPlanTime(dtoList);
+        updateSystemConfig(SystemConfigConstant.ELECTRIC_PRICE_TIME_KEY, JacksonUtil.toJson(normalizedList));
     }
 
 
@@ -216,8 +215,17 @@ public class ElectricPricePlanServiceImpl implements ElectricPricePlanService {
             throw new BusinessRuntimeException("请先配置默认尖峰平谷电价");
         }
 
-        return JacksonUtil.fromJson(config.getConfigValue(), new TypeReference<>() {
+        List<ElectricPriceTypeDto> priceList = JacksonUtil.fromJson(config.getConfigValue(), new TypeReference<>() {
         });
+        if (CollectionUtils.isEmpty(priceList)) {
+            throw new BusinessRuntimeException("请先配置默认尖峰平谷电价");
+        }
+        for (ElectricPriceTypeDto priceType : priceList) {
+            if (priceType == null || priceType.getType() == null || priceType.getPrice() == null) {
+                throw new BusinessRuntimeException("默认尖峰平谷电价配置不完整，类型或价格不能为空");
+            }
+        }
+        return priceList;
     }
 
     /**
@@ -295,24 +303,27 @@ public class ElectricPricePlanServiceImpl implements ElectricPricePlanService {
      */
     private void validatePriceCalculations(ElectricPricePlanEntity entity) {
         validatePriceCalculation(entity.getPriceHigher(), entity.getPriceHigherBase(),
-                entity.getPriceHigherMultiply(), "尖电价计算错误");
+                entity.getPriceHigherMultiply(), "尖电价");
         validatePriceCalculation(entity.getPriceHigh(), entity.getPriceHighBase(),
-                entity.getPriceHighMultiply(), "峰电价计算错误");
+                entity.getPriceHighMultiply(), "峰电价");
         validatePriceCalculation(entity.getPriceLow(), entity.getPriceLowBase(),
-                entity.getPriceLowMultiply(), "平电价计算错误");
+                entity.getPriceLowMultiply(), "平电价");
         validatePriceCalculation(entity.getPriceLower(), entity.getPriceLowerBase(),
-                entity.getPriceLowerMultiply(), "谷电价计算错误");
+                entity.getPriceLowerMultiply(), "谷电价");
         validatePriceCalculation(entity.getPriceDeepLow(), entity.getPriceDeepLowBase(),
-                entity.getPriceDeepLowMultiply(), "深谷电价计算错误");
+                entity.getPriceDeepLowMultiply(), "深谷电价");
     }
 
     /**
      * 校验单个价格计算
      */
     private void validatePriceCalculation(BigDecimal actualPrice, BigDecimal basePrice,
-                                                 BigDecimal multiply, String errorMessage) {
+                                                 BigDecimal multiply, String typeName) {
+        if (actualPrice == null || basePrice == null || multiply == null) {
+            throw new BusinessRuntimeException(typeName + "配置不完整");
+        }
         if (actualPrice.compareTo(basePrice.multiply(multiply)) != 0) {
-            throw new BusinessRuntimeException(errorMessage);
+            throw new BusinessRuntimeException(typeName + "计算错误");
         }
     }
 
@@ -342,6 +353,13 @@ public class ElectricPricePlanServiceImpl implements ElectricPricePlanService {
         for (ElectricPricePeriodEnum typeEnum : BASE_PRICE_TYPES) {
             if (!priceTypeMap.containsKey(typeEnum.getCode())) {
                 throw new BusinessRuntimeException("默认尖峰平谷电价配置不完整，缺少:" + typeEnum.name());
+            }
+            BigDecimal price = priceTypeMap.get(typeEnum.getCode());
+            if (price == null) {
+                throw new BusinessRuntimeException("默认尖峰平谷电价配置不完整，" + typeEnum.name() + "价格不能为空");
+            }
+            if (price.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BusinessRuntimeException("默认尖峰平谷电价配置不正确，" + typeEnum.name() + "价格不能为负数");
             }
         }
     }
