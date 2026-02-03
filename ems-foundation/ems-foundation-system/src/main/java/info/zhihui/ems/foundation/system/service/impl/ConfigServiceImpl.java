@@ -42,7 +42,7 @@ public class ConfigServiceImpl implements ConfigService {
      * @throws NotFoundException 当配置不存在时抛出
      */
     @Override
-    public ConfigBo getByKey(String key) {
+    public ConfigBo getByKey(String key) throws NotFoundException {
         ConfigEntity entity = repository.getByKey(key);
         if (entity == null) {
             throw new NotFoundException("系统配置不存在");
@@ -53,14 +53,14 @@ public class ConfigServiceImpl implements ConfigService {
     /**
      * 根据配置键获取配置值并反序列化为指定类型
      *
-     * @param key 配置键
+     * @param key           配置键
      * @param typeReference 目标类型引用
-     * @param <T> 目标类型
+     * @param <T>           目标类型
      * @return 反序列化后的配置值
-     * @throws BusinessRuntimeException 当配置不存在或序列化异常时抛出
+     * @throws BusinessRuntimeException,NotFoundException 当配置不存在或序列化异常时抛出
      */
     @Override
-    public <T> T getValueByKey(String key, TypeReference<T> typeReference) throws BusinessRuntimeException {
+    public <T> T getValueByKey(String key, TypeReference<T> typeReference) throws BusinessRuntimeException, NotFoundException {
         try {
             ConfigEntity entity = repository.getByKey(key);
             if (entity == null) {
@@ -70,8 +70,8 @@ public class ConfigServiceImpl implements ConfigService {
         } catch (NotFoundException e) {
             throw e;
         } catch (Exception e) {
-            log.error("配置序列化异常：", e);
-            throw new BusinessRuntimeException("配置序列化异常：" + e.getMessage());
+            log.error("配置序列化异常，key: {}", key, e);
+            throw new BusinessRuntimeException("配置序列化异常，key=" + key + "，原因：" + e.getMessage());
         }
     }
 
@@ -83,10 +83,13 @@ public class ConfigServiceImpl implements ConfigService {
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void update(ConfigUpdateDto bo) {
+    public void update(ConfigUpdateDto bo) throws NotFoundException {
         ConfigEntity old = repository.getByKey(bo.getConfigKey());
         if (old == null) {
             throw new NotFoundException("系统配置不存在");
+        }
+        if (!Boolean.TRUE.equals(old.getIsSystem())) {
+            throw new BusinessRuntimeException("非内置配置不允许修改");
         }
 
         ConfigEntity entity = mapper.updateBoToEntity(bo);

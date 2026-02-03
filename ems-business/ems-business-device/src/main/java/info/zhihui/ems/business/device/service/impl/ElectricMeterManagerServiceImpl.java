@@ -288,7 +288,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
      * @param electricMeterTimeDto 电表时间数据传输对象
      */
     @Override
-    public void setElectricTime(ElectricMeterTimeDto electricMeterTimeDto) {
+    public void setElectricTime(@Valid @NotNull ElectricMeterTimeDto electricMeterTimeDto) {
         ElectricMeterBo meter = electricMeterInfoService.getDetail(electricMeterTimeDto.getId());
 
         List<ElectricPriceTimeDto> validElectricPlanTime = ElectricPlanValidationUtil.getValidElectricPlanTime(electricMeterTimeDto.getTimeList());

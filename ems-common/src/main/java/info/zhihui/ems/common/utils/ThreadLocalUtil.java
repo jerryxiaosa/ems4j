@@ -3,6 +3,7 @@ package info.zhihui.ems.common.utils;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.ttl.TransmittableThreadLocal;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,9 @@ public class ThreadLocalUtil {
     }
 
     public static void put(String key, Object value) {
+        if (value != null && !(value instanceof Serializable)) {
+            throw new IllegalArgumentException("ThreadLocal value must implement Serializable");
+        }
         getContextMap().put(key, value);
     }
 

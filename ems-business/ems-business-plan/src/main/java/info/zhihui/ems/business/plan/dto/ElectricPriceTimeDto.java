@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.plan.dto;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -20,5 +21,6 @@ public class ElectricPriceTimeDto {
     /**
      * 开始时间点
      */
+    @NotNull
     private LocalTime start;
 }

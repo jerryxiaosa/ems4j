@@ -2,10 +2,12 @@ package info.zhihui.ems.iot.api.handler;
 
 import cn.hutool.core.lang.Opt;
 import info.zhihui.ems.common.constant.ResultCode;
-import info.zhihui.ems.common.exception.*;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.LoginException;
+import info.zhihui.ems.common.exception.NotFoundException;
+import info.zhihui.ems.common.exception.ParamException;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -25,12 +27,6 @@ public class RuntimeExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public RestResult<Void> handleRuntimeException(NotFoundException e) {
         log.error("handle NotFoundException: {}", e.getMessage());
-        return ResultUtil.error(ResultCode.BUSINESS_ERROR.getCode(), e.getMessage());
-    }
-
-    @ExceptionHandler(DataException.class)
-    public RestResult<Void> handleDataException(DataException e) {
-        log.error("handle DataException: {}", e.getMessage());
         return ResultUtil.error(ResultCode.BUSINESS_ERROR.getCode(), e.getMessage());
     }
 

@@ -3,7 +3,7 @@ package info.zhihui.ems.config.satoken;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.DataException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
 import info.zhihui.ems.foundation.user.bo.UserBo;
@@ -48,7 +48,7 @@ public class SaWebConfig implements WebMvcConfigurer {
         try {
             // 获取最新的用户信息
             user = userService.getUserInfo(userId);
-        } catch (DataException e) {
+        } catch (NotFoundException e) {
             StpUtil.logout();
             throw new BusinessRuntimeException("无法获取到用户信息");
         }

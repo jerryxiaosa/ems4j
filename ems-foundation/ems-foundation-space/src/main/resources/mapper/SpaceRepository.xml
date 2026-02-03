@@ -33,7 +33,7 @@
                 </foreach>
             </if>
             <if test="qo.fullPathPrefix != null and qo.fullPathPrefix != ''">
-                AND full_path LIKE CONCAT(#{qo.fullPathPrefix}, '%')
+                AND full_path LIKE CONCAT(#{qo.fullPathPrefix}, ',%')
             </if>
         </where>
         ORDER BY sort_index ASC, id ASC
@@ -60,7 +60,8 @@
     <update id="updateFullPathBatch">
         <foreach collection="entities" item="entity" separator=";">
             UPDATE sys_space
-            SET full_path = #{entity.fullPath}
+            SET full_path = #{entity.fullPath},
+                own_area_id = #{entity.ownAreaId}
             WHERE id = #{entity.id}
         </foreach>
     </update>

@@ -73,7 +73,7 @@ public interface ElectricPricePlanService {
      * 编辑尖峰平谷深谷时间段配置
      * @param dtoList 时间段列表
      */
-    void editElectricTime(@NotEmpty List<ElectricPriceTimeDto> dtoList);
+    void editElectricTime(@Valid @NotEmpty List<ElectricPriceTimeDto> dtoList);
 
     /**
      * 获取基础尖峰平谷深谷电价配置

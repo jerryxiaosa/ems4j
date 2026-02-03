@@ -3,7 +3,6 @@ package info.zhihui.ems.business.plan.mapper;
 
 import info.zhihui.ems.business.plan.bo.ElectricPricePlanBo;
 import info.zhihui.ems.business.plan.bo.ElectricPricePlanDetailBo;
-import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.business.plan.dto.ElectricPricePlanQueryDto;
 import info.zhihui.ems.business.plan.dto.ElectricPricePlanSaveDto;
 import info.zhihui.ems.business.plan.entity.ElectricPricePlanEntity;
@@ -22,7 +21,4 @@ public interface ElectricPlanMapper {
     ElectricPricePlanDetailBo detailEntityToBo(ElectricPricePlanEntity entity);
 
     List<ElectricPricePlanBo> listEntityToBo(List<ElectricPricePlanEntity> entityList);
-
-    List<ElectricPriceTimeDto> listTimeBoCopy(List<ElectricPriceTimeDto> list);
-
 }

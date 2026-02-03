@@ -59,6 +59,7 @@ public class OrganizationUpdateDto {
     /**
      * 备注（≤500，若有）
      */
+    @Size(max = 500)
     private String remark;
 
     /**

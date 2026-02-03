@@ -114,7 +114,7 @@ public class ElectricPricePlanServiceImplIntegrationTest {
 
     @Test
     public void testGetDetail_NotFound() {
-        assertThrows(BusinessRuntimeException.class, () -> electricPricePlanService.getDetail(99999));
+        assertThrows(NotFoundException.class, () -> electricPricePlanService.getDetail(99999));
     }
 
     @Test
@@ -170,7 +170,7 @@ public class ElectricPricePlanServiceImplIntegrationTest {
         assertDoesNotThrow(() -> electricPricePlanService.del(id));
 
         // 验证删除结果
-        assertThrows(BusinessRuntimeException.class, () -> electricPricePlanService.getDetail(id));
+        assertThrows(NotFoundException.class, () -> electricPricePlanService.getDetail(id));
     }
 
     @Test

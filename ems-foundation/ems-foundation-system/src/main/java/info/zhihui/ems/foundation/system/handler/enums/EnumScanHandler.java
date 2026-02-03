@@ -38,7 +38,12 @@ public class EnumScanHandler {
     public Map<String, List<EnumItemDto>> getAll() {
         try {
             Map<String, List<EnumItemDto>> map = cache.get(ALL_KEY, this::scanAll);
-            return Collections.unmodifiableMap(map);
+            Map<String, List<EnumItemDto>> readonlyMap = map.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> Collections.unmodifiableList(entry.getValue())
+                    ));
+            return Collections.unmodifiableMap(readonlyMap);
         } catch (Exception e) {
             log.warn("EnumScanHandler.getAll: compute cache failed, fallback to scan", e);
             throw new BusinessRuntimeException("枚举获取失败");

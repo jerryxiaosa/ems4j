@@ -45,7 +45,7 @@ public interface UserService {
      * @return 用户业务对象
      * @throws NotFoundException 当用户不存在时抛出
      */
-    UserBo getUserInfo(@NotNull Integer id);
+    UserBo getUserInfo(@NotNull Integer id) throws NotFoundException;
 
     /**
      * 新增用户

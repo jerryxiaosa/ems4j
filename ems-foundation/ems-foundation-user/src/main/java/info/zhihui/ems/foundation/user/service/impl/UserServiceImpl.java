@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
      * @throws NotFoundException 当用户不存在时抛出
      */
     @Override
-    public @NotNull UserBo getUserInfo(@NotNull Integer id) {
+    public @NotNull UserBo getUserInfo(@NotNull Integer id) throws NotFoundException {
         UserEntity entity = repository.selectById(id);
         if (entity == null) {
             throw new NotFoundException("用户不存在");
