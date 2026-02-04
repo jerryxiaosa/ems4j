@@ -10,6 +10,10 @@ import info.zhihui.ems.foundation.user.dto.RoleCreateDto;
 import info.zhihui.ems.foundation.user.dto.RoleQueryDto;
 import info.zhihui.ems.foundation.user.dto.RoleMenuSaveDto;
 import info.zhihui.ems.foundation.user.dto.RoleUpdateDto;
+import info.zhihui.ems.foundation.user.entity.MenuAuthEntity;
+import info.zhihui.ems.foundation.user.entity.RoleMenuEntity;
+import info.zhihui.ems.foundation.user.repository.MenuAuthRepository;
+import info.zhihui.ems.foundation.user.repository.RoleMenuRepository;
 import info.zhihui.ems.foundation.user.service.RoleService;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +24,11 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -37,6 +43,12 @@ class RoleServiceImplIntegrationTest {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private RoleMenuRepository roleMenuRepository;
+
+    @Autowired
+    private MenuAuthRepository menuAuthRepository;
 
     @Test
     @DisplayName("分页查询角色列表 - 成功")
@@ -420,6 +432,16 @@ class RoleServiceImplIntegrationTest {
     }
 
     @Test
+    @DisplayName("删除角色 - 角色已绑定用户不允许删除")
+    void testDelete_RoleHasUsers() {
+        // Given - 角色ID为2已被用户绑定
+        Integer roleId = 2;
+
+        // When & Then
+        assertThrows(BusinessRuntimeException.class, () -> roleService.delete(roleId));
+    }
+
+    @Test
     @DisplayName("保存角色菜单关联 - 成功")
     void testSaveRoleMenu_Success() {
         // Given
@@ -486,6 +508,39 @@ class RoleServiceImplIntegrationTest {
     }
 
     @Test
+    @DisplayName("获取角色权限 - 排除已删除菜单权限")
+    void testGetRolePermission_ShouldIgnoreDeletedMenu() {
+        RoleCreateDto roleCreateDto = new RoleCreateDto();
+        roleCreateDto.setRoleName("删除菜单权限验证角色");
+        roleCreateDto.setRoleKey("deleted-menu-role");
+        roleCreateDto.setSortNum(99);
+        roleCreateDto.setIsSystem(false);
+        roleCreateDto.setIsDisabled(false);
+        Integer roleId = roleService.add(roleCreateDto);
+
+        Integer deletedMenuId = 6;
+        List<String> existingPermissions = menuAuthRepository.selectPermissionCodesByMenuId(deletedMenuId);
+        if (existingPermissions == null || !existingPermissions.contains("deleted:permission")) {
+            MenuAuthEntity menuAuthEntity = new MenuAuthEntity();
+            menuAuthEntity.setMenuId(deletedMenuId);
+            menuAuthEntity.setPermissionCode("deleted:permission");
+            menuAuthEntity.setCreateTime(LocalDateTime.now());
+            menuAuthRepository.insert(menuAuthEntity);
+        }
+
+        RoleMenuEntity roleMenuEntity = new RoleMenuEntity();
+        roleMenuEntity.setRoleId(roleId);
+        roleMenuEntity.setMenuId(deletedMenuId);
+        roleMenuEntity.setCreateTime(LocalDateTime.now());
+        roleMenuRepository.insert(roleMenuEntity);
+
+        List<String> result = roleService.getRolePermissions(roleId);
+
+        assertNotNull(result);
+        assertThat(result).doesNotContain("deleted:permission");
+    }
+
+    @Test
     @DisplayName("获取角色权限 - 不存在的角色")
     void testGetRolePermission_NonExistentRole() {
         // Given
@@ -497,6 +552,38 @@ class RoleServiceImplIntegrationTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("判断角色是否拥有权限 - 已删除菜单权限不应生效")
+    void testExistsPermission_ShouldIgnoreDeletedMenu() {
+        RoleCreateDto roleCreateDto = new RoleCreateDto();
+        roleCreateDto.setRoleName("权限判断删除菜单角色");
+        roleCreateDto.setRoleKey("deleted-menu-permission-role");
+        roleCreateDto.setSortNum(98);
+        roleCreateDto.setIsSystem(false);
+        roleCreateDto.setIsDisabled(false);
+        Integer roleId = roleService.add(roleCreateDto);
+
+        Integer deletedMenuId = 6;
+        List<String> existingPermissions = menuAuthRepository.selectPermissionCodesByMenuId(deletedMenuId);
+        if (existingPermissions == null || !existingPermissions.contains("deleted:permission")) {
+            MenuAuthEntity menuAuthEntity = new MenuAuthEntity();
+            menuAuthEntity.setMenuId(deletedMenuId);
+            menuAuthEntity.setPermissionCode("deleted:permission");
+            menuAuthEntity.setCreateTime(LocalDateTime.now());
+            menuAuthRepository.insert(menuAuthEntity);
+        }
+
+        RoleMenuEntity roleMenuEntity = new RoleMenuEntity();
+        roleMenuEntity.setRoleId(roleId);
+        roleMenuEntity.setMenuId(deletedMenuId);
+        roleMenuEntity.setCreateTime(LocalDateTime.now());
+        roleMenuRepository.insert(roleMenuEntity);
+
+        boolean hasPermission = roleService.existsPermission(java.util.Set.of(roleId), "deleted:permission");
+
+        assertFalse(hasPermission);
     }
 
     // 验证测试 - 测试参数校验

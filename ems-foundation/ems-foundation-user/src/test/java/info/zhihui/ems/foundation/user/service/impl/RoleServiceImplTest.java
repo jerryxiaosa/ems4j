@@ -17,6 +17,7 @@ import info.zhihui.ems.foundation.user.enums.RoleEnum;
 import info.zhihui.ems.foundation.user.qo.RoleQueryQo;
 import info.zhihui.ems.foundation.user.repository.RoleMenuRepository;
 import info.zhihui.ems.foundation.user.repository.RoleRepository;
+import info.zhihui.ems.foundation.user.repository.UserRoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ class RoleServiceImplTest {
 
     @Mock
     private RoleMenuRepository roleMenuRepository;
+
+    @Mock
+    private UserRoleRepository userRoleRepository;
 
     @Mock
     private RoleMapper roleMapper;
@@ -313,12 +317,34 @@ class RoleServiceImplTest {
         entity.setIsSystem(false);
 
         when(roleRepository.selectById(1)).thenReturn(entity);
+        when(userRoleRepository.countByRoleId(1)).thenReturn(0);
 
         roleService.delete(1);
 
         verify(roleRepository).selectById(1);
+        verify(userRoleRepository).countByRoleId(1);
         verify(roleRepository).deleteById(1);
         verify(roleMenuRepository).deleteByRoleId(1);
+    }
+
+    @Test
+    @DisplayName("delete - 角色已被用户绑定")
+    void testDelete_RoleHasUsers() {
+        RoleEntity entity = new RoleEntity();
+        entity.setId(1);
+        entity.setIsSystem(false);
+
+        when(roleRepository.selectById(1)).thenReturn(entity);
+        when(userRoleRepository.countByRoleId(1)).thenReturn(1);
+
+        assertThatThrownBy(() -> roleService.delete(1))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("角色已被用户绑定，不允许删除");
+
+        verify(roleRepository).selectById(1);
+        verify(userRoleRepository).countByRoleId(1);
+        verify(roleRepository, never()).deleteById(anyInt());
+        verify(roleMenuRepository, never()).deleteByRoleId(anyInt());
     }
 
     // ==================== update 测试 ====================

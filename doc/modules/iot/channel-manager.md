@@ -23,7 +23,7 @@
 [外层调用线程]
   |
   | sendWithAck(deviceNo, message) -> CompletableFuture<byte[]>
-  | sendFireAndForget(deviceNo, message) -> CompletableFuture<byte[]>
+  | sendFireAndForget(deviceNo, message) 
   v
 ChannelManager
   |-- 查找 ChannelSession（按 deviceNo 定位）

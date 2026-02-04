@@ -7,6 +7,8 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.foundation.user.bo.RoleBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
@@ -177,7 +179,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(@NotNull Integer id) {
+        userRoleRepository.deleteByUserId(id);
         repository.deleteById(id);
+
+        try {
+            StpUtil.logout(id);
+        } catch (NotLoginException ignore) {
+            // ignore when user is not logged in
+        }
     }
 
     /**
@@ -217,7 +226,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        if (userBo.getRoles().stream().anyMatch(role -> role.getRoleKey().contains(RoleEnum.SUPER_ADMIN.getCode()))) {
+        if (userBo.getRoles().stream().anyMatch(role -> RoleEnum.SUPER_ADMIN.getCode().equals(role.getRoleKey()))) {
             return true;
         }
 
@@ -350,16 +359,22 @@ public class UserServiceImpl implements UserService {
      * 保存用户角色关联
      */
     private void saveUserRoles(Integer userId, List<Integer> roleIds) {
-        // 如果没有角色，直接返回
-        if (CollectionUtils.isEmpty(roleIds)) {
+        // 未传角色列表，保持现有角色不变
+        if (roleIds == null) {
             return;
         }
 
         // 删除原有关联
         userRoleRepository.deleteByUserId(userId);
 
+        // 角色列表为空，表示清空角色
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return;
+        }
+
         // 批量插入新关联
         List<UserRoleEntity> userRoles = roleIds.stream()
+                .distinct()
                 .map(roleId -> new UserRoleEntity()
                         .setUserId(userId)
                         .setRoleId(roleId))

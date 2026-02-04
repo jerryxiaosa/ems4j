@@ -870,7 +870,7 @@ CREATE TABLE `sys_user`
   DEFAULT CHARSET = UTF8MB4
   COLLATE = utf8mb4_unicode_ci;
 
-## 超管 Abc123!@#
+## 超管密码 Abc123!@#
 INSERT INTO sys_user
 (id, user_name, password, real_name, user_phone, user_gender, certificates_type, certificates_no, avatar, remark,
  organization_id, is_deleted, create_user, create_user_name, create_time, update_user, update_user_name, update_time)

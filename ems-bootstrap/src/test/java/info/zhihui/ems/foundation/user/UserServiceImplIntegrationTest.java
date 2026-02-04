@@ -465,6 +465,7 @@ class UserServiceImplIntegrationTest {
         // 验证用户存在
         UserBo userBeforeDelete = userService.getUserInfo(userId);
         assertThat(userBeforeDelete).isNotNull();
+        assertThat(userRoleRepository.selectByUserId(userId)).isNotEmpty();
 
         // When
         userService.delete(userId);
@@ -472,6 +473,7 @@ class UserServiceImplIntegrationTest {
         // Then
         assertThatThrownBy(() -> userService.getUserInfo(userId))
                 .isInstanceOf(NotFoundException.class);
+        assertThat(userRoleRepository.selectByUserId(userId)).isEmpty();
     }
 
     @Test

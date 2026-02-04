@@ -1,5 +1,6 @@
 package info.zhihui.ems.foundation.user.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -406,6 +408,49 @@ class UserServiceImplTest {
         verify(userRoleRepository).insert(ArgumentMatchers.<List<UserRoleEntity>>any());
     }
 
+    @Test
+    @DisplayName("update - roleIds为null不变更角色")
+    void testUpdate_RoleIdsNull_ShouldSkipRoleChanges() {
+        UserUpdateDto dto = new UserUpdateDto();
+        dto.setId(1);
+        dto.setRoleIds(null);
+
+        UserEntity updateEntity = new UserEntity().setId(1);
+
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(userMapper.updateDtoToEntity(dto)).thenReturn(updateEntity);
+        when(userRepository.updateById(updateEntity)).thenReturn(1);
+
+        userService.update(dto);
+
+        verify(userRepository).selectById(1);
+        verify(userRepository).updateById(updateEntity);
+        verify(roleService, never()).findList(any(RoleQueryDto.class));
+        verify(userRoleRepository, never()).deleteByUserId(anyInt());
+        verify(userRoleRepository, never()).insert(anyList());
+    }
+
+    @Test
+    @DisplayName("update - roleIds为空清空角色")
+    void testUpdate_EmptyRoleIds_ShouldClearRoles() {
+        UserUpdateDto dto = new UserUpdateDto();
+        dto.setId(1);
+        dto.setRoleIds(Collections.emptyList());
+
+        UserEntity updateEntity = new UserEntity().setId(1);
+
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(userMapper.updateDtoToEntity(dto)).thenReturn(updateEntity);
+        when(userRepository.updateById(updateEntity)).thenReturn(1);
+
+        userService.update(dto);
+
+        verify(userRepository).selectById(1);
+        verify(userRepository).updateById(updateEntity);
+        verify(userRoleRepository).deleteByUserId(1);
+        verify(userRoleRepository, never()).insert(anyList());
+    }
+
     // ==================== delete 测试 ====================
 
     @Test
@@ -414,11 +459,15 @@ class UserServiceImplTest {
         // Given
         when(userRepository.deleteById(1)).thenReturn(1);
 
-        // When
-        userService.delete(1);
+        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
+            // When
+            userService.delete(1);
 
-        // Then
-        verify(userRepository).deleteById(1);
+            // Then
+            stpMock.verify(() -> StpUtil.logout(1));
+            verify(userRoleRepository).deleteByUserId(1);
+            verify(userRepository).deleteById(1);
+        }
     }
 
     // ==================== updatePassword 测试 ====================
@@ -600,6 +649,32 @@ class UserServiceImplTest {
         verify(userRoleRepository).selectByUserIds(List.of(1));
         verify(roleService).findList(any(RoleQueryDto.class));
         verify(userMapper).listRoleBoToSimpleBo(mockRoles);
+    }
+
+    @Test
+    @DisplayName("hasPermission - 角色key包含超管但不应视为超管")
+    void testHasPermission_SuperAdminContains_ShouldNotGrant() {
+        UserBo userBo = new UserBo().setId(1).setRoles(List.of(
+                new RoleSimpleBo().setId(1).setRoleKey("super_admin_ext")
+        ));
+
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(userMapper.entityToBo(mockEntity)).thenReturn(userBo);
+        when(userRoleRepository.selectByUserIds(List.of(1))).thenReturn(List.of(
+                new UserRoleEntity().setUserId(1).setRoleId(1)
+        ));
+
+        RoleBo roleBo = new RoleBo().setId(1).setRoleKey("super_admin_ext");
+        when(roleService.findList(any(RoleQueryDto.class))).thenReturn(List.of(roleBo));
+        when(userMapper.listRoleBoToSimpleBo(List.of(roleBo))).thenReturn(List.of(
+                new RoleSimpleBo().setId(1).setRoleKey("super_admin_ext")
+        ));
+
+        when(roleService.existsPermission(anySet(), anyString())).thenReturn(false);
+
+        boolean result = userService.hasPermission(1, "user:read");
+
+        assertThat(result).isFalse();
     }
 
 }

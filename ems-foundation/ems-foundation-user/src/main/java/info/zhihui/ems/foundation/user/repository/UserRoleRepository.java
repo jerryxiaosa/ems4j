@@ -36,4 +36,12 @@ public interface UserRoleRepository extends BaseMapper<UserRoleEntity> {
      * @return 删除的记录数
      */
     int deleteByUserId(@Param("userId") Integer userId);
+
+    /**
+     * 根据角色ID统计关联数量
+     *
+     * @param roleId 角色ID
+     * @return 关联数量
+     */
+    int countByRoleId(@Param("roleId") Integer roleId);
 }
