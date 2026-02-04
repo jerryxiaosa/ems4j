@@ -1,7 +1,7 @@
 package info.zhihui.ems.foundation.user.satoken;
 
 import cn.dev33.satoken.stp.StpInterface;
-import cn.dev33.satoken.stp.StpUtil;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.service.RoleService;
@@ -30,7 +30,7 @@ public class SaPermissionImpl implements StpInterface {
 
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        UserBo user = userService.getUserInfo(StpUtil.getLoginIdAsInt());
+        UserBo user = getUserByLoginId(loginId);
         List<RoleSimpleBo> roles = user.getRoles();
         if (CollectionUtils.isEmpty(roles)) {
             return new ArrayList<>();
@@ -62,7 +62,7 @@ public class SaPermissionImpl implements StpInterface {
 
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        UserBo user = userService.getUserInfo(StpUtil.getLoginIdAsInt());
+        UserBo user = getUserByLoginId(loginId);
         List<RoleSimpleBo> roles = user.getRoles();
         if (CollectionUtils.isEmpty(roles)) {
             return new ArrayList<>();
@@ -72,5 +72,40 @@ public class SaPermissionImpl implements StpInterface {
                 .map(RoleSimpleBo::getRoleKey)
                 .filter(StringUtils::hasLength)
                 .toList();
+    }
+
+    private UserBo getUserByLoginId(Object loginId) {
+        Integer userId = resolveUserId(loginId);
+        if (userId == null) {
+            throw new BusinessRuntimeException("登录用户ID无效");
+        }
+        return userService.getUserInfo(userId);
+    }
+
+    private Integer resolveUserId(Object loginId) {
+        if (loginId == null) {
+            return null;
+        }
+        if (loginId instanceof Integer) {
+            return (Integer) loginId;
+        }
+        if (loginId instanceof Long) {
+            return Math.toIntExact((Long) loginId);
+        }
+        if (loginId instanceof Number) {
+            return ((Number) loginId).intValue();
+        }
+        if (loginId instanceof String) {
+            String text = (String) loginId;
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
+        }
+        return null;
     }
 }

@@ -42,6 +42,7 @@
                  INNER JOIN sys_menu m ON maa.menu_id = m.id
                  INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
         WHERE rm.role_id = #{roleId}
+          AND m.is_deleted = 0
           AND maa.permission_code IS NOT NULL
           AND maa.permission_code != ''
     </select>
@@ -57,6 +58,7 @@
             <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
                 #{roleId}
             </foreach>
+              AND m.is_deleted = 0
               AND maa.permission_code = #{permission}
             LIMIT 1
         )

@@ -21,6 +21,7 @@ import info.zhihui.ems.foundation.user.mapper.RoleMapper;
 import info.zhihui.ems.foundation.user.qo.RoleQueryQo;
 import info.zhihui.ems.foundation.user.repository.RoleMenuRepository;
 import info.zhihui.ems.foundation.user.repository.RoleRepository;
+import info.zhihui.ems.foundation.user.repository.UserRoleRepository;
 import info.zhihui.ems.foundation.user.service.RoleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -52,6 +53,7 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleMenuRepository roleMenuRepository;
+    private final UserRoleRepository userRoleRepository;
     private final RoleMapper roleMapper;
 
     /**
@@ -196,8 +198,11 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessRuntimeException("系统内置角色不允许删除");
         }
 
-        // TODO: 检查是否有用户关联该角色，如有则不允许删除
-        // 这里需要根据实际的用户角色关联表来实现检查逻辑
+        // 存在用户关联不允许删除
+        int userRoleCount = userRoleRepository.countByRoleId(id);
+        if (userRoleCount > 0) {
+            throw new BusinessRuntimeException("角色已被用户绑定，不允许删除");
+        }
 
         // 删除角色
         roleRepository.deleteById(id);

@@ -22,4 +22,10 @@
         where user_id = #{userId}
     </delete>
 
+    <select id="countByRoleId" resultType="int">
+        select count(1)
+        from sys_user_role
+        where role_id = #{roleId}
+    </select>
+
 </mapper>

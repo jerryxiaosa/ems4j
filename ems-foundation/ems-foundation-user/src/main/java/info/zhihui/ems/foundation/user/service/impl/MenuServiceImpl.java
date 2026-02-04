@@ -19,6 +19,7 @@ import info.zhihui.ems.foundation.user.service.MenuService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +94,7 @@ public class MenuServiceImpl implements MenuService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = RoleServiceImpl.ROLE_PERMISSIONS_CACHE_NAME, allEntries = true)
     public Integer add(@NotNull @Valid MenuCreateDto dto) {
         MenuEntity entity = menuMapper.createDtoToEntity(dto);
 
@@ -129,6 +131,7 @@ public class MenuServiceImpl implements MenuService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = RoleServiceImpl.ROLE_PERMISSIONS_CACHE_NAME, allEntries = true)
     public void update(@NotNull @Valid MenuUpdateDto dto) {
         MenuEntity existEntity = menuRepository.selectById(dto.getId());
         if (existEntity == null) {
@@ -158,6 +161,7 @@ public class MenuServiceImpl implements MenuService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = RoleServiceImpl.ROLE_PERMISSIONS_CACHE_NAME, allEntries = true)
     public void delete(@NotNull Integer id) {
         MenuEntity entity = menuRepository.selectById(id);
         if (entity == null) {

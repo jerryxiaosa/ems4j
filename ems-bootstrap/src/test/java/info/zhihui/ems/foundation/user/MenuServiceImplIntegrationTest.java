@@ -10,11 +10,15 @@ import info.zhihui.ems.foundation.user.dto.MenuUpdateDto;
 import info.zhihui.ems.foundation.user.enums.MenuSourceEnum;
 import info.zhihui.ems.foundation.user.enums.MenuTypeEnum;
 import info.zhihui.ems.foundation.user.service.MenuService;
+import info.zhihui.ems.foundation.user.service.RoleService;
+import info.zhihui.ems.foundation.user.service.impl.RoleServiceImpl;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +42,12 @@ class MenuServiceImplIntegrationTest {
 
     @Autowired
     private MenuService menuService;
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Test
     @DisplayName("查询菜单列表 - 成功场景")
@@ -338,6 +348,39 @@ class MenuServiceImplIntegrationTest {
         // 验证权限代码
         assertThat(updatedMenu.getPermissionCodes()).isNotNull();
         assertThat(updatedMenu.getPermissionCodes()).containsExactlyInAnyOrder("menu:view", "menu:update");
+    }
+
+    @Test
+    @DisplayName("更新菜单权限 - 角色权限缓存应失效")
+    void testUpdate_ShouldEvictRolePermissionsCache() {
+        Cache cache = cacheManager.getCache(RoleServiceImpl.ROLE_PERMISSIONS_CACHE_NAME);
+        if (cache != null) {
+            cache.clear();
+        }
+
+        Integer roleId = 2;
+        Integer menuId = 2;
+        List<String> before = roleService.getRolePermissions(roleId);
+        assertThat(before).contains("user:list");
+
+        MenuDetailBo menuDetail = menuService.getDetail(menuId);
+        MenuUpdateDto dto = new MenuUpdateDto();
+        dto.setId(menuDetail.getId());
+        dto.setMenuName(menuDetail.getMenuName());
+        dto.setMenuKey(menuDetail.getMenuKey());
+        dto.setSortNum(menuDetail.getSortNum());
+        dto.setPath(menuDetail.getPath());
+        dto.setMenuSource(menuDetail.getMenuSource());
+        dto.setMenuType(menuDetail.getMenuType());
+        dto.setIcon(menuDetail.getIcon());
+        dto.setRemark(menuDetail.getRemark());
+        dto.setIsHidden(menuDetail.getIsHidden());
+        dto.setPermissionCodes(List.of("user:add"));
+
+        menuService.update(dto);
+
+        List<String> after = roleService.getRolePermissions(roleId);
+        assertThat(after).containsExactly("user:add");
     }
 
     @Test
