@@ -31,4 +31,15 @@
         order by t.id desc
     </select>
 
+    <update id="softDelete">
+        update energy_account
+        set is_deleted = 1,
+            delete_time = #{deleteTime},
+            update_user = #{updateUser},
+            update_user_name = #{updateUserName},
+            update_time = #{updateTime}
+        where id = #{id}
+          and is_deleted = 0
+    </update>
+
 </mapper>

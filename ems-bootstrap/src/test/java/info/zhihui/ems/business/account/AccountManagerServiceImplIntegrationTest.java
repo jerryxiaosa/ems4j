@@ -33,11 +33,13 @@ import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,6 +77,9 @@ public class AccountManagerServiceImplIntegrationTest {
 
     @Autowired
     private OrderDetailTerminationRepository orderDetailTerminationRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 测试openAccount方法的参数验证
@@ -171,7 +176,7 @@ public class AccountManagerServiceImplIntegrationTest {
                                 ,
                         new MeterOpenDetailDto()
                                 .setMeterId(2)
-                                
+
                 ));
 
         // When
@@ -585,6 +590,48 @@ public class AccountManagerServiceImplIntegrationTest {
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
                 new ElectricMeterQo().setAccountId(1));
         assertNotNull(meters);
+    }
+
+    /**
+     * 验证逻辑删除会填充delete_time
+     */
+    @Test
+    void testCancelAccount_FullCancel_DeleteTimeFilled() {
+        RequestContextSetter.doSet(1, new UserRequestData("张三", "13800000001"));
+        Integer accountId = 3;
+
+        List<ElectricMeterEntity> meters = electricMeterRepository.findList(
+                new ElectricMeterQo().setAccountId(accountId));
+        assertNotNull(meters, "电表列表不应为空");
+        assertFalse(meters.isEmpty(), "账户应存在电表以触发全部销户");
+
+        List<MeterCancelDetailDto> meterList = meters.stream()
+                .map(meter -> {
+                    MeterCancelDetailDto detailDto = new MeterCancelDetailDto()
+                            .setMeterId(meter.getId());
+                    if (!Boolean.TRUE.equals(meter.getIsOnline())) {
+                        detailDto.setPowerHigher(new BigDecimal("10.00"));
+                    }
+                    return detailDto;
+                })
+                .toList();
+
+        CancelAccountDto cancelAccountDto = new CancelAccountDto()
+                .setAccountId(accountId)
+                .setRemark("全部销户删除时间填充测试")
+                .setMeterList(meterList);
+
+        CancelAccountResponseDto response = accountManagerService.cancelAccount(cancelAccountDto);
+        assertNotNull(response);
+        assertNotNull(response.getCancelNo());
+
+        Boolean isDeleted = jdbcTemplate.queryForObject(
+                "SELECT is_deleted FROM energy_account WHERE id = ?", Boolean.class, accountId);
+        Timestamp deleteTime = jdbcTemplate.queryForObject(
+                "SELECT delete_time FROM energy_account WHERE id = ?", Timestamp.class, accountId);
+
+        assertEquals(Boolean.TRUE, isDeleted, "逻辑删除标记应为true");
+        assertNotNull(deleteTime, "delete_time 应被填充");
     }
 
     /**

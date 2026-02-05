@@ -46,6 +46,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -774,7 +775,7 @@ class AccountManagerServiceImplTest {
                 .thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
-        when(repository.deleteById(1)).thenReturn(1);
+        when(repository.softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class))).thenReturn(1);
         mockRequestContext();
 
         // When
@@ -798,7 +799,7 @@ class AccountManagerServiceImplTest {
                         entity.getOwnerType().equals(OwnerTypeEnum.ENTERPRISE.getCode()) &&
                         entity.getElectricAccountType().equals(ElectricAccountTypeEnum.QUANTITY.getCode())
         ));
-        verify(repository).deleteById(1);
+        verify(repository).softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class));
 
         ArgumentCaptor<TerminationOrderCreationInfoDto> orderCaptor = ArgumentCaptor.forClass(TerminationOrderCreationInfoDto.class);
         verify(orderService, times(1)).createOrder(orderCaptor.capture());
@@ -857,7 +858,7 @@ class AccountManagerServiceImplTest {
         when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
-        when(repository.deleteById(1)).thenReturn(1);
+        when(repository.softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class))).thenReturn(1);
         mockRequestContext();
 
         // When
@@ -881,7 +882,7 @@ class AccountManagerServiceImplTest {
                         entity.getOwnerType().equals(OwnerTypeEnum.ENTERPRISE.getCode()) &&
                         entity.getElectricAccountType().equals(ElectricAccountTypeEnum.QUANTITY.getCode())
         ));
-        verify(repository).deleteById(1);
+        verify(repository).softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class));
 
         ArgumentCaptor<TerminationOrderCreationInfoDto> orderCaptor = ArgumentCaptor.forClass(TerminationOrderCreationInfoDto.class);
         verify(orderService, times(1)).createOrder(orderCaptor.capture());
@@ -932,7 +933,7 @@ class AccountManagerServiceImplTest {
                 .thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
-        when(repository.deleteById(1)).thenReturn(1);
+        when(repository.softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class))).thenReturn(1);
         mockRequestContext();
 
         CancelAccountResponseDto response = accountManagerService.cancelAccount(cancelAccountDto);
@@ -1012,7 +1013,7 @@ class AccountManagerServiceImplTest {
                         entity.getOwnerType().equals(OwnerTypeEnum.ENTERPRISE.getCode()) &&
                         entity.getElectricAccountType().equals(ElectricAccountTypeEnum.MONTHLY.getCode())
         ));
-        verify(repository, never()).deleteById(anyInt()); // 部分销户不删除账户
+        verify(repository, never()).softDelete(anyInt(), any(LocalDateTime.class), anyInt(), anyString(), any(LocalDateTime.class)); // 部分销户不删除账户
     }
 
     @Test
@@ -1054,7 +1055,7 @@ class AccountManagerServiceImplTest {
         when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("100.00")));
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
-        when(repository.deleteById(1)).thenReturn(1);
+        when(repository.softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class))).thenReturn(1);
         mockRequestContext();
 
         // When
@@ -1078,7 +1079,7 @@ class AccountManagerServiceImplTest {
                         entity.getOwnerType().equals(OwnerTypeEnum.ENTERPRISE.getCode()) &&
                         entity.getElectricAccountType().equals(ElectricAccountTypeEnum.MONTHLY.getCode())
         ));
-        verify(repository).deleteById(1); // 全部销户删除账户
+        verify(repository).softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class)); // 全部销户删除账户
 
         ArgumentCaptor<TerminationOrderCreationInfoDto> orderCaptor = ArgumentCaptor.forClass(TerminationOrderCreationInfoDto.class);
         verify(orderService, times(1)).createOrder(orderCaptor.capture());

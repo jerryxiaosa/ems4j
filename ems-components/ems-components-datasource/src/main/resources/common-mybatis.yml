@@ -24,10 +24,10 @@ mybatis-plus:
       # AUTO 自增 NONE 空 INPUT 用户输入 ASSIGN_ID 雪花 ASSIGN_UUID 唯一 UUID
       idType: AUTO
       # 逻辑已删除值(框架表均使用此值 禁止随意修改)
-      logicDeleteValue: 1
+      logicDeleteValue: true
       logicDeleteField: isDeleted
       # 逻辑未删除值
-      logicNotDeleteValue: 0
+      logicNotDeleteValue: false
       insertStrategy: NOT_NULL
       updateStrategy: NOT_NULL
       whereStrategy: NOT_NULL
