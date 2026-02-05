@@ -6,7 +6,7 @@
 
 [中文文档](README.md)
 
-EMS4J is a comprehensive energy management platform with capabilities for device access, metering and billing, account management, financial accounting, and operations support. It provides an abstract integration model for IoT platforms and also supports direct device access via the built-in IoT module.
+EMS4J is a Spring Boot multi-module energy prepaid management system that supports prepaid operations and analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), along with peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and the codebase is cleanly structured for easy extension.
 
 ## Motivation
 In an era where AI can churn out runnable code in seconds, merely “working” code is losing its value; what is becoming precious is the taste and design embodied in that code. Such taste is never born overnight—it is forged through long-term architectural refinement and deep design reflection.
@@ -25,6 +25,12 @@ If this project helps you, please consider giving it a Star ⭐️ as support—
 - Account management (opening / closing / recharge)
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
+
+## Prepaid Mode Description
+
+The system supports three billing types: pay-as-you-go, consolidated, and monthly. In pay-as-you-go and consolidated modes, balance is deducted based on actual usage. In pay-as-you-go mode, each water/electric meter is settled independently. In consolidated mode, the balance is recharged on one water/electric meter and other meters use that balance. Monthly is settled at a fixed amount per cycle.
+
+The typical flow is recharge after account opening, usage generates charges and continuously updates the balance, and when the balance is insufficient or reaches the warning threshold it can trigger notifications and remote disconnect. Full account closure will be settled and a settlement order will be generated, resulting in refunds or additional payment.
 
 ## Requirements
 
