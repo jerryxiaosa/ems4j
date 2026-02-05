@@ -1,6 +1,7 @@
 package info.zhihui.ems.foundation.integration.biz.command.service;
 
 import info.zhihui.ems.common.exception.NotFoundException;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,11 @@ public class DeviceCommandExecutorContext {
     @Autowired
     public DeviceCommandExecutorContext(List<DeviceCommandExecutor> deviceCommandExecutorList) {
         for (DeviceCommandExecutor executor : deviceCommandExecutorList) {
-            deviceCommandExecutorMap.put(executor.getCommandType(), executor);
+            CommandTypeEnum commandType = executor.getCommandType();
+            if (deviceCommandExecutorMap.containsKey(commandType)) {
+                throw new BusinessRuntimeException("命令执行器重复注册: " + commandType);
+            }
+            deviceCommandExecutorMap.put(commandType, executor);
         }
     }
 

@@ -1,5 +1,6 @@
 package info.zhihui.ems.foundation.integration.biz.command.service;
 
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandExecutor;
@@ -45,6 +46,17 @@ class DeviceCommandExecutorContextTest {
 
         assertEquals(mockExecutor1, result1);
         assertEquals(mockExecutor2, result2);
+    }
+
+    @Test
+    void constructor_withDuplicateCommandType_shouldThrowException() {
+        // Given
+        List<DeviceCommandExecutor> executorList = Arrays.asList(mockExecutor1, mockExecutor2);
+        when(mockExecutor1.getCommandType()).thenReturn(CommandTypeEnum.ENERGY_ELECTRIC_TURN_ON);
+        when(mockExecutor2.getCommandType()).thenReturn(CommandTypeEnum.ENERGY_ELECTRIC_TURN_ON);
+
+        // When & Then
+        assertThrows(BusinessRuntimeException.class, () -> new DeviceCommandExecutorContext(executorList));
     }
 
     @Test

@@ -5,6 +5,8 @@ import info.zhihui.ems.components.redis.properties.server.SingleServerConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+
 /**
  * Redisson 配置属性
  *
@@ -38,5 +40,15 @@ public class RedissonProperties {
      * 集群服务配置
      */
     private ClusterServersConfig clusterServersConfig;
+
+    /**
+     * 是否启用反序列化白名单
+     */
+    private boolean allowlistEnabled;
+
+    /**
+     * 允许反序列化的包前缀
+     */
+    private List<String> allowlistPackages;
 
 }

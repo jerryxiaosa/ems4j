@@ -6,6 +6,8 @@ import com.github.pagehelper.page.PageMethod;
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.lock.core.LockTemplate;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
@@ -18,11 +20,7 @@ import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnu
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandRecordRepository;
-import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandExecutor;
-import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandExecutorContext;
 import info.zhihui.ems.foundation.integration.biz.command.service.impl.DeviceCommandServiceImpl;
-import info.zhihui.ems.common.paging.PageParam;
-import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -251,6 +249,27 @@ class DeviceCommandServiceImplTest {
 
             assertNotNull(result);
             assertEquals(1, result.getList().size());
+        }
+    }
+
+    @Test
+    void findDeviceCommandPage_whenQueryTypeNull_shouldNotThrow() {
+        DeviceCommandQueryDto query = new DeviceCommandQueryDto();
+        PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
+
+        try (MockedStatic<PageMethod> pageHelper = Mockito.mockStatic(PageMethod.class)) {
+            Page mockPage = Mockito.mock(Page.class);
+            PageInfo<DeviceCommandRecordEntity> pageInfo = new PageInfo<>();
+            pageInfo.setList(List.of());
+            pageInfo.setTotal(0);
+            pageHelper.when(() -> PageMethod.startPage(pageParam.getPageNum(), pageParam.getPageSize())).thenReturn(mockPage);
+
+            when(mockPage.doSelectPageInfo(any())).thenReturn(pageInfo);
+
+            PageResult<DeviceCommandRecordBo> result = deviceCommandService.findDeviceCommandPage(query, pageParam);
+
+            assertNotNull(result);
+            assertEquals(0, result.getTotal());
         }
     }
 

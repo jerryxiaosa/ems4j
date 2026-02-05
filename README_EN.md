@@ -21,7 +21,7 @@ If this project helps you, please consider giving it a Star ⭐️ as support—
 
 - Multi-protocol device access 
 - Billing models (pay-as-you-go / consolidated billing / monthly subscription)
-- Metering and billing (peak/off-peak/valley, tiered rates)
+- Metering and billing (peak/off-peak/valley / tiered rates)
 - Account management (opening / closing / recharge)
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)

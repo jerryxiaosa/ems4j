@@ -21,4 +21,8 @@ public class RequestContextSetter {
         ThreadLocalUtil.put(RequestContextConstant.USER_REQUEST_DATA, userRequestData);
     }
 
+    public static void clear() {
+        ThreadLocalUtil.clear();
+    }
+
 }

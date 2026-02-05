@@ -1,19 +1,24 @@
 package info.zhihui.ems.foundation.integration.biz.command.service;
 
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandCancelDto;
+import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
 import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandExecuteRecordEntity;
 import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandRecordRepository;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("integrationtest")
@@ -37,6 +43,9 @@ class DeviceCommandServiceImplIntegrationTest {
 
     @Autowired
     private DeviceCommandExecuteRecordRepository deviceCommandExecuteRecordRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private DeviceCommandAddDto buildAddDto() {
         return new DeviceCommandAddDto()
@@ -71,6 +80,18 @@ class DeviceCommandServiceImplIntegrationTest {
         assertThat(entity.getDeviceTypeKey()).isEqualTo(DeviceTypeEnum.ELECTRIC.getKey());
         assertThat(entity.getSuccess()).isFalse();
         assertThat(entity.getEnsureSuccess()).isTrue();
+    }
+
+    @Test
+    @DisplayName("saveDeviceCommand - 参数缺失抛出校验异常")
+    void testSaveDeviceCommand_MissingFields() {
+        DeviceCommandAddDto dto = buildAddDto()
+                .setCommandType(null)
+                .setDeviceType(null)
+                .setDeviceId(null);
+
+        assertThatThrownBy(() -> deviceCommandService.saveDeviceCommand(dto))
+                .isInstanceOf(ConstraintViolationException.class);
     }
 
     @Test
@@ -126,5 +147,21 @@ class DeviceCommandServiceImplIntegrationTest {
         assertThat(after.getSuccess()).isFalse();
         assertThat(after.getEnsureSuccess()).isFalse();
         assertThat(after.getRemark()).isEqualTo("测试取消");
+    }
+
+    @Test
+    @DisplayName("findDeviceCommandPage - 逻辑删除记录应被过滤")
+    void testFindDeviceCommandPage_ShouldFilterDeleted() {
+        Integer commandId = deviceCommandService.saveDeviceCommand(buildAddDto());
+        DeviceCommandRecordEntity record = deviceCommandRecordRepository.selectById(commandId);
+        assertThat(record).isNotNull();
+
+        jdbcTemplate.update("update device_command_record set is_deleted = 1 where id = ?", commandId);
+
+        DeviceCommandQueryDto query = new DeviceCommandQueryDto();
+        PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
+
+        PageResult<?> result = deviceCommandService.findDeviceCommandPage(query, pageParam);
+        assertThat(result.getList()).isEmpty();
     }
 }

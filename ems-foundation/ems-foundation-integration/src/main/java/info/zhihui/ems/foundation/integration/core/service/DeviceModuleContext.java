@@ -1,6 +1,7 @@
 package info.zhihui.ems.foundation.integration.core.service;
 
 import com.google.common.collect.ImmutableMap;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModuleConfigBo;
 import lombok.extern.slf4j.Slf4j;
@@ -127,21 +128,32 @@ public class DeviceModuleContext {
         return serviceName.toLowerCase().indexOf(MOCK_PREFIX) == 0;
     }
 
-    // 实现类需要实现module目录下的接口
+    // 实现类需要实现且只实现一个 CommonDeviceModule 子接口
     private Class<?> getOnlyInterface(Class<?> service) {
-        Class<?>[] interfaces = service.getInterfaces();
-
-        // 先看本类的接口，否则再看是否继承了父类
-        if (interfaces.length == 1) {
-            return interfaces[0];
-        } else if (interfaces.length == 0 && service.getSuperclass() != null) {
-            interfaces = service.getSuperclass().getInterfaces();
-            if (interfaces.length == 1) {
-                return interfaces[0];
-            }
+        List<Class<?>> moduleInterfaces = findModuleInterfaces(service);
+        if (moduleInterfaces.size() == 1) {
+            return moduleInterfaces.get(0);
+        }
+        if (moduleInterfaces.isEmpty()) {
+            throw new BusinessRuntimeException("未按照约定编码: " + service.getSimpleName());
         }
 
-        throw new RuntimeException("未按照约定编码: " + service.getSimpleName());
+        // 异常
+        String interfaceNames = moduleInterfaces.stream()
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(","));
+        throw new BusinessRuntimeException("实现类只能实现一个模块接口: " + service.getSimpleName() + " -> " + interfaceNames);
+    }
+
+    private List<Class<?>> findModuleInterfaces(Class<?> service) {
+        Class<?>[] interfaces = ClassUtils.getAllInterfacesForClass(service);
+        List<Class<?>> moduleInterfaces = new ArrayList<>();
+        for (Class<?> item : interfaces) {
+            if (CommonDeviceModule.class.isAssignableFrom(item) && !CommonDeviceModule.class.equals(item)) {
+                moduleInterfaces.add(item);
+            }
+        }
+        return moduleInterfaces;
     }
 
     private <T extends CommonDeviceModule> T getRealService(Class<T> moduleType, Integer areaId) {

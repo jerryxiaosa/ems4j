@@ -86,6 +86,23 @@ public class DeviceModuleConfigServiceTest {
     }
 
     @Test
+    public void testGetDeviceConfigByModuleWithDuplicateAreaId() {
+        String configValue = """
+                [{"areaId":1,"deviceConfigList":[{"moduleServiceName":"TestEnergy2Service","implName":"impl-old","configValue":{"key":"old"}}]},
+                {"areaId":1,"deviceConfigList":[{"moduleServiceName":"TestEnergy2Service","implName":"impl-new","configValue":{"key":"new"}}]}]
+                """;
+        ConfigBo mockSystemConfig = new ConfigBo().setConfigValue(configValue);
+        Mockito.when(configService.getByKey(SystemConfigConstant.DEVICE_CONFIG)).thenReturn(mockSystemConfig);
+
+        DeviceModuleConfigBo result = deviceModuleConfigServiceImpl.getDeviceConfigByModule(TestEnergy2Service.class, 1);
+        DeviceModuleConfigBo expected = new DeviceModuleConfigBo()
+                .setModuleServiceName("TestEnergy2Service")
+                .setImplName("impl-new")
+                .setConfigValue("{\"key\":\"new\"}");
+        Assertions.assertEquals(expected, result);
+    }
+
+    @Test
     public void testGetEquipmentConfigValue() {
         String mockConfigValue = "[{\"areaId\":1,\"deviceConfigList\":[{\"moduleServiceName\":\"TestEnergy3Service\",\"implName\":\"testEnergy3ServiceImpl\",\"configValue\":{\"somevalue\":\"aaa-bbb-ccc\"}}]}]";
         List<DeviceModuleConfigBo> deviceModuleConfigBoList = new ArrayList<>();
@@ -313,5 +330,39 @@ public class DeviceModuleConfigServiceTest {
                 .findFirst()
                 .orElse(null);
         Assertions.assertNotNull(unchangedAreaConfig);
+    }
+
+    @Test
+    public void testSetDeviceConfigByAreaWithDuplicateExistingArea() {
+        Integer areaId = 3;
+        DeviceModuleConfigBo newConfig = new DeviceModuleConfigBo()
+                .setModuleServiceName(TestEnergy2Service.class.getSimpleName())
+                .setImplName("testEnergy2ServiceImpl")
+                .setConfigValue("{\"key\":\"value\"}");
+        List<DeviceModuleConfigBo> newDeviceConfigList = new ArrayList<>();
+        newDeviceConfigList.add(newConfig);
+
+        String existingConfigJson = """
+                [{"areaId":1,"deviceConfigList":[{"moduleServiceName":"TestEnergy2Service","implName":"impl-old","configValue":{"key":"old"}}]},
+                {"areaId":1,"deviceConfigList":[{"moduleServiceName":"TestEnergy2Service","implName":"impl-new","configValue":{"key":"new"}}]},
+                {"areaId":2,"deviceConfigList":[{"moduleServiceName":"TestEnergy3Service","implName":"impl-2","configValue":{"key":"v2"}}]}]
+                """;
+        ConfigBo mockSystemConfig = new ConfigBo().setConfigValue(existingConfigJson);
+        Mockito.when(configService.getByKey(SystemConfigConstant.DEVICE_CONFIG)).thenReturn(mockSystemConfig);
+
+        deviceModuleConfigServiceImpl.setDeviceConfigByArea(newDeviceConfigList, areaId);
+
+        ArgumentCaptor<ConfigUpdateDto> captor = ArgumentCaptor.forClass(ConfigUpdateDto.class);
+        Mockito.verify(configService).update(captor.capture());
+
+        String updatedConfigJson = captor.getValue().getConfigValue();
+        List<DeviceModuleAreaConfigBo> updatedAreaConfigs = JacksonUtil.fromJson(updatedConfigJson, new TypeReference<>() {
+        });
+
+        List<Integer> areaIds = updatedAreaConfigs.stream().map(DeviceModuleAreaConfigBo::getAreaId).toList();
+        long distinctCount = areaIds.stream().distinct().count();
+        Assertions.assertEquals(distinctCount, areaIds.size());
+        Assertions.assertEquals(3, areaIds.size());
+        Assertions.assertTrue(areaIds.containsAll(List.of(1, 2, 3)));
     }
 }

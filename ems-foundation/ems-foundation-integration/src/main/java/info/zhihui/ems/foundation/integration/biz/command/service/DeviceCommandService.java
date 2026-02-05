@@ -8,6 +8,8 @@ import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDt
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandCancelDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -22,7 +24,7 @@ public interface DeviceCommandService {
      * @param dto 设备指令
      * @return 保存的设备指令ID
      */
-    Integer saveDeviceCommand(DeviceCommandAddDto dto);
+    Integer saveDeviceCommand(@Valid @NotNull DeviceCommandAddDto dto);
 
     /**
      * 执行设备指令

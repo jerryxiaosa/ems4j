@@ -1,5 +1,6 @@
 package info.zhihui.ems.foundation.integration.core.service;
 
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModuleConfigBo;
 import info.zhihui.ems.foundation.integration.core.service.testdata.*;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,26 @@ public class DeviceModuleContextTest {
             res.remove(TestEnergy2Service.class.getSimpleName());
         });
 
+    }
+
+    @Test
+    public void testGetOnlyInterface_WithExtraInterface_ShouldNotThrow() {
+        Map<String, CommonDeviceModule> map = new HashMap<>();
+        map.put(TestEnergy1ExtraInterfaceImpl.class.getSimpleName().toLowerCase(), new TestEnergy1ExtraInterfaceImpl());
+        DeviceModuleContext context = new DeviceModuleContext(map, deviceConfigService);
+
+        Map<String, List<String>> res = context.getModuleAndServiceName();
+        Assertions.assertTrue(res.containsKey(TestEnergy1.class.getSimpleName()));
+    }
+
+    @Test
+    public void testGetOnlyInterface_WithMultipleModuleInterfaces_ShouldThrow() {
+        Map<String, CommonDeviceModule> map = new HashMap<>();
+        map.put(TestEnergyMultiModuleImpl.class.getSimpleName().toLowerCase(), new TestEnergyMultiModuleImpl());
+
+        BusinessRuntimeException exception = Assertions.assertThrows(BusinessRuntimeException.class,
+                () -> new DeviceModuleContext(map, deviceConfigService));
+        Assertions.assertTrue(exception.getMessage().contains("只能实现一个模块接口"));
     }
 
 }

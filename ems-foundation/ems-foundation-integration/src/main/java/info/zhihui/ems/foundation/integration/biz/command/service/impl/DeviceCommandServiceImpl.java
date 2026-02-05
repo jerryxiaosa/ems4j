@@ -26,9 +26,12 @@ import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandE
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandExecutorContext;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ import java.util.concurrent.locks.Lock;
 @Service
 @AllArgsConstructor
 @Slf4j
+@Validated
 public class DeviceCommandServiceImpl implements DeviceCommandService {
     private final DeviceCommandRecordRepository commandRecordRepository;
     private final DeviceCommandExecuteRecordRepository commandExecuteRecordRepository;
@@ -50,7 +54,7 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
     private final static String LOCK_DEVICE_COMMAND = "LOCK:DEVICE:COMMAND:%s-%d";
 
     @Override
-    public Integer saveDeviceCommand(DeviceCommandAddDto dto) {
+    public Integer saveDeviceCommand(@Valid @NotNull DeviceCommandAddDto dto) {
         DeviceCommandRecordEntity commandRecord = new DeviceCommandRecordEntity()
                 .setDeviceTypeKey(dto.getDeviceType().getKey())
                 .setDeviceId(dto.getDeviceId())
@@ -91,6 +95,15 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
         } catch (Exception e) {
             isSuccess = false;
             reason = e.getMessage();
+            Integer payloadSize = commandRecordBo.getCommandData() == null ? null : commandRecordBo.getCommandData().length();
+            log.error("设备命令执行异常: commandId={}, deviceId={}, deviceType={}, commandType={}, areaId={}, payloadSize={}",
+                    commandRecordBo.getId(),
+                    commandRecordBo.getDeviceId(),
+                    commandRecordBo.getDeviceType(),
+                    commandRecordBo.getCommandType(),
+                    commandRecordBo.getAreaId(),
+                    payloadSize,
+                    e);
         } finally {
             saveExecuteRecord(commandRecordBo, commandSource, isSuccess, reason);
             lock.unlock();
@@ -155,15 +168,17 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
     }
 
     private DeviceCommandQo toQo(DeviceCommandQueryDto query) {
+        Integer commandType = query.getCommandType() == null ? null : query.getCommandType().getCode();
+        String deviceType = query.getDeviceType() == null ? null : query.getDeviceType().getKey();
         return new DeviceCommandQo()
                 .setOperateUserName(query.getOperateUserName())
-                .setCommandType(query.getCommandType().getCode())
+                .setCommandType(commandType)
                 .setSuccess(query.getSuccess())
                 .setOrganizationName(query.getOrganizationName())
                 .setSpaceName(query.getSpaceName())
                 .setDeviceName(query.getDeviceName())
                 .setDeviceNo(query.getDeviceNo())
-                .setDeviceType(query.getDeviceType().getKey())
+                .setDeviceType(deviceType)
                 .setAsc(query.getAsc())
                 .setLimit(query.getLimit())
                 ;
