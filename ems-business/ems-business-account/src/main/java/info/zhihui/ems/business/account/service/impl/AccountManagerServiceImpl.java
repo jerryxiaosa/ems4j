@@ -464,7 +464,12 @@ public class AccountManagerServiceImpl implements AccountManagerService {
 
             // 如果全部销户，删除账户
             if (fullCancel) {
-                repository.deleteById(cancelAccountDto.getAccountId());
+                LocalDateTime now = LocalDateTime.now();
+                repository.softDelete(cancelAccountDto.getAccountId(),
+                        now,
+                        requestContext.getUserId(),
+                        requestContext.getUserRealName(),
+                        now);
             }
 
             return new CancelAccountResponseDto()

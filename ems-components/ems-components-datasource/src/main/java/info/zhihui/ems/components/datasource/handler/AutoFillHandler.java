@@ -50,9 +50,5 @@ public class AutoFillHandler implements MetaObjectHandler {
         if (metaObject.hasGetter("updateTime")) {
             this.setFieldValByName("updateTime", now, metaObject);
         }
-        // 填充逻辑删除时间（仅当本次更新标记为删除）
-        if (metaObject.hasGetter("isDeleted") && Boolean.TRUE.equals(metaObject.getValue("isDeleted")) && metaObject.hasGetter("deleteTime")) {
-            this.setFieldValByName("deleteTime", now, metaObject);
-        }
     }
 }
