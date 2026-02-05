@@ -28,7 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
         <maven.version>3.8.1</maven.version>
-        <spring-boot.version>3.5.7</spring-boot.version>
+        <spring-boot.version>3.5.10</spring-boot.version>
         <spring-security.version>6.5.5</spring-security.version>
         <mysql-connector.version>9.4.0</mysql-connector.version>
         <druid.version>1.2.23</druid.version>
