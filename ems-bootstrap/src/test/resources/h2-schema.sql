@@ -281,7 +281,7 @@ CREATE TABLE device_command_record
     success_time      TIMESTAMP              DEFAULT NULL,
     last_execute_time TIMESTAMP              DEFAULT NULL,
     ensure_success    BOOLEAN       NOT NULL DEFAULT FALSE,
-    execute_times     SMALLINT               DEFAULT NULL,
+    execute_times     SMALLINT      NOT NULL DEFAULT 0,
     remark            VARCHAR(500)           DEFAULT NULL,
     create_user       INTEGER                DEFAULT NULL,
     create_user_name  VARCHAR(50)            DEFAULT NULL,

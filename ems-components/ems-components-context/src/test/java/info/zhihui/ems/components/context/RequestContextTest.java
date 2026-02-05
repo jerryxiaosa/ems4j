@@ -1,8 +1,6 @@
 package info.zhihui.ems.components.context;
 
 
-import info.zhihui.ems.common.utils.ThreadLocalUtil;
-import info.zhihui.ems.components.context.constant.RequestContextConstant;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +25,7 @@ public class RequestContextTest {
 
     @Test
     public void testNull() {
-        ThreadLocalUtil.put(RequestContextConstant.USER_REQUEST_DATA, null);
+        RequestContextSetter.clear();
 
         Assertions.assertNull(requestContext.getUserPhone());
         Assertions.assertNull(requestContext.getUserRealName());
@@ -44,9 +42,8 @@ public class RequestContextTest {
         int all = 5;
 
         // 校验使用主线程的设置
-        RequestContextSetter.doSet(3);
-        UserRequestData userRequestData = new UserRequestData("张三",  "1388888888");
-        ThreadLocalUtil.put(RequestContextConstant.USER_REQUEST_DATA, userRequestData);
+        UserRequestData userRequestData = new UserRequestData("张三", "1388888888");
+        RequestContextSetter.doSet(3, userRequestData);
         for (int i = 0; i < all; i++) {
             futureAll.add(
                     CompletableFuture.runAsync(() -> {
@@ -63,9 +60,8 @@ public class RequestContextTest {
 
         CompletableFuture.allOf(futureAll.toArray(new CompletableFuture[0])).join();
 
-        RequestContextSetter.doSet(4);
-        UserRequestData userRequestData2 = new UserRequestData("张三2",  "13999999");
-        ThreadLocalUtil.put(RequestContextConstant.USER_REQUEST_DATA, userRequestData2);
+        UserRequestData userRequestData2 = new UserRequestData("张三2", "13999999");
+        RequestContextSetter.doSet(4, userRequestData2);
 
         for (int i = 0; i < all; i++) {
             futureAll.add(
@@ -122,5 +118,16 @@ public class RequestContextTest {
         }
     }
 
-}
+    @Test
+    public void testClear_ShouldRemoveContext() {
+        RequestContextSetter.doSet(6, new UserRequestData("李四", "13700000000"));
+        Assertions.assertEquals(6, requestContext.getUserId());
+        Assertions.assertEquals("李四", requestContext.getUserRealName());
 
+        RequestContextSetter.clear();
+        Assertions.assertNull(requestContext.getUserId());
+        Assertions.assertNull(requestContext.getUserRealName());
+        Assertions.assertNull(requestContext.getUserPhone());
+    }
+
+}

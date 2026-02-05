@@ -6,8 +6,9 @@
         select t.*
         from device_command_record t
         <where>
+            t.is_deleted = 0
             <if test="operateUserName != null and operateUserName != ''">
-                t.create_user_name like concat('%', #{operateUserName}, '%')
+                and t.create_user_name like concat('%', #{operateUserName}, '%')
             </if>
             <if test="commandType != null">
                 and t.command_type = #{commandType}
@@ -56,6 +57,7 @@
         set ensure_success = 0,
         remark = #{reason}
         where 1 = 1
+        and is_deleted = 0
         and ensure_success = 1
         and success = 0
         <if test="commandType != null">
@@ -76,5 +78,6 @@
         last_execute_time = #{lastExecuteTime},
         execute_times = execute_times + 1
         where id = #{id}
+        and is_deleted = 0
     </update>
 </mapper>

@@ -11,8 +11,12 @@ import info.zhihui.ems.foundation.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 接口鉴权配置
@@ -38,7 +42,12 @@ public class SaWebConfig implements WebMvcConfigurer {
                     // 设置用户上下文
                     // @SaIgnore不会进入
                     setUserContext();
-                })).addPathPatterns("/**")
+                }) {
+                    @Override
+                    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex) {
+                        RequestContextSetter.clear();
+                    }
+                }).addPathPatterns("/**")
                 .excludePathPatterns(excludes.split(","));
     }
 
