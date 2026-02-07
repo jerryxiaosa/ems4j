@@ -23,12 +23,10 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnProperty(prefix = "schedule", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SchedulingConfig implements SchedulingConfigurer {
 
-    private static final int DEFAULT_AWAIT_TERMINATION_SECONDS = 30 * 60;
-
     @Value("${schedule.thread-pool-size:4}")
     private int threadPoolSize;
 
-    @Value("${schedule.await-termination-seconds:1800}")
+    @Value("${schedule.await-termination-seconds:10}")
     private int awaitTerminationSeconds;
 
     @Override
@@ -42,9 +40,7 @@ public class SchedulingConfig implements SchedulingConfigurer {
         scheduler.setPoolSize(threadPoolSize);
         scheduler.setThreadNamePrefix("ems-schedule-");
         scheduler.setWaitForTasksToCompleteOnShutdown(true);
-        scheduler.setAwaitTerminationSeconds(awaitTerminationSeconds > 0
-                ? awaitTerminationSeconds
-                : DEFAULT_AWAIT_TERMINATION_SECONDS);
+        scheduler.setAwaitTerminationSeconds(awaitTerminationSeconds);
         scheduler.setErrorHandler(throwable -> log.error("调度任务执行异常", throwable));
         scheduler.initialize();
         return scheduler;
