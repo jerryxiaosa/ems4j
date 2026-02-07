@@ -8,7 +8,6 @@ import info.zhihui.ems.foundation.user.dto.RoleQueryDto;
 import info.zhihui.ems.foundation.user.dto.RoleUpdateDto;
 import info.zhihui.ems.web.user.vo.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
@@ -32,7 +31,6 @@ public interface RoleWebMapper {
     /**
      * 更新VO转换为更新DTO
      */
-    @Mapping(target = "id", ignore = true)
     RoleUpdateDto toRoleUpdateDto(RoleUpdateVo vo);
 
     /**

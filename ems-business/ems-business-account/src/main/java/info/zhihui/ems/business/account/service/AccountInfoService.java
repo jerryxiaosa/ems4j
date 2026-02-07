@@ -27,6 +27,15 @@ public interface AccountInfoService {
     List<AccountBo> findList(@NotNull AccountQueryDto query);
 
     /**
+     * 分页查询账户列表
+     *
+     * @param query 查询条件
+     * @param pageParam 分页参数
+     * @return 账户分页结果
+     */
+    PageResult<AccountBo> findPage(@NotNull AccountQueryDto query, @NotNull PageParam pageParam);
+
+    /**
      * 根据ID查询账户详情
      *
      * @param id 账户ID

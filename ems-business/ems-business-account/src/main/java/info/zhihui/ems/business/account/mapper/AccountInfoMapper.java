@@ -1,11 +1,13 @@
 package info.zhihui.ems.business.account.mapper;
 
 
+import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
 import info.zhihui.ems.business.account.entity.AccountEntity;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.business.account.qo.AccountQo;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AccountInfoMapper {
+
+    PageResult<AccountBo> pageEntityToBo(PageInfo<AccountEntity> pageInfo);
 
     List<AccountBo> listEntityToBo(List<AccountEntity> list);
 

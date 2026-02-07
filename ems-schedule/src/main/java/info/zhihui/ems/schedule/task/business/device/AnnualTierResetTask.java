@@ -26,7 +26,7 @@ import java.util.List;
 public class AnnualTierResetTask {
 
     private static final int PAGE_SIZE = 200;
-    private static final String RESET_CRON = "0 0 0 1 1 ?"; // 每年1月1日0点执行
+    private static final String RESET_CRON = "0 0 0 * 1 ?"; // 每年1月每天0点执行，避免1月1日因异常遗漏
 
     private final ElectricMeterInfoService electricMeterInfoService;
     private final ElectricMeterManagerService electricMeterManagerService;
@@ -55,6 +55,7 @@ public class AnnualTierResetTask {
                 }
 
                 try {
+                    // 幂等操作
                      electricMeterManagerService
                             .resetCurrentYearMeterStepRecord(new MeterStepResetDto()
                                     .setMeterId(meter.getId()));

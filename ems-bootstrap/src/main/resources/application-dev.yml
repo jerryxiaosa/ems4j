@@ -9,7 +9,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:13306/ems_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true
     type: com.alibaba.druid.pool.DruidDataSource
     username: root
-    password: Gw@123456
+    password: Ems@123456
     druid:
       initialSize: 5
       minIdle: 5
@@ -100,6 +100,7 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"
 
 schedule:
+  thread-pool-size: 4 # 调度线程池大小，避免默认单线程任务阻塞
   aspect:
     enabled: true     # 开启调度切面
 

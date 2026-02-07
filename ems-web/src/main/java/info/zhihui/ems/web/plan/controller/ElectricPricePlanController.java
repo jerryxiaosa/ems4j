@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -104,7 +105,7 @@ public class ElectricPricePlanController {
     @SaCheckPermission("plans:electric-price:time:update")
     @PutMapping("/default/time")
     @Operation(summary = "更新默认尖峰平谷时间段")
-    public RestResult<Void> updateDefaultElectricTime(@Valid @RequestBody List<ElectricPriceTimeSettingVo> timeList) {
+    public RestResult<Void> updateDefaultElectricTime(@RequestBody @NotEmpty List<@Valid ElectricPriceTimeSettingVo> timeList) {
         electricPricePlanBiz.updateDefaultElectricTime(timeList);
         return ResultUtil.success();
     }
@@ -119,7 +120,7 @@ public class ElectricPricePlanController {
     @SaCheckPermission("plans:electric-price:price:update")
     @PutMapping("/default/price")
     @Operation(summary = "更新默认尖峰平谷电价")
-    public RestResult<Void> updateDefaultElectricPrice(@Valid @RequestBody List<ElectricPriceTypeVo> priceList) {
+    public RestResult<Void> updateDefaultElectricPrice(@RequestBody @NotEmpty List<@Valid ElectricPriceTypeVo> priceList) {
         electricPricePlanBiz.updateDefaultElectricPrice(priceList);
         return ResultUtil.success();
     }

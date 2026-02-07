@@ -103,7 +103,6 @@ class RoleControllerTest {
     @DisplayName("更新角色信息")
     void testUpdateRole() throws Exception {
         RoleUpdateVo updateVo = new RoleUpdateVo();
-        updateVo.setId(123);
         updateVo.setRoleKey("test");
         updateVo.setRoleName("更新后的角色");
         updateVo.setRemark("更新后的备注");
@@ -119,7 +118,6 @@ class RoleControllerTest {
     @DisplayName("保存角色菜单关联")
     void testSaveRoleMenu() throws Exception {
         RoleMenuSaveVo saveVo = new RoleMenuSaveVo();
-        saveVo.setRoleId(1);
         saveVo.setMenuIds(List.of(1, 2, 3));
 
         mockMvc.perform(put("/roles/1/menus")

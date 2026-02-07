@@ -2,6 +2,7 @@ package info.zhihui.ems.web.order.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.web.order.biz.OrderBiz;
@@ -20,8 +21,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * 订单管理接口
  */
@@ -36,9 +35,12 @@ public class OrderController {
 
     @SaCheckPermission("orders:orders:list")
     @GetMapping
-    @Operation(summary = "查询订单列表")
-    public RestResult<List<OrderVo>> findOrders(@Valid @ModelAttribute OrderQueryVo queryVo) {
-        return ResultUtil.success(orderBiz.findOrders(queryVo));
+    @Operation(summary = "分页查询订单列表")
+    public RestResult<PageResult<OrderVo>> findOrdersPage(
+            @Valid @ModelAttribute OrderQueryVo queryVo,
+            @Parameter(description = "页码", example = "1") @RequestParam(defaultValue = "1") Integer pageNum,
+            @Parameter(description = "每页数量", example = "10") @RequestParam(defaultValue = "10") Integer pageSize) {
+        return ResultUtil.success(orderBiz.findOrdersPage(queryVo, pageNum, pageSize));
     }
 
     @SaCheckPermission("orders:orders:add-energy")
@@ -73,8 +75,7 @@ public class OrderController {
     @SaIgnore
     @PostMapping("/weixin/pay-notify")
     @Operation(summary = "处理微信支付通知")
-    public RestResult<Void> answerWeiXinPayNotify(HttpServletRequest request) {
+    public void answerWeiXinPayNotify(HttpServletRequest request) {
         orderBiz.answerWeiXinPayNotify(request);
-        return ResultUtil.success();
     }
 }

@@ -74,10 +74,10 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public TaskScheduler taskScheduler() {
+    public TaskScheduler rabbitMqTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(5);
-        scheduler.setThreadNamePrefix("mq-retry-");
+        scheduler.setThreadNamePrefix("rabbitMq-retry-");
         scheduler.initialize();
         return scheduler;
     }

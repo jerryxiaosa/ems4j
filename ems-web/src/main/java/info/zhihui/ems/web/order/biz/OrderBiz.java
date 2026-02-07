@@ -8,6 +8,8 @@ import info.zhihui.ems.business.finance.entity.order.OrderThirdPartyNotification
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.service.order.core.OrderQueryService;
 import info.zhihui.ems.business.finance.service.order.core.OrderService;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.order.mapstruct.OrderWebMapper;
 import info.zhihui.ems.web.order.vo.EnergyOrderCreateVo;
 import info.zhihui.ems.web.order.vo.OrderDetailVo;
@@ -24,7 +26,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * 订单业务编排
@@ -41,10 +43,15 @@ public class OrderBiz {
     /**
      * 查询订单列表
      */
-    public List<OrderVo> findOrders(OrderQueryVo queryVo) {
+    public PageResult<OrderVo> findOrdersPage(OrderQueryVo queryVo, Integer pageNum, Integer pageSize) {
         OrderQueryDto queryDto = orderWebMapper.toOrderQueryDto(queryVo);
-        List<OrderBo> orders = orderQueryService.findOrders(queryDto);
-        return orderWebMapper.toOrderVoList(orders);
+        if (queryDto == null) {
+            queryDto = new OrderQueryDto();
+        }
+        PageParam pageParam = new PageParam()
+                .setPageNum(Objects.requireNonNullElse(pageNum, 1))
+                .setPageSize(Objects.requireNonNullElse(pageSize, 10));
+        return orderWebMapper.toOrderVoPage(orderQueryService.findOrdersPage(queryDto, pageParam));
     }
 
     /**
@@ -95,23 +102,23 @@ public class OrderBiz {
     private RequestParam buildRequestParam(HttpServletRequest request) {
         //随机串
         String nonceStr = request.getHeader("Wechatpay-Nonce");
-        log.info("Wechatpay-Nonce: {}", nonceStr);
+        log.debug("Wechatpay-Nonce: {}", nonceStr);
 
         //微信传递过来的签名
         String signature = request.getHeader("Wechatpay-Signature");
-        log.info("Wechatpay-Signature: {}", signature);
+        log.debug("Wechatpay-Signature: {}", signature);
 
         //证书序列号（微信平台）
         String serialNo = request.getHeader("Wechatpay-Serial");
-        log.info("Wechatpay-Serial: {}", serialNo);
+        log.debug("Wechatpay-Serial: {}", serialNo);
 
         //时间戳
         String timestamp = request.getHeader("Wechatpay-Timestamp");
-        log.info("Wechatpay-Timestamp: {}", timestamp);
+        log.debug("Wechatpay-Timestamp: {}", timestamp);
 
         //消息体
         String body = getRequestBody(request);
-        log.info("body: {}", body);
+        log.debug("body: {}", body);
 
         return new RequestParam.Builder()
                 .signature(signature)
@@ -132,7 +139,8 @@ public class OrderBiz {
                 sb.append(line);
             }
         } catch (IOException e) {
-            log.error("读取数据流异常:", e);
+            log.error("读取微信支付回调请求体异常", e);
+            throw new RuntimeException("读取微信支付回调请求体失败", e);
         }
 
         return sb.toString();

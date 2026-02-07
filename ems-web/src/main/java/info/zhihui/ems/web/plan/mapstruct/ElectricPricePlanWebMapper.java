@@ -14,13 +14,12 @@ import info.zhihui.ems.web.plan.vo.ElectricPricePlanVo;
 import info.zhihui.ems.web.plan.vo.ElectricPriceTimeSettingVo;
 import info.zhihui.ems.web.plan.vo.ElectricPriceTypeVo;
 import info.zhihui.ems.web.plan.vo.StepPriceVo;
+import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
+import info.zhihui.ems.common.exception.ParamException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
-import java.util.Optional;
-import java.util.Objects;
 import java.util.List;
 
 /**
@@ -47,7 +46,7 @@ public interface ElectricPricePlanWebMapper {
 
     List<StepPriceVo> toStepPriceVoList(List<StepPriceBo> list);
 
-    @Mapping(target = "type", expression = "java(mapElectricDegreeType(vo.getType()).orElse(null))")
+    @Mapping(target = "type", expression = "java(mapElectricDegreeType(vo.getType()))")
     ElectricPriceTimeDto toElectricPriceTimeDto(ElectricPriceTimeSettingVo vo);
 
     @Mapping(target = "type", expression = "java(mapElectricDegreeTypeCode(dto.getType()))")
@@ -57,7 +56,7 @@ public interface ElectricPricePlanWebMapper {
 
     List<ElectricPriceTimeSettingVo> toElectricPriceTimeSettingVoList(List<ElectricPriceTimeDto> list);
 
-    @Mapping(target = "type", expression = "java(mapElectricDegreeType(vo.getType()).orElse(null))")
+    @Mapping(target = "type", expression = "java(mapElectricDegreeType(vo.getType()))")
     ElectricPriceTypeDto toElectricPriceTypeDto(ElectricPriceTypeVo vo);
 
     @Mapping(target = "type", expression = "java(mapElectricDegreeTypeCode(dto.getType()))")
@@ -68,16 +67,20 @@ public interface ElectricPricePlanWebMapper {
     List<ElectricPriceTypeVo> toElectricPriceTypeVoList(List<ElectricPriceTypeDto> list);
 
     // ---- helpers for enum/code conversion ----
-    default Optional<ElectricPricePeriodEnum> mapElectricDegreeType(Integer code) {
+    default ElectricPricePeriodEnum mapElectricDegreeType(Integer code) {
         if (code == null) {
-            return Optional.empty();
+            throw new ParamException("电价类型不能为空");
         }
-        for (ElectricPricePeriodEnum value : ElectricPricePeriodEnum.values()) {
-            if (Objects.equals(value.getCode(), code)) {
-                return Optional.of(value);
-            }
+        ElectricPricePeriodEnum periodEnum;
+        try {
+            periodEnum = ElectricPricePeriodEnum.fromCode(code);
+        } catch (IllegalArgumentException exception) {
+            throw new ParamException("电价类型不合法");
         }
-        return Optional.empty();
+        if (periodEnum == null || ElectricPricePeriodEnum.TOTAL.equals(periodEnum)) {
+            throw new ParamException("电价类型不合法");
+        }
+        return periodEnum;
     }
 
     default Integer mapElectricDegreeTypeCode(ElectricPricePeriodEnum enumVal) {

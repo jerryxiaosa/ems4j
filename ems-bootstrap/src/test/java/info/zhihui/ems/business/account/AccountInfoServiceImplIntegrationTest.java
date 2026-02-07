@@ -47,12 +47,22 @@ class AccountInfoServiceImplIntegrationTest {
             accountInfoService.findList(null);
         }, "findList方法null参数应抛出ConstraintViolationException");
 
-        // 测试2: getById方法 - null参数
+        // 测试2: findPage方法 - null查询参数
+        assertThrows(ConstraintViolationException.class, () -> {
+            accountInfoService.findPage(null, new PageParam());
+        }, "findPage方法null查询参数应抛出ConstraintViolationException");
+
+        // 测试3: findPage方法 - null分页参数
+        assertThrows(ConstraintViolationException.class, () -> {
+            accountInfoService.findPage(new AccountQueryDto(), null);
+        }, "findPage方法null分页参数应抛出ConstraintViolationException");
+
+        // 测试4: getById方法 - null参数
         assertThrows(ConstraintViolationException.class, () -> {
             accountInfoService.getById(null);
         }, "getById方法null参数应抛出ConstraintViolationException");
 
-        // 测试4: findCancelRecordPage方法 - null参数
+        // 测试5: findCancelRecordPage方法 - null参数
         assertThrows(ConstraintViolationException.class, () -> {
             accountInfoService.findCancelRecordPage(null, new PageParam());
         }, "findCancelRecordPage方法null查询参数应抛出ConstraintViolationException");
@@ -61,17 +71,26 @@ class AccountInfoServiceImplIntegrationTest {
             accountInfoService.findCancelRecordPage(new AccountCancelQueryDto(), null);
         }, "findCancelRecordPage方法null分页参数应抛出ConstraintViolationException");
 
-        // 测试5: getCancelRecordDetail方法 - null参数
+        // 测试6: getCancelRecordDetail方法 - null参数
         assertThrows(ConstraintViolationException.class, () -> {
             accountInfoService.getCancelRecordDetail(null);
         }, "getCancelRecordDetail方法null参数应抛出ConstraintViolationException");
 
-        // 测试6: findList方法 - 有效参数（不应抛出参数校验异常）
+        // 测试7: findList方法 - 有效参数（不应抛出参数校验异常）
         AccountQueryDto query = new AccountQueryDto();
         try {
             accountInfoService.findList(query);
         } catch (ConstraintViolationException e) {
             throw new AssertionError("findList方法有效参数不应抛出ConstraintViolationException", e);
+        } catch (Exception e) {
+            // 其他异常（如业务异常）是可以接受的，我们只关心参数校验
+        }
+
+        // 测试8: findPage方法 - 有效参数（不应抛出参数校验异常）
+        try {
+            accountInfoService.findPage(query, new PageParam().setPageNum(1).setPageSize(10));
+        } catch (ConstraintViolationException e) {
+            throw new AssertionError("findPage方法有效参数不应抛出ConstraintViolationException", e);
         } catch (Exception e) {
             // 其他异常（如业务异常）是可以接受的，我们只关心参数校验
         }
@@ -130,6 +149,66 @@ class AccountInfoServiceImplIntegrationTest {
         List<AccountBo> list2 = accountInfoService.findList(q);
         assertNotNull(list2);
         assertFalse(list2.isEmpty());
+    }
+
+    @Test
+    @DisplayName("findPage方法集成测试 - 测试正常分页查询功能")
+    void testFindPage_Success() {
+        AccountQueryDto query = new AccountQueryDto();
+        PageParam pageParam = new PageParam().setPageNum(1).setPageSize(2);
+
+        PageResult<AccountBo> result = accountInfoService.findPage(query, pageParam);
+
+        assertNotNull(result, "分页查询结果不应为null");
+        assertNotNull(result.getList(), "分页数据列表不应为null");
+        assertTrue(result.getTotal() >= 0, "总数应大于等于0");
+        assertTrue(result.getPageNum() > 0, "页码应大于0");
+        assertTrue(result.getPageSize() > 0, "每页数量应大于0");
+        assertFalse(result.getList().isEmpty(), "分页结果应包含数据");
+
+        AccountBo firstAccount = result.getList().get(0);
+        assertNotNull(firstAccount.getId(), "账户ID不应为null");
+        assertNotNull(firstAccount.getOwnerType(), "账户类型不应为null");
+        assertNotNull(firstAccount.getOwnerId(), "归属者ID不应为null");
+
+        AccountQueryDto specificQuery = new AccountQueryDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001);
+        PageResult<AccountBo> specificResult = accountInfoService.findPage(
+                specificQuery,
+                new PageParam().setPageNum(1).setPageSize(10)
+        );
+        assertNotNull(specificResult, "特定条件分页结果不应为null");
+        assertNotNull(specificResult.getList(), "特定条件分页列表不应为null");
+        assertFalse(specificResult.getList().isEmpty(), "特定条件分页结果应有数据");
+        assertEquals(1L, specificResult.getTotal(), "特定条件总数应为1");
+        assertEquals(OwnerTypeEnum.ENTERPRISE, specificResult.getList().get(0).getOwnerType(), "归属者类型应匹配");
+        assertEquals(1001, specificResult.getList().get(0).getOwnerId(), "归属者ID应匹配");
+    }
+
+    @Test
+    @DisplayName("findPage方法集成测试 - 测试分页功能")
+    void testFindPage_Pagination() {
+        AccountQueryDto query = new AccountQueryDto();
+        PageParam firstPageParam = new PageParam().setPageNum(1).setPageSize(2);
+        PageResult<AccountBo> firstPageResult = accountInfoService.findPage(query, firstPageParam);
+
+        assertNotNull(firstPageResult, "第一页结果不应为null");
+        assertNotNull(firstPageResult.getList(), "第一页数据列表不应为null");
+
+        if (firstPageResult.getTotal() > 2) {
+            PageParam secondPageParam = new PageParam().setPageNum(2).setPageSize(2);
+            PageResult<AccountBo> secondPageResult = accountInfoService.findPage(query, secondPageParam);
+
+            assertNotNull(secondPageResult, "第二页结果不应为null");
+            assertNotNull(secondPageResult.getList(), "第二页数据列表不应为null");
+            assertEquals(firstPageResult.getTotal(), secondPageResult.getTotal(), "两页总数应一致");
+            assertFalse(secondPageResult.getList().isEmpty(), "第二页应包含数据");
+
+            Integer firstPageFirstId = firstPageResult.getList().get(0).getId();
+            Integer secondPageFirstId = secondPageResult.getList().get(0).getId();
+            assertTrue(firstPageFirstId > secondPageFirstId, "按ID倒序分页时，第一页首条ID应大于第二页首条ID");
+        }
     }
 
     @Test
