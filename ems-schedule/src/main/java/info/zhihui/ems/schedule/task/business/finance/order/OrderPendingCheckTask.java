@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 订单待支付状态校验计划任务
+ * TryCompleteListener 消费失败时由该任务执行业务补偿，不依赖消息队列消费重试。
  *
  * @author jerryxiaosa
  */

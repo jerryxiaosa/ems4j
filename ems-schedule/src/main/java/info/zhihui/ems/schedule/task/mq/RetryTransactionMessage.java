@@ -15,6 +15,7 @@ import java.util.List;
  * 事务消息重试计划任务
  * 每分钟执行一次，获取失败的事务消息并重新投递到消息队列
  * 消息执行结果由消息队列处理后自动标记，无需手动更新状态
+ * 用于补偿 EnergyTopUpListener、TerminationListener 等事务消息链路的消费失败。
  *
  * @author jerryxiaosa
  */

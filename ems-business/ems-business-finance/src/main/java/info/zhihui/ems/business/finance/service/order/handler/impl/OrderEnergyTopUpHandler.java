@@ -19,7 +19,7 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.foundation.space.util.SpaceInfoUtils;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;

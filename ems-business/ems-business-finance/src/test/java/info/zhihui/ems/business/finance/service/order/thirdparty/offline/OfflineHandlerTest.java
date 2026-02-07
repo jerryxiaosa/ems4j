@@ -5,7 +5,7 @@ import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;
 import info.zhihui.ems.mq.api.message.order.OrderCompleteMessage;
 import info.zhihui.ems.mq.api.service.MqService;

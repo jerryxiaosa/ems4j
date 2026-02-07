@@ -1,6 +1,6 @@
 package info.zhihui.ems.mq.api.dto;
 
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;

@@ -19,7 +19,7 @@ import info.zhihui.ems.business.finance.service.order.handler.creation.BaseOrder
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;
 import info.zhihui.ems.mq.api.message.order.status.TerminationSuccessMessage;

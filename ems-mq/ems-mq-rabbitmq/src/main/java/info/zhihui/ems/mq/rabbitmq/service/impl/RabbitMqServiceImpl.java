@@ -1,6 +1,6 @@
 package info.zhihui.ems.mq.rabbitmq.service.impl;
 
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.TransactionUtil;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
 import info.zhihui.ems.mq.api.message.order.delay.BaseDelayMessage;
@@ -27,7 +27,8 @@ public class RabbitMqServiceImpl implements MqService {
                 mqMessage.getRoutingIdentifier(),
                 mqMessage.getPayload());
 
-        // 延时消息
+        // 延时消息：依赖 x-delayed-message 插件（交换机类型为 x-delayed-message）。
+        // 由部署环境保证插件可用。
         if (mqMessage.getPayload() instanceof BaseDelayMessage delayMessage) {
             rabbitTemplate.convertAndSend(mqMessage.getMessageDestination(), mqMessage.getRoutingIdentifier(), mqMessage.getPayload(),
                     a -> {

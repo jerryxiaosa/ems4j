@@ -1,7 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.service;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.mq.api.bo.TransactionMessageBo;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
@@ -15,7 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -33,11 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("事务消息服务实现类测试")
 class TransactionMessageServiceImplTest {
+    private static final int DEFAULT_MAX_RETRY_TIMES = 10;
+    private static final int DEFAULT_FETCH_SIZE = 100;
 
     @Mock
     private TransactionMessageRepository transactionMessageRepository;
 
-    @InjectMocks
     private TransactionMessageServiceImpl transactionMessageService;
 
     private TransactionMessageDto addDto;
@@ -45,6 +49,10 @@ class TransactionMessageServiceImplTest {
     @BeforeEach
     void setUp() {
         // Given: 准备测试数据
+        transactionMessageService = new TransactionMessageServiceImpl(transactionMessageRepository,
+                DEFAULT_MAX_RETRY_TIMES,
+                DEFAULT_FETCH_SIZE);
+
         MqMessage mqMessage = new MqMessage();
         mqMessage.setMessageDestination("test-topic");
         mqMessage.setRoutingIdentifier("test-key");
@@ -64,10 +72,9 @@ class TransactionMessageServiceImplTest {
         Mockito.when(transactionMessageRepository.insert(ArgumentMatchers.any(TransactionMessageEntity.class))).thenReturn(1);
 
         // When: 调用新增方法
-        boolean result = transactionMessageService.add(addDto);
+        Assertions.assertDoesNotThrow(() -> transactionMessageService.add(addDto));
 
         // Then: 验证结果和调用
-        Assertions.assertTrue(result);
         ArgumentCaptor<TransactionMessageEntity> entityCaptor = ArgumentCaptor.forClass(TransactionMessageEntity.class);
         Mockito.verify(transactionMessageRepository, Mockito.times(1)).insert(entityCaptor.capture());
         assertEquals(String.class.getName(), entityCaptor.getValue().getPayloadType());
@@ -79,11 +86,12 @@ class TransactionMessageServiceImplTest {
         // Given: 模拟 repository 插入失败
         Mockito.when(transactionMessageRepository.insert(ArgumentMatchers.any(TransactionMessageEntity.class))).thenReturn(0);
 
-        // When: 调用新增方法
-        boolean result = transactionMessageService.add(addDto);
+        // When & Then: 验证插入失败抛出业务异常
+        BusinessRuntimeException exception = Assertions.assertThrows(BusinessRuntimeException.class, () -> {
+            transactionMessageService.add(addDto);
+        });
 
-        // Then: 验证结果
-        Assertions.assertFalse(result);
+        Assertions.assertEquals("新增事务消息失败，事务消息未落库", exception.getMessage());
         Mockito.verify(transactionMessageRepository, Mockito.times(1)).insert(ArgumentMatchers.any(TransactionMessageEntity.class));
     }
 
@@ -232,7 +240,9 @@ class TransactionMessageServiceImplTest {
         assertEquals("test-topic2", bo2.getMessage().getMessageDestination());
 
         Mockito.verify(transactionMessageRepository, Mockito.times(1))
-                .getPastUnsuccessful(ArgumentMatchers.eq(10), ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.eq(100));
+                .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(DEFAULT_FETCH_SIZE));
     }
 
     @Test
@@ -249,7 +259,9 @@ class TransactionMessageServiceImplTest {
         Assertions.assertNotNull(result);
         Assertions.assertTrue(result.isEmpty());
         Mockito.verify(transactionMessageRepository, Mockito.times(1))
-                .getPastUnsuccessful(ArgumentMatchers.eq(10), ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.eq(100));
+                .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(DEFAULT_FETCH_SIZE));
     }
 
     @Test
@@ -266,14 +278,16 @@ class TransactionMessageServiceImplTest {
 
         Assertions.assertEquals("获取最近一天失败记录失败", exception.getMessage());
         Mockito.verify(transactionMessageRepository, Mockito.times(1))
-                .getPastUnsuccessful(ArgumentMatchers.eq(10), ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.eq(100));
+                .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(DEFAULT_FETCH_SIZE));
     }
 
     @Test
-    @DisplayName("JSON 解析异常场景测试")
+    @DisplayName("单条记录转换失败应跳过并递增重试次数")
     void findRecentFailureRecords_JsonParseException() {
-        // Given: 准备包含无效 JSON 的测试数据
-        TransactionMessageEntity entityWithInvalidJson = new TransactionMessageEntity()
+        // Given: 准备无法转换为业务对象的测试数据（业务类型非法）
+        TransactionMessageEntity invalidEntity = new TransactionMessageEntity()
                 .setId(1)
                 .setBusinessType("ORDER")
                 .setSn("TEST-SN-001")
@@ -286,19 +300,49 @@ class TransactionMessageServiceImplTest {
                 .setTryTimes(3)
                 .setIsSuccess(false);
 
-        List<TransactionMessageEntity> entityList = List.of(entityWithInvalidJson);
+        List<TransactionMessageEntity> entityList = List.of(invalidEntity);
 
         // 模拟 repository 查询成功
         Mockito.when(transactionMessageRepository.getPastUnsuccessful(ArgumentMatchers.anyInt(), ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.anyInt()))
                 .thenReturn(entityList);
+        Mockito.when(transactionMessageRepository.incrementTryTimesById(ArgumentMatchers.anyInt(), ArgumentMatchers.any(LocalDateTime.class)))
+                .thenReturn(1);
 
-        // When & Then: 验证抛出运行时异常（由于 JSON 解析失败）
-        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            transactionMessageService.findRecentFailureRecords();
-        });
+        // When: 查询失败记录
+        List<TransactionMessageBo> result = transactionMessageService.findRecentFailureRecords();
 
-        Assertions.assertEquals("获取最近一天失败记录失败", exception.getMessage());
+        // Then: 单条异常不会中断整批
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.isEmpty());
         Mockito.verify(transactionMessageRepository, Mockito.times(1))
-                .getPastUnsuccessful(ArgumentMatchers.eq(10), ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.eq(100));
+                .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(DEFAULT_FETCH_SIZE));
+        Mockito.verify(transactionMessageRepository, Mockito.times(1))
+                .incrementTryTimesById(ArgumentMatchers.eq(1), ArgumentMatchers.any(LocalDateTime.class));
+    }
+
+    @Test
+    @DisplayName("获取最近一天失败记录 - 应使用配置的重试参数")
+    void findRecentFailureRecords_ShouldUseConfiguredRetryParams() {
+        // Given
+        int customMaxRetryTimes = 5;
+        int customFetchSize = 20;
+        transactionMessageService = new TransactionMessageServiceImpl(transactionMessageRepository,
+                customMaxRetryTimes,
+                customFetchSize);
+        Mockito.when(transactionMessageRepository.getPastUnsuccessful(ArgumentMatchers.anyInt(),
+                        ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.anyInt()))
+                .thenReturn(List.of());
+
+        // When
+        List<TransactionMessageBo> result = transactionMessageService.findRecentFailureRecords();
+
+        // Then
+        Assertions.assertNotNull(result);
+        Mockito.verify(transactionMessageRepository, Mockito.times(1))
+                .getPastUnsuccessful(ArgumentMatchers.eq(customMaxRetryTimes),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(customFetchSize));
     }
 }

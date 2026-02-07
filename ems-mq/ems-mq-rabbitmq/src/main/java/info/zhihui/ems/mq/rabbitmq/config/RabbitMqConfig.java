@@ -2,6 +2,7 @@ package info.zhihui.ems.mq.rabbitmq.config;
 
 import info.zhihui.ems.mq.api.service.MqService;
 import info.zhihui.ems.mq.api.service.TransactionMessageService;
+import info.zhihui.ems.mq.rabbitmq.config.properties.TransactionMessageRetryProperties;
 import info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository;
 import info.zhihui.ems.mq.rabbitmq.service.impl.RabbitMqServiceImpl;
 import info.zhihui.ems.mq.rabbitmq.service.impl.TransactionMessageServiceImpl;
@@ -14,8 +15,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -25,6 +26,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author jerryxiaosa
  */
 @Configuration
+@EnableConfigurationProperties(TransactionMessageRetryProperties.class)
 public class RabbitMqConfig {
     @Value("${spring.rabbitmq.listener.simple.concurrency}")
     private Integer concurrency;
@@ -49,8 +51,11 @@ public class RabbitMqConfig {
 
     @Bean
     @ConditionalOnProperty(name = "mq.type", havingValue = "rabbitmq", matchIfMissing = true)
-    public TransactionMessageService getTransactionMessageService(TransactionMessageRepository repository) {
-        return new TransactionMessageServiceImpl(repository);
+    public TransactionMessageService getTransactionMessageService(TransactionMessageRepository repository,
+                                                                  TransactionMessageRetryProperties retryProperties) {
+        return new TransactionMessageServiceImpl(repository,
+                retryProperties.getMaxRetryTimes(),
+                retryProperties.getFetchSize());
     }
 
     @Bean

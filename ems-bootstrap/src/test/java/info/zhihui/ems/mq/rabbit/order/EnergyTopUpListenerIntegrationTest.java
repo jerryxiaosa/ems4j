@@ -74,8 +74,6 @@ class EnergyTopUpListenerIntegrationTest {
         prepareTransactionMessage(orderSn);
 
         long beforeFlowCount = countOrderFlows(orderSn);
-        long beforeCommandRecord = deviceCommandRecordRepository.selectCount(null);
-        long beforeCommandExecute = deviceCommandExecuteRecordRepository.selectCount(null);
 
         EnergyTopUpSuccessMessage message = new EnergyTopUpSuccessMessage();
         message.setBalanceType(BalanceTypeEnum.ELECTRIC_METER)

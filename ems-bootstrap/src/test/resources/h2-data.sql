@@ -99,9 +99,9 @@ INSERT INTO energy_electric_meter_power_consume_record (id, meter_id, is_calcula
 INSERT INTO sys_transaction_message (id, business_type, sn, destination, route, payload, payload_type, last_run_at, try_times, create_time, is_success)
 VALUES (1, 'ORDER_PAYMENT', 'TXN001', 'order-topic', 'order-created', '{"orderId":"ORD001","amount":100.50}', 'java.util.LinkedHashMap', '2025-01-02 10:00:00', 1, '2030-01-02 09:00:00', TRUE);
 INSERT INTO sys_transaction_message (id, business_type, sn, destination, route, payload, payload_type, last_run_at, try_times, create_time, is_success)
-VALUES (2, 'ORDER_PAYMENT', 'TXN002', 'order-topic', 'order-created', '{"messageDestination":"test-topic","routingIdentifier":"test-key","payload":"test-body"}', 'info.zhihui.ems.common.model.MqMessage', '2025-01-02 11:30:00', 3, '2030-01-02 11:00:00', FALSE);
+VALUES (2, 'ORDER_PAYMENT', 'TXN002', 'order-topic', 'order-created', '{"messageDestination":"test-topic","routingIdentifier":"test-key","payload":"test-body"}', 'info.zhihui.ems.mq.api.model.MqMessage', '2025-01-02 11:30:00', 3, '2030-01-02 11:00:00', FALSE);
 INSERT INTO sys_transaction_message (id, business_type, sn, destination, route, payload, payload_type, last_run_at, try_times, create_time, is_success)
-VALUES (3, 'ORDER_PAYMENT', 'TXN003', 'order-topic', 'order-created', '{"messageDestination":"test-topic","routingIdentifier":"test-key","payload":"test-body"}', 'info.zhihui.ems.common.model.MqMessage', '2025-01-02 15:45:00', 2, '2030-01-02 15:00:00', FALSE);
+VALUES (3, 'ORDER_PAYMENT', 'TXN003', 'order-topic', 'order-created', '{"messageDestination":"test-topic","routingIdentifier":"test-key","payload":"test-body"}', 'info.zhihui.ems.mq.api.model.MqMessage', '2025-01-02 15:45:00', 2, '2030-01-02 15:00:00', FALSE);
 INSERT INTO sys_transaction_message (id, business_type, sn, destination, route, payload, payload_type, last_run_at, try_times, create_time, is_success)
 VALUES (4, 'ORDER_PAYMENT', 'TXN004', 'order-topic', 'order-created', '{"orderId":"ORD004","amount":300.00}', 'java.util.LinkedHashMap', '2025-01-02 08:20:00', 1, '2030-01-02 08:00:00', TRUE);
 

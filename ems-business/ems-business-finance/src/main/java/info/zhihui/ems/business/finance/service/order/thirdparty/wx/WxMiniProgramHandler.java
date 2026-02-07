@@ -19,7 +19,7 @@ import info.zhihui.ems.business.finance.service.order.thirdparty.OrderThirdParty
 import info.zhihui.ems.business.finance.service.order.thirdparty.wx.sdk.WxMiniProgramPaySdk;
 import info.zhihui.ems.business.finance.utils.MoneyUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.foundation.system.service.ConfigService;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;
 import info.zhihui.ems.mq.api.message.order.delay.OrderDelayCheckMessage;

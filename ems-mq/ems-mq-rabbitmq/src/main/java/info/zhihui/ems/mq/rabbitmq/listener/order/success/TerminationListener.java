@@ -56,6 +56,7 @@ public class TerminationListener {
             log.error("处理订单终止成功消息失败，订单号：{}, 错误信息：{}", message.getOrderSn(), e.getMessage(), e);
 
             transactionMessageService.failure(TransactionMessageBusinessTypeEnum.ORDER_PAYMENT, message.getOrderSn());
+            // 该链路统一由事务消息补偿重投（RetryTransactionMessage），这里不再抛出异常触发消息队列容器重试。
         }
     }
 

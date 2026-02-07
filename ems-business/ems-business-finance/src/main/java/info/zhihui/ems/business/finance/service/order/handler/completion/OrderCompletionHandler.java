@@ -2,7 +2,7 @@ package info.zhihui.ems.business.finance.service.order.handler.completion;
 
 import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 
 /**
  * @author jerryxiaosa

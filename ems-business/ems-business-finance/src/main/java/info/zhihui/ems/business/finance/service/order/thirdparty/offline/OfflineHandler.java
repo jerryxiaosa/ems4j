@@ -6,7 +6,7 @@ import info.zhihui.ems.business.finance.entity.order.OrderThirdPartyNotification
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.service.order.thirdparty.OrderThirdPartyHandler;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.TransactionUtil;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;
 import info.zhihui.ems.mq.api.message.order.OrderCompleteMessage;
