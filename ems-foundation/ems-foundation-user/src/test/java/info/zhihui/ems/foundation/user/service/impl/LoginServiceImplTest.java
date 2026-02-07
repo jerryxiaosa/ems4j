@@ -1,10 +1,10 @@
 package info.zhihui.ems.foundation.user.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import cn.hutool.captcha.generator.CodeGenerator;
-import cn.hutool.extra.spring.SpringUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.LoginException;
 import info.zhihui.ems.components.redis.utils.RedisUtil;
@@ -12,6 +12,7 @@ import info.zhihui.ems.foundation.user.bo.MenuBo;
 import info.zhihui.ems.foundation.user.bo.RoleDetailBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.CaptchaDto;
 import info.zhihui.ems.foundation.user.dto.LoginRequestDto;
 import info.zhihui.ems.foundation.user.dto.MenuQueryDto;
@@ -32,7 +33,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.redisson.api.RedissonClient;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -80,7 +80,11 @@ class LoginServiceImplTest {
         normalRole = new RoleSimpleBo().setId(2).setRoleKey("normal");
         superRole = new RoleSimpleBo().setId(3).setRoleKey(RoleEnum.SUPER_ADMIN.getCode());
 
-        userBo = new UserBo().setId(1).setUserName("test");
+        userBo = new UserBo()
+                .setId(1)
+                .setUserName("test")
+                .setRealName("测试用户")
+                .setUserPhone("13800138000");
 
         roleDetailBo = new RoleDetailBo().setId(2).setMenuIds(List.of(10, 11));
 
@@ -114,9 +118,13 @@ class LoginServiceImplTest {
 
         try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class);
              MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
+            SaSession session = mock(SaSession.class);
 
             redisMock.when(() -> RedisUtil.getCacheObject("user::captcha::" + request.getCaptchaKey())).thenReturn("5-2=");
             redisMock.when(() -> RedisUtil.deleteObject("user::captcha::" + request.getCaptchaKey())).thenReturn(true);
+            stpMock.when(StpUtil::getSession).thenReturn(session);
+            stpMock.when(StpUtil::getTokenValue).thenReturn("test-token");
+            stpMock.when(StpUtil::getTokenTimeout).thenReturn(7200L);
 
             when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(List.of(userEntity));
             when(passwordService.matchesPassword("123456", "encoded")).thenReturn(true);
@@ -126,6 +134,8 @@ class LoginServiceImplTest {
             loginService.login(request);
 
             stpMock.verify(() -> StpUtil.login(eq(1), any(SaLoginParameter.class)));
+            verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "测试用户");
+            verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
         }
     }
 
@@ -140,26 +150,26 @@ class LoginServiceImplTest {
 
         userBo.setRoles(List.of(superRole));
 
-        try (MockedStatic<SpringUtil> springMock = mockStatic(SpringUtil.class)) {
-            RedissonClient redisson = mock(RedissonClient.class);
-            springMock.when(() -> SpringUtil.getBean(eq(RedissonClient.class)))
-                    .thenReturn(redisson);
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class);
+             MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
+            SaSession session = mock(SaSession.class);
 
-            try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class);
-                 MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject("user::captcha::" + request.getCaptchaKey())).thenReturn("3*6=");
+            redisMock.when(() -> RedisUtil.deleteObject("user::captcha::" + request.getCaptchaKey())).thenReturn(true);
+            stpMock.when(StpUtil::getSession).thenReturn(session);
+            stpMock.when(StpUtil::getTokenValue).thenReturn("test-token");
+            stpMock.when(StpUtil::getTokenTimeout).thenReturn(7200L);
 
-                redisMock.when(() -> RedisUtil.getCacheObject("user::captcha::" + request.getCaptchaKey())).thenReturn("3*6=");
-                redisMock.when(() -> RedisUtil.deleteObject("user::captcha::" + request.getCaptchaKey())).thenReturn(true);
+            when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(List.of(userEntity));
+            when(passwordService.matchesPassword("123456", "encoded")).thenReturn(true);
+            when(userService.getUserInfo(1)).thenReturn(userBo);
+            when(codeGenerator.verify("3*6=", "18")).thenReturn(true);
 
-                when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(List.of(userEntity));
-                when(passwordService.matchesPassword("123456", "encoded")).thenReturn(true);
-                when(userService.getUserInfo(1)).thenReturn(userBo);
-                when(codeGenerator.verify("3*6=", "18")).thenReturn(true);
+            loginService.login(request);
 
-                loginService.login(request);
-
-                stpMock.verify(() -> StpUtil.login(eq(1), any(SaLoginParameter.class)));
-            }
+            stpMock.verify(() -> StpUtil.login(eq(1), any(SaLoginParameter.class)));
+            verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "测试用户");
+            verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
         }
     }
 

@@ -85,6 +85,8 @@ logging:
 useRealDevice: false
 
 schedule:
+  enabled: false
+  await-termination-seconds: 5
   aspect:
     enabled: false
 

@@ -15,6 +15,7 @@ import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.dto.*;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
+import info.zhihui.ems.foundation.user.event.UserProfileUpdatedEvent;
 import info.zhihui.ems.foundation.user.enums.RoleEnum;
 import info.zhihui.ems.foundation.user.mapper.UserMapper;
 import info.zhihui.ems.foundation.user.qo.UserQueryQo;
@@ -28,6 +29,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final UserRoleRepository userRoleRepository;
     private final RoleService roleService;
     private final PasswordService passwordService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private static final Pattern PWD_PATTERN = Pattern.compile(".*[^a-zA-Z0-9].*");
 
@@ -169,6 +172,7 @@ public class UserServiceImpl implements UserService {
 
         // 更新用户角色关联
         saveUserRoles(dto.getId(), dto.getRoleIds());
+        publishUserProfileUpdatedEvent(dto.getId());
     }
 
     /**
@@ -388,6 +392,18 @@ public class UserServiceImpl implements UserService {
         if (!Character.isLetter(userName.charAt(0))) {
             throw new BusinessRuntimeException("用户名必须以字母开头");
         }
+    }
+
+    private void publishUserProfileUpdatedEvent(Integer userId) {
+        UserEntity latestUserEntity = repository.selectById(userId);
+        if (latestUserEntity == null) {
+            return;
+        }
+        applicationEventPublisher.publishEvent(new UserProfileUpdatedEvent(
+                userId,
+                latestUserEntity.getRealName(),
+                latestUserEntity.getUserPhone()
+        ));
     }
 
 }

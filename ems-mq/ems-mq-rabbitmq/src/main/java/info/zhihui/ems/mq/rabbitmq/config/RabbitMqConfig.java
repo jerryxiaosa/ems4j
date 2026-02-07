@@ -74,6 +74,7 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "mq.type", havingValue = "rabbitmq", matchIfMissing = true)
     public TaskScheduler rabbitMqTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(5);

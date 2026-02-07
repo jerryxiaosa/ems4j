@@ -7,16 +7,19 @@ import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
 /**
  * 接口鉴权配置
@@ -29,7 +32,7 @@ public class SaWebConfig implements WebMvcConfigurer {
 
     private final UserService userService;
 
-    @Value("${permission.excludes}")
+    @Value("${permission.excludes:}")
     private String excludes;
 
     /**
@@ -37,6 +40,7 @@ public class SaWebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        String[] excludePathPatterns = parseExcludePathPatterns(excludes);
 
         registry.addInterceptor(new SaInterceptor(handler -> {
                     // 设置用户上下文
@@ -48,21 +52,40 @@ public class SaWebConfig implements WebMvcConfigurer {
                         RequestContextSetter.clear();
                     }
                 }).addPathPatterns("/**")
-                .excludePathPatterns(excludes.split(","));
+                .excludePathPatterns(excludePathPatterns);
+    }
+
+    private String[] parseExcludePathPatterns(String excludesConfig) {
+        if (!StringUtils.hasText(excludesConfig)) {
+            return new String[0];
+        }
+        return Arrays.stream(excludesConfig.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .toArray(String[]::new);
     }
 
     private void setUserContext() {
         int userId = StpUtil.getLoginIdAsInt();
-        UserBo user;
-        try {
-            // 获取最新的用户信息
-            user = userService.getUserInfo(userId);
-        } catch (NotFoundException e) {
-            StpUtil.logout();
-            throw new BusinessRuntimeException("无法获取到用户信息");
+        String userRealName = (String) StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME);
+        String userPhone = (String) StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE);
+
+        if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
+            UserBo user;
+            try {
+                // 登录会话没有用户基础信息时回源，并写回会话
+                user = userService.getUserInfo(userId);
+            } catch (NotFoundException e) {
+                StpUtil.logout();
+                throw new BusinessRuntimeException("无法获取到用户信息");
+            }
+            userRealName = user.getRealName();
+            userPhone = user.getUserPhone();
+            StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, userRealName);
+            StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, userPhone);
         }
 
-        UserRequestData userData = new UserRequestData(user.getRealName(), user.getUserPhone());
+        UserRequestData userData = new UserRequestData(userRealName, userPhone);
         RequestContextSetter.doSet(userId, userData);
     }
 }

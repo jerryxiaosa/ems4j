@@ -15,6 +15,7 @@ import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
+import info.zhihui.ems.foundation.user.event.UserProfileUpdatedEvent;
 import info.zhihui.ems.foundation.user.enums.CertificatesTypeEnum;
 import info.zhihui.ems.foundation.user.enums.UserGenderEnum;
 import info.zhihui.ems.foundation.user.mapper.UserMapper;
@@ -32,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Collections;
@@ -65,6 +67,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -406,6 +411,7 @@ class UserServiceImplTest {
         verify(roleService).findList(any(RoleQueryDto.class));
         verify(userRoleRepository).deleteByUserId(1);
         verify(userRoleRepository).insert(ArgumentMatchers.<List<UserRoleEntity>>any());
+        verify(applicationEventPublisher).publishEvent(any(UserProfileUpdatedEvent.class));
     }
 
     @Test
@@ -423,11 +429,12 @@ class UserServiceImplTest {
 
         userService.update(dto);
 
-        verify(userRepository).selectById(1);
+        verify(userRepository, times(2)).selectById(1);
         verify(userRepository).updateById(updateEntity);
         verify(roleService, never()).findList(any(RoleQueryDto.class));
         verify(userRoleRepository, never()).deleteByUserId(anyInt());
         verify(userRoleRepository, never()).insert(anyList());
+        verify(applicationEventPublisher).publishEvent(any(UserProfileUpdatedEvent.class));
     }
 
     @Test
@@ -445,10 +452,11 @@ class UserServiceImplTest {
 
         userService.update(dto);
 
-        verify(userRepository).selectById(1);
+        verify(userRepository,times(2)).selectById(1);
         verify(userRepository).updateById(updateEntity);
         verify(userRoleRepository).deleteByUserId(1);
         verify(userRoleRepository, never()).insert(anyList());
+        verify(applicationEventPublisher).publishEvent(any(UserProfileUpdatedEvent.class));
     }
 
     // ==================== delete 测试 ====================
