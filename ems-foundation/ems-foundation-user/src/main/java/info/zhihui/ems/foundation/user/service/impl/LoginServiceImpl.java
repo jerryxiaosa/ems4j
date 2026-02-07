@@ -89,6 +89,8 @@ public class LoginServiceImpl implements LoginService {
 
         // web登录
         StpUtil.login(userInfo.getId(), new SaLoginParameter().setDeviceType(MenuSourceEnum.WEB.getInfo()));
+        StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, userInfo.getRealName());
+        StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, userInfo.getUserPhone());
 
         return new LoginResponseDto()
                 .setAccessToken(StpUtil.getTokenValue())

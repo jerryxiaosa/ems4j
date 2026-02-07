@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -19,12 +20,16 @@ import org.springframework.context.annotation.Bean;
 @Slf4j
 @Configuration
 @EnableScheduling
+@ConditionalOnProperty(prefix = "schedule", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SchedulingConfig implements SchedulingConfigurer {
 
-    private static final int AWAIT_TERMINATION_SECONDS = 30 * 60;
+    private static final int DEFAULT_AWAIT_TERMINATION_SECONDS = 30 * 60;
 
     @Value("${schedule.thread-pool-size:4}")
     private int threadPoolSize;
+
+    @Value("${schedule.await-termination-seconds:1800}")
+    private int awaitTerminationSeconds;
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
@@ -37,7 +42,9 @@ public class SchedulingConfig implements SchedulingConfigurer {
         scheduler.setPoolSize(threadPoolSize);
         scheduler.setThreadNamePrefix("ems-schedule-");
         scheduler.setWaitForTasksToCompleteOnShutdown(true);
-        scheduler.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
+        scheduler.setAwaitTerminationSeconds(awaitTerminationSeconds > 0
+                ? awaitTerminationSeconds
+                : DEFAULT_AWAIT_TERMINATION_SECONDS);
         scheduler.setErrorHandler(throwable -> log.error("调度任务执行异常", throwable));
         scheduler.initialize();
         return scheduler;

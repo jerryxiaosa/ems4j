@@ -3,10 +3,12 @@ package info.zhihui.ems.foundation.user;
 import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
+import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.LoginException;
 import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.MenuBo;
+import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.LoginRequestDto;
 import info.zhihui.ems.foundation.user.dto.LoginResponseDto;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,6 +47,9 @@ class LoginServiceImplIntegrationTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SaWebConfig saWebConfig;
 
     @Test
     @DisplayName("获取登录用户菜单 - 成功")
@@ -106,6 +112,8 @@ class LoginServiceImplIntegrationTest {
                 assertThat(response.getAccessToken()).isNotBlank();
                 assertThat(StpUtil.isLogin()).isTrue();
                 assertThat(StpUtil.getLoginIdAsInt()).isEqualTo(userId);
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo(createDto.getRealName());
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo(createDto.getUserPhone());
             } finally {
                 try {
                     StpUtil.logout();
@@ -136,6 +144,32 @@ class LoginServiceImplIntegrationTest {
         } finally {
             RedisUtil.deleteObject(captchaCacheKey);
         }
+    }
+
+    @Test
+    @DisplayName("鉴权上下文回填 - 会话缺失用户信息时自动回源并写回")
+    void testSetUserContext_ShouldBackfillSessionData_WhenSessionDataMissing() {
+        SaTokenContextMockUtil.setMockContext(() -> {
+            StpUtil.login(1);
+            try {
+                UserBo user = userService.getUserInfo(1);
+
+                // 模拟历史会话缺失（SaSession 不允许 null 值）
+                StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, "");
+                StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, "");
+
+                ReflectionTestUtils.invokeMethod(saWebConfig, "setUserContext");
+
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo(user.getRealName());
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo(user.getUserPhone());
+            } finally {
+                try {
+                    StpUtil.logout();
+                } catch (NotLoginException ignore) {
+                    // ignore for cleanup
+                }
+            }
+        });
     }
 
     private UserCreateDto buildUserCreateDto(String userName, String phone) {

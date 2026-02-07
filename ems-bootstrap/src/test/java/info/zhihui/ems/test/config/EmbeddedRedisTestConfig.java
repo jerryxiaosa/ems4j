@@ -26,7 +26,7 @@ public class EmbeddedRedisTestConfig {
     private static volatile RedisServer redisServer;
     private static volatile boolean shutdownHookRegistered;
 
-    @Bean(destroyMethod = "")
+    @Bean(destroyMethod = "stop")
     public RedisServer redisServer(Environment environment) throws IOException {
         synchronized (EmbeddedRedisTestConfig.class) {
             if (redisServer != null && redisServer.isActive()) {

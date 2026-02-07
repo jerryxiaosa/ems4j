@@ -1,10 +1,14 @@
 package info.zhihui.ems.foundation.user;
 
+import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
@@ -23,9 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -419,6 +425,53 @@ class UserServiceImplIntegrationTest {
 
         var rolesAfterUpdate = userRoleRepository.selectByUserId(1);
         assertThat(rolesAfterUpdate).extracting(UserRoleEntity::getRoleId).containsExactly(2);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("更新用户信息 - 事务提交后同步刷新会话用户信息")
+    void testUpdate_ShouldRefreshSessionUserData_AfterCommit() {
+        String randomSuffix = String.valueOf(ThreadLocalRandom.current().nextInt(10000000, 99999999));
+        String userName = "sessionuser" + randomSuffix;
+        String originalPhone = "139" + randomSuffix;
+        String updatedPhone = "137" + randomSuffix;
+        String updatedRealName = "会话刷新用户" + randomSuffix.substring(0, 3);
+
+        UserCreateDto createDto = new UserCreateDto()
+                .setUserName(userName)
+                .setPassword("Abc123!x")
+                .setRealName("会话原始用户")
+                .setUserPhone(originalPhone)
+                .setUserGender(UserGenderEnum.MALE)
+                .setCertificatesType(CertificatesTypeEnum.ID_CARD)
+                .setCertificatesNo("11010119900101" + randomSuffix.substring(0, 4))
+                .setOrganizationId(1)
+                .setRoleIds(List.of(2));
+
+        Integer userId = userService.add(createDto);
+
+        SaTokenContextMockUtil.setMockContext(() -> {
+            StpUtil.login(userId);
+            try {
+                StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, createDto.getRealName());
+                StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, createDto.getUserPhone());
+
+                userService.update(new UserUpdateDto()
+                        .setId(userId)
+                        .setRealName(updatedRealName)
+                        .setUserPhone(updatedPhone));
+
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo(updatedRealName);
+                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo(updatedPhone);
+            } finally {
+                try {
+                    StpUtil.logout();
+                } catch (NotLoginException ignore) {
+                    // ignore for cleanup
+                }
+                userService.delete(userId);
+            }
+        });
     }
 
     @Test
