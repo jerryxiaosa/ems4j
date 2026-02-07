@@ -100,14 +100,14 @@ mvn -pl ems-business/ems-business-device -am test
 ```
 +-------------------------------+          +-------------------------------+
 |        ems-bootstrap          |          |           ems-iot             |
-|       (Web服务启动入口)        |          |      (IoT服务独立启动)         |
+|       (Web Service Entry)     |          |      (IoT Service Standalone) |
 +-------------------------------+          +-------------------------------+
                |                                          |
    +-----------+-----------+-----------+                  |
    |           |           |           |                  |
 +--v-----+ +---v----+ +----v-------+   |                  |
 | ems-web| | ems-mq | |ems-schedule|   |                  |
-|(HTTP   | | (消息)  | |  (定时)    |   |                  |
+|(HTTP   | | (Msg)  | |  (Schedule)|   |                  |
 | API)   | |        | |            |   |                  |
 +--+-----+ +---+----+ +-----+------+   |                  |
    |           |            |          |                  |
@@ -117,7 +117,8 @@ mvn -pl ems-business/ems-business-device -am test
 |                        ems-business                               |
 |    +------------+  +------------+  +------------+  +------------+ |
 |    |   device   |  |  account   |  |  finance   |  |    plan    | |
-|    | (设备管理)  |  | (账户管理)  |  | (财务核算)  |  | (计费方案)  | |
+|    | (Device Mgmt)| | (Account   |  | (Finance   |  | (Pricing  | |
+|    |            |  |  Mgmt)     |  |  Accounting)|  |  Plan)    | |
 |    +------------+  +------------+  +------------+  +------------+ |
 +------------------------------------------------------------------+
                |
@@ -138,7 +139,7 @@ mvn -pl ems-business/ems-business-device -am test
                |
        +-------v-------+
        |  ems-common   |
-       | (公共工具类)   |
+       | (Common Utils)|
        +---------------+
 ```
 
