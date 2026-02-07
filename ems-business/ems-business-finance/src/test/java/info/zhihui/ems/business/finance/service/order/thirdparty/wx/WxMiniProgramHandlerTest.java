@@ -18,7 +18,7 @@ import info.zhihui.ems.business.finance.exception.PayAmountException;
 import info.zhihui.ems.business.finance.repository.order.OrderThirdPartyPrepayRepository;
 import info.zhihui.ems.business.finance.service.order.thirdparty.wx.sdk.WxMiniProgramPaySdk;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.foundation.system.service.ConfigService;
 import info.zhihui.ems.mq.api.service.MqService;
 import org.junit.jupiter.api.BeforeEach;

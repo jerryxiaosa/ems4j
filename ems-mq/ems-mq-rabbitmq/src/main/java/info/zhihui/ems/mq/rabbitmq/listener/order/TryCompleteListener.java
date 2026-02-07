@@ -22,7 +22,7 @@ public class TryCompleteListener {
         try {
             orderService.complete(message.getOrderSn());
         } catch (Exception e) {
-            // 一般不是有异常等待，如果发生那么计划任务重试
+            // 该链路不依赖消息队列消费重试，失败后由订单扫描任务补偿（OrderPendingCheckTask -> OrderCheckService）。
             log.error("尝试完成订单[{}]失败: {}", message.getOrderSn(), e.getMessage());
         }
     }

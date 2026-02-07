@@ -38,5 +38,12 @@
           AND sn = #{sn,jdbcType=VARCHAR}
     </update>
 
+    <update id="incrementTryTimesById">
+        UPDATE sys_transaction_message
+        SET last_run_at = #{lastRunAt},
+            try_times = try_times + 1
+        WHERE id = #{id}
+    </update>
+
 
 </mapper>

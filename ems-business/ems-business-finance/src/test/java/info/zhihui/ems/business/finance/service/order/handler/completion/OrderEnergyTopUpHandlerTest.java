@@ -10,7 +10,7 @@ import info.zhihui.ems.business.finance.repository.order.OrderRepository;
 import info.zhihui.ems.business.finance.service.order.fee.ServiceRateService;
 import info.zhihui.ems.business.finance.service.order.handler.impl.OrderEnergyTopUpHandler;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.mq.api.constant.order.OrderConstant;
 import info.zhihui.ems.mq.api.message.order.status.EnergyTopUpSuccessMessage;

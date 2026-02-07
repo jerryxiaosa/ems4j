@@ -44,4 +44,13 @@ public interface TransactionMessageRepository extends BaseMapper<TransactionMess
      */
     int updateTransactionMessage(TransactionMessageEntity entity);
 
+    /**
+     * 按主键递增重试次数
+     *
+     * @param id        主键ID
+     * @param lastRunAt 最后运行时间
+     * @return 更新影响的行数
+     */
+    int incrementTryTimesById(@Param("id") Integer id, @Param("lastRunAt") LocalDateTime lastRunAt);
+
 }

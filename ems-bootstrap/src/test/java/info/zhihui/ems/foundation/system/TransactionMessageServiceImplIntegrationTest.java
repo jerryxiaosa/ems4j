@@ -1,6 +1,6 @@
 package info.zhihui.ems.foundation.system;
 
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.bo.TransactionMessageBo;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
 import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
@@ -95,11 +95,8 @@ class TransactionMessageServiceImplIntegrationTest {
     @Test
     @DisplayName("新增事务消息 - 正常添加功能测试")
     void add_Success() {
-        // When: 调用新增方法
-        boolean result = transactionMessageService.add(validAddDto);
-
-        // Then: 验证添加成功
-        assertTrue(result, "事务消息应该添加成功");
+        // When & Then: 验证调用成功
+        assertDoesNotThrow(() -> transactionMessageService.add(validAddDto));
     }
 
     @Test

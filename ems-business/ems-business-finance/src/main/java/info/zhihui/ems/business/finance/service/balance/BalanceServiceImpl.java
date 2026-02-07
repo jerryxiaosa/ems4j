@@ -13,7 +13,7 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.business.finance.qo.BalanceQo;
 import info.zhihui.ems.business.finance.repository.BalanceRepository;
 import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.constant.finance.FinanceMqConstant;
 import info.zhihui.ems.mq.api.message.finance.BalanceChangedMessage;
 import info.zhihui.ems.mq.api.service.MqService;

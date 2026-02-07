@@ -1,7 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.service.impl;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.mq.api.bo.TransactionMessageBo;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
@@ -12,12 +12,12 @@ import info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,17 +27,31 @@ import java.util.List;
  * @author jerryxiaosa
  */
 @Slf4j
-@AllArgsConstructor
 @Validated
 public class TransactionMessageServiceImpl implements TransactionMessageService {
     private final TransactionMessageRepository transactionMessageRepository;
+    private final Integer maxRetryTimes;
+    private final Integer fetchSize;
+    private static final String LEGACY_MQ_MESSAGE_CLASS = "info.zhihui.ems.common.model.MqMessage";
+    private static final String NEW_MQ_MESSAGE_CLASS = "info.zhihui.ems.mq.api.model.MqMessage";
 
-    private final static Integer MAX_RETRY_TIMES = 10;
-    private final static Integer FETCH_SIZE = 100;
+    public TransactionMessageServiceImpl(TransactionMessageRepository transactionMessageRepository,
+                                         Integer maxRetryTimes,
+                                         Integer fetchSize) {
+        if (maxRetryTimes == null || maxRetryTimes < 1) {
+            throw new IllegalArgumentException("maxRetryTimes 必须大于0");
+        }
+        if (fetchSize == null || fetchSize < 1) {
+            throw new IllegalArgumentException("fetchSize 必须大于0");
+        }
+        this.transactionMessageRepository = transactionMessageRepository;
+        this.maxRetryTimes = maxRetryTimes;
+        this.fetchSize = fetchSize;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean add(@Valid @NotNull TransactionMessageDto dto) {
+    public void add(@Valid @NotNull TransactionMessageDto dto) {
         try {
             TransactionMessageEntity entity = new TransactionMessageEntity()
                     .setBusinessType(dto.getBusinessType().name())
@@ -51,7 +65,13 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
                     .setIsSuccess(false);
 
             int result = transactionMessageRepository.insert(entity);
-            return result > 0;
+            if (result != 1) {
+                log.error("新增事务消息失败，事务消息未落库，businessType: {}, sn: {}", dto.getBusinessType(), dto.getSn());
+                throw new BusinessRuntimeException("新增事务消息失败，事务消息未落库");
+            }
+        } catch (BusinessRuntimeException e) {
+            // 保留BusinessRuntimeException异常内容
+            throw e;
         } catch (Exception e) {
             log.error("新增事务消息失败，businessType: {}, sn: {}", dto.getBusinessType(), dto.getSn(), e);
             throw new BusinessRuntimeException("新增事务消息失败");
@@ -85,13 +105,45 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
     public List<TransactionMessageBo> findRecentFailureRecords() {
         try {
             LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
-            List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessful(MAX_RETRY_TIMES, oneDayAgo, FETCH_SIZE);
-            return entityList.stream()
-                    .map(this::entityToBo)
-                    .toList();
+            List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessful(maxRetryTimes, oneDayAgo, fetchSize);
+
+            List<TransactionMessageBo> messageBoList = new ArrayList<>();
+            for (TransactionMessageEntity entity : entityList) {
+                try {
+                    messageBoList.add(entityToBo(entity));
+                } catch (Exception e) {
+                    handleConvertFailed(entity, e);
+                }
+            }
+            return messageBoList;
         } catch (Exception e) {
             log.error("获取最近一天失败记录失败", e);
             throw new RuntimeException("获取最近一天失败记录失败", e);
+        }
+    }
+
+    /**
+     * 单条记录转换失败时，递增重试次数并跳过该记录，避免中断整批重试任务。
+     *
+     * @param entity    转换失败的事务消息记录
+     * @param exception 转换异常
+     */
+    private void handleConvertFailed(TransactionMessageEntity entity, Exception exception) {
+        log.error("事务消息转换失败，跳过本条，id: {}, businessType: {}, sn: {}",
+                entity.getId(), entity.getBusinessType(), entity.getSn(), exception);
+
+        if (entity.getId() == null) {
+            log.warn("事务消息主键为空，无法递增重试次数，businessType: {}, sn: {}", entity.getBusinessType(), entity.getSn());
+            return;
+        }
+
+        try {
+            int affectedRows = transactionMessageRepository.incrementTryTimesById(entity.getId(), LocalDateTime.now());
+            if (affectedRows != 1) {
+                log.warn("递增事务消息重试次数失败，id: {}, 影响行数: {}", entity.getId(), affectedRows);
+            }
+        } catch (Exception ex) {
+            log.error("递增事务消息重试次数异常，id: {}", entity.getId(), ex);
         }
     }
 
@@ -122,6 +174,9 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
         String payloadType = entity.getPayloadType();
         try {
             if (StringUtils.hasText(payloadType)) {
+                if (LEGACY_MQ_MESSAGE_CLASS.equals(payloadType)) {
+                    payloadType = NEW_MQ_MESSAGE_CLASS;
+                }
                 Class<?> payloadClass = Class.forName(payloadType);
                 return JacksonUtil.fromJson(payloadJson, payloadClass);
             }

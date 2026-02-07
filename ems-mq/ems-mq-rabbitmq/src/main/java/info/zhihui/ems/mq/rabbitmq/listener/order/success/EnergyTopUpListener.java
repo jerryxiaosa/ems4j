@@ -67,6 +67,7 @@ public class EnergyTopUpListener {
                 log.error("标记事务消息失败时发生异常，订单号: {}, 错误信息: {}", message.getOrderSn(), ex.getMessage(), ex);
             }
 
+            // 该链路统一由事务消息补偿重投（RetryTransactionMessage），这里不再抛出异常触发消息队列重试。
             log.error("处理能源充值消息失败，订单号: {}, 错误信息: {}", message.getOrderSn(), e.getMessage(), e);
         }
     }

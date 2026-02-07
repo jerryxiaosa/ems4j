@@ -17,6 +17,12 @@ import static info.zhihui.ems.mq.rabbitmq.constant.QueueConstant.QUEUE_ORDER_TRY
  */
 @Configuration
 public class OrderBind {
+    /**
+     * 延迟交换机（依赖 RabbitMQ x-delayed-message 插件）。
+     * <p>
+     * 当前版本仅支持插件模式
+     * 若目标环境未安装该插件，交换机声明阶段会失败并导致启动异常。
+     */
     @Bean
     public CustomExchange delayedExchange() {
         Map<String, Object> args = new HashMap<>();

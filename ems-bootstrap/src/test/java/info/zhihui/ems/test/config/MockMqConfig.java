@@ -1,8 +1,7 @@
 package info.zhihui.ems.test.config;
 
-import info.zhihui.ems.common.model.MqMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
-import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
 import info.zhihui.ems.mq.api.service.MqService;
 import info.zhihui.ems.mq.api.service.TransactionMessageService;
 import info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository;
@@ -13,21 +12,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * 集成测试环境下的 MQ 模拟实现，避免依赖真实 RabbitMQ。
  */
 @TestConfiguration
 @Profile("integrationtest")
 public class MockMqConfig {
+    private static final int DEFAULT_MAX_RETRY_TIMES = 10;
+    private static final int DEFAULT_FETCH_SIZE = 100;
 
     @Bean
     @Primary
     public TransactionMessageService mockTransactionMessageService(TransactionMessageRepository transactionMessageRepository) {
-        return new TransactionMessageServiceImpl(transactionMessageRepository);
+        return new TransactionMessageServiceImpl(transactionMessageRepository, DEFAULT_MAX_RETRY_TIMES, DEFAULT_FETCH_SIZE);
     }
 
     @Bean

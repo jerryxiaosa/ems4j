@@ -21,9 +21,8 @@ public interface TransactionMessageService {
      * 新增事务消息
      *
      * @param dto 事务消息新增数据传输对象
-     * @return 新增成功返回true，否则返回false
      */
-    boolean add(@Valid @NotNull TransactionMessageDto dto);
+    void add(@Valid @NotNull TransactionMessageDto dto);
 
     /**
      * 标记事务消息为成功状态

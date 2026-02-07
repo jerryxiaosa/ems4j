@@ -158,3 +158,13 @@ knife4j:
 
 permission:
   excludes: /doc.html,/v3/api-docs/**,/**/*.css,/**/*.js,/**/*.ico,/**/error
+
+mq:
+  # mq.type 不配置时默认使用 rabbitmq
+  type: rabbitmq
+  transaction-message:
+    retry:
+      # 事务消息最大重试次数
+      max-retry-times: 10
+      # 每次重试任务拉取的事务消息数量
+      fetch-size: 100
