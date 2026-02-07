@@ -2,12 +2,9 @@ package info.zhihui.ems.web.user.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.util.List;
 
 /**
  * 角色更新 VO
@@ -16,10 +13,6 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "RoleUpdateVo", description = "角色更新数据")
 public class RoleUpdateVo {
-
-    @NotNull
-    @Schema(description = "角色ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Integer id;
 
     @NotBlank
     @Size(max = 64)

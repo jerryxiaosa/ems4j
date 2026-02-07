@@ -1,11 +1,13 @@
 package info.zhihui.ems.business.finance.mapstruct;
 
+import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
+import info.zhihui.ems.common.paging.PageResult;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -17,6 +19,8 @@ public interface OrderMapper {
     @Mapping(target = "orderStatus", qualifiedByName = "toOrderStatus")
     @Mapping(target = "paymentChannel", qualifiedByName = "toPaymentChannel")
     OrderBo toBo(OrderEntity entity);
+
+    PageResult<OrderBo> pageEntityToBo(PageInfo<OrderEntity> pageInfo);
 
     @Named("toOrderType")
     default OrderTypeEnum toOrderType(Integer code) {

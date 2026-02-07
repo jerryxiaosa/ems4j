@@ -21,23 +21,22 @@
         FROM purchase_order t
         <where>
             t.is_deleted = 0
-            <if test="orderStatus != null">
-                AND t.order_status = #{orderStatus}
+            <if test="qo.orderStatus != null">
+                AND t.order_status = #{qo.orderStatus}
             </if>
-            <if test="createStartTime != null">
-                AND t.order_create_time &gt;= #{createStartTime}
+            <if test="qo.createStartTime != null">
+                AND t.order_create_time &gt;= #{qo.createStartTime}
             </if>
-            <if test="createEndTime != null">
-                AND t.order_create_time &lt; #{createEndTime}
+            <if test="qo.createEndTime != null">
+                AND t.order_create_time &lt; #{qo.createEndTime}
             </if>
-            <if test="paymentChannel != null">
-                AND t.payment_channel = #{paymentChannel}
+            <if test="qo.paymentChannel != null">
+                AND t.payment_channel = #{qo.paymentChannel}
             </if>
-            <if test="userId != null">
-                AND t.user_id = #{userId}
+            <if test="qo.userId != null">
+                AND t.user_id = #{qo.userId}
             </if>
         </where>
         ORDER BY t.order_create_time DESC
     </select>
 </mapper>
-

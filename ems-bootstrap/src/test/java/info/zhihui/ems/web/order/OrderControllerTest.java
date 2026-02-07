@@ -1,7 +1,7 @@
 package info.zhihui.ems.web.order;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import info.zhihui.ems.config.satoken.SaWebConfig;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.order.biz.OrderBiz;
 import info.zhihui.ems.web.order.controller.OrderController;
 import info.zhihui.ems.web.order.vo.OrderCreationResponseVo;
@@ -21,10 +21,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,9 +35,6 @@ class OrderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private OrderBiz orderBiz;
@@ -49,12 +48,17 @@ class OrderControllerTest {
         OrderVo orderVo = new OrderVo()
                 .setOrderSn("ORDER123")
                 .setOrderAmount(BigDecimal.TEN);
-        when(orderBiz.findOrders(any())).thenReturn(List.of(orderVo));
+        PageResult<OrderVo> pageResult = new PageResult<OrderVo>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(orderVo));
+        when(orderBiz.findOrdersPage(any(), any(), any())).thenReturn(pageResult);
 
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].orderSn").value("ORDER123"));
+                .andExpect(jsonPath("$.data.list[0].orderSn").value("ORDER123"));
     }
 
     @Test
@@ -121,13 +125,24 @@ class OrderControllerTest {
     void testAnswerWeiXinPayNotify() throws Exception {
         doNothing().when(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
 
-        String body = objectMapper.writeValueAsString(java.util.Map.of("notifyData", "raw-json"));
+        mockMvc.perform(post("/orders/weixin/pay-notify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+
+        verify(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
+    }
+
+    @Test
+    @DisplayName("处理微信支付通知-异常时返回500")
+    void testAnswerWeiXinPayNotify_WhenException() throws Exception {
+        doThrow(new RuntimeException("mock error")).when(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
 
         mockMvc.perform(post("/orders/weixin/pay-notify")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                        .content("{}"))
+                .andExpect(status().isInternalServerError());
 
         verify(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
     }

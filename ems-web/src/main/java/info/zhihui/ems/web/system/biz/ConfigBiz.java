@@ -25,6 +25,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ConfigBiz {
 
+    private static final int CONFIG_LIST_MAX_PAGE_SIZE = 1000;
+
     private final ConfigService configService;
     private final ConfigWebMapper configWebMapper;
 
@@ -45,7 +47,8 @@ public class ConfigBiz {
      */
     public List<ConfigVo> findConfigList(ConfigQueryVo queryVo) {
         ConfigQueryDto queryDto = configWebMapper.toConfigQueryDto(queryVo);
-        PageResult<ConfigBo> pageResult = configService.findConfigPage(queryDto, new PageParam().setPageNum(1).setPageSize(Integer.MAX_VALUE));
+        PageResult<ConfigBo> pageResult = configService.findConfigPage(queryDto,
+                new PageParam().setPageNum(1).setPageSize(CONFIG_LIST_MAX_PAGE_SIZE));
         List<ConfigBo> bos = pageResult == null ? Collections.emptyList() : pageResult.getList();
         if (ObjectUtils.isEmpty(bos)) {
             return Collections.emptyList();

@@ -1,8 +1,9 @@
 package info.zhihui.ems.business.finance.repository.order;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
+import info.zhihui.ems.business.finance.qo.OrderQueryQo;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,9 +28,8 @@ public interface OrderRepository extends BaseMapper<OrderEntity> {
     /**
      * 根据查询条件查找订单列表
      *
-     * @param query 订单查询参数对象
+     * @param qo 订单查询对象
      * @return 订单实体列表
      */
-    List<OrderEntity> findList(OrderQueryDto query);
+    List<OrderEntity> findList(@Param("qo") OrderQueryQo qo);
 }
-

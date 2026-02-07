@@ -6,8 +6,11 @@ import info.zhihui.ems.business.finance.entity.order.OrderEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.mapstruct.OrderMapper;
+import info.zhihui.ems.business.finance.qo.OrderQueryQo;
 import info.zhihui.ems.business.finance.repository.order.OrderRepository;
 import info.zhihui.ems.business.finance.service.order.core.impl.OrderQueryServiceImpl;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,12 +20,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * OrderQueryServiceImpl 单元测试
@@ -42,6 +49,7 @@ class OrderQueryServiceImplTest {
     private OrderQueryServiceImpl orderQueryService;
 
     private OrderQueryDto queryDto;
+    private PageParam pageParam;
     private OrderEntity orderEntity1;
     private OrderEntity orderEntity2;
     private OrderBo orderBo1;
@@ -49,14 +57,18 @@ class OrderQueryServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // 准备测试数据
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime sevenDaysAgo = now.minusDays(7);
 
         queryDto = new OrderQueryDto()
                 .setOrderStatus(OrderStatusEnum.NOT_PAY)
                 .setCreateStartTime(sevenDaysAgo)
-                .setCreateEndTime(now);
+                .setCreateEndTime(now)
+                .setPaymentChannel(PaymentChannelEnum.WX_MINI)
+                .setUserId(123);
+        pageParam = new PageParam()
+                .setPageNum(1)
+                .setPageSize(10);
 
         orderEntity1 = new OrderEntity();
         orderEntity1.setOrderSn("ORDER001");
@@ -80,112 +92,55 @@ class OrderQueryServiceImplTest {
     }
 
     @Test
-    void testFindOrders_Success() {
-        // Given
+    void testFindOrdersPage_Success() {
         List<OrderEntity> orderEntities = Arrays.asList(orderEntity1, orderEntity2);
-        when(orderRepository.findList(queryDto)).thenReturn(orderEntities);
-        when(orderMapper.toBo(orderEntity1)).thenReturn(orderBo1);
-        when(orderMapper.toBo(orderEntity2)).thenReturn(orderBo2);
+        PageResult<OrderBo> pageResult = new PageResult<OrderBo>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(2L)
+                .setList(List.of(orderBo1, orderBo2));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(orderEntities);
+        when(orderMapper.pageEntityToBo(any())).thenReturn(pageResult);
 
-        // When
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> result = orderQueryService.findOrdersPage(queryDto, pageParam);
 
-        // Then
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("ORDER001", result.get(0).getOrderSn());
-        assertEquals("ORDER002", result.get(1).getOrderSn());
-
-        verify(orderRepository).findList(queryDto);
-        verify(orderMapper).toBo(orderEntity1);
-        verify(orderMapper).toBo(orderEntity2);
+        assertEquals(1, result.getPageNum());
+        assertEquals(10, result.getPageSize());
+        assertEquals(2L, result.getTotal());
+        assertNotNull(result.getList());
+        assertEquals(2, result.getList().size());
+        verify(orderRepository).findList(argThat(qo ->
+                OrderStatusEnum.NOT_PAY.name().equals(qo.getOrderStatus())
+                        && PaymentChannelEnum.WX_MINI.name().equals(qo.getPaymentChannel())
+                        && Integer.valueOf(123).equals(qo.getUserId())
+                        && queryDto.getCreateStartTime().equals(qo.getCreateStartTime())
+                        && queryDto.getCreateEndTime().equals(qo.getCreateEndTime())));
+        verify(orderMapper).pageEntityToBo(any());
     }
 
     @Test
-    void testFindOrders_EmptyResult() {
-        // Given
-        when(orderRepository.findList(queryDto)).thenReturn(Collections.emptyList());
+    void testFindOrdersPage_RepositoryException() {
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenThrow(new RuntimeException("Database error"));
 
-        // When
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(orderRepository).findList(queryDto);
-        verify(orderMapper, never()).toBo(any(OrderEntity.class));
-    }
-
-    @Test
-    void testFindOrders_NullResult() {
-        // Given
-        when(orderRepository.findList(queryDto)).thenReturn(null);
-
-        // When
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(orderRepository).findList(queryDto);
-        verify(orderMapper, never()).toBo(any(OrderEntity.class));
-    }
-
-    @Test
-    void testFindOrders_WithAllParameters() {
-        // Given
-        OrderQueryDto fullQueryDto = new OrderQueryDto()
-                .setOrderStatus(OrderStatusEnum.NOT_PAY)
-                .setCreateStartTime(LocalDateTime.now().minusDays(7))
-                .setCreateEndTime(LocalDateTime.now())
-                .setPaymentChannel(PaymentChannelEnum.WX_MINI)
-                .setUserId(123);
-
-        List<OrderEntity> orderEntities = List.of(orderEntity1);
-        when(orderRepository.findList(fullQueryDto)).thenReturn(orderEntities);
-        when(orderMapper.toBo(orderEntity1)).thenReturn(orderBo1);
-
-        // When
-        List<OrderBo> result = orderQueryService.findOrders(fullQueryDto);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("ORDER001", result.get(0).getOrderSn());
-
-        verify(orderRepository).findList(fullQueryDto);
-        verify(orderMapper).toBo(orderEntity1);
-    }
-
-    @Test
-    void testFindOrders_RepositoryException() {
-        // Given
-        when(orderRepository.findList(queryDto)).thenThrow(new RuntimeException("Database error"));
-
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> orderQueryService.findOrders(queryDto));
+                () -> orderQueryService.findOrdersPage(queryDto, pageParam));
 
         assertEquals("Database error", exception.getMessage());
-        verify(orderRepository).findList(queryDto);
-        verify(orderMapper, never()).toBo(any(OrderEntity.class));
+        verify(orderRepository).findList(any(OrderQueryQo.class));
+        verify(orderMapper, never()).pageEntityToBo(any());
     }
 
     @Test
-    void testFindOrders_MapperException() {
-        // Given
-        List<OrderEntity> orderEntities = List.of(orderEntity1);
-        when(orderRepository.findList(queryDto)).thenReturn(orderEntities);
-        when(orderMapper.toBo(orderEntity1)).thenThrow(new RuntimeException("Mapping error"));
+    void testFindOrdersPage_PageMapperException() {
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderEntity1));
+        when(orderMapper.pageEntityToBo(any())).thenThrow(new RuntimeException("Mapping error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> orderQueryService.findOrders(queryDto));
+                () -> orderQueryService.findOrdersPage(queryDto, pageParam));
 
         assertEquals("Mapping error", exception.getMessage());
-        verify(orderRepository).findList(queryDto);
-        verify(orderMapper).toBo(orderEntity1);
+        verify(orderRepository).findList(any(OrderQueryQo.class));
+        verify(orderMapper).pageEntityToBo(any());
     }
 }

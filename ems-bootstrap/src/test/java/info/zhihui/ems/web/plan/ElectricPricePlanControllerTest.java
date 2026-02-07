@@ -1,6 +1,7 @@
 package info.zhihui.ems.web.plan;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.web.plan.biz.ElectricPricePlanBiz;
 import info.zhihui.ems.web.plan.controller.ElectricPricePlanController;
@@ -23,6 +24,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -97,7 +100,7 @@ class ElectricPricePlanControllerTest {
     void testUpdateDefaultElectricPrice() throws Exception {
         doNothing().when(electricPricePlanBiz).updateDefaultElectricPrice(any());
 
-        List<ElectricPriceTypeVo> priceVos = List.of(new ElectricPriceTypeVo().setType(0).setPrice(BigDecimal.ONE));
+        List<ElectricPriceTypeVo> priceVos = List.of(new ElectricPriceTypeVo().setType(1).setPrice(BigDecimal.ONE));
 
         mockMvc.perform(put("/plan/electric-price-plans/default/price")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -111,12 +114,42 @@ class ElectricPricePlanControllerTest {
     void testUpdateDefaultElectricTime() throws Exception {
         doNothing().when(electricPricePlanBiz).updateDefaultElectricTime(any());
 
-        List<ElectricPriceTimeSettingVo> timeList = List.of(new ElectricPriceTimeSettingVo().setType(0).setStart(LocalTime.MIDNIGHT));
+        List<ElectricPriceTimeSettingVo> timeList = List.of(new ElectricPriceTimeSettingVo().setType(1).setStart(LocalTime.MIDNIGHT));
 
         mockMvc.perform(put("/plan/electric-price-plans/default/time")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(timeList)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("更新默认尖峰平谷电价-非法类型应返回参数错误")
+    void testUpdateDefaultElectricPrice_InvalidType_ShouldFail() throws Exception {
+        List<ElectricPriceTypeVo> priceVos = List.of(new ElectricPriceTypeVo().setType(0).setPrice(BigDecimal.ONE));
+
+        mockMvc.perform(put("/plan/electric-price-plans/default/price")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(priceVos)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(ResultCode.PARAMETER_ERROR.getCode()));
+
+        verify(electricPricePlanBiz, never()).updateDefaultElectricPrice(any());
+    }
+
+    @Test
+    @DisplayName("更新默认尖峰平谷时间段-空类型应返回参数错误")
+    void testUpdateDefaultElectricTime_NullType_ShouldFail() throws Exception {
+        List<ElectricPriceTimeSettingVo> timeList = List.of(new ElectricPriceTimeSettingVo().setType(null).setStart(LocalTime.MIDNIGHT));
+
+        mockMvc.perform(put("/plan/electric-price-plans/default/time")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(timeList)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(ResultCode.PARAMETER_ERROR.getCode()));
+
+        verify(electricPricePlanBiz, never()).updateDefaultElectricTime(any());
     }
 }

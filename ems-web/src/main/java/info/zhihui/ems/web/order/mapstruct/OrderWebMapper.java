@@ -14,6 +14,7 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.order.vo.EnergyOrderCreateVo;
 import info.zhihui.ems.web.order.vo.EnergyTopUpDetailVo;
 import info.zhihui.ems.web.order.vo.OrderCreationResponseVo;
@@ -25,6 +26,7 @@ import info.zhihui.ems.web.order.vo.TerminationSettlementVo;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +40,18 @@ public interface OrderWebMapper {
     OrderVo toOrderVo(OrderBo bo);
 
     List<OrderVo> toOrderVoList(List<OrderBo> bos);
+
+    default PageResult<OrderVo> toOrderVoPage(PageResult<OrderBo> pageResult) {
+        if (pageResult == null) {
+            return new PageResult<OrderVo>().setPageNum(0).setPageSize(0).setTotal(0L).setList(Collections.emptyList());
+        }
+        List<OrderVo> list = toOrderVoList(pageResult.getList());
+        return new PageResult<OrderVo>()
+                .setPageNum(pageResult.getPageNum())
+                .setPageSize(pageResult.getPageSize())
+                .setTotal(pageResult.getTotal())
+                .setList(list == null ? Collections.emptyList() : list);
+    }
 
     OrderDetailVo toOrderDetailVo(OrderBo bo);
 

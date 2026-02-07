@@ -823,6 +823,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
         BigDecimal stepStartValue = determineStepStartValue(resetDto.getMeterId());
         if (stepStartValue == null) {
+            log.error("未获取到电表{}的阶梯起点电量", meter.getMeterNo());
             throw new BusinessRuntimeException("未获取到电表" + meter.getMeterNo() + "的阶梯起点电量");
         }
 

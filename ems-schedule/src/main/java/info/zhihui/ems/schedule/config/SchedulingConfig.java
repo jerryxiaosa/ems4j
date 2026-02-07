@@ -1,7 +1,14 @@
 package info.zhihui.ems.schedule.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 
 /**
  * 调度器全局配置
@@ -9,8 +16,30 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * @author jerryxiaosa
  */
+@Slf4j
 @Configuration
 @EnableScheduling
-public class SchedulingConfig {
-    // 如需线程池或时区配置，可在此扩展
+public class SchedulingConfig implements SchedulingConfigurer {
+
+    private static final int AWAIT_TERMINATION_SECONDS = 30 * 60;
+
+    @Value("${schedule.thread-pool-size:4}")
+    private int threadPoolSize;
+
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        taskRegistrar.setTaskScheduler(taskScheduler());
+    }
+
+    @Bean
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(threadPoolSize);
+        scheduler.setThreadNamePrefix("ems-schedule-");
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(AWAIT_TERMINATION_SECONDS);
+        scheduler.setErrorHandler(throwable -> log.error("调度任务执行异常", throwable));
+        scheduler.initialize();
+        return scheduler;
+    }
 }

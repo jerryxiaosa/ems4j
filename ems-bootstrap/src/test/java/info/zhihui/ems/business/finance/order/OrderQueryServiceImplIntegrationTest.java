@@ -8,6 +8,8 @@ import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.repository.order.OrderRepository;
 import info.zhihui.ems.business.finance.service.order.core.OrderQueryService;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,7 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrders_ShouldReturnOrderList_WhenOrdersExist() {
+    void findOrdersPage_ShouldReturnOrderList_WhenOrdersExist() {
         // 准备测试数据
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime threeDaysAgo = now.minusDays(3);
@@ -71,9 +73,11 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result).extracting(OrderBo::getOrderSn)
@@ -82,7 +86,7 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrders_ShouldReturnEmptyList_WhenNoOrdersMatch() {
+    void findOrdersPage_ShouldReturnEmptyList_WhenNoOrdersMatch() {
         // 准备测试数据 - 创建不符合条件的订单
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime tenDaysAgo = now.minusDays(10);
@@ -99,15 +103,17 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
     }
 
     @Test
-    void findOrders_ShouldFilterByStatus_WhenStatusProvided() {
+    void findOrdersPage_ShouldFilterByStatus_WhenStatusProvided() {
         // 准备测试数据
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
 
@@ -127,9 +133,11 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.SUCCESS);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-SUCCESS");
@@ -137,7 +145,61 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrders_ShouldFilterByTimeRange_WhenTimeRangeProvided() {
+    void findOrdersPage_ShouldFilterByPaymentChannel_WhenPaymentChannelProvided() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        OrderEntity wxOrder = buildOrderEntity("IT-QUERY-PAY-WX", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setPaymentChannel(PaymentChannelEnum.WX_MINI.name());
+        OrderEntity offlineOrder = buildOrderEntity("IT-QUERY-PAY-OFFLINE", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setPaymentChannel(PaymentChannelEnum.OFFLINE.name());
+
+        orderRepository.insert(wxOrder);
+        orderRepository.insert(offlineOrder);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY)
+                .setPaymentChannel(PaymentChannelEnum.OFFLINE);
+
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-PAY-OFFLINE");
+        assertThat(result.get(0).getPaymentChannel()).isEqualTo(PaymentChannelEnum.OFFLINE);
+    }
+
+    @Test
+    void findOrdersPage_ShouldFilterByUserId_WhenUserIdProvided() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        OrderEntity user1001Order = buildOrderEntity("IT-QUERY-USER-1001", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setUserId(1001);
+        OrderEntity user2002Order = buildOrderEntity("IT-QUERY-USER-2002", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setUserId(2002);
+
+        orderRepository.insert(user1001Order);
+        orderRepository.insert(user2002Order);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY)
+                .setUserId(2002);
+
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-USER-2002");
+        assertThat(result.get(0).getUserId()).isEqualTo(2002);
+    }
+
+    @Test
+    void findOrdersPage_ShouldFilterByTimeRange_WhenTimeRangeProvided() {
         // 准备测试数据
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime twoDaysAgo = now.minusDays(2);
@@ -162,9 +224,11 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result).extracting(OrderBo::getOrderSn)
@@ -172,7 +236,7 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrders_ShouldReturnOrderedByCreateTime_WhenMultipleOrdersExist() {
+    void findOrdersPage_ShouldReturnOrderedByCreateTime_WhenMultipleOrdersExist() {
         // 准备测试数据
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneDayAgo = now.minusDays(1);
@@ -195,9 +259,11 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果 - 应该按创建时间降序排列
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
         assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-ORDER-2"); // 最新的
@@ -206,7 +272,7 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrders_ShouldExcludeDeletedOrders_WhenDeletedOrdersExist() {
+    void findOrdersPage_ShouldExcludeDeletedOrders_WhenDeletedOrdersExist() {
         // 准备测试数据
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
 
@@ -225,12 +291,74 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询
-        List<OrderBo> result = orderQueryService.findOrders(queryDto);
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderBo> result = pageResult.getList();
 
         // 验证结果 - 应该只返回未删除的订单
+        assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-NORMAL");
+    }
+
+    @Test
+    void findOrdersPage_ShouldReturnPageMeta_WhenPaginationProvided() {
+        // 准备测试数据
+        LocalDateTime now = LocalDateTime.now();
+        OrderEntity newestOrder = buildOrderEntity("IT-PAGE-META-NEW", now.minusHours(1))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity middleOrder = buildOrderEntity("IT-PAGE-META-MID", now.minusHours(2))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity oldestOrder = buildOrderEntity("IT-PAGE-META-OLD", now.minusHours(3))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+
+        orderRepository.insert(newestOrder);
+        orderRepository.insert(middleOrder);
+        orderRepository.insert(oldestOrder);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY);
+
+        // 执行查询 - 每页2条，查第1页
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(2));
+
+        // 验证分页元数据
+        assertThat(pageResult).isNotNull();
+        assertThat(pageResult.getPageNum()).isEqualTo(1);
+        assertThat(pageResult.getPageSize()).isEqualTo(2);
+        assertThat(pageResult.getTotal()).isEqualTo(3);
+        assertThat(pageResult.getList()).hasSize(2);
+    }
+
+    @Test
+    void findOrdersPage_ShouldReturnSecondPageData_WhenRequestSecondPage() {
+        // 准备测试数据（按创建时间降序：NEW -> MID -> OLD）
+        LocalDateTime now = LocalDateTime.now();
+        OrderEntity newestOrder = buildOrderEntity("IT-PAGE-NEW", now.minusHours(1))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity middleOrder = buildOrderEntity("IT-PAGE-MID", now.minusHours(2))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity oldestOrder = buildOrderEntity("IT-PAGE-OLD", now.minusHours(3))
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+
+        orderRepository.insert(newestOrder);
+        orderRepository.insert(middleOrder);
+        orderRepository.insert(oldestOrder);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY);
+
+        // 执行查询 - 每页2条，查第2页，应只剩最早一条
+        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(2).setPageSize(2));
+        List<OrderBo> result = pageResult.getList();
+
+        // 验证第2页数据
+        assertThat(pageResult).isNotNull();
+        assertThat(pageResult.getPageNum()).isEqualTo(2);
+        assertThat(pageResult.getPageSize()).isEqualTo(2);
+        assertThat(pageResult.getTotal()).isEqualTo(3);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-PAGE-OLD");
     }
 
     /**

@@ -3,6 +3,7 @@ package info.zhihui.ems.web.device.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -18,7 +19,8 @@ public class GatewayAddVo {
     @Schema(description = "空间ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer spaceId;
 
-    @NotNull
+    @NotBlank
+    @Size(max = 50)
     @Schema(description = "网关名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String gatewayName;
 
