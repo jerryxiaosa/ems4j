@@ -1,14 +1,13 @@
 package info.zhihui.ems.business.device.dto;
 
 import info.zhihui.ems.common.enums.CalculateTypeEnum;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.math.BigDecimal;
 
 @Data
 @Accessors(chain = true)
@@ -82,8 +81,9 @@ public class ElectricMeterCreateDto {
     /**
      * 电流互感器变比
      */
-    @DecimalMin(value = "0", inclusive = false, message = "CT变比必须大于0")
-    private BigDecimal ct;
+    @Positive(message = "CT变比必须大于0")
+    @Max(value = 65535, message = "CT变比不能超过65535")
+    private Integer ct;
 
 
 }

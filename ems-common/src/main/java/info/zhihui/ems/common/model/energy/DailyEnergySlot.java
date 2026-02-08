@@ -1,10 +1,9 @@
-package info.zhihui.ems.iot.domain.command.concrete;
+package info.zhihui.ems.common.model.energy;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**

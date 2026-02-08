@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
 
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.command.concrete.SetDatePlanCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
@@ -9,6 +9,7 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.MonthDay;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,8 @@ class AcrelSetDatePlanTranslatorTest {
         AcrelSetDatePlanTranslator translator = new AcrelSetDatePlanTranslator();
         SetDatePlanCommand payload = new SetDatePlanCommand()
                 .setItems(List.of(
-                        new DatePlanItem().setDailyPlanId("1").setDay("2").setMonth("3"),
-                        new DatePlanItem().setDailyPlanId("4").setDay("5").setMonth("6")
+                        new DatePlanItem().setDailyPlanId("1").setDate(MonthDay.of(3, 2)),
+                        new DatePlanItem().setDailyPlanId("4").setDate(MonthDay.of(6, 5))
                 ));
         DeviceCommand command = new DeviceCommand()
                 .setDevice(new Device().setSlaveAddress(2))
@@ -47,7 +48,7 @@ class AcrelSetDatePlanTranslatorTest {
         AcrelSetDatePlanTranslator translator = new AcrelSetDatePlanTranslator();
         List<DatePlanItem> items = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            items.add(new DatePlanItem().setDailyPlanId("1").setDay("1").setMonth("1"));
+            items.add(new DatePlanItem().setDailyPlanId("1").setDate(MonthDay.of(1, 1)));
         }
         SetDatePlanCommand payload = new SetDatePlanCommand()
                 .setItems(items);
@@ -66,7 +67,7 @@ class AcrelSetDatePlanTranslatorTest {
     void toRequest_whenItemInvalid_shouldThrow() {
         AcrelSetDatePlanTranslator translator = new AcrelSetDatePlanTranslator();
         SetDatePlanCommand payload = new SetDatePlanCommand()
-                .setItems(List.of(new DatePlanItem().setDailyPlanId("bad").setDay("1").setMonth("1")));
+                .setItems(List.of(new DatePlanItem().setDailyPlanId("bad").setDate(MonthDay.of(1, 1))));
         DeviceCommand command = new DeviceCommand()
                 .setDevice(new Device().setSlaveAddress(1))
                 .setType(DeviceCommandTypeEnum.SET_DATE_PLAN)

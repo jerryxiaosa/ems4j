@@ -80,7 +80,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                     .setDeviceNo("test-device-no")
                     .setModelId(1)
                     .setSpaceId(1)
-                    .setCt(new BigDecimal("5"))
+                    .setCt(5)
                     .setIsCalculate(true)
                     .setIsPrepay(false)
                     .setGatewayId(300)
@@ -96,7 +96,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                     .setDeviceNo("test-device-no")
                     .setModelId(1)
                     .setSpaceId(1)
-                    .setCt(new BigDecimal("5"))
+                    .setCt(5)
                     .setIsCalculate(true)
                     .setIsPrepay(false)
                     .setGatewayId(300)
@@ -112,7 +112,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                     .setDeviceNo("test-device-no")
                     .setModelId(null)
                     .setSpaceId(1)
-                    .setCt(new BigDecimal("5"))
+                    .setCt(5)
                     .setIsCalculate(true)
                     .setIsPrepay(false)
                     .setGatewayId(300)
@@ -128,7 +128,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                     .setDeviceNo("test-device-no")
                     .setModelId(1)
                     .setSpaceId(null)
-                    .setCt(new BigDecimal("5"))
+                    .setCt(5)
                     .setIsCalculate(true)
                     .setIsPrepay(false)
                     .setGatewayId(300)
@@ -144,7 +144,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                     .setDeviceNo("test-device-no")
                     .setModelId(1)
                     .setSpaceId(1)
-                    .setCt(new BigDecimal("-1"))
+                    .setCt(-1)
                     .setIsCalculate(true)
                     .setIsPrepay(false)
                     .setGatewayId(300)
@@ -212,7 +212,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         assertEquals(dto.getSpaceId(), savedMeter.getSpaceId());
         assertEquals(dto.getModelId(), savedMeter.getModelId());
         assertEquals(dto.getIsPrepay(), savedMeter.getIsPrepay());
-        assertEquals(dto.getCt(), savedMeter.getCt().stripTrailingZeros());
+        assertEquals(dto.getCt(), savedMeter.getCt());
         assertNotNull(savedMeter.getMeterNo()); // 系统生成的电表编号
     }
 
@@ -521,7 +521,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         // 创建CT变比设置DTO
         ElectricMeterCtDto ctDto = new ElectricMeterCtDto()
                 .setMeterId(meterId)
-                .setCt(new BigDecimal("10"));
+                .setCt(10);
 
         // 执行设置CT变比操作
         assertDoesNotThrow(() -> {
@@ -986,7 +986,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                 .setDeviceNo("device-" + System.nanoTime())
                 .setModelId(testModelId)
                 .setSpaceId(testSpaceId)
-                .setCt(new BigDecimal("5"))
+                .setCt(5)
                 .setIsCalculate(true)
                 .setIsPrepay(false)
                 .setGatewayId(1)
@@ -1002,7 +1002,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                 .setDeviceNo("device-" + System.nanoTime())
                 .setModelId(testModelId)
                 .setSpaceId(testSpaceId)
-                .setCt(new BigDecimal("5"))
+                .setCt(5)
                 .setIsCalculate(true)
                 .setIsPrepay(true)
                 .setGatewayId(1)

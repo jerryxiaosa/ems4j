@@ -1,13 +1,18 @@
 package info.zhihui.ems.foundation.integration.concrete.energy.dto;
 
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class ElectricDeviceCTDto extends BaseElectricDeviceDto {
+public class DailyEnergyPlanUpdateDto extends BaseElectricDeviceDto {
 
-    private Integer ct;
+    private Integer dailyPlanId;
+
+    private List<DailyEnergySlot> slots;
 }

@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
 
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.command.concrete.SetDatePlanCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -9,6 +9,8 @@ import info.zhihui.ems.iot.plugins.acrel.command.constant.AcrelRegisterMappingEn
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import org.springframework.stereotype.Component;
+
+import java.time.MonthDay;
 
 /**
  * 设置日期方案命令翻译器。
@@ -52,8 +54,12 @@ public class AcrelSetDatePlanTranslator extends AbstractAcrelCommandTranslator {
                 throw new IllegalArgumentException("日期方案配置不完整");
             }
             int dailyPlanId = parseByteValue(item.getDailyPlanId(), "日期方案每日尖峰平谷方案不正确");
-            int day = parseByteValue(item.getDay(), "日期方案日期不正确");
-            int month = parseByteValue(item.getMonth(), "日期方案月份不正确");
+            MonthDay date = item.getDate();
+            if (date == null) {
+                throw new IllegalArgumentException("日期方案日期不正确");
+            }
+            int day = date.getDayOfMonth();
+            int month = date.getMonthValue();
             data[index++] = (byte) dailyPlanId;
             data[index++] = (byte) day;
             data[index++] = (byte) month;

@@ -1,11 +1,10 @@
 package info.zhihui.ems.business.device.dto;
 
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.math.BigDecimal;
 
 /**
  * @author jerryxiaosa
@@ -24,6 +23,7 @@ public class ElectricMeterCtDto {
      * CT变比
      */
     @NotNull(message = "CT变比不能为空")
-    @DecimalMin(value = "0", inclusive = false, message = "CT变比必须大于0")
-    private BigDecimal ct;
+    @Positive(message = "CT变比必须大于0")
+    @Max(value = 65535, message = "CT变比不能超过65535")
+    private Integer ct;
 }

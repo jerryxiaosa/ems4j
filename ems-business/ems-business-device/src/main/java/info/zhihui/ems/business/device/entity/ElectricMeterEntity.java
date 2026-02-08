@@ -5,8 +5,6 @@ import info.zhihui.ems.components.datasource.entity.AreaBaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -101,7 +99,7 @@ public class ElectricMeterEntity extends AreaBaseEntity {
     /**
      * ct变比
      */
-    private BigDecimal ct;
+    private Integer ct;
 
     /**
      * 是否计量

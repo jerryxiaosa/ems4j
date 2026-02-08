@@ -46,7 +46,7 @@ public class ElectricMeterPowerRecordEntity {
     /**
      * CT变比
      */
-    private BigDecimal ct;
+    private Integer ct;
 
     /**
      * 总功率

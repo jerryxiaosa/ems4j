@@ -111,7 +111,7 @@ class MeterConsumeServiceImplTest {
                 .setMeterName("测试电表")
                 .setMeterNo("METER001")
                 .setIsPrepay(true)
-                .setCt(BigDecimal.valueOf(100))
+                .setCt(100)
                 .setIsCalculate(true)
                 .setCalculateType(CalculateTypeEnum.ELEVATOR)
                 .setSpaceId(1)

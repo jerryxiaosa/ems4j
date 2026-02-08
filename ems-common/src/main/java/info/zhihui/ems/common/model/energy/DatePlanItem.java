@@ -1,7 +1,9 @@
-package info.zhihui.ems.iot.domain.command.concrete;
+package info.zhihui.ems.common.model.energy;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
+import java.time.MonthDay;
 
 /**
  * 日期方案项。
@@ -10,8 +12,10 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DatePlanItem {
 
-    private String month;
-    private String day;
+    /**
+     * 日期（仅月日）。
+     */
+    private MonthDay date;
 
     /**
      * 对应每日电价方案编号。

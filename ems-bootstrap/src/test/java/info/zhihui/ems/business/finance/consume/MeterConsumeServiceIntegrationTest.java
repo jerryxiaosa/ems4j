@@ -80,7 +80,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
                 .setIsPrepay(false)
                 .setPricePlanId(1)
-                .setCt(new BigDecimal("1.0"))
+                .setCt(1)
                 .setStepStartValue(BigDecimal.ZERO);
 
         testDto = new ElectricMeterPowerRecordDto()
@@ -432,7 +432,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
                 .setIsPrepay(false)
                 .setPricePlanId(1)
-                .setCt(new BigDecimal("1.0"))
+                .setCt(1)
                 .setStepStartValue(BigDecimal.ZERO);
 
         return new ElectricMeterPowerRecordDto()
@@ -465,7 +465,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
                 .setIsPrepay(false)
                 .setPricePlanId(1)
-                .setCt(new BigDecimal("1.0"))
+                .setCt(1)
                 .setStepStartValue(BigDecimal.ZERO);
 
         return new ElectricMeterPowerRecordDto()

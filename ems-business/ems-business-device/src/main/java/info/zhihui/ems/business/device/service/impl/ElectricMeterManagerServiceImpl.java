@@ -28,9 +28,9 @@ import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.business.finance.service.consume.MeterConsumeService;
+import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.business.plan.bo.WarnPlanBo;
 import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
@@ -40,6 +40,7 @@ import info.zhihui.ems.common.enums.*;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.exception.ParamException;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.common.utils.SerialNumberGeneratorUtil;
 import info.zhihui.ems.components.context.RequestContext;
@@ -49,6 +50,7 @@ import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnu
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.BaseElectricDeviceDto;
+import info.zhihui.ems.foundation.integration.concrete.energy.dto.DailyEnergyPlanUpdateDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceAddDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceDegreeDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceUpdateDto;
@@ -105,6 +107,8 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     private final SpaceService spaceService;
     private final DeviceStatusSynchronizer<ElectricMeterBo> electricMeterOnlineStatusSynchronizer;
     private final WarnPlanService warnPlanService;
+
+    private static final int DEFAULT_DAILY_PLAN_ID = 1;
 
     /**
      * 新增电表
@@ -292,7 +296,15 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         ElectricMeterBo meter = electricMeterInfoService.getDetail(electricMeterTimeDto.getId());
 
         List<ElectricPriceTimeDto> validElectricPlanTime = ElectricPlanValidationUtil.getValidElectricPlanTime(electricMeterTimeDto.getTimeList());
-        String commandData = JacksonUtil.toJson(validElectricPlanTime);
+        List<DailyEnergySlot> slotList = validElectricPlanTime.stream()
+                .map(item -> new DailyEnergySlot()
+                        .setPeriod(item.getType())
+                        .setTime(item.getStart()))
+                .collect(Collectors.toList());
+        DailyEnergyPlanUpdateDto commandPayload = new DailyEnergyPlanUpdateDto()
+                .setDailyPlanId(DEFAULT_DAILY_PLAN_ID)
+                .setSlots(slotList);
+        String commandData = JacksonUtil.toJson(commandPayload);
         log.info("生成电表尖峰平谷时间段命令数据：{}", commandData);
 
         MeterCommandDto commandDto = new MeterCommandDto()
@@ -458,7 +470,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setMeter(newMeter)
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
                 .setCommandSource(CommandSourceEnum.SYSTEM)
-                .setCommandData(newMeter.getCt().toPlainString());
+                .setCommandData(String.valueOf(newMeter.getCt()));
         saveMeterCommandAndRun(ctCommandDto);
 
         return newMeterId;
@@ -504,28 +516,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                         .setForce(onlineStatusDto.getForce())
                         .setOnlineStatus(onlineStatusDto.getOnlineStatus())
         );
-    }
-
-    /**
-     * 同步电表开合闸状态
-     *
-     * @param switchStatusSyncDto 电表开合闸状态同步参数
-     */
-    @Override
-    public void syncMeterSwitchStatus(@Valid @NotNull ElectricMeterSwitchStatusSyncDto switchStatusSyncDto) {
-        ElectricMeterBo meter = electricMeterInfoService.getDetail(switchStatusSyncDto.getMeterId());
-
-        EnergyService energyService = deviceModuleContext.getService(EnergyService.class, meter.getOwnAreaId());
-        Boolean isCutOff = energyService.isCutOff(new BaseElectricDeviceDto()
-                .setDeviceId(meter.getIotId())
-                .setAreaId(meter.getOwnAreaId()));
-
-        if (!Objects.equals(meter.getIsCutOff(), isCutOff)) {
-            ElectricMeterEntity updateEntity = new ElectricMeterEntity()
-                    .setId(switchStatusSyncDto.getMeterId())
-                    .setIsCutOff(isCutOff);
-            repository.updateById(updateEntity);
-        }
     }
 
     /**
@@ -1262,7 +1252,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
         if (BooleanUtil.isTrue(isCt)) {
             if (entity.getCt() == null) {
-                entity.setCt(BigDecimal.ONE);
+                entity.setCt(1);
             }
         } else {
             if (entity.getCt() != null) {
@@ -1388,10 +1378,13 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         }
     }
 
-    private void setCtWhenAddNewMeter(Integer meterId, BigDecimal ct) {
+    private void setCtWhenAddNewMeter(Integer meterId, Integer ct) {
         // 其他的参数校验在add方法最开始已完成
         if (ct == null) {
             return;
+        }
+        if (ct <= 0) {
+            throw new BusinessRuntimeException("CT变比必须为正整数");
         }
 
         // 重新查询一次，保持最新的数据
@@ -1400,7 +1393,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setMeter(meter)
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
                 .setCommandSource(CommandSourceEnum.SYSTEM)
-                .setCommandData(ct.toPlainString());
+                .setCommandData(String.valueOf(ct));
         saveMeterCommandAndRun(ctCommandDto);
     }
 

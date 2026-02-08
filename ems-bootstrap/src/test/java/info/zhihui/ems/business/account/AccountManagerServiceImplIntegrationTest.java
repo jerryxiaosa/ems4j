@@ -507,7 +507,7 @@ public class AccountManagerServiceImplIntegrationTest {
         assertEquals(1, closeMeter.getGatewayId(), "网关ID应为1");
         assertEquals(1, closeMeter.getPortNo(), "端口号应为1");
         assertEquals(1, closeMeter.getMeterAddress(), "电表地址应为1");
-        assertEquals(new BigDecimal("1.00000000"), closeMeter.getCt(), "CT变比应为1.00000000");
+        assertEquals(1, closeMeter.getCt(), "CT变比应为1");
         // 变更了
         assertFalse(closeMeter.getProtectedModel(), "保护模式应为false");
         assertNull(closeMeter.getPricePlanId(), "电价方案ID应为null");

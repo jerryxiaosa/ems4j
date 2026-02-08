@@ -37,12 +37,17 @@ public class DeviceCommandSetCt implements DeviceCommandExecutor {
             throw new BusinessRuntimeException("命令参数不能为空");
         }
 
-        ElectricDeviceCTDto dto;
+        Integer ct;
         try {
-            dto = JacksonUtil.fromJson(json, ElectricDeviceCTDto.class);
+            ct = JacksonUtil.fromJson(json, Integer.class);
         } catch (Exception e) {
             throw new BusinessRuntimeException("命令参数格式错误");
         }
+        if (ct == null || ct <= 0) {
+            throw new BusinessRuntimeException("命令参数格式错误");
+        }
+
+        ElectricDeviceCTDto dto = new ElectricDeviceCTDto().setCt(ct);
 
         dto.setDeviceId(commandRecordBo.getDeviceId())
                 .setAreaId(commandRecordBo.getAreaId());

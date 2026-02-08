@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
 
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
@@ -10,6 +10,8 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import org.springframework.stereotype.Component;
 
+import java.time.DateTimeException;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,10 +50,17 @@ public class AcrelGetDatePlanTranslator extends AbstractAcrelCommandTranslator {
         List<DatePlanItem> items = new ArrayList<>();
         for (AcrelTripleSlotParser.TripleSlot triple : triples) {
             items.add(new DatePlanItem()
-                    .setMonth(String.valueOf(triple.type()))
-                    .setDay(String.valueOf(triple.minute()))
+                    .setDate(parseMonthDay(triple.type(), triple.minute()))
                     .setDailyPlanId(String.valueOf(triple.hour())));
         }
         return items;
+    }
+
+    private MonthDay parseMonthDay(int month, int day) {
+        try {
+            return MonthDay.of(month, day);
+        } catch (DateTimeException ex) {
+            throw new IllegalArgumentException("日期方案日期不正确");
+        }
     }
 }

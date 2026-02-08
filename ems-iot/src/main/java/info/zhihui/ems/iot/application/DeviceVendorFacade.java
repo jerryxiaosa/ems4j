@@ -2,6 +2,8 @@ package info.zhihui.ems.iot.application;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.config.IotOnlineProperties;
 import info.zhihui.ems.iot.domain.command.DeviceCommandRequest;
 import info.zhihui.ems.iot.domain.command.concrete.*;
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -59,7 +63,7 @@ public class DeviceVendorFacade {
     }
 
     public List<ElectricDateDurationVo> getDateDuration(Integer deviceId) {
-        GetDatePlanCommand command = new GetDatePlanCommand();
+        GetDatePlanCommand command = new GetDatePlanCommand().setPlan(1);
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, command, "日期电价读取");
         return parseDatePlanResult(result, "日期电价读取");
     }
@@ -145,8 +149,7 @@ public class DeviceVendorFacade {
         }
         for (ElectricDateDurationVo dto : dtoList) {
             items.add(new DatePlanItem()
-                    .setMonth(dto.getMonth())
-                    .setDay(dto.getDay())
+                    .setDate(parseMonthDay(dto.getMonth(), dto.getDay()))
                     .setDailyPlanId(dto.getDailyPlanId()));
         }
         return items;
@@ -159,6 +162,16 @@ public class DeviceVendorFacade {
 
     private LocalTime parseTime(String hour, String minute) {
         return LocalTime.of(parseNumber(hour), parseNumber(minute));
+    }
+
+    private MonthDay parseMonthDay(String month, String day) {
+        int monthValue = parseNumber(month);
+        int dayValue = parseNumber(day);
+        try {
+            return MonthDay.of(monthValue, dayValue);
+        } catch (DateTimeException ex) {
+            throw new IllegalArgumentException("日期不正确");
+        }
     }
 
     private Integer requireNumber(Integer value) {
@@ -241,12 +254,13 @@ public class DeviceVendorFacade {
         }
         List<ElectricDateDurationVo> vos = new ArrayList<>(items.size());
         for (DatePlanItem item : items) {
-            if (item.getMonth() == null || item.getDay() == null || item.getDailyPlanId() == null) {
+            if (item.getDate() == null || item.getDailyPlanId() == null) {
                 throw new BusinessRuntimeException(action + "失败：返回数据格式不正确");
             }
+            MonthDay date = item.getDate();
             vos.add(new ElectricDateDurationVo()
-                    .setMonth(item.getMonth())
-                    .setDay(item.getDay())
+                    .setMonth(String.valueOf(date.getMonthValue()))
+                    .setDay(String.valueOf(date.getDayOfMonth()))
                     .setDailyPlanId(item.getDailyPlanId()));
         }
         return vos;

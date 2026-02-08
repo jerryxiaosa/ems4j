@@ -1,8 +1,9 @@
 package info.zhihui.ems.foundation.integration.biz.command.service.impl.concrete;
 
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricPriceTimeUpdateDto;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricTimeStartDto;
+import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
+import info.zhihui.ems.foundation.integration.concrete.energy.dto.DailyEnergyPlanUpdateDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.service.EnergyService;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.integration.core.service.DeviceModuleContext;
@@ -29,9 +30,9 @@ class DeviceCommandSetPriceTimeTest {
     private EnergyService energyService;
 
     @Test
-    void execute_withValidJson_shouldCallSetElectricTime() {
+    void execute_withValidJson_shouldCallSetDuration() {
         DeviceCommandSetPriceTime executor = new DeviceCommandSetPriceTime(deviceModuleContext);
-        String json = "{\"plan\":1,\"electricDurations\":[{\"type\":2,\"hour\":8,\"min\":0}]}";
+        String json = "{\"dailyPlanId\":1,\"slots\":[{\"period\":2,\"time\":\"08:00:00\"}]}";
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(123)
@@ -42,18 +43,17 @@ class DeviceCommandSetPriceTimeTest {
 
         assertDoesNotThrow(() -> executor.execute(bo));
 
-        ArgumentCaptor<ElectricPriceTimeUpdateDto> captor = ArgumentCaptor.forClass(ElectricPriceTimeUpdateDto.class);
-        verify(energyService).setElectricTime(captor.capture());
-        ElectricPriceTimeUpdateDto dto = captor.getValue();
+        ArgumentCaptor<DailyEnergyPlanUpdateDto> captor = ArgumentCaptor.forClass(DailyEnergyPlanUpdateDto.class);
+        verify(energyService).setDuration(captor.capture());
+        DailyEnergyPlanUpdateDto dto = captor.getValue();
         assertEquals(123, dto.getDeviceId());
         assertEquals(1000, dto.getAreaId());
-        assertEquals(1, dto.getPlan());
-        assertNotNull(dto.getElectricDurations());
-        assertEquals(1, dto.getElectricDurations().size());
-        ElectricTimeStartDto t = dto.getElectricDurations().get(0);
-        assertEquals(2, t.getType());
-        assertEquals(8, t.getHour());
-        assertEquals(0, t.getMin());
+        assertEquals(1, dto.getDailyPlanId());
+        assertNotNull(dto.getSlots());
+        assertEquals(1, dto.getSlots().size());
+        DailyEnergySlot slot = dto.getSlots().get(0);
+        assertEquals(ElectricPricePeriodEnum.HIGH, slot.getPeriod());
+        assertEquals("08:00", slot.getTime().toString());
     }
 
     @Test
@@ -67,7 +67,7 @@ class DeviceCommandSetPriceTimeTest {
         BusinessRuntimeException ex = assertThrows(BusinessRuntimeException.class, () -> executor.execute(bo));
         assertEquals("命令参数不能为空", ex.getMessage());
 
-        verify(energyService, never()).setElectricTime(any());
+        verify(energyService, never()).setDuration(any());
     }
 
     @Test
@@ -81,6 +81,6 @@ class DeviceCommandSetPriceTimeTest {
         BusinessRuntimeException ex = assertThrows(BusinessRuntimeException.class, () -> executor.execute(bo));
         assertEquals("命令参数格式错误", ex.getMessage());
 
-        verify(energyService, never()).setElectricTime(any());
+        verify(energyService, never()).setDuration(any());
     }
 }

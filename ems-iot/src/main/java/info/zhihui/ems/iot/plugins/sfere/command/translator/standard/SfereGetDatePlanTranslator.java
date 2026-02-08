@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.sfere.command.translator.standard;
 
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
@@ -13,6 +13,8 @@ import info.zhihui.ems.iot.protocol.port.outbound.StepContext;
 import info.zhihui.ems.iot.protocol.port.outbound.StepResult;
 import org.springframework.stereotype.Component;
 
+import java.time.DateTimeException;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -135,9 +137,12 @@ public class SfereGetDatePlanTranslator extends AbstractSfereCommandTranslator
             if (value.planId() <= 0) {
                 continue;
             }
+            MonthDay date = parseMonthDay(value.month(), value.day());
+            if (date == null) {
+                continue;
+            }
             items.add(new DatePlanItem()
-                    .setMonth(String.valueOf(value.month()))
-                    .setDay(String.valueOf(value.day()))
+                    .setDate(date)
                     .setDailyPlanId(String.valueOf(value.planId())));
         }
         return items;
@@ -145,6 +150,14 @@ public class SfereGetDatePlanTranslator extends AbstractSfereCommandTranslator
 
     private boolean isValidDateValue(int month, int day) {
         return month >= 1 && month <= 12 && day >= 1 && day <= 31;
+    }
+
+    private MonthDay parseMonthDay(int month, int day) {
+        try {
+            return MonthDay.of(month, day);
+        } catch (DateTimeException ex) {
+            return null;
+        }
     }
 
     private record DateValue(int month, int day) {

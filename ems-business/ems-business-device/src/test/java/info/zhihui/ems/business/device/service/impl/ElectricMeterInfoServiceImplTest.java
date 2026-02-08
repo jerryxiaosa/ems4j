@@ -90,7 +90,7 @@ class ElectricMeterInfoServiceImplTest {
                 .setMeterAddress(1)
                 .setIsCalculate(true)
                 .setIsPrepay(false)
-                .setCt(BigDecimal.ONE)
+                .setCt(1)
                 .setOwnAreaId(1000)
                 .setIotId(12345);
 

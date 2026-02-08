@@ -1,11 +1,10 @@
 package info.zhihui.ems.web.device.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 /**
  * 电表CT变比设置
@@ -19,7 +18,8 @@ public class ElectricMeterCtVo {
     private Integer meterId;
 
     @NotNull
-    @DecimalMin(value = "0", inclusive = false)
+    @Positive
+    @Max(65535)
     @Schema(description = "CT变比", requiredMode = Schema.RequiredMode.REQUIRED)
-    private BigDecimal ct;
+    private Integer ct;
 }
