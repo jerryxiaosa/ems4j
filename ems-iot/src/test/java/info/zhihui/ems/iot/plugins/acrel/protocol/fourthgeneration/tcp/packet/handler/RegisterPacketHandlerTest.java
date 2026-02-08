@@ -109,7 +109,9 @@ class RegisterPacketHandlerTest {
 
     private NettyProtocolSession buildSession(EmbeddedChannel channel) {
         ChannelManager manager = new ChannelManager();
-        ChannelSession session = new ChannelSession().setChannel(channel);
+        ChannelSession session = new ChannelSession()
+                .setDeviceNo("test-device")
+                .setChannel(channel);
         manager.register(session);
         return new NettyProtocolSession(channel, manager);
     }

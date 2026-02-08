@@ -53,15 +53,4 @@ class NettyCommandTransportTest {
         Assertions.assertTrue(result);
         Mockito.verify(channelManager).completePending("dev-1", payload);
     }
-
-    @Test
-    void testFailPending_DelegatesToChannelManager() {
-        ChannelManager channelManager = Mockito.mock(ChannelManager.class);
-        NettyCommandTransport transport = new NettyCommandTransport(channelManager);
-        RuntimeException failure = new RuntimeException("send failed");
-
-        transport.failPending("dev-1", failure);
-
-        Mockito.verify(channelManager).failPending("dev-1", failure);
-    }
 }

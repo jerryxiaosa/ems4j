@@ -90,4 +90,20 @@ class DownlinkPacketHandlerTest {
 
         Mockito.verifyNoInteractions(commandTransport);
     }
+
+    @Test
+    void handle_whenCompletePendingThrows_shouldPropagate() {
+        ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
+        Mockito.when(commandTransport.completePending(Mockito.eq("dev-1"), Mockito.any()))
+                .thenThrow(new IllegalStateException("no pending"));
+        DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
+        EmbeddedChannel channel = new EmbeddedChannel();
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
+                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
+        DownlinkAckMessage message = new DownlinkAckMessage()
+                .setSerialNumber("dev-1")
+                .setModbusFrame(new byte[]{0x01, 0x02});
+
+        Assertions.assertThrows(IllegalStateException.class, () -> handler.handle(context, message));
+    }
 }

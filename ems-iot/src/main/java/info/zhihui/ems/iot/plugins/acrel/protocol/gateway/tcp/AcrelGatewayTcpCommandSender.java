@@ -1,6 +1,5 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp;
 
-import info.zhihui.ems.iot.config.IotCommandProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -19,7 +18,6 @@ import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolve
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.StepContext;
 import info.zhihui.ems.iot.protocol.port.outbound.StepResult;
-import info.zhihui.ems.iot.util.ProtocolTimeoutSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
@@ -41,7 +39,6 @@ public class AcrelGatewayTcpCommandSender {
 
     private final ProtocolCommandTransport commandTransport;
     private final DeviceCommandTranslatorResolver translatorRegistry;
-    private final IotCommandProperties commandProperties;
     private final DeviceRegistry deviceRegistry;
     private final AcrelGatewayFrameCodec gatewayFrameCodec;
     private final AcrelGatewayCryptoService gatewayCryptoService;
@@ -109,8 +106,6 @@ public class AcrelGatewayTcpCommandSender {
     private CompletableFuture<DeviceCommandResult> sendOnce(GatewayCommandContext context, ModbusRtuRequest request) {
         byte[] frame = buildGatewayFrame(context.gateway, context.device, request);
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(context.gateway.getDeviceNo(), frame);
-        ProtocolTimeoutSupport.applyTimeout(future, commandProperties.getTimeoutMillis(),
-                ex -> commandTransport.failPending(context.gateway.getDeviceNo(), ex));
         return future.thenApply(payload -> context.translator.parseResponse(context.command, payload));
     }
 
@@ -126,9 +121,6 @@ public class AcrelGatewayTcpCommandSender {
         }
         byte[] frame = buildGatewayFrame(commandContext.gateway, commandContext.device, request);
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(commandContext.gateway.getDeviceNo(), frame);
-        // 每次都会设置超时
-        ProtocolTimeoutSupport.applyTimeout(future, commandProperties.getTimeoutMillis(),
-                ex -> commandTransport.failPending(commandContext.gateway.getDeviceNo(), ex));
 
         return future.thenCompose(payload -> {
             StepResult<ModbusRtuRequest> step = commandContext.asMultiStepTranslator()

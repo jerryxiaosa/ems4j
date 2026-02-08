@@ -31,6 +31,8 @@
 
 - **不得抛异常**；对缺失设备、未绑定、非法报文直接返回。  
 - 访问仓储或服务时要捕获 `NotFoundException/BusinessRuntimeException` 并降级处理（日志 + 事件）。
+- **特例（命令回执 ACK handler）**：调用 `ProtocolCommandTransport.completePending` 时，
+  若出现“无会话/无挂起命令”等状态不一致问题，允许异常上抛（fail-fast），避免将时序错误静默吞掉。
 
 ### 2.5 Application / Domain 服务层
 
@@ -69,6 +71,8 @@
 解码失败 → 返回 `FrameDecodeResult.reason` → 记录异常事件 → 结束  
 解析失败 → `parser` 返回 `null` → 统一处理（日志 + 事件） → 结束  
 处理异常 → 捕获并记录 → 结束（必要时关闭通道）
+
+命令回执异常（ACK） → `completePending` 抛异常 → 由上层统一感知并处理（告警/连接治理）
 
 ## 6. 设备协议处理器异常处理
 

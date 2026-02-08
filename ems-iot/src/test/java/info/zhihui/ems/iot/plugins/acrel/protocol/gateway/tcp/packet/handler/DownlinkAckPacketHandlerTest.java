@@ -62,6 +62,20 @@ class DownlinkAckPacketHandlerTest {
         Mockito.verify(commandTransport).completePending("gw-1", payload);
     }
 
+    @Test
+    void handle_whenCompletePendingThrows_shouldPropagate() {
+        AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
+        ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
+        Device gateway = new Device().setDeviceNo("gw-1");
+        Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(gateway);
+        Mockito.when(commandTransport.completePending(Mockito.eq("gw-1"), Mockito.any()))
+                .thenThrow(new IllegalStateException("no pending"));
+        DownlinkAckPacketHandler handler = new DownlinkAckPacketHandler(deviceResolver, commandTransport);
+        GatewayTransparentMessage message = new GatewayTransparentMessage("meter-1", new byte[]{0x01});
+
+        Assertions.assertThrows(IllegalStateException.class, () -> handler.handle(buildContext(), message));
+    }
+
     private ProtocolMessageContext buildContext() {
         ProtocolSession session = Mockito.mock(ProtocolSession.class);
         return new SimpleProtocolMessageContext().setSession(session);
