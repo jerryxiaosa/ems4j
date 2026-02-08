@@ -5,6 +5,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
+import info.zhihui.ems.iot.domain.command.concrete.GetDailyEnergyPlanCommand;
 import info.zhihui.ems.iot.plugins.sfere.command.constant.SfereRegisterMappingEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 斯菲尔 DTSY1946A 获取日时段计划
@@ -29,7 +31,7 @@ public class SfereGetDailyEnergyPlanTranslator extends AbstractSfereCommandTrans
 
     @Override
     protected ModbusRtuRequest buildRequest(DeviceCommand command) {
-        ModbusMapping mapping = SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME.toMapping();
+        ModbusMapping mapping = resolveTimeMapping(command);
         int slaveAddress = resolveSlaveAddress(command);
         return buildRead(mapping, slaveAddress);
     }
@@ -75,7 +77,7 @@ public class SfereGetDailyEnergyPlanTranslator extends AbstractSfereCommandTrans
     }
 
     /**
-     * 解析时段时间（每两个字节：分钟、小时）。
+     * 解析时段时间（每两个字节：小时、分钟）。
      */
     private List<LocalTime> parseTimes(byte[] data) {
         if (data.length % 2 != 0) {
@@ -83,8 +85,8 @@ public class SfereGetDailyEnergyPlanTranslator extends AbstractSfereCommandTrans
         }
         List<LocalTime> times = new ArrayList<>(data.length / 2);
         for (int i = 0; i < data.length; i += 2) {
-            int minute = Byte.toUnsignedInt(data[i]);
-            int hour = Byte.toUnsignedInt(data[i + 1]);
+            int hour = Byte.toUnsignedInt(data[i]);
+            int minute = Byte.toUnsignedInt(data[i + 1]);
             times.add(LocalTime.of(hour, minute));
         }
         return times;
@@ -109,12 +111,41 @@ public class SfereGetDailyEnergyPlanTranslator extends AbstractSfereCommandTrans
      * 构建时段费率读取请求。
      */
     private ModbusRtuRequest buildPeriodRequest(DeviceCommand command) {
-        ModbusMapping mapping = SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_PERIOD.toMapping();
+        ModbusMapping mapping = resolvePeriodMapping(command);
         return new ModbusRtuRequest()
                 .setSlaveAddress(resolveSlaveAddress(command))
                 .setFunction(ModbusRtuBuilder.FUNCTION_READ)
                 .setStartRegister(mapping.getStartRegister())
                 .setQuantity(mapping.getQuantity());
+    }
+
+    private ModbusMapping resolveTimeMapping(DeviceCommand command) {
+        Integer dailyPlanId = resolveDailyPlanId(command);
+        if (Objects.equals(dailyPlanId, 1)) {
+            return SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME.toMapping();
+        }
+        if (Objects.equals(dailyPlanId, 2)) {
+            return SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME_SECOND.toMapping();
+        }
+        throw new IllegalArgumentException("不支持的方案编号");
+    }
+
+    private ModbusMapping resolvePeriodMapping(DeviceCommand command) {
+        Integer dailyPlanId = resolveDailyPlanId(command);
+        if (Objects.equals(dailyPlanId, 1)) {
+            return SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_PERIOD.toMapping();
+        }
+        if (Objects.equals(dailyPlanId, 2)) {
+            return SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_PERIOD_SECOND.toMapping();
+        }
+        throw new IllegalArgumentException("不支持的方案编号");
+    }
+
+    private Integer resolveDailyPlanId(DeviceCommand command) {
+        if (!(command.getPayload() instanceof GetDailyEnergyPlanCommand payload)) {
+            throw new IllegalArgumentException("获取日方案命令参数类型不正确");
+        }
+        return payload.getDailyPlanId();
     }
 
     /**

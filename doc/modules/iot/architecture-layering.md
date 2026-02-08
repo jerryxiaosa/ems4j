@@ -35,7 +35,7 @@
 ## 3. 典型依赖路径
 
 - **HTTP 请求链路**：`api/` → `application/` → `domain/port` → `infrastructure/persistence`
-- **协议上行链路**：`protocol/port/inbound` → `plugins/` → `protocol/event` → `application/listener`
+- **协议上行链路**：`protocol/port/inbound` → `plugins/` → `protocol/event` → `listener/`
 - **协议下行链路**：`application/` → `domain/command` → `protocol/packet` → `plugins/` → `infrastructure/transport`
 - **网关设备解析**：`plugins/*/parser` → `protocol/packet` → `protocol/event/inbound`
 - **设备注册读取**：`application/` → `domain/port` → `infrastructure/registry`

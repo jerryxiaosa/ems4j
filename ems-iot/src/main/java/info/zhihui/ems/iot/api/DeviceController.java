@@ -6,6 +6,8 @@ import info.zhihui.ems.iot.application.DeviceAppService;
 import info.zhihui.ems.iot.application.DeviceVendorFacade;
 import info.zhihui.ems.iot.vo.DeviceSaveVo;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,19 +27,20 @@ public class DeviceController {
     }
 
     @PutMapping("/{deviceId}")
-    public RestResult<Void> updateDevice(@PathVariable Integer deviceId, @Valid @RequestBody DeviceSaveVo body) {
+    public RestResult<Void> updateDevice(@PathVariable @NotNull(message = "设备ID不能为空") @Positive(message = "设备ID必须大于0") Integer deviceId,
+                                         @Valid @RequestBody DeviceSaveVo body) {
         deviceAppService.updateDevice(deviceId, body);
         return ResultUtil.success();
     }
 
     @DeleteMapping("/{deviceId}")
-    public RestResult<Void> deleteDevice(@PathVariable Integer deviceId) {
+    public RestResult<Void> deleteDevice(@PathVariable @NotNull(message = "设备ID不能为空") @Positive(message = "设备ID必须大于0") Integer deviceId) {
         deviceAppService.deleteDevice(deviceId);
         return ResultUtil.success();
     }
 
     @GetMapping("/{deviceId}/online")
-    public RestResult<Boolean> getOnline(@PathVariable Integer deviceId) {
+    public RestResult<Boolean> getOnline(@PathVariable @NotNull(message = "设备ID不能为空") @Positive(message = "设备ID必须大于0") Integer deviceId) {
         return ResultUtil.success(deviceVendorFacade.getOnline(deviceId));
     }
 }

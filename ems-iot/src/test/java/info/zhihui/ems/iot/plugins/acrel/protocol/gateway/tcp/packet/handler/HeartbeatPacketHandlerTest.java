@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
@@ -22,7 +22,7 @@ class HeartbeatPacketHandlerTest {
     @Test
     void command_shouldReturnHeartbeat() {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
-        ProtocolInboundPublisher protocolInboundPublisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher protocolInboundPublisher = Mockito.mock(ApplicationEventPublisher.class);
         AcrelGatewayFrameCodec frameCodec = Mockito.mock(AcrelGatewayFrameCodec.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(deviceResolver, protocolInboundPublisher, frameCodec);
 
@@ -32,7 +32,7 @@ class HeartbeatPacketHandlerTest {
     @Test
     void handle_whenGatewayMissing_shouldSkip() {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
-        ProtocolInboundPublisher protocolInboundPublisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher protocolInboundPublisher = Mockito.mock(ApplicationEventPublisher.class);
         AcrelGatewayFrameCodec frameCodec = Mockito.mock(AcrelGatewayFrameCodec.class);
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(null);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(deviceResolver, protocolInboundPublisher, frameCodec);
@@ -45,7 +45,7 @@ class HeartbeatPacketHandlerTest {
     @Test
     void handle_whenGatewayPresent_shouldPublishAndSendAck() {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
-        ProtocolInboundPublisher protocolInboundPublisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher protocolInboundPublisher = Mockito.mock(ApplicationEventPublisher.class);
         AcrelGatewayFrameCodec frameCodec = Mockito.mock(AcrelGatewayFrameCodec.class);
         Device gateway = new Device().setDeviceNo("gw-1");
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(gateway);
@@ -63,7 +63,7 @@ class HeartbeatPacketHandlerTest {
 
         ArgumentCaptor<ProtocolHeartbeatInboundEvent> eventCaptor =
                 ArgumentCaptor.forClass(ProtocolHeartbeatInboundEvent.class);
-        Mockito.verify(protocolInboundPublisher).publish(eventCaptor.capture());
+        Mockito.verify(protocolInboundPublisher).publishEvent(eventCaptor.capture());
         ProtocolHeartbeatInboundEvent event = eventCaptor.getValue();
         Assertions.assertEquals("gw-1", event.getDeviceNo());
         Assertions.assertEquals("session-1", event.getSessionId());

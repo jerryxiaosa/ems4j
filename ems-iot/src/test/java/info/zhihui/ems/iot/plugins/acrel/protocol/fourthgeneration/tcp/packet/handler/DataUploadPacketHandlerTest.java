@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.h
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
@@ -29,7 +29,7 @@ class DataUploadPacketHandlerTest {
 
     @Test
     void command_shouldReturnDataUpload() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DeviceBinder binder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
@@ -39,7 +39,7 @@ class DataUploadPacketHandlerTest {
 
     @Test
     void handle_withSerial_shouldBindPublishAndAck() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DeviceBinder binder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
@@ -66,7 +66,7 @@ class DataUploadPacketHandlerTest {
 
         Mockito.verify(binder).bind(context, "dev-1");
         ArgumentCaptor<ProtocolEnergyReportInboundEvent> captor = ArgumentCaptor.forClass(ProtocolEnergyReportInboundEvent.class);
-        Mockito.verify(publisher).publish(captor.capture());
+        Mockito.verify(publisher).publishEvent(captor.capture());
         ProtocolEnergyReportInboundEvent event = captor.getValue();
         Assertions.assertEquals("dev-1", event.getDeviceNo());
         Assertions.assertEquals("1-1", event.getMeterAddress());
@@ -91,7 +91,7 @@ class DataUploadPacketHandlerTest {
 
     @Test
     void handle_missingSerial_withChannelDeviceNo_shouldPublishAndAck() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DeviceBinder binder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);
@@ -111,7 +111,7 @@ class DataUploadPacketHandlerTest {
 
         Mockito.verifyNoInteractions(binder);
         ArgumentCaptor<ProtocolEnergyReportInboundEvent> captor = ArgumentCaptor.forClass(ProtocolEnergyReportInboundEvent.class);
-        Mockito.verify(publisher).publish(captor.capture());
+        Mockito.verify(publisher).publishEvent(captor.capture());
         ProtocolEnergyReportInboundEvent event = captor.getValue();
         Assertions.assertEquals("dev-2", event.getDeviceNo());
 
@@ -121,7 +121,7 @@ class DataUploadPacketHandlerTest {
 
     @Test
     void handle_bindThrows_shouldSkipPublishAndAck() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DeviceBinder binder = Mockito.mock(DeviceBinder.class);
         Mockito.doThrow(new IllegalStateException("bind-fail"))
                 .when(binder).bind(Mockito.any(), Mockito.anyString());
@@ -143,7 +143,7 @@ class DataUploadPacketHandlerTest {
 
     @Test
     void handle_missingSerialAndChannelDeviceNo_shouldSkipPublishAndAck() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DeviceBinder binder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         DataUploadPacketHandler handler = new DataUploadPacketHandler(publisher, binder, codec);

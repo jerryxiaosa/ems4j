@@ -18,4 +18,11 @@ public class GetDailyEnergyPlanCommand implements DeviceCommandRequest {
     public DeviceCommandTypeEnum type() {
         return DeviceCommandTypeEnum.GET_DAILY_ENERGY_PLAN;
     }
+
+    @Override
+    public void validate() {
+        if (dailyPlanId == null || dailyPlanId < 1 || dailyPlanId > 2) {
+            throw new IllegalArgumentException("日方案编号范围为1~2");
+        }
+    }
 }

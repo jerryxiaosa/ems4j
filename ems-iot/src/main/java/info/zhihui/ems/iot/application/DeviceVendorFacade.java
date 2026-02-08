@@ -282,6 +282,13 @@ public class DeviceVendorFacade {
         if (timeoutSeconds <= 0) {
             return true;
         }
+        if (lastOnlineAt == null || now == null) {
+            return false;
+        }
+        if (lastOnlineAt.isAfter(now)) {
+            log.warn("设备最近在线时间在未来，lastOnlineAt={}, now={}", lastOnlineAt, now);
+            return false;
+        }
         long seconds = Duration.between(lastOnlineAt, now).getSeconds();
         return seconds <= timeoutSeconds;
     }

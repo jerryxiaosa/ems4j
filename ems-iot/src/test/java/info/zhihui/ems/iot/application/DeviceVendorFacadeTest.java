@@ -4,8 +4,11 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.config.IotOnlineProperties;
 import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
 import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
+import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.vo.electric.ElectricDateDurationVo;
 import info.zhihui.ems.iot.vo.electric.ElectricDurationVo;
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
@@ -13,11 +16,44 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 class DeviceVendorFacadeTest {
+
+    @Test
+    void testGetOnline_whenLastOnlineAtNull_shouldReturnFalse() {
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        IotOnlineProperties onlineProperties = new IotOnlineProperties();
+        onlineProperties.setTimeoutSeconds(30);
+        CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
+        Device device = new Device()
+                .setId(1)
+                .setProduct(new Product().setAccessMode(DeviceAccessModeEnum.DIRECT))
+                .setLastOnlineAt(null);
+        Mockito.when(deviceRegistry.getById(1)).thenReturn(device);
+        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+
+        Assertions.assertFalse(facade.getOnline(1));
+    }
+
+    @Test
+    void testGetOnline_whenLastOnlineAtInFuture_shouldReturnFalse() {
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        IotOnlineProperties onlineProperties = new IotOnlineProperties();
+        onlineProperties.setTimeoutSeconds(30);
+        CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
+        Device device = new Device()
+                .setId(1)
+                .setProduct(new Product().setAccessMode(DeviceAccessModeEnum.DIRECT))
+                .setLastOnlineAt(LocalDateTime.now().plusMinutes(5));
+        Mockito.when(deviceRegistry.getById(1)).thenReturn(device);
+        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+
+        Assertions.assertFalse(facade.getOnline(1));
+    }
 
     @Test
     void testGetCt_WhenCommandSuccess_ShouldReturnValue() {

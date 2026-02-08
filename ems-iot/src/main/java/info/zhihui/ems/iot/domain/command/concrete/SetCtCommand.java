@@ -22,8 +22,8 @@ public class SetCtCommand implements DeviceCommandRequest {
 
     @Override
     public void validate() {
-        if (ct == null || ct <= 0) {
-            throw new BusinessRuntimeException("CT 不能为空且必须大于 0");
+        if (ct == null || ct <= 0 || ct > 0xFFFF) {
+            throw new BusinessRuntimeException("CT 必须在 1~65535 范围内");
         }
     }
 }

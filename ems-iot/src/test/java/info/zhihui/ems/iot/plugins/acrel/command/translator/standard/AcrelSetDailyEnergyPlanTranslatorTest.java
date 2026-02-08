@@ -73,6 +73,6 @@ class AcrelSetDailyEnergyPlanTranslatorTest {
         IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
                 () -> translator.toRequest(command));
 
-        Assertions.assertEquals("时段电价配置最多支持 14 组", ex.getMessage());
+        Assertions.assertEquals("时段配置最多支持14组", ex.getMessage());
     }
 }

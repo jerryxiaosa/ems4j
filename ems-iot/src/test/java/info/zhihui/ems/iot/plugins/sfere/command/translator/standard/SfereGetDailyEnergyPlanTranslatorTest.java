@@ -2,6 +2,7 @@ package info.zhihui.ems.iot.plugins.sfere.command.translator.standard;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
+import info.zhihui.ems.iot.domain.command.concrete.GetDailyEnergyPlanCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -22,11 +23,49 @@ import java.util.List;
 class SfereGetDailyEnergyPlanTranslatorTest {
 
     @Test
-    void testParseStep_FirstStep_ShouldReturnNextRequest() {
+    void testToRequest_FirstPlan_ShouldBuildFirstTimeRequest() {
         SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
-        DeviceCommand command = buildCommand();
+        DeviceCommand command = buildCommand(1);
+
+        ModbusRtuRequest request = translator.toRequest(command);
+
+        Assertions.assertEquals(1, request.getSlaveAddress());
+        Assertions.assertEquals(ModbusRtuBuilder.FUNCTION_READ, request.getFunction());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME.toMapping().getStartRegister(),
+                request.getStartRegister());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME.toMapping().getQuantity(),
+                request.getQuantity());
+    }
+
+    @Test
+    void testToRequest_SecondPlan_ShouldBuildSecondTimeRequest() {
+        SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
+        DeviceCommand command = buildCommand(2);
+
+        ModbusRtuRequest request = translator.toRequest(command);
+
+        Assertions.assertEquals(1, request.getSlaveAddress());
+        Assertions.assertEquals(ModbusRtuBuilder.FUNCTION_READ, request.getFunction());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME_SECOND.toMapping().getStartRegister(),
+                request.getStartRegister());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_TIME_SECOND.toMapping().getQuantity(),
+                request.getQuantity());
+    }
+
+    @Test
+    void testToRequest_InvalidPlan_ShouldThrow() {
+        SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
+        DeviceCommand command = buildCommand(3);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> translator.toRequest(command));
+    }
+
+    @Test
+    void testParseStep_FirstStep_FirstPlan_ShouldReturnFirstPeriodRequest() {
+        SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
+        DeviceCommand command = buildCommand(1);
         StepContext context = new StepContext();
-        byte[] payload = buildReadResponse(new byte[]{0x00, 0x00, 0x1E, 0x06});
+        byte[] payload = buildReadResponse(new byte[]{0x00, 0x00, 0x06, 0x1E});
 
         StepResult<ModbusRtuRequest> step = translator.parseStep(command, payload, context);
 
@@ -41,11 +80,30 @@ class SfereGetDailyEnergyPlanTranslatorTest {
     }
 
     @Test
+    void testParseStep_FirstStep_SecondPlan_ShouldReturnSecondPeriodRequest() {
+        SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
+        DeviceCommand command = buildCommand(2);
+        StepContext context = new StepContext();
+        byte[] payload = buildReadResponse(new byte[]{0x00, 0x00, 0x06, 0x1E});
+
+        StepResult<ModbusRtuRequest> step = translator.parseStep(command, payload, context);
+
+        Assertions.assertFalse(step.isFinished());
+        ModbusRtuRequest nextRequest = step.getNextRequest();
+        Assertions.assertNotNull(nextRequest);
+        Assertions.assertEquals(ModbusRtuBuilder.FUNCTION_READ, nextRequest.getFunction());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_PERIOD_SECOND.toMapping().getStartRegister(),
+                nextRequest.getStartRegister());
+        Assertions.assertEquals(SfereRegisterMappingEnum.DAILY_ENERGY_PLAN_PERIOD_SECOND.toMapping().getQuantity(),
+                nextRequest.getQuantity());
+    }
+
+    @Test
     void testParseStep_SecondStep_ShouldReturnSlots() {
         SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
-        DeviceCommand command = buildCommand();
+        DeviceCommand command = buildCommand(1);
         StepContext context = new StepContext();
-        byte[] timePayload = buildReadResponse(new byte[]{0x00, 0x00, 0x1E, 0x06});
+        byte[] timePayload = buildReadResponse(new byte[]{0x00, 0x00, 0x06, 0x1E});
         StepResult<ModbusRtuRequest> firstStep = translator.parseStep(command, timePayload, context);
         Assertions.assertFalse(firstStep.isFinished());
 
@@ -69,9 +127,9 @@ class SfereGetDailyEnergyPlanTranslatorTest {
     @Test
     void testParseStep_PeriodLengthShort_ShouldReturnFailure() {
         SfereGetDailyEnergyPlanTranslator translator = new SfereGetDailyEnergyPlanTranslator();
-        DeviceCommand command = buildCommand();
+        DeviceCommand command = buildCommand(1);
         StepContext context = new StepContext();
-        byte[] timePayload = buildReadResponse(new byte[]{0x00, 0x00, 0x1E, 0x06});
+        byte[] timePayload = buildReadResponse(new byte[]{0x00, 0x00, 0x06, 0x1E});
         translator.parseStep(command, timePayload, context);
 
         byte[] periodPayload = buildReadResponse(new byte[]{0x00});
@@ -83,11 +141,13 @@ class SfereGetDailyEnergyPlanTranslatorTest {
         Assertions.assertEquals("时段费率数据长度不正确", result.getErrorMessage());
     }
 
-    private DeviceCommand buildCommand() {
+    private DeviceCommand buildCommand(Integer dailyPlanId) {
         Device device = new Device().setSlaveAddress(1);
+        GetDailyEnergyPlanCommand payload = new GetDailyEnergyPlanCommand().setDailyPlanId(dailyPlanId);
         return new DeviceCommand()
                 .setType(DeviceCommandTypeEnum.GET_DAILY_ENERGY_PLAN)
-                .setDevice(device);
+                .setDevice(device)
+                .setPayload(payload);
     }
 
     private byte[] buildReadResponse(byte[] data) {

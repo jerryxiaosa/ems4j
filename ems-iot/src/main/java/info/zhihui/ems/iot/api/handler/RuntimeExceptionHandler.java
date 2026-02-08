@@ -3,9 +3,7 @@ package info.zhihui.ems.iot.api.handler;
 import cn.hutool.core.lang.Opt;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.LoginException;
 import info.zhihui.ems.common.exception.NotFoundException;
-import info.zhihui.ems.common.exception.ParamException;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import jakarta.validation.ConstraintViolationException;
@@ -30,15 +28,15 @@ public class RuntimeExceptionHandler {
         return ResultUtil.error(ResultCode.BUSINESS_ERROR.getCode(), e.getMessage());
     }
 
-    @ExceptionHandler(ParamException.class)
-    public RestResult<Void> handleRuntimeException(ParamException e) {
-        log.error("handle ParamException: ", e);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public RestResult<Void> handleRuntimeException(IllegalArgumentException e) {
+        log.error("handle IllegalArgumentException: ", e);
         return ResultUtil.error(ResultCode.PARAMETER_ERROR.getCode(), e.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public RestResult<Void> handleRuntimeException(ConstraintViolationException e) {
-        log.error("handle ParamException: ", e);
+        log.error("handle ConstraintViolationException: ", e);
         return ResultUtil.error(ResultCode.PARAMETER_ERROR.getCode(), e.getMessage());
     }
 
@@ -73,12 +71,6 @@ public class RuntimeExceptionHandler {
     public RestResult<Void> handleDuplicateKeyEx(DuplicateKeyException e) {
         log.warn("数据重复: {}", e.getMessage(), e);
         return ResultUtil.error("数据已存在，请确认");
-    }
-
-    @ExceptionHandler(LoginException.class)
-    public RestResult<Void> handleRuntimeException(LoginException e) {
-        log.error("handle UserException: {}", e.getMessage());
-        return ResultUtil.error(ResultCode.ACCOUNT_ERROR.getCode(), e.getMessage());
     }
 
 }

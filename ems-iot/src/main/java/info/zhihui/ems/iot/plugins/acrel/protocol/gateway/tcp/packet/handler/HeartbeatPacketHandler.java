@@ -2,7 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
@@ -30,7 +30,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
     private static final DateTimeFormatter HEARTBEAT_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final AcrelGatewayDeviceResolver deviceResolver;
-    private final ProtocolInboundPublisher protocolInboundPublisher;
+    private final ApplicationEventPublisher protocolInboundPublisher;
     private final AcrelGatewayFrameCodec frameCodec;
 
     @Override
@@ -58,7 +58,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
                     .setReceivedAt(receivedAt)
                     .setTransportType(context.getTransportType())
                     .setRawPayloadHex(HexUtil.bytesToHexString(context.getRawPayload()));
-            protocolInboundPublisher.publish(event);
+            protocolInboundPublisher.publishEvent(event);
             log.debug("收到网关心跳 {}，session={}", deviceNo, sessionId(context));
         } catch (Exception ex) {
             log.warn("网关心跳事件发布异常 deviceNo={} session={}", deviceNo, sessionId(context), ex);

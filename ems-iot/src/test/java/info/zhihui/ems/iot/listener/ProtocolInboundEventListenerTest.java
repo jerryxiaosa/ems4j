@@ -1,4 +1,4 @@
-package info.zhihui.ems.iot.application.listener;
+package info.zhihui.ems.iot.listener;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
