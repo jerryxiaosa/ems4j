@@ -129,11 +129,48 @@ plugins/
 - `*TcpInboundHandler`：协议入口，处理上行消息。
 - `*TcpCommandSender`：命令发送器，处理下行消息。
 - `PacketDefinition/Parser/Handler`：命令定义、解析与处理（入参统一为 `ProtocolMessageContext`，接口位于 `protocol/packet`）。
-- `ProtocolInboundPublisher`：协议上行事件发布（如 `ProtocolEnergyReportInboundEvent`）。
+- `ApplicationEventPublisher`：协议上行事件发布（如 `ProtocolEnergyReportInboundEvent`）。
 - `ProtocolInboundEventListener`：监听协议上行事件，构建领域事件（如 `DeviceEnergyReportEvent`）并处理业务逻辑（当前为日志输出）。
 - `DeviceCommandTranslator`：命令下发转换与响应解析。
 - `MultiStepDeviceCommandTranslator`：多步下发命令的转换与分步解析，配合 `StepContext/StepResult` 使用。
 - `DeviceProtocolHandler`：设备协议处理器，实现 `DeviceProtocolHandler` 接口，负责上行解析与命令下发。
+
+### 4.1 MultiStepDeviceCommandTranslator 运行机制
+
+在网关下发场景中，`AcrelGatewayTcpCommandSender` 会先解析命令对应的 translator。
+如果 translator 实现了 `MultiStepDeviceCommandTranslator`，则进入多步模式；否则走单步模式。
+
+执行时序如下：
+
+```
+resolve translator
+  -> firstRequest(command)
+  -> sendWithAck(request1)
+  -> parseStep(command, payload1, stepContext)
+     -> finished=true  -> return result
+     -> finished=false -> nextRequest
+                        -> sendWithAck(requestN)
+                        -> parseStep(...)
+```
+
+多步模式的关键约束：
+
+1. `StepContext` 用于在多个步骤之间传递中间状态（例如寄存器片段、偏移量、累计结果）。
+2. 每一步都通过 `parseStep` 产出 `StepResult`，由 `finished/nextRequest/result` 驱动下一步。
+3. 发送器会维护最大步数限制（`MULTI_STEP_MAX`），避免异常协议导致无限循环。
+
+失败分支（直接失败并结束）：
+
+1. 剩余步数耗尽。
+2. `parseStep` 返回 `null`。
+3. `finished=true` 但 `result=null`。
+4. `finished=false` 但 `nextRequest=null`。
+
+实现建议：
+
+1. `firstRequest` 只负责生成第一跳请求，不做跨步状态推导。
+2. `parseStep` 对同一输入保持确定性，状态变更集中写入 `StepContext`。
+3. 对设备异常响应尽量返回可诊断的错误信息，避免只返回通用失败。
 
 ## 5. 建议的落地顺序
 
@@ -328,7 +365,7 @@ PacketDefinition.handle -> PacketHandler
    |
    +--> 设备绑定/在线状态更新
    +--> 异常上报（AbnormalEvent）
-   +--> ProtocolInboundPublisher.publish(ProtocolEnergyReportInboundEvent)
+   +--> ApplicationEventPublisher.publishEvent(ProtocolEnergyReportInboundEvent)
           |
           v
        ProtocolInboundEventListener.handleEnergyReport

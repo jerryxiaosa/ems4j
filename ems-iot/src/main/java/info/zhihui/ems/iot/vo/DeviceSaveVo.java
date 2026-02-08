@@ -4,8 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
-
 @Data
 @Accessors(chain = true)
 public class DeviceSaveVo {
@@ -19,6 +17,4 @@ public class DeviceSaveVo {
     @NotBlank(message = "产品编码不能为空")
     private String productCode;
     private Integer parentId;
-    private LocalDateTime lastOnlineAt;
-
 }

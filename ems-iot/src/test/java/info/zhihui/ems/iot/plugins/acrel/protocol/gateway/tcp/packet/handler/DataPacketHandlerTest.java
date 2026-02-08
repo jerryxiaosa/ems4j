@@ -8,7 +8,7 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayRep
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.MeterEnergyPayload;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
@@ -28,7 +28,7 @@ class DataPacketHandlerTest {
     void handle_whenGatewayPresent_shouldPublishInboundEvent() {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         DataPacketHandler handler = new DataPacketHandler(deviceResolver, deviceRegistry, publisher);
         Device gateway = new Device().setId(1).setDeviceNo("gw-1");
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(gateway);
@@ -46,7 +46,7 @@ class DataPacketHandlerTest {
 
         ArgumentCaptor<ProtocolEnergyReportInboundEvent> captor =
                 ArgumentCaptor.forClass(ProtocolEnergyReportInboundEvent.class);
-        Mockito.verify(publisher).publish(captor.capture());
+        Mockito.verify(publisher).publishEvent(captor.capture());
         ProtocolEnergyReportInboundEvent event = captor.getValue();
         Assertions.assertEquals("meter-1", event.getDeviceNo());
         Assertions.assertEquals("gw-1", event.getGatewayDeviceNo());
@@ -69,7 +69,7 @@ class DataPacketHandlerTest {
     void handle_whenGatewayMissing_shouldSkipPublish() {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(null);
         DataPacketHandler handler = new DataPacketHandler(deviceResolver, deviceRegistry, publisher);
         ProtocolMessageContext context = buildContext();

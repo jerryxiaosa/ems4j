@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.h
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
 import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
@@ -28,7 +28,7 @@ import java.math.RoundingMode;
 @RequiredArgsConstructor
 public class DataUploadPacketHandler implements Acrel4gPacketHandler {
 
-    private final ProtocolInboundPublisher protocolInboundPublisher;
+    private final ApplicationEventPublisher protocolInboundPublisher;
     private final DeviceBinder deviceBinder;
     private final Acrel4gFrameCodec frameCodec;
 
@@ -81,7 +81,7 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
                 .setSessionId(session.getSessionId())
                 .setRawPayload(HexUtil.bytesToHexString(context.getRawPayload()));
         try {
-            protocolInboundPublisher.publish(event);
+            protocolInboundPublisher.publishEvent(event);
         } catch (Exception ex) {
             log.warn("4G 上报事件发布异常 deviceNo={} session={}", deviceNo, session.getSessionId(), ex);
             return;

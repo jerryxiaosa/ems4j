@@ -5,7 +5,7 @@ import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayDataMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayReportMessage;
@@ -34,7 +34,7 @@ public class DataPacketHandler implements GatewayPacketHandler {
 
     private final AcrelGatewayDeviceResolver deviceResolver;
     private final DeviceRegistry deviceRegistry;
-    private final ProtocolInboundPublisher protocolInboundPublisher;
+    private final ApplicationEventPublisher protocolInboundPublisher;
 
     @Override
     public String command() {
@@ -105,7 +105,7 @@ public class DataPacketHandler implements GatewayPacketHandler {
                     .setSessionId(sessionId(context))
                     .setRawPayload(buildRawPayload(HexUtil.bytesToHexString(context.getRawPayload()), rawXml));
             try {
-                protocolInboundPublisher.publish(event);
+                protocolInboundPublisher.publishEvent(event);
             } catch (RuntimeException ex) {
                 log.warn("网关能耗上报事件发布异常 gateway={} meterId={}", gateway.getDeviceNo(), meter.meterId(), ex);
             }

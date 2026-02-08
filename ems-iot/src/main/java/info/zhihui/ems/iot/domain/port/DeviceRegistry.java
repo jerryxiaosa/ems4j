@@ -4,9 +4,6 @@ import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
 
-/**
- * Device registry service for device persistence and lookup.
- */
 public interface DeviceRegistry {
 
     /**

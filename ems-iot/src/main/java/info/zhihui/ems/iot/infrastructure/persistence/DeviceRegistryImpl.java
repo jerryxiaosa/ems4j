@@ -2,7 +2,6 @@ package info.zhihui.ems.iot.infrastructure.persistence;
 
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.exception.NotFoundException;
-import info.zhihui.ems.common.exception.ParamException;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
@@ -31,7 +30,11 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     public void update(Device device) {
-        repository.updateById(toEntity(device));
+        int affected = repository.updateById(toEntity(device));
+        if (affected == 0) {
+            Integer deviceId = device == null ? null : device.getId();
+            throw new NotFoundException("设备记录不存在，id=" + deviceId);
+        }
     }
 
     @Override
@@ -65,11 +68,11 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     private DeviceEntity toEntity(Device device) {
         if (device == null) {
-            throw new ParamException("设备不能为空");
+            throw new IllegalArgumentException("设备不能为空");
         }
         Product product = device.getProduct();
         if (product == null || !StringUtils.hasText(product.getCode())) {
-            throw new ParamException("产品编码不能为空");
+            throw new IllegalArgumentException("产品编码不能为空");
         }
         String productCode = product.getCode().trim();
         requireProductEnum(productCode);
@@ -88,11 +91,11 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     private Device toDomain(DeviceEntity entity, ProductEnum productEnum) {
         if (entity == null) {
-            throw new ParamException("设备不能为空");
+            throw new IllegalArgumentException("设备不能为空");
         }
 
         if (productEnum == null) {
-            throw new ParamException("产品枚举不能为空");
+            throw new IllegalArgumentException("产品枚举不能为空");
         }
 
         return new Device()
@@ -127,7 +130,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     private ProductEnum requireProductEnum(String productCode) {
         if (!StringUtils.hasText(productCode)) {
-            throw new ParamException("产品编码不能为空");
+            throw new IllegalArgumentException("产品编码不能为空");
         }
         ProductEnum productEnum = CodeEnum.fromCode(productCode, ProductEnum.class);
         if (productEnum == null) {

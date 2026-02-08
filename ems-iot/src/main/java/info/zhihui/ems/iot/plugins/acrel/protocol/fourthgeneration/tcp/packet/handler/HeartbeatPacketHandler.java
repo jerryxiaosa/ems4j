@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class HeartbeatPacketHandler implements Acrel4gPacketHandler {
 
-    private final ProtocolInboundPublisher protocolInboundPublisher;
+    private final ApplicationEventPublisher protocolInboundPublisher;
 
     @Override
     public String command() {
@@ -49,7 +49,7 @@ public class HeartbeatPacketHandler implements Acrel4gPacketHandler {
                     .setReceivedAt(receivedAt)
                     .setTransportType(context.getTransportType())
                     .setRawPayloadHex(HexUtil.bytesToHexString(context.getRawPayload()));
-            protocolInboundPublisher.publish(event);
+            protocolInboundPublisher.publishEvent(event);
             log.debug("收到4G 心跳 {}，无须返回数据", deviceNo);
         } catch (Exception e) {
             log.warn("4G 心跳事件发布异常 deviceNo={}", deviceNo, e);

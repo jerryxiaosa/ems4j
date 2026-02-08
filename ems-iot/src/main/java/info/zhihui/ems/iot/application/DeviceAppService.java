@@ -38,8 +38,7 @@ public class DeviceAppService {
                 .setDeviceSecret(body.getDeviceSecret())
                 .setSlaveAddress(body.getSlaveAddress() == null ? 0 : body.getSlaveAddress())
                 .setProduct(product)
-                .setParentId(body.getParentId())
-                .setLastOnlineAt(body.getLastOnlineAt());
+                .setParentId(body.getParentId());
     }
 
 }

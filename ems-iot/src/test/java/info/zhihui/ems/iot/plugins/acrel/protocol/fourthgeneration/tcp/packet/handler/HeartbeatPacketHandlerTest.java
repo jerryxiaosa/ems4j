@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.h
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
-import info.zhihui.ems.iot.protocol.port.inbound.ProtocolInboundPublisher;
+import org.springframework.context.ApplicationEventPublisher;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
@@ -23,7 +23,7 @@ class HeartbeatPacketHandlerTest {
 
     @Test
     void command_shouldReturnHeartbeat() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
 
         Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.HEARTBEAT), handler.command());
@@ -31,7 +31,7 @@ class HeartbeatPacketHandlerTest {
 
     @Test
     void testHandle_DeviceNoMissing_ShouldSkipPublish() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel, new ChannelManager()));
@@ -43,7 +43,7 @@ class HeartbeatPacketHandlerTest {
 
     @Test
     void testHandle_DeviceNoPresent_ShouldPublishEvent() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
         ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
@@ -58,7 +58,7 @@ class HeartbeatPacketHandlerTest {
         handler.handle(context, new HeartbeatMessage());
 
         ArgumentCaptor<ProtocolHeartbeatInboundEvent> captor = ArgumentCaptor.forClass(ProtocolHeartbeatInboundEvent.class);
-        Mockito.verify(publisher).publish(captor.capture());
+        Mockito.verify(publisher).publishEvent(captor.capture());
         ProtocolHeartbeatInboundEvent event = captor.getValue();
         Assertions.assertEquals("dev-1", event.getDeviceNo());
         Assertions.assertEquals(session.getSessionId(), event.getSessionId());
@@ -69,9 +69,9 @@ class HeartbeatPacketHandlerTest {
 
     @Test
     void testHandle_PublishThrows_ShouldNotPropagateException() {
-        ProtocolInboundPublisher publisher = Mockito.mock(ProtocolInboundPublisher.class);
+        ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         Mockito.doThrow(new IllegalStateException("fail"))
-                .when(publisher).publish(Mockito.any());
+                .when(publisher).publishEvent(Mockito.any(Object.class));
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
         EmbeddedChannel channel = new EmbeddedChannel();
         ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
@@ -82,6 +82,6 @@ class HeartbeatPacketHandlerTest {
 
         handler.handle(context, new HeartbeatMessage());
 
-        Mockito.verify(publisher).publish(Mockito.any());
+        Mockito.verify(publisher).publishEvent(Mockito.any(Object.class));
     }
 }
