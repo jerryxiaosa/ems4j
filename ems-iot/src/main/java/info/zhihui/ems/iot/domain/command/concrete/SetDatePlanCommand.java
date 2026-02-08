@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.domain.command.concrete;
 
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.command.DeviceCommandRequest;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import lombok.Data;

@@ -50,7 +50,7 @@ public class DeviceModuleConfigServiceImpl implements DeviceModuleConfigService 
 
         return deviceModuleAreaConfigBoList.stream().collect(Collectors.toMap(DeviceModuleAreaConfigBo::getAreaId, Function.identity(),
                 (existing, replacement) -> {
-                    if (existing != null && replacement != null && !existing.equals(replacement)) {
+                    if (!existing.equals(replacement)) {
                         log.warn("区域配置重复，areaId={}，使用后者覆盖", replacement.getAreaId());
                     }
                     return replacement;

@@ -2,8 +2,8 @@ package info.zhihui.ems.iot.application;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.config.IotOnlineProperties;
-import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.Product;
@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.MonthDay;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -151,8 +152,8 @@ class DeviceVendorFacadeTest {
         IotOnlineProperties onlineProperties = new IotOnlineProperties();
         CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
         List<DatePlanItem> items = List.of(
-                new DatePlanItem().setMonth("1").setDay("2").setDailyPlanId("3"),
-                new DatePlanItem().setMonth("4").setDay("5").setDailyPlanId("6")
+                new DatePlanItem().setDate(MonthDay.of(1, 2)).setDailyPlanId("3"),
+                new DatePlanItem().setDate(MonthDay.of(4, 5)).setDailyPlanId("6")
         );
         DeviceCommandResult result = new DeviceCommandResult()
                 .setSuccess(true)

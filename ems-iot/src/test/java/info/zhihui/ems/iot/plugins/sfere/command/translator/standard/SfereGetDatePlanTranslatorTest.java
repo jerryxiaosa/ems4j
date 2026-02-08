@@ -1,6 +1,6 @@
 package info.zhihui.ems.iot.plugins.sfere.command.translator.standard;
 
-import info.zhihui.ems.iot.domain.command.concrete.DatePlanItem;
+import info.zhihui.ems.common.model.energy.DatePlanItem;
 import info.zhihui.ems.iot.domain.command.concrete.GetDatePlanCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
@@ -15,6 +15,7 @@ import info.zhihui.ems.iot.protocol.port.outbound.StepResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.MonthDay;
 import java.util.Arrays;
 import java.util.List;
 
@@ -83,13 +84,11 @@ class SfereGetDatePlanTranslatorTest {
         Assertions.assertEquals(2, items.size());
 
         DatePlanItem first = (DatePlanItem) items.get(0);
-        Assertions.assertEquals("1", first.getMonth());
-        Assertions.assertEquals("2", first.getDay());
+        Assertions.assertEquals(MonthDay.of(1, 2), first.getDate());
         Assertions.assertEquals("1", first.getDailyPlanId());
 
         DatePlanItem second = (DatePlanItem) items.get(1);
-        Assertions.assertEquals("12", second.getMonth());
-        Assertions.assertEquals("31", second.getDay());
+        Assertions.assertEquals(MonthDay.of(12, 31), second.getDate());
         Assertions.assertEquals("5", second.getDailyPlanId());
     }
 

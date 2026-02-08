@@ -62,7 +62,7 @@ public class ElectricMeterDetailDto {
     /**
      * ct变比
      */
-    private BigDecimal ct;
+    private Integer ct;
 
     /**
      * 年度阶梯起始值

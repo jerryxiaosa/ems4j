@@ -11,8 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +32,7 @@ class DeviceCommandSetCtTest {
     @Test
     void execute_withValidJson_shouldCallSetElectricCt() {
         DeviceCommandSetCt executor = new DeviceCommandSetCt(deviceModuleContext);
-        String json = "{\"ct\": \"100\"}";
+        String json = "100";
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(789)
@@ -50,7 +48,7 @@ class DeviceCommandSetCtTest {
         ElectricDeviceCTDto dto = captor.getValue();
         assertEquals(789, dto.getDeviceId());
         assertEquals(3000, dto.getAreaId());
-        assertEquals(new BigDecimal("100"), dto.getCt());
+        assertEquals(100, dto.getCt());
     }
 
     @Test
@@ -73,6 +71,19 @@ class DeviceCommandSetCtTest {
                 .setDeviceId(789)
                 .setAreaId(3000)
                 .setCommandData("{invalid}");
+
+        BusinessRuntimeException ex = assertThrows(BusinessRuntimeException.class, () -> executor.execute(bo));
+        assertEquals("命令参数格式错误", ex.getMessage());
+        verify(energyService, never()).setElectricCt(any());
+    }
+
+    @Test
+    void execute_withNonPositiveCt_shouldThrowFormatError() {
+        DeviceCommandSetCt executor = new DeviceCommandSetCt(deviceModuleContext);
+        DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
+                .setDeviceId(789)
+                .setAreaId(3000)
+                .setCommandData("0");
 
         BusinessRuntimeException ex = assertThrows(BusinessRuntimeException.class, () -> executor.execute(bo));
         assertEquals("命令参数格式错误", ex.getMessage());

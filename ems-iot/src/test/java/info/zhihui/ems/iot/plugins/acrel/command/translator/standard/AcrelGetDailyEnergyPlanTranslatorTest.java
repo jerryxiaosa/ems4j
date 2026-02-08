@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.command.translator.standard;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
-import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;

@@ -1,6 +1,7 @@
 package info.zhihui.ems.iot.domain.command.concrete;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

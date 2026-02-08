@@ -5,7 +5,6 @@ import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
-import info.zhihui.ems.business.device.dto.MeterStepResetDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -118,13 +117,6 @@ public interface ElectricMeterManagerService {
      * @param onlineStatusDto 电表在线状态数据传输对象
      */
     void syncMeterOnlineStatus(@Valid @NotNull ElectricMeterOnlineStatusDto onlineStatusDto);
-
-    /**
-     * 同步电表开合闸状态
-     *
-     * @param switchStatusSyncDto 电表开合闸状态同步参数
-     */
-    void syncMeterSwitchStatus(@Valid @NotNull ElectricMeterSwitchStatusSyncDto switchStatusSyncDto);
 
     /**
      * 获取电表用电量

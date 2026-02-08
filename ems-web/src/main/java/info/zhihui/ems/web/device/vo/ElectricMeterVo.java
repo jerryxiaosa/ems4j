@@ -3,8 +3,6 @@ package info.zhihui.ems.web.device.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -88,7 +86,7 @@ public class ElectricMeterVo {
     private Integer accountId;
 
     @Schema(description = "CT变比")
-    private BigDecimal ct;
+    private Integer ct;
 
     @Schema(description = "所属区域ID")
     private Integer ownAreaId;

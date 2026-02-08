@@ -3,7 +3,6 @@ package info.zhihui.ems.schedule.task.business.device;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterOnlineStatusDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
-import info.zhihui.ems.business.device.dto.ElectricMeterSwitchStatusSyncDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
 import info.zhihui.ems.common.paging.PageParam;
@@ -40,7 +39,6 @@ public class ElectricMeterTask {
 
         int pageNum = 1;
         SyncResult onlineResult = new SyncResult();
-        SyncResult switchResult = new SyncResult();
         ElectricMeterQueryDto queryDto = new ElectricMeterQueryDto();
 
         while (true) {
@@ -59,11 +57,6 @@ public class ElectricMeterTask {
                         () -> electricMeterManagerService.syncMeterOnlineStatus(
                                 new ElectricMeterOnlineStatusDto().setMeterId(meter.getId())
                         ));
-
-                executeSyncOperation("开合闸状态", meter.getId(), switchResult,
-                        () -> electricMeterManagerService.syncMeterSwitchStatus(
-                                new ElectricMeterSwitchStatusSyncDto().setMeterId(meter.getId())
-                        ));
             }
 
             if (meters.size() < PAGE_SIZE) {
@@ -73,8 +66,8 @@ public class ElectricMeterTask {
             pageNum++;
         }
 
-        log.info("电表状态全量同步任务完成：在线状态成功 {} 个、失败 {} 个；开合闸状态成功 {} 个、失败 {} 个",
-                onlineResult.success, onlineResult.failed, switchResult.success, switchResult.failed);
+        log.info("电表状态全量同步任务完成：在线状态成功 {} 个、失败 {} 个",
+                onlineResult.success, onlineResult.failed);
     }
 
     /**

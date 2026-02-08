@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
-import info.zhihui.ems.iot.domain.command.concrete.DailyEnergySlot;
+import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.iot.domain.command.concrete.GetDailyEnergyPlanCommand;
 import info.zhihui.ems.iot.plugins.sfere.command.constant.SfereRegisterMappingEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusMapping;

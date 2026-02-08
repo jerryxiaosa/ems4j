@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.math.BigDecimal;
-
 /**
  * 电表业务对象
  */
@@ -141,7 +139,7 @@ public class ElectricMeterBo extends OperatorInfo {
     /**
      * ct变比
      */
-    private BigDecimal ct;
+    private Integer ct;
 
     /**
      * 所属区域ID
