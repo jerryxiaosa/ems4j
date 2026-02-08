@@ -22,14 +22,9 @@ public interface ProtocolCommandTransport {
      * @param deviceNo 设备编号
      * @param payload 响应报文
      * @return 是否完成
+     * @throws IllegalArgumentException 设备编号为空
+     * @throws IllegalStateException 未找到会话或无挂起任务
      */
     boolean completePending(String deviceNo, byte[] payload);
 
-    /**
-     * 异常结束等待中的响应。
-     *
-     * @param deviceNo 设备编号
-     * @param ex       异常原因
-     */
-    void failPending(String deviceNo, Throwable ex);
 }

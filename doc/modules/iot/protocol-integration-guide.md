@@ -293,6 +293,9 @@ DownlinkAckPacketHandler.handle -> ProtocolCommandTransport.completePending
 CompletableFuture 完成 -> translator.parseResponse -> DeviceCommandResult
 ```
 
+补充：
+- `completePending` 在“设备未绑定会话”或“无挂起命令”时会抛出异常，默认采用 fail-fast，便于快速暴露 ACK 时序/状态问题。
+
 ### 7.2 上报解析（设备 → 业务事件）
 
 ```
@@ -345,7 +348,8 @@ PacketDefinition.handle -> PacketHandler
 1) 新增 `NettyFrameDecoderProvider`：实现 `detectTcp` 负责首包探测，命中后返回 `ProtocolSignature`（包含 `transportType`）。  
 2) 在 `NettyFrameDecoderProvider.createDecoders` 中返回专用解码器链（分包/粘包在此解决）。  
 3) 新增插件 `DeviceProtocolHandler`：解析完整帧，负责设备绑定、事件发布、命令回执归还（`completePending`）。  
-4) 若有下发命令：提供协议编码器/帧封装工具，调用 `sendWithAck/sendFireAndForget`。  
+4) 若有下发命令：提供协议编码器/帧封装工具，优先调用 `sendWithAck`。  
+   对于确实不需要 ACK 的场景，可在传输实现内部使用 `ChannelManager.sendInQueueWithoutWaiting`。  
 5) 补齐单元测试：CRC、分包、ACK 等关键路径。  
 
 ### 8.1 同厂商新增特殊产品（productCode）接入要点

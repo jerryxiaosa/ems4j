@@ -1,6 +1,5 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp;
 
-import info.zhihui.ems.iot.config.IotCommandProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
@@ -13,7 +12,6 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.A
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.support.DeviceCommandSupport;
-import info.zhihui.ems.iot.util.ProtocolTimeoutSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +26,6 @@ public class Acrel4gTcpCommandSender {
 
     private final ProtocolCommandTransport commandTransport;
     private final DeviceCommandTranslatorResolver translatorRegistry;
-    private final IotCommandProperties commandProperties;
     private final Acrel4gFrameCodec frameCodec;
 
     public CompletableFuture<DeviceCommandResult> send(DeviceCommand command) {
@@ -43,8 +40,6 @@ public class Acrel4gTcpCommandSender {
         byte[] frame = frameCodec.encode(Acrel4gPacketCode.DOWNLINK, rtuFrame);
 
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(device.getDeviceNo(), frame);
-        ProtocolTimeoutSupport.applyTimeout(future, commandProperties.getTimeoutMillis(),
-                ex -> commandTransport.failPending(device.getDeviceNo(), ex));
         return future.thenApply(payload -> translator.parseResponse(command, payload));
     }
 }

@@ -1,6 +1,5 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp;
 
-import info.zhihui.ems.iot.config.IotCommandProperties;
 import info.zhihui.ems.iot.domain.command.concrete.GetCtCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
@@ -58,10 +57,8 @@ class Acrel4gTcpCommandSenderTest {
     void sendCommand_whenDirect_shouldSendAndReturnResult() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         Acrel4gTcpCommandSender sender = new Acrel4gTcpCommandSender(
-                commandTransport, translatorRegistry, properties, new Acrel4gFrameCodec());
+                commandTransport, translatorRegistry, new Acrel4gFrameCodec());
 
         Device device = new Device()
                 .setDeviceNo("dev-1")
@@ -104,13 +101,11 @@ class Acrel4gTcpCommandSenderTest {
     }
 
     @Test
-    void sendCommand_whenDirectTimeout_shouldFailPending() {
+    void sendCommand_whenDirectTimeout_shouldPropagateException() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(1);
         Acrel4gTcpCommandSender sender = new Acrel4gTcpCommandSender(
-                commandTransport, translatorRegistry, properties, new Acrel4gFrameCodec());
+                commandTransport, translatorRegistry, new Acrel4gFrameCodec());
 
         Device device = new Device()
                 .setDeviceNo("dev-1")
@@ -143,19 +138,14 @@ class Acrel4gTcpCommandSenderTest {
         TimeoutException timeout = new TimeoutException("timeout");
         pending.completeExceptionally(timeout);
 
-        Assertions.assertThrows(CompletionException.class, result::join);
-        ArgumentCaptor<Throwable> exCaptor = ArgumentCaptor.forClass(Throwable.class);
-        Mockito.verify(commandTransport).failPending(Mockito.eq("dev-1"), exCaptor.capture());
-        Assertions.assertInstanceOf(TimeoutException.class, exCaptor.getValue());
+        CompletionException exception = Assertions.assertThrows(CompletionException.class, result::join);
+        Assertions.assertInstanceOf(TimeoutException.class, exception.getCause());
     }
 
     private Acrel4gTcpCommandSender buildSender() {
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         return new Acrel4gTcpCommandSender(
                 Mockito.mock(ProtocolCommandTransport.class),
                 Mockito.mock(DeviceCommandTranslatorResolver.class),
-                properties,
                 new Acrel4gFrameCodec()
         );
     }

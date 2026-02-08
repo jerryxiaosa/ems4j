@@ -29,9 +29,4 @@ public class NettyCommandTransport implements ProtocolCommandTransport {
     public boolean completePending(String deviceNo, byte[] payload) {
         return channelManager.completePending(deviceNo, payload);
     }
-
-    @Override
-    public void failPending(String deviceNo, Throwable ex) {
-        channelManager.failPending(deviceNo, ex);
-    }
 }

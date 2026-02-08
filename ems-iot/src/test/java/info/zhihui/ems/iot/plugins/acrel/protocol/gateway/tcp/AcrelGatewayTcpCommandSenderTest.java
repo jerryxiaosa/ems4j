@@ -1,6 +1,5 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp;
 
-import info.zhihui.ems.iot.config.IotCommandProperties;
 import info.zhihui.ems.iot.domain.command.concrete.GetCtCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
@@ -75,10 +74,8 @@ class AcrelGatewayTcpCommandSenderTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, properties, deviceRegistry,
+                commandTransport, translatorRegistry, deviceRegistry,
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -103,10 +100,8 @@ class AcrelGatewayTcpCommandSenderTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, properties, deviceRegistry,
+                commandTransport, translatorRegistry, deviceRegistry,
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -129,13 +124,11 @@ class AcrelGatewayTcpCommandSenderTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         AcrelGatewayCryptoService gatewayCryptoService = new AcrelGatewayCryptoService();
         AcrelGatewayTransparentCodec gatewayTransparentCodec = new AcrelGatewayTransparentCodec();
         AcrelGatewayFrameCodec gatewayFrameCodec = new AcrelGatewayFrameCodec();
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, properties, deviceRegistry,
+                commandTransport, translatorRegistry, deviceRegistry,
                 gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec);
 
         Device device = new Device()
@@ -187,13 +180,11 @@ class AcrelGatewayTcpCommandSenderTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         AcrelGatewayCryptoService gatewayCryptoService = new AcrelGatewayCryptoService();
         AcrelGatewayTransparentCodec gatewayTransparentCodec = new AcrelGatewayTransparentCodec();
         AcrelGatewayFrameCodec gatewayFrameCodec = new AcrelGatewayFrameCodec();
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, properties, deviceRegistry,
+                commandTransport, translatorRegistry, deviceRegistry,
                 gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec);
 
         Device device = new Device()
@@ -254,14 +245,12 @@ class AcrelGatewayTcpCommandSenderTest {
     }
 
     @Test
-    void send_whenGatewayTimeout_shouldFailPending() {
+    void send_whenGatewayTimeout_shouldPropagateException() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(1);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, properties, deviceRegistry,
+                commandTransport, translatorRegistry, deviceRegistry,
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -297,19 +286,14 @@ class AcrelGatewayTcpCommandSenderTest {
         TimeoutException timeout = new TimeoutException("timeout");
         pending.completeExceptionally(timeout);
 
-        Assertions.assertThrows(CompletionException.class, result::join);
-        ArgumentCaptor<Throwable> exCaptor = ArgumentCaptor.forClass(Throwable.class);
-        Mockito.verify(commandTransport).failPending(Mockito.eq("gw-1"), exCaptor.capture());
-        Assertions.assertInstanceOf(TimeoutException.class, exCaptor.getValue());
+        CompletionException exception = Assertions.assertThrows(CompletionException.class, result::join);
+        Assertions.assertInstanceOf(TimeoutException.class, exception.getCause());
     }
 
     private AcrelGatewayTcpCommandSender buildSender() {
-        IotCommandProperties properties = new IotCommandProperties();
-        properties.setTimeoutMillis(0);
         return new AcrelGatewayTcpCommandSender(
                 Mockito.mock(ProtocolCommandTransport.class),
                 Mockito.mock(DeviceCommandTranslatorResolver.class),
-                properties,
                 Mockito.mock(DeviceRegistry.class),
                 new AcrelGatewayFrameCodec(),
                 new AcrelGatewayCryptoService(),
