@@ -3,9 +3,9 @@
 本文档描述在现有架构下接入一个新协议（新厂商/新产品）的编码方式、目录结构与关键文件。
 
 ## 预备
-一般情况下，我们通过设备网关转发或者直接与4G（NB）设备通信。网关透传Modbus RTU或者DLT645协议的数据给电表。
+一般情况下，我们通过设备网关转发或者直接与4G（NB）设备通信。
 
-网关可以通过配置，接入不同品牌的设备。所以电表命令和网关行为可以相互独立。
+网关透传Modbus RTU或者DLT645协议的数据给电表。 网关可以通过配置，接入不同品牌的设备。所以电表命令和网关行为可以相互独立（理解一下，这个很重要）。
 
 对应到系统里，电表命令对应DeviceCommandTranslator；网关行为与4G表行为对应DeviceProtocolHandler
 
@@ -21,7 +21,7 @@
    1. 命令解析与处理：解析设备主动上报的指令
    - 每一个上行的命令，按命令字/类型定义 `PacketDefinition + Parser + Handler`。
    - 通过`PacketDefinition + Parser + Handler`，实现命令解析与处理。
-   - 因为响应设备上报是从底层往应用层传输，理论上可以各自实现onMessage方法，不一定需要统一处理。
+   - 响应设备上报是从底层往应用层传输，如果需要实现的响应很少只有一两个，理论上在onMessage方法if/else判断也可以。但强烈建议拆分成不同packet的解析和响应，便于以后的扩展。
 
    2. 下发与回执：实现系统定义的需要下发的命令，从而使上层可以统一管理、操作设备
    - 单步命令：按命令字/类型定义 `DeviceCommandTranslator + DeviceCommandResult`。
@@ -38,104 +38,84 @@
 * 第三是同一产品同一个命令，也可能会有新旧多个实现方式
 
 那么就需要对这个插件下的实现进行更加细致的分层。
-- 上行命令因为是响应客户端传来的数据，所以只要能被路由到就可以，不需要分的很细
-- 下行命令要符合统一的命令规范，才能被DeviceCommandTranslatorResolver找到
+### 上行的处理
+上行命令因为是响应客户端传来的数据，所以只要能被路由到就可以，不需要分的很细
 
-**参考 plugins/acrel/的实现**
+### 下行的处理
+下行命令要符合统一的命令规范，才能被DeviceCommandTranslatorResolver找到。 所以需要在每个厂商的command的translator里再做产品型号的分类。
+
+没有配置型号的实现，会认为是默认型号。一个厂商不同型号的命令大体是相同。所以只要再实现每个型号特定的命令。
+
+一般默认型号的实现放在standard目录
 
 ## 3. 目录结构示例
 
-以 `acrel` 为例，当前目录结构如下（按接入方式拆分为 4G 直连与网关）：
+以下仅描述厂商插件层目录（`info.zhihui.ems.iot.plugins.<vendor>`）。
 
-```
-plugins/
-  acrel/
-    Acrel4gProtocolHandler.java
-    AcrelGatewayProtocolHandler.java
-    protocol/
-      constant/
-        AcrelProtocolConstants.java
-      common/
-        message/
-          AcrelMessage.java
-      support/
-        AbstractAcrelInboundHandler.java
-        DeviceCommandSupport.java
-      fourthgeneration/
-        tcp/
-          Acrel4gTcpInboundHandler.java
-          Acrel4gTcpCommandSender.java
-          message/
-          packet/
-            definition/
-            parser/
-            handler/
-          support/
-            Acrel4gFrameCodec.java
-        transport/
-          netty/
-            decoder/
-              Acrel4gFrameDecoderProvider.java
-              AcrelDelimitedFrameDecoder.java
-      gateway/
-        tcp/
-          AcrelGatewayTcpInboundHandler.java
-          AcrelGatewayTcpCommandSender.java
-          message/
-          packet/
-            definition/
-            parser/
-            handler/
-          support/
-            AcrelGatewayFrameCodec.java
-            AcrelGatewayXmlParser.java
-            AcrelGatewayDeviceResolver.java
-            AcrelGatewayMeterIdCodec.java
-            AcrelGatewayTransparentCodec.java
-            AcrelGatewayCryptoService.java
-        transport/
-          netty/
-            decoder/
-              AcrelGatewayFrameDecoderProvider.java
-              AcrelGatewayFrameDecoder.java
-        mqtt/
-    command/
-      constant/
-        AcrelRegisterMappingEnum.java
-      support/
-        AcrelTripleSlotParser.java
-      translator/
-        standard/
-          AbstractAcrelCommandTranslator.java
-          AcrelGetTotalEnergyTranslator.java
-          AcrelSetCtTranslator.java
-          ...
+### 3.1 厂商插件层（以 `acrel` 为例）
+
+```text
+info/zhihui/ems/iot/plugins/acrel
+├── command
+│   ├── constant
+│   ├── support
+│   └── translator
+│       └── standard
+└── protocol
+    ├── common
+    │   └── message
+    ├── constant
+    ├── support
+    │   └── outbound
+    │       └── modbus
+    ├── fourthgeneration
+    │   ├── tcp
+    │   │   ├── message
+    │   │   ├── packet
+    │   │   │   ├── definition
+    │   │   │   ├── parser
+    │   │   │   └── handler
+    │   │   └── support
+    │   └── transport
+    │       └── netty
+    │           └── decoder
+    └── gateway
+        ├── mqtt
+        ├── tcp
+        │   ├── message
+        │   ├── packet
+        │   │   ├── definition
+        │   │   ├── parser
+        │   │   └── handler
+        │   └── support
+        └── transport
+            └── netty
+                └── decoder
 ```
 
-说明：
-- `protocol/port/outbound`：协议层公共基类（如 `AbstractEnergyCommandTranslator`），供各厂商能量类命令复用。
-- `protocol/constant`：协议帧相关常量（起止符、帧头等）。
-- `protocol/common/message`：协议公共报文对象。
-- `protocol/*/tcp`：协议的 TCP 处理入口，按接入方式拆分（4G 直连/网关）。
-- `protocol/*/transport/netty/decoder`：Netty 传输层解码器与探测入口。
-- `packet/*`：命令层的定义/解析/处理，按命令字拆分。
-- `support/*FrameCodec`：负责编解码，`decode` 统一输出 `FrameDecodeResult`。
-- `command/translator/standard`：默认命令转换器，实现 `DeviceCommandTranslator` 接口。
+放置规则建议：
 
-## 4. 关键文件职责
+- `command/translator/standard`：默认型号命令转换器。
+- `command/translator/<productCode>`：特定型号差异实现（可按产品码扩展子目录）。
+- `command/constant`：仅命令下发相关常量（寄存器地址、命令字等）。
+- `protocol/constant`：仅上行帧结构相关常量（帧头、功能码、分包标记等）。
+- `protocol/<accessMode>/tcp/packet/{definition,parser,handler}`：上行数据包的定义、解析、处理三段式实现。
+- `protocol/<accessMode>/transport/netty/decoder`：协议探测和 Netty 解码器安装入口。
+- `protocol/common/message`：当前厂商多个接入方式共享的报文对象。
 
-- `NettyFrameDecoderProvider`：首包探测并返回 `ProtocolSignature`，同时提供对应解码器链（长度型/起止符型等）。
-- `*FrameCodec`：帧编解码，`decode` 返回 `FrameDecodeResult`。
-- `*TcpInboundHandler`：协议入口，处理上行消息。
-- `*TcpCommandSender`：命令发送器，处理下行消息。
-- `PacketDefinition/Parser/Handler`：命令定义、解析与处理（入参统一为 `ProtocolMessageContext`，接口位于 `protocol/packet`）。
-- `ApplicationEventPublisher`：协议上行事件发布（如 `ProtocolEnergyReportInboundEvent`）。
-- `ProtocolInboundEventListener`：监听协议上行事件，构建领域事件（如 `DeviceEnergyReportEvent`）并处理业务逻辑（当前为日志输出）。
-- `DeviceCommandTranslator`：命令下发转换与响应解析。
-- `MultiStepDeviceCommandTranslator`：多步下发命令的转换与分步解析，配合 `StepContext/StepResult` 使用。
-- `DeviceProtocolHandler`：设备协议处理器，实现 `DeviceProtocolHandler` 接口，负责上行解析与命令下发。
+### 3.2 仅命令适配场景（以 `sfere` 为例）
 
-### 4.1 MultiStepDeviceCommandTranslator 运行机制
+如果当前厂商不需要新增上行协议处理，只需要下发命令转换，可保持精简目录：
+
+```text
+info/zhihui/ems/iot/plugins/sfere
+└── command
+    ├── constant
+    └── translator
+        └── standard
+```
+
+### 4 MultiStepDeviceCommandTranslator 运行机制
 
 在网关下发场景中，`AcrelGatewayTcpCommandSender` 会先解析命令对应的 translator。
 如果 translator 实现了 `MultiStepDeviceCommandTranslator`，则进入多步模式；否则走单步模式。
@@ -374,22 +354,7 @@ PacketDefinition.handle -> PacketHandler
        构建 DeviceEnergyReportEvent -> 当前仅日志输出（后续可接入业务服务）
 ```
 
-补充说明：
-- 能耗上报事件中的电量字段统一使用 `BigDecimal`。
-- 电量字段包含总电量与尖/峰/平/谷/深谷分时电量。
-- 4G 设备上报电量为 100 倍整数，需在对应的 `PacketHandler` 中除以 100（保留 2 位小数）。
-- 网关上报电量为 XML 解析出的 `BigDecimal`，可直接透传到事件中。
-
-## 8. 新增厂商/协议接入清单
-
-1) 新增 `NettyFrameDecoderProvider`：实现 `detectTcp` 负责首包探测，命中后返回 `ProtocolSignature`（包含 `transportType`）。  
-2) 在 `NettyFrameDecoderProvider.createDecoders` 中返回专用解码器链（分包/粘包在此解决）。  
-3) 新增插件 `DeviceProtocolHandler`：解析完整帧，负责设备绑定、事件发布、命令回执归还（`completePending`）。  
-4) 若有下发命令：提供协议编码器/帧封装工具，优先调用 `sendWithAck`。  
-   对于确实不需要 ACK 的场景，可在传输实现内部使用 `ChannelManager.sendInQueueWithoutWaiting`。  
-5) 补齐单元测试：CRC、分包、ACK 等关键路径。  
-
-### 8.1 同厂商新增特殊产品（productCode）接入要点
+## 8 同厂商新增特殊产品（productCode）接入要点
 
 1) 设备录入时必须保存 `productCode`，并保证绑定后可通过 `deviceNo` 查询到该值。  
 2) 命令差异：新增对应的 `DeviceCommandTranslator`，`productCode()` 返回特殊型号编码；注册后会优先命中该产品专用翻译器。  

@@ -1,81 +1,93 @@
 # ems-iot 异常与空值处理规则
 
-本规则用于统一 `ems-iot` 模块中**抛异常**与**返回 null/结果对象**的边界，避免异常冒泡导致 Netty 连接断开或线程被动退出。
+本文档用于统一 `ems-iot` 的异常语义与空值边界，目标是：
+
+- 避免设备入站异常直接冲击 Netty 线程。
+- 让 API 参数错误、业务错误、系统错误语义清晰。
+- 对 ACK 时序错乱等并发问题保持 fail-fast，而不是静默吞错。
 
 ## 1. 总原则
 
-1) **外部输入链路不抛异常**：任何来自设备/网络的入站处理（解码/解析/处理）不允许抛出未捕获异常。  
-2) **业务边界抛异常**：应用/领域服务对调用方暴露时，允许抛出业务异常（例如参数不合法、资源不存在）。  
-3) **库/基础设施异常要被转换**：仓储查询失败、解析失败、解密失败等，应在入站链路转换为“可控结果”，而不是抛出。
+1. 外部输入链路默认不抛出未捕获异常（解码/解析/普通上行处理）。
+2. 业务边界允许抛出明确异常类型（`BusinessRuntimeException`、`NotFoundException`、`IllegalArgumentException`）。
+3. 参数错误优先在 Controller 层通过注解校验拦截，减少 500 误判。
+4. ACK 匹配属于特例：发现状态不一致时允许抛异常，优先暴露时序问题。
 
 ## 2. 分层规则
 
 ### 2.1 Transport / Netty 层
 
-- **不得抛异常**（ByteToMessageDecoder、ChannelInboundHandler）。  
-- 协议不识别/非法帧：记录日志 + 计数/限流 + 必要时主动关闭通道。  
-- 示例：`ProtocolFrameDecoder`、`AcrelGatewayFrameDecoder`。
+- `ByteToMessageDecoder`、`ChannelInboundHandler` 不应抛出未捕获异常。
+- 非法帧/无法识别协议：记录日志，必要时关闭通道，避免脏连接持续占用资源。
 
-### 2.2 协议解帧 / Codec 层
+### 2.2 协议解帧 / Parser 层
 
-- **不得抛异常**，返回 `FrameDecodeResult` 并填充 `reason`。  
-- 仅当是**开发期编码错误**（如必填字段为空且无法继续）才允许抛出，但推荐改为 `reason`。
+- 解帧失败通过 `FrameDecodeResult` 的 `reason` 表达，不直接抛异常。
+- `Parser` 层对可预期坏数据（格式不合法、字段缺失）返回 `null`，并记录 `warn` 日志。
+- 仅开发期编程错误（空指针、类型错误）可抛异常，但应尽快修复为可控分支。
 
-### 2.3 Packet Parser 层
+### 2.3 Packet Handler / Listener 层
 
-- **不得抛异常**；必须 `try/catch` 全量异常并返回 `null`。  
-- 同时记录 `warn` 日志，必要时发布异常事件（如 `PAYLOAD_PARSE_ERROR`）。  
-- 解析失败即 `null`，由上层模板统一处理。
+- 普通上行处理（心跳/上报）默认“吞异常 + 打日志 + 返回”。
+- 事件发布使用 `ApplicationEventPublisher`，发布失败需捕获并记录，不影响通道线程。
+- 监听器（如 `info.zhihui.ems.iot.listener.ProtocolInboundEventListener`）内部异常应捕获，避免反向影响上行链路。
+- ACK 处理器是特例：调用 `ProtocolCommandTransport.completePending` 时不应静默吞掉状态错误。
 
-### 2.4 Packet Handler / Listener 层
+### 2.4 Application / Domain 层
 
-- **不得抛异常**；对缺失设备、未绑定、非法报文直接返回。  
-- 访问仓储或服务时要捕获 `NotFoundException/BusinessRuntimeException` 并降级处理（日志 + 事件）。
-- **特例（命令回执 ACK handler）**：调用 `ProtocolCommandTransport.completePending` 时，
-  若出现“无会话/无挂起命令”等状态不一致问题，允许异常上抛（fail-fast），避免将时序错误静默吞掉。
+- 允许抛出：
+  - `IllegalArgumentException`：参数不合法。
+  - `NotFoundException`：资源不存在。
+  - `BusinessRuntimeException`：设备返回失败、命令执行失败、数据格式错误等。
+- 在线状态判定基于持久化 `lastOnlineAt`，请求体不应直接驱动该字段。
 
-### 2.5 Application / Domain 服务层
+### 2.5 Repository / Persistence 层
 
-- **允许抛异常**：  
-  - `NotFoundException`：资源不存在  
-  - `BusinessRuntimeException`：业务失败（设备返回失败、命令失败等）  
-  - `IllegalArgumentException`：参数不合法  
-- 注意：若被入站 Handler 调用，必须在 Handler 内捕获并转换为“可控结果”。
+- 查询未命中可返回 `null`，由 `DeviceRegistry` 统一转换为 `NotFoundException`。
+- 更新操作必须校验影响行数：`affected == 0` 视为未命中并抛异常（避免“假成功”）。
 
-### 2.6 Repository / Persistence 层
+### 2.6 HTTP API 层
 
-- 可返回 `null`（ORM 查询未命中），由上层 `DeviceRegistry` 统一转换为 `NotFoundException`。  
-- 入站链路仍需捕获该异常，避免冒泡到 Netty 线程。
-
-### 2.7 HTTP API 层
-
-- API 统一返回 `RestResult`，成功与失败均通过 `ResultUtil` 封装。  
-- 全局异常由 `RuntimeExceptionHandler` 处理并转换为标准错误码与错误信息（如参数校验、业务异常、系统异常）。  
-- 对外错误信息应避免泄露内部实现细节，系统异常统一返回通用提示。
+- API 统一返回 `RestResult`。
+- Controller 使用 `@Validated` + `@NotNull/@Positive/@Valid` 等注解做参数前置校验。
+- `RuntimeExceptionHandler` 统一映射：
+  - `MethodArgumentNotValidException`/`ConstraintViolationException`/`IllegalArgumentException` -> 参数错误码。
+  - `BusinessRuntimeException` -> 业务错误码（或自定义 code）。
+  - `NotFoundException` -> 业务错误码。
+  - 未知 `RuntimeException` -> HTTP 500 + 通用提示。
 
 ## 3. 何时返回 null
 
-- **解析失败**（解密失败、XML 解析失败、字段缺失）：返回 `null`。  
-- **未绑定设备或无法映射设备**：返回 `null`。  
-- **协议命令未定义/无法路由**：返回 `null`，并发布异常事件或记录日志。
+- 协议解析阶段遇到坏数据，且属于可预期分支（格式错误、字段不全）。
+- 入站处理中设备未绑定/无法路由时，选择“记录并返回”而非抛错中断线程。
+- 不用于业务服务对外返回（应用层/领域层应返回明确结果或抛异常）。
 
 ## 4. 何时抛异常
 
-- **控制层/应用层入参非法**：抛 `IllegalArgumentException`。  
-- **资源不存在**：抛 `NotFoundException`。  
-- **命令下发失败/业务失败**：抛 `BusinessRuntimeException`。  
-> 注意：这些异常不得从入站处理链路直接冒泡到 Netty。
+- 应用层参数非法、业务失败、资源不存在。
+- 命令发送前置校验失败（无会话、通道不活跃、队列满）。
+- ACK 关联失败（`completePending` 找不到会话或无挂起命令）需抛 `IllegalStateException`。
+- 持久化更新未命中（影响行数为 0）需抛异常。
 
 ## 5. 推荐处理流程（入站链路）
 
-解码失败 → 返回 `FrameDecodeResult.reason` → 记录异常事件 → 结束  
-解析失败 → `parser` 返回 `null` → 统一处理（日志 + 事件） → 结束  
-处理异常 → 捕获并记录 → 结束（必要时关闭通道）
+1. 解码失败：返回 `FrameDecodeResult.reason`，记录日志并结束。
+2. 解析失败：`parser` 返回 `null`，记录日志并结束。
+3. 普通上行处理：捕获异常，记录后结束（必要时做连接治理）。
+4. ACK 回执处理：调用 `completePending`，若状态异常允许抛错并由上层统一感知。
+5. 事件发布：`publishEvent` 失败仅记录，避免阻断核心处理流程。
 
-命令回执异常（ACK） → `completePending` 抛异常 → 由上层统一感知并处理（告警/连接治理）
+## 6. 当前固定策略（ChannelManager）
 
-## 6. 设备协议处理器异常处理
+- `MAX_QUEUE_SIZE = 5`：单通道待发送队列上限，超限直接失败。
+- `COMMAND_TIMEOUT_MILLIS = 15000`：等待 ACK 超时后失败当前命令并关闭通道。
+- `EVENT_LOOP_WAIT_TIMEOUT_MILLIS = 3000`：跨线程投递 EventLoop 的等待上限。
+- `ABNORMAL_WINDOW_MILLIS = 30000`、`ABNORMAL_MAX_COUNT = 5`：异常频率控制阈值。
 
-- `DeviceProtocolHandler` 的 `onMessage` 方法不应抛出异常，应在内部捕获并处理。
-- 命令下发失败时，通过 `CompletableFuture` 返回 `DeviceCommandResult` 表示失败状态。
-- 通过 `DeviceProtocolHandlerRegistry` 解析协议时，异常应被捕获并转换为适当的错误响应。
+## 7. PR 自检清单
+
+- 是否把可预期坏数据留在解析层处理（返回 `null`），而不是抛到 Netty？
+- 是否给 Controller 入参加了必要校验注解？
+- 是否将 ACK 状态错乱保持 fail-fast，而不是 `try/catch` 后静默返回？
+- 是否校验了 `updateById/deleteById` 的影响行数语义？
+- 日志是否包含 `deviceNo/sessionId/channelId` 等排障字段？
