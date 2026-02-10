@@ -98,7 +98,7 @@ class GatewayServiceImplTest {
                 .setCommunicateModel("485")
                 .setSn("SN123456")
                 .setImei("")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}")
                 .setRemark("测试备注")
@@ -115,7 +115,7 @@ class GatewayServiceImplTest {
                 .setCommunicateModel("485")
                 .setSn("SN123456")
                 .setImei("")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}")
                 .setRemark("测试备注")
@@ -278,7 +278,7 @@ class GatewayServiceImplTest {
         when(deviceModelService.getDetail(200)).thenReturn(deviceModelBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
         when(deviceModuleContext.getService(EnergyService.class, 1000)).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
 
         // 模拟insert后设置ID
         doAnswer(invocation -> {
@@ -383,7 +383,7 @@ class GatewayServiceImplTest {
         // 准备数据
         GatewayEntity deleteEntity = new GatewayEntity();
         deleteEntity.setId(1)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setOwnAreaId(1000);
 
         // Mock行为
@@ -408,7 +408,7 @@ class GatewayServiceImplTest {
         ArgumentCaptor<BaseElectricDeviceDto> deleteDtoCaptor = ArgumentCaptor.forClass(BaseElectricDeviceDto.class);
         verify(energyService).delDevice(deleteDtoCaptor.capture());
         BaseElectricDeviceDto capturedDeleteDto = deleteDtoCaptor.getValue();
-        assertEquals(12345, capturedDeleteDto.getDeviceId());
+        assertEquals("12345", capturedDeleteDto.getDeviceId());
         assertEquals(1000, capturedDeleteDto.getAreaId());
     }
 
@@ -462,7 +462,7 @@ class GatewayServiceImplTest {
         // 准备数据
         GatewayEntity deleteEntity = new GatewayEntity();
         deleteEntity.setId(1)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setOwnAreaId(1000);
 
         ElectricMeterBo associatedMeter = new ElectricMeterBo()
@@ -542,7 +542,7 @@ class GatewayServiceImplTest {
         oldEntity.setId(1)
                 .setGatewayNo("GW202401010001")
                 .setDeviceNo("SN123456")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setOwnAreaId(1000);
 
         GatewayEntity updateEntity = new GatewayEntity();
@@ -564,7 +564,7 @@ class GatewayServiceImplTest {
         when(deviceModelService.getDetail(200)).thenReturn(deviceModelBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
         when(deviceModuleContext.getService(EnergyService.class, 1000)).thenReturn(energyService);
-        when(energyService.editDevice(any(ElectricDeviceUpdateDto.class))).thenReturn(12345);
+        doNothing().when(energyService).editDevice(any(ElectricDeviceUpdateDto.class));
         when(repository.updateById(any(GatewayEntity.class))).thenReturn(1);
 
         // 执行测试
@@ -582,7 +582,7 @@ class GatewayServiceImplTest {
         verify(energyService).editDevice(updateDtoCaptor.capture());
         ElectricDeviceUpdateDto capturedUpdateDto = updateDtoCaptor.getValue();
         assertEquals("gateway-model-200", capturedUpdateDto.getProductCode());
-        assertEquals(12345, capturedUpdateDto.getDeviceId());
+        assertEquals("12345", capturedUpdateDto.getDeviceId());
         assertEquals(1000, capturedUpdateDto.getAreaId());
 
         ArgumentCaptor<GatewayEntity> gatewayCaptor = ArgumentCaptor.forClass(GatewayEntity.class);
@@ -617,7 +617,7 @@ class GatewayServiceImplTest {
         updateDto.setModelId(999); // 不存在的设备型号ID
 
         GatewayEntity oldEntity = new GatewayEntity();
-        oldEntity.setId(1).setIotId(12345);
+        oldEntity.setId(1).setIotId("12345");
 
         GatewayEntity updateEntity = new GatewayEntity();
         updateEntity.setModelId(999).setDeviceNo("SN123456");
@@ -645,7 +645,7 @@ class GatewayServiceImplTest {
         updateDto.setSpaceId(999); // 不存在的空间ID
 
         GatewayEntity oldEntity = new GatewayEntity();
-        oldEntity.setId(1).setIotId(12345);
+        oldEntity.setId(1).setIotId("12345");
 
         GatewayEntity updateEntity = new GatewayEntity();
         updateEntity.setModelId(200).setSpaceId(999).setDeviceNo("SN123456");
@@ -675,7 +675,7 @@ class GatewayServiceImplTest {
         updateDto.setImei(""); // NB模式下IMEI为空
 
         GatewayEntity oldEntity = new GatewayEntity();
-        oldEntity.setId(1).setIotId(12345);
+        oldEntity.setId(1).setIotId("12345");
 
         GatewayEntity updateEntity = new GatewayEntity();
         updateEntity.setModelId(200)
@@ -716,7 +716,7 @@ class GatewayServiceImplTest {
         updateDto.setConfigInfo(""); // 空配置信息
 
         GatewayEntity oldEntity = new GatewayEntity();
-        oldEntity.setId(1).setDeviceNo("SN123456").setIotId(12345).setOwnAreaId(1000);
+        oldEntity.setId(1).setDeviceNo("SN123456").setIotId("12345").setOwnAreaId(1000);
 
         GatewayEntity updateEntity = new GatewayEntity();
         updateEntity.setId(1)
@@ -790,7 +790,7 @@ class GatewayServiceImplTest {
     void testSyncGatewayOnlineStatus_ForceUpdate() {
         GatewayEntity oldEntity = new GatewayEntity()
                 .setId(1)
-                .setIotId(123)
+                .setIotId("123")
                 .setGatewayNo("GW202401010001");
         oldEntity.setOwnAreaId(1000);
 
@@ -816,7 +816,7 @@ class GatewayServiceImplTest {
     void testSyncGatewayOnlineStatus_FetchFromIot() {
         GatewayEntity oldEntity = new GatewayEntity()
                 .setId(1)
-                .setIotId(321)
+                .setIotId("321")
                 .setGatewayNo("GW202401010001");
         oldEntity.setOwnAreaId(1000);
 
@@ -834,7 +834,7 @@ class GatewayServiceImplTest {
         ArgumentCaptor<BaseElectricDeviceDto> baseDtoCaptor = ArgumentCaptor.forClass(BaseElectricDeviceDto.class);
         verify(energyService).isOnline(baseDtoCaptor.capture());
         BaseElectricDeviceDto baseDto = baseDtoCaptor.getValue();
-        assertEquals(321, baseDto.getDeviceId());
+        assertEquals("321", baseDto.getDeviceId());
         assertEquals(1000, baseDto.getAreaId());
 
         ArgumentCaptor<GatewayEntity> captor = ArgumentCaptor.forClass(GatewayEntity.class);

@@ -40,6 +40,7 @@ class DeviceCommandSetDateDurationTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(456)
+                .setDeviceIotId("456")
                 .setAreaId(2000)
                 .setCommandData(json);
 
@@ -50,7 +51,7 @@ class DeviceCommandSetDateDurationTest {
         ArgumentCaptor<DateEnergyPlanUpdateDto> captor = ArgumentCaptor.forClass(DateEnergyPlanUpdateDto.class);
         verify(energyService).setDateDuration(captor.capture());
         DateEnergyPlanUpdateDto dto = captor.getValue();
-        assertEquals(456, dto.getDeviceId());
+        assertEquals("456", dto.getDeviceId());
         assertEquals(2000, dto.getAreaId());
         assertNotNull(dto.getItems());
         assertEquals(1, dto.getItems().size());
@@ -66,6 +67,7 @@ class DeviceCommandSetDateDurationTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(456)
+                .setDeviceIotId("456")
                 .setAreaId(2000)
                 .setCommandData(json);
 
@@ -86,6 +88,7 @@ class DeviceCommandSetDateDurationTest {
         DeviceCommandSetDateDuration executor = new DeviceCommandSetDateDuration(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(456)
+                .setDeviceIotId("456")
                 .setAreaId(2000)
                 .setCommandData("");
 
@@ -100,6 +103,7 @@ class DeviceCommandSetDateDurationTest {
         DeviceCommandSetDateDuration executor = new DeviceCommandSetDateDuration(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(456)
+                .setDeviceIotId("456")
                 .setAreaId(2000)
                 .setCommandData("{invalid}");
 

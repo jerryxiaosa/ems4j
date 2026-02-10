@@ -182,7 +182,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setCt(1)
                 .setOwnAreaId(1000);
         // 避免链式调用返回父类导致方法不可用，分开设置
-        entity.setIotId(12345);
+        entity.setIotId("12345");
         entity.setIsDeleted(false);
 
         bo = new ElectricMeterBo()
@@ -200,7 +200,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setIsPrepay(false)
                 .setCt(1)
                 .setOwnAreaId(1000)
-                .setIotId(12345);
+                .setIotId("12345");
 
         Map<String, Object> modelProperty = Map.of("communicateModel", "485", "isCt", true, "isPrepay", false);
         deviceModelBo = new DeviceModelBo()
@@ -219,7 +219,7 @@ class ElectricMeterManagerServiceImplTest {
 
         gatewayBo = new GatewayBo()
                 .setId(300)
-                .setIotId(54321)
+                .setIotId("54321")
                 .setDeviceNo("GW-DEVICE-001")
                 .setIsOnline(true);
 
@@ -243,7 +243,7 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.findList(query)).thenReturn(Collections.emptyList());
         when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
         when(requestContext.getUserRealName()).thenReturn("测试用户");
@@ -661,7 +661,7 @@ class ElectricMeterManagerServiceImplTest {
         ArgumentCaptor<BaseElectricDeviceDto> delCaptor = ArgumentCaptor.forClass(BaseElectricDeviceDto.class);
         verify(energyService).delDevice(delCaptor.capture());
         BaseElectricDeviceDto delDto = delCaptor.getValue();
-        assertEquals(12345, delDto.getDeviceId());
+        assertEquals("12345", delDto.getDeviceId());
         assertEquals(1000, delDto.getAreaId());
     }
 
@@ -759,7 +759,7 @@ class ElectricMeterManagerServiceImplTest {
         when(gatewayService.getDetail(300)).thenReturn(gatewayBo);
         when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
         when(requestContext.getUserRealName()).thenReturn("测试用户");
@@ -929,7 +929,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 网关离线
         GatewayBo offlineGateway = new GatewayBo()
                 .setId(300)
-                .setIotId(54321)
+                .setIotId("54321")
                 .setIsOnline(false);
 
         // Mock行为
@@ -1027,7 +1027,7 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.findList(query)).thenReturn(Collections.emptyList());
         when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
         when(requestContext.getUserRealName()).thenReturn("测试用户");
@@ -1055,7 +1055,7 @@ class ElectricMeterManagerServiceImplTest {
         meterBo.setId(1)
                 .setMeterNo("EM202401010001")
                 .setSpaceId(100)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(true) // 当前断闸
                 .setOwnAreaId(1000);
@@ -1118,7 +1118,7 @@ class ElectricMeterManagerServiceImplTest {
         meterBo.setId(1)
                 .setMeterNo("EM202401010001")
                 .setSpaceId(100)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(false)
                 .setOwnAreaId(1000);
@@ -1201,7 +1201,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo offlineMeter = new ElectricMeterBo()
                 .setId(1)
                 .setMeterNo("EM202401010001")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(false); // 离线状态
 
         // Mock行为
@@ -1227,7 +1227,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo onlineMeter = new ElectricMeterBo()
                 .setId(1)
                 .setMeterNo("EM202401010001")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(false); // 已经是合闸状态
 
@@ -1263,7 +1263,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo onlineMeter = new ElectricMeterBo()
                 .setId(1)
                 .setMeterNo("EM202401010001")
-                .setIotId(12345)
+                .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(true); // 已经是断闸状态
 
@@ -1504,7 +1504,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setModelId(1000)
                 .setCt(50)
                 .setAccountId(null) // 未开户
-                .setIotId(123);
+                .setIotId("123");
 
         DeviceModelBo deviceModel = new DeviceModelBo()
                 .setId(1000)
@@ -1512,7 +1512,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setModelProperty(Map.of("isCt", true));
 
         // Mock行为
-        ElectricMeterBo detailBo = new ElectricMeterBo().setId(1).setModelId(1000).setIotId(123).setCt(110);
+        ElectricMeterBo detailBo = new ElectricMeterBo().setId(1).setModelId(1000).setIotId("123").setCt(110);
         when(electricMeterInfoService.getDetail(1)).thenReturn(detailBo);
         existingEntity.setCt(dto.getCt());
         when(mapper.boToEntity(detailBo)).thenReturn(existingEntity);
@@ -1526,7 +1526,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo newBo = new ElectricMeterBo()
                 .setId(newMeterId)
                 .setModelId(1000)
-                .setIotId(123)
+                .setIotId("123")
                 .setCt(dto.getCt());
         when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
 
@@ -1554,7 +1554,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setModelId(1000)
                 .setCt(100) // 相同的CT值
                 .setAccountId(null)
-                .setIotId(123)
+                .setIotId("123")
                 .setOwnAreaId(1000);
 
         DeviceModelBo deviceModel = new DeviceModelBo()
@@ -1565,7 +1565,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity entityToInsert = new ElectricMeterEntity()
                 .setId(1)
                 .setModelId(1000)
-                .setIotId(123)
+                .setIotId("123")
                 .setCt(100);
 
         // Mock行为
@@ -1581,7 +1581,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo newBo = new ElectricMeterBo()
                 .setId(newMeterId)
                 .setModelId(1000)
-                .setIotId(123)
+                .setIotId("123")
                 .setCt(dto.getCt());
         when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
 
@@ -1972,7 +1972,7 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.findList(queryDto)).thenReturn(Collections.emptyList());
         when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
         when(requestContext.getUserRealName()).thenReturn("测试用户");
@@ -2019,7 +2019,7 @@ class ElectricMeterManagerServiceImplTest {
         when(electricMeterInfoService.findList(query)).thenReturn(Collections.emptyList());
         when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
-        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn(12345);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
         when(requestContext.getUserRealName()).thenReturn("测试用户");
@@ -2050,7 +2050,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setModelId(1000)
                 .setCt(50)
                 .setAccountId(null) // 未开户
-                .setIotId(123)
+                .setIotId("123")
                 .setOwnAreaId(1000);
 
         DeviceModelBo deviceModel = new DeviceModelBo()
@@ -2060,7 +2060,7 @@ class ElectricMeterManagerServiceImplTest {
 
         // Mock行为
         when(electricMeterInfoService.getDetail(1)).thenReturn(existingBo);
-        when(mapper.boToEntity(existingBo)).thenReturn(new ElectricMeterEntity().setId(1).setModelId(1000).setIotId(123).setCt(100));
+        when(mapper.boToEntity(existingBo)).thenReturn(new ElectricMeterEntity().setId(1).setModelId(1000).setIotId("123").setCt(100));
         when(deviceModelService.getDetail(1000)).thenReturn(deviceModel);
         int newMeterId = 2;
         when(repository.insert(any(ElectricMeterEntity.class))).thenAnswer(invocation -> {
@@ -2071,7 +2071,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo newBo = new ElectricMeterBo()
                 .setId(newMeterId)
                 .setModelId(1000)
-                .setIotId(123)
+                .setIotId("123")
                 .setCt(dto.getCt())
                 .setOwnAreaId(1000);
         when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
@@ -2166,7 +2166,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setForce(true);
 
         BaseElectricDeviceDto deviceDto = new BaseElectricDeviceDto();
-        deviceDto.setDeviceId(12345);
+        deviceDto.setDeviceId("12345");
         deviceDto.setAreaId(1000);
 
         when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
@@ -2181,7 +2181,7 @@ class ElectricMeterManagerServiceImplTest {
         verify(energyService).isOnline(deviceCaptor.capture());
 
         BaseElectricDeviceDto capturedDeviceDto = deviceCaptor.getValue();
-        assertEquals(12345, capturedDeviceDto.getDeviceId());
+        assertEquals("12345", capturedDeviceDto.getDeviceId());
         assertEquals(1000, capturedDeviceDto.getAreaId());
 
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
@@ -2204,7 +2204,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setForce(false);
 
         BaseElectricDeviceDto deviceDto = new BaseElectricDeviceDto();
-        deviceDto.setDeviceId(12345);
+        deviceDto.setDeviceId("12345");
         deviceDto.setAreaId(1000);
 
         when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
@@ -2219,7 +2219,7 @@ class ElectricMeterManagerServiceImplTest {
         verify(energyService).isOnline(deviceCaptor.capture());
 
         BaseElectricDeviceDto capturedDeviceDto2 = deviceCaptor.getValue();
-        assertEquals(12345, capturedDeviceDto2.getDeviceId());
+        assertEquals("12345", capturedDeviceDto2.getDeviceId());
         assertEquals(1000, capturedDeviceDto2.getAreaId());
 
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
@@ -2242,7 +2242,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setForce(null);
 
         BaseElectricDeviceDto deviceDto = new BaseElectricDeviceDto();
-        deviceDto.setDeviceId(12345);
+        deviceDto.setDeviceId("12345");
         deviceDto.setAreaId(1000);
 
         when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
@@ -2411,14 +2411,14 @@ class ElectricMeterManagerServiceImplTest {
                 .setSpaceId(1)
                 .setMeterName("测试电表")
                 .setModelId(1)
-                .setIotId(123)
+                .setIotId("123")
                 .setImei("123456789012345")
                 .setMeterAddress(1);
         when(electricMeterInfoService.getDetail(100)).thenReturn(boSelected);
 
         // Mock其他必要的服务调用
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1))).thenReturn(energyService);
-        when(energyService.addDevice(any())).thenReturn(12345);
+        when(energyService.addDevice(any())).thenReturn("12345");
         List<ElectricPriceTimeDto> timeList = List.of(new ElectricPriceTimeDto().setStart(LocalTime.of(0, 0)).setType(ElectricPricePeriodEnum.HIGHER));
         when(electricPlanService.getElectricTime()).thenReturn(timeList);
         when(requestContext.getUserId()).thenReturn(1001);
@@ -2452,7 +2452,7 @@ class ElectricMeterManagerServiceImplTest {
         // 第二次updateById是设置iotId
         ElectricMeterEntity secondUpdateEntity = updateEntities.get(1);
         assertEquals(100, secondUpdateEntity.getId());
-        assertEquals(12345, secondUpdateEntity.getIotId());
+        assertEquals("12345", secondUpdateEntity.getIotId());
     }
 
     @Test
@@ -2656,7 +2656,7 @@ class ElectricMeterManagerServiceImplTest {
         when(deviceModelService.getDetail(1)).thenReturn(deviceModel);
 
         // Mock网关离线
-        GatewayBo gateway = new GatewayBo().setId(1).setIotId(123).setIsOnline(false);
+        GatewayBo gateway = new GatewayBo().setId(1).setIotId("123").setIsOnline(false);
         when(gatewayService.getDetail(1)).thenReturn(gateway);
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
@@ -2699,7 +2699,7 @@ class ElectricMeterManagerServiceImplTest {
         when(deviceModelService.getDetail(1)).thenReturn(deviceModel);
 
         // Mock网关在线
-        GatewayBo gateway = new GatewayBo().setId(1).setIotId(123).setIsOnline(true).setDeviceNo("GW-DEVICE-002");
+        GatewayBo gateway = new GatewayBo().setId(1).setIotId("123").setIsOnline(true).setDeviceNo("GW-DEVICE-002");
         when(gatewayService.getDetail(1)).thenReturn(gateway);
 
         // Mock重复的电表信息
@@ -2889,7 +2889,7 @@ class ElectricMeterManagerServiceImplTest {
         // Mock电表信息
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(meterId)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setOwnAreaId(1000)
                 .setMeterName("测试电表");
 
@@ -2973,7 +2973,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(meterId)
                 .setMeterNo("EM001")
                 .setOwnAreaId(1000)
-                .setIotId(12345);
+                .setIotId("12345");
 
         // Mock 不同类型返回不同的电量值
         BigDecimal totalPower = new BigDecimal("1000.50");
@@ -3016,7 +3016,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricDeviceDegreeDto dto6 = new ElectricDeviceDegreeDto();
         dto6.setType(ElectricPricePeriodEnum.DEEP_LOW).setDeviceId(meterBo.getIotId()).setAreaId(meterBo.getOwnAreaId());
         when(energyService.getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.DEEP_LOW)))
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.DEEP_LOW)))
                 .thenReturn(deepLowPower);
 
         // When - 执行测试方法
@@ -3036,17 +3036,17 @@ class ElectricMeterManagerServiceImplTest {
 
         // 验证每个类型都调用了 energyService.getMeterEnergy 方法
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.TOTAL));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.TOTAL));
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.HIGHER));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.HIGHER));
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.HIGH));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.HIGH));
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.LOW));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.LOW));
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.LOWER));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.LOWER));
         verify(energyService).getMeterEnergy(ArgumentMatchers.argThat(dto ->
-                dto.getDeviceId().equals(12345) && dto.getType() == ElectricPricePeriodEnum.DEEP_LOW));
+                dto.getDeviceId().equals("12345") && dto.getType() == ElectricPricePeriodEnum.DEEP_LOW));
 
         // 验证总共调用了6次
         verify(energyService, times(6)).getMeterEnergy(any(ElectricDeviceDegreeDto.class));
@@ -3943,7 +3943,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setMeterNo("EM001")
                 .setAccountId(200)
                 .setOwnAreaId(300)
-                .setIotId(400);
+                .setIotId("400");
         when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
         when(accountMeterStepRepository.getOne(any(AccountMeterStepQo.class))).thenReturn(null);
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(300))).thenReturn(energyService);

@@ -49,7 +49,7 @@ public class DeviceCommandSetCt implements DeviceCommandExecutor {
 
         ElectricDeviceCTDto dto = new ElectricDeviceCTDto().setCt(ct);
 
-        dto.setDeviceId(commandRecordBo.getDeviceId())
+        dto.setDeviceId(commandRecordBo.getDeviceIotId())
                 .setAreaId(commandRecordBo.getAreaId());
 
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, commandRecordBo.getAreaId());

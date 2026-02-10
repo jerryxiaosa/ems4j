@@ -15,13 +15,12 @@ import java.util.List;
 @Service
 public class MockEnergyService implements EnergyService {
     @Override
-    public Integer addDevice(ElectricDeviceAddDto addDto) {
-        return 1;
+    public String addDevice(ElectricDeviceAddDto addDto) {
+        return "1";
     }
 
     @Override
-    public Integer editDevice(ElectricDeviceUpdateDto updateDto) {
-        return 1;
+    public void editDevice(ElectricDeviceUpdateDto updateDto) {
     }
 
     @Override

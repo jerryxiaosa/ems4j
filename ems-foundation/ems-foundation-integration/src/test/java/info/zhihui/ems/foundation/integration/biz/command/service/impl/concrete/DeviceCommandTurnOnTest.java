@@ -32,6 +32,7 @@ class DeviceCommandTurnOnTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(123)
+                .setDeviceIotId("123")
                 .setAreaId(1000);
 
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
@@ -41,7 +42,7 @@ class DeviceCommandTurnOnTest {
         ArgumentCaptor<BaseElectricDeviceDto> captor = ArgumentCaptor.forClass(BaseElectricDeviceDto.class);
         verify(energyService).recover(captor.capture());
         BaseElectricDeviceDto dto = captor.getValue();
-        assertEquals(123, dto.getDeviceId());
+        assertEquals("123", dto.getDeviceId());
         assertEquals(1000, dto.getAreaId());
     }
 }

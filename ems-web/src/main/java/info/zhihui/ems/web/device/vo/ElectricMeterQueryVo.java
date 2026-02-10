@@ -25,7 +25,7 @@ public class ElectricMeterQueryVo {
     private Integer accountId;
 
     @Schema(description = "物联网设备ID")
-    private Integer iotId;
+    private String iotId;
 
     @Schema(description = "所属区域ID")
     private Integer areaId;

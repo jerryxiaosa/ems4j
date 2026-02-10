@@ -22,7 +22,7 @@ public class GatewayQueryVo {
     private Boolean isOnline;
 
     @Schema(description = "物联网ID")
-    private Long iotId;
+    private String iotId;
 
     @Schema(description = "空间ID列表")
     private List<Integer> spaceIds;

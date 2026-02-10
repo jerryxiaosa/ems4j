@@ -92,7 +92,7 @@ public class ElectricMeterBo extends OperatorInfo {
     /**
      * iot服务里的id
      */
-    private Integer iotId;
+    private String iotId;
 
     /**
      * 是否计量

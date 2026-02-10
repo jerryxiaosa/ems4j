@@ -36,6 +36,7 @@ class DeviceCommandSetCtTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(789)
+                .setDeviceIotId("789")
                 .setAreaId(3000)
                 .setCommandData(json);
 
@@ -46,7 +47,7 @@ class DeviceCommandSetCtTest {
         ArgumentCaptor<ElectricDeviceCTDto> captor = ArgumentCaptor.forClass(ElectricDeviceCTDto.class);
         verify(energyService).setElectricCt(captor.capture());
         ElectricDeviceCTDto dto = captor.getValue();
-        assertEquals(789, dto.getDeviceId());
+        assertEquals("789", dto.getDeviceId());
         assertEquals(3000, dto.getAreaId());
         assertEquals(100, dto.getCt());
     }
@@ -56,6 +57,7 @@ class DeviceCommandSetCtTest {
         DeviceCommandSetCt executor = new DeviceCommandSetCt(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(789)
+                .setDeviceIotId("789")
                 .setAreaId(3000)
                 .setCommandData("");
 
@@ -69,6 +71,7 @@ class DeviceCommandSetCtTest {
         DeviceCommandSetCt executor = new DeviceCommandSetCt(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(789)
+                .setDeviceIotId("789")
                 .setAreaId(3000)
                 .setCommandData("{invalid}");
 
@@ -82,6 +85,7 @@ class DeviceCommandSetCtTest {
         DeviceCommandSetCt executor = new DeviceCommandSetCt(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(789)
+                .setDeviceIotId("789")
                 .setAreaId(3000)
                 .setCommandData("0");
 

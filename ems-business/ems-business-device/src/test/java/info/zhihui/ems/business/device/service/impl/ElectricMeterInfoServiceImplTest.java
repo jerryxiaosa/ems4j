@@ -69,7 +69,7 @@ class ElectricMeterInfoServiceImplTest {
         entity.setId(1)
                 .setMeterName("测试电表")
                 .setSpaceId(100)
-                .setIotId(12345)
+                .setIotId("12345")
                 .setModelId(1)
                 .setIsOnline(true)
                 .setIsPrepay(false)
@@ -92,7 +92,7 @@ class ElectricMeterInfoServiceImplTest {
                 .setIsPrepay(false)
                 .setCt(1)
                 .setOwnAreaId(1000)
-                .setIotId(12345);
+                .setIotId("12345");
 
         qo = new ElectricMeterQo()
                 .setMeterName("测试电表")
@@ -179,7 +179,7 @@ class ElectricMeterInfoServiceImplTest {
     @Test
     void testGetByIotId_Success() {
         // 准备数据
-        Integer iotId = 12345;
+        String iotId = "12345";
         List<ElectricMeterEntity> entityList = Collections.singletonList(entity);
 
         // Mock行为
@@ -201,7 +201,7 @@ class ElectricMeterInfoServiceImplTest {
     @Test
     void testGetByIotId_NotFound() {
         // 准备数据
-        Integer iotId = 99999;
+        String iotId = "99999";
         List<ElectricMeterEntity> emptyList = Collections.emptyList();
 
         // Mock行为
@@ -219,7 +219,7 @@ class ElectricMeterInfoServiceImplTest {
     @Test
     void testGetByIotId_MultipleFound() {
         // 准备数据
-        Integer iotId = 12345;
+        String iotId = "12345";
         ElectricMeterEntity entity2 = new ElectricMeterEntity();
         entity2.setId(2)
                 .setMeterName("测试电表2")

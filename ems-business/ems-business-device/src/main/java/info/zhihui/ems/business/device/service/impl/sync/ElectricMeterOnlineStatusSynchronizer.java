@@ -26,7 +26,7 @@ public class ElectricMeterOnlineStatusSynchronizer extends BaseOnlineStatusSyncS
     }
 
     @Override
-    protected Integer getIotId(ElectricMeterBo device) {
+    protected String getIotId(ElectricMeterBo device) {
         return device.getIotId();
     }
 

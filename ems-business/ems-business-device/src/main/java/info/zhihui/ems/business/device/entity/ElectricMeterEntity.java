@@ -94,7 +94,7 @@ public class ElectricMeterEntity extends AreaBaseEntity {
     /**
      * iot服务里的id
      */
-    private Integer iotId;
+    private String iotId;
 
     /**
      * ct变比

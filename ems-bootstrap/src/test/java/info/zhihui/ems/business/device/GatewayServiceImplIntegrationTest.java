@@ -148,7 +148,7 @@ class GatewayServiceImplIntegrationTest {
         q.setSearchKey("GW");
         q.setSn("SN");
         q.setIsOnline(true);
-        q.setIotId(1L);
+        q.setIotId("1");
         q.setSpaceIds(List.of(100, 1));
 
         List<GatewayBo> list = gatewayService.findList(q);

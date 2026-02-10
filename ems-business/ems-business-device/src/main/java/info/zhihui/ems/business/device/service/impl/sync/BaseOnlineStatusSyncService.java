@@ -6,6 +6,7 @@ import info.zhihui.ems.foundation.integration.concrete.energy.service.EnergyServ
 import info.zhihui.ems.foundation.integration.core.service.DeviceModuleContext;
 
 import info.zhihui.ems.business.device.dto.DeviceStatusSyncRequestDto;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -40,8 +41,8 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
 
     private Boolean queryStatusFromIot(T device) {
         Integer ownAreaId = getOwnAreaId(device);
-        Integer iotId = getIotId(device);
-        if (iotId == null || ownAreaId == null) {
+        String iotId = getIotId(device);
+        if (StringUtils.isBlank(iotId) || ownAreaId == null) {
             return Boolean.FALSE;
         }
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, ownAreaId);
@@ -58,7 +59,7 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
     /**
      * 获取设备 IOT ID。
      */
-    protected abstract Integer getIotId(T device);
+    protected abstract String getIotId(T device);
 
     /**
      * 获取当前状态。

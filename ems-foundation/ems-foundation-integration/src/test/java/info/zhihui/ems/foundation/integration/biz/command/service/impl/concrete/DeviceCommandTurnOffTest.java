@@ -31,6 +31,7 @@ class DeviceCommandTurnOffTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(456)
+                .setDeviceIotId("456")
                 .setAreaId(2000);
 
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(2000))).thenReturn(energyService);
@@ -40,7 +41,7 @@ class DeviceCommandTurnOffTest {
         ArgumentCaptor<BaseElectricDeviceDto> captor = ArgumentCaptor.forClass(BaseElectricDeviceDto.class);
         verify(energyService).cutOff(captor.capture());
         BaseElectricDeviceDto dto = captor.getValue();
-        assertEquals(456, dto.getDeviceId());
+        assertEquals("456", dto.getDeviceId());
         assertEquals(2000, dto.getAreaId());
     }
 }
