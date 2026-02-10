@@ -36,6 +36,7 @@ class DeviceCommandSetPriceTimeTest {
 
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(123)
+                .setDeviceIotId("123")
                 .setAreaId(1000)
                 .setCommandData(json);
 
@@ -46,7 +47,7 @@ class DeviceCommandSetPriceTimeTest {
         ArgumentCaptor<DailyEnergyPlanUpdateDto> captor = ArgumentCaptor.forClass(DailyEnergyPlanUpdateDto.class);
         verify(energyService).setDuration(captor.capture());
         DailyEnergyPlanUpdateDto dto = captor.getValue();
-        assertEquals(123, dto.getDeviceId());
+        assertEquals("123", dto.getDeviceId());
         assertEquals(1000, dto.getAreaId());
         assertEquals(1, dto.getDailyPlanId());
         assertNotNull(dto.getSlots());
@@ -61,6 +62,7 @@ class DeviceCommandSetPriceTimeTest {
         DeviceCommandSetPriceTime executor = new DeviceCommandSetPriceTime(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(123)
+                .setDeviceIotId("123")
                 .setAreaId(1000)
                 .setCommandData("");
 
@@ -75,6 +77,7 @@ class DeviceCommandSetPriceTimeTest {
         DeviceCommandSetPriceTime executor = new DeviceCommandSetPriceTime(deviceModuleContext);
         DeviceCommandRecordBo bo = new DeviceCommandRecordBo()
                 .setDeviceId(123)
+                .setDeviceIotId("123")
                 .setAreaId(1000)
                 .setCommandData("{invalid}");
 

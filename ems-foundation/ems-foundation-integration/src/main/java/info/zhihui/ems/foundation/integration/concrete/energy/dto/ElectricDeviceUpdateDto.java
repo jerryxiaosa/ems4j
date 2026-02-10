@@ -15,7 +15,7 @@ public class ElectricDeviceUpdateDto extends BaseElectricDeviceDto {
 
     private String deviceSecret;
 
-    private Integer parentId;
+    private String parentId;
 
     private Integer portNo;
 

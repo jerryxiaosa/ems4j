@@ -25,7 +25,7 @@ public class GatewayOnlineStatusSynchronizer extends BaseOnlineStatusSyncService
     }
 
     @Override
-    protected Integer getIotId(GatewayEntity device) {
+    protected String getIotId(GatewayEntity device) {
         return device.getIotId();
     }
 

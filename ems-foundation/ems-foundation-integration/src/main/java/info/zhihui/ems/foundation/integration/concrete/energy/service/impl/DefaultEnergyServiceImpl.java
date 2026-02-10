@@ -57,7 +57,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
      * 新增 IoT 设备并返回 IoT 设备 ID。
      */
     @Override
-    public Integer addDevice(ElectricDeviceAddDto addDto) {
+    public String addDevice(ElectricDeviceAddDto addDto) {
         Integer areaId = requireAreaId(addDto.getAreaId());
         DeviceSaveRequest body = toDeviceRequest(
                 addDto.getDeviceNo(),
@@ -68,7 +68,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
                 addDto.getProductCode(),
                 addDto.getParentId()
         );
-        RestResult<Integer> response = executeIotCall("新增设备", () -> restClient.post()
+        RestResult<Object> response = executeIotCall("新增设备", () -> restClient.post()
                 .uri(buildUrl(areaId, "/api/devices"))
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,20 +76,24 @@ public class DefaultEnergyServiceImpl implements EnergyService {
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 }));
-        Integer iotId = response.getData();
+        Object iotId = response.getData();
         if (iotId == null) {
             throw new BusinessRuntimeException("新增设备失败：IoT设备ID为空");
         }
-        return iotId;
+        String iotIdValue = String.valueOf(iotId).trim();
+        if (StringUtils.isBlank(iotIdValue)) {
+            throw new BusinessRuntimeException("新增设备失败：IoT设备ID为空");
+        }
+        return iotIdValue;
     }
 
     /**
-     * 更新 IoT 设备信息，成功后返回原设备 ID。
+     * 更新 IoT 设备信息。
      */
     @Override
-    public Integer editDevice(ElectricDeviceUpdateDto updateDto) {
+    public void editDevice(ElectricDeviceUpdateDto updateDto) {
         Integer areaId = requireAreaId(updateDto.getAreaId());
-        Integer deviceId = requireDeviceId(updateDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(updateDto.getDeviceId(), "设备ID");
         DeviceSaveRequest body = toDeviceRequest(
                 updateDto.getDeviceNo(),
                 updateDto.getPortNo(),
@@ -107,7 +111,6 @@ public class DefaultEnergyServiceImpl implements EnergyService {
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 }));
-        return deviceId;
     }
 
     /**
@@ -116,7 +119,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void delDevice(BaseElectricDeviceDto deleteDto) {
         Integer areaId = requireAreaId(deleteDto.getAreaId());
-        Integer deviceId = requireDeviceId(deleteDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(deleteDto.getDeviceId(), "设备ID");
         executeIotCall("删除设备", () -> restClient.delete()
                 .uri(buildUrl(areaId, "/api/devices/" + deviceId))
                 .accept(MediaType.APPLICATION_JSON)
@@ -131,7 +134,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void cutOff(BaseElectricDeviceDto cutOffDto) {
         Integer areaId = requireAreaId(cutOffDto.getAreaId());
-        Integer deviceId = requireDeviceId(cutOffDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(cutOffDto.getDeviceId(), "设备ID");
         executeIotCall("下发拉闸命令", () -> restClient.post()
                 .uri(buildUrl(areaId, "/api/commands/" + deviceId + "/cut-off"))
                 .accept(MediaType.APPLICATION_JSON)
@@ -146,7 +149,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void recover(BaseElectricDeviceDto recoverDto) {
         Integer areaId = requireAreaId(recoverDto.getAreaId());
-        Integer deviceId = requireDeviceId(recoverDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(recoverDto.getDeviceId(), "设备ID");
         executeIotCall("下发合闸命令", () -> restClient.post()
                 .uri(buildUrl(areaId, "/api/commands/" + deviceId + "/recover"))
                 .accept(MediaType.APPLICATION_JSON)
@@ -161,7 +164,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void setDuration(DailyEnergyPlanUpdateDto durationUpdateDto) {
         Integer areaId = requireAreaId(durationUpdateDto.getAreaId());
-        Integer deviceId = requireDeviceId(durationUpdateDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(durationUpdateDto.getDeviceId(), "设备ID");
         if (durationUpdateDto.getDailyPlanId() == null) {
             throw new BusinessRuntimeException("日方案编号不能为空");
         }
@@ -189,7 +192,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public List<DailyEnergySlot> getDuration(DailyEnergyPlanQueryDto durationQueryDto) {
         Integer areaId = requireAreaId(durationQueryDto.getAreaId());
-        Integer deviceId = requireDeviceId(durationQueryDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(durationQueryDto.getDeviceId(), "设备ID");
         if (durationQueryDto.getDailyPlanId() == null) {
             throw new BusinessRuntimeException("日方案编号不能为空");
         }
@@ -212,7 +215,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void setDateDuration(DateEnergyPlanUpdateDto dateDurationUpdateDto) {
         Integer areaId = requireAreaId(dateDurationUpdateDto.getAreaId());
-        Integer deviceId = requireDeviceId(dateDurationUpdateDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(dateDurationUpdateDto.getDeviceId(), "设备ID");
         List<DatePlanItem> items = dateDurationUpdateDto.getItems();
         if (items == null || items.isEmpty()) {
             throw new BusinessRuntimeException("日期电价方案不能为空");
@@ -234,7 +237,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public List<DatePlanItem> getDateDuration(BaseElectricDeviceDto deviceDto) {
         Integer areaId = requireAreaId(deviceDto.getAreaId());
-        Integer deviceId = requireDeviceId(deviceDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(deviceDto.getDeviceId(), "设备ID");
         RestResult<List<ElectricDateDurationPayload>> response = executeIotCall("读取指定日期电价方案", () -> restClient.get()
                 .uri(buildUrl(areaId, "/api/commands/" + deviceId + "/date-duration"))
                 .accept(MediaType.APPLICATION_JSON)
@@ -250,7 +253,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public BigDecimal getMeterEnergy(ElectricDeviceDegreeDto degreeDto) {
         Integer areaId = requireAreaId(degreeDto.getAreaId());
-        Integer deviceId = requireDeviceId(degreeDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(degreeDto.getDeviceId(), "设备ID");
         UriComponentsBuilder pathBuilder = UriComponentsBuilder.fromPath("/api/commands/{deviceId}/used-power");
         ElectricPricePeriodEnum type = degreeDto.getType();
         if (type != null) {
@@ -276,7 +279,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public Boolean isOnline(BaseElectricDeviceDto deviceDto) {
         Integer areaId = requireAreaId(deviceDto.getAreaId());
-        Integer deviceId = requireDeviceId(deviceDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(deviceDto.getDeviceId(), "设备ID");
         RestResult<Boolean> response = executeIotCall("查询设备在线状态", () -> restClient.get()
                 .uri(buildUrl(areaId, "/api/devices/" + deviceId + "/online"))
                 .accept(MediaType.APPLICATION_JSON)
@@ -296,7 +299,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public void setElectricCt(ElectricDeviceCTDto ctDto) {
         Integer areaId = requireAreaId(ctDto.getAreaId());
-        Integer deviceId = requireDeviceId(ctDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(ctDto.getDeviceId(), "设备ID");
         Integer ct = ctDto.getCt();
         if (ct == null || ct <= 0) {
             throw new BusinessRuntimeException("CT变比必须大于0");
@@ -319,7 +322,7 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     @Override
     public Integer getElectricCt(BaseElectricDeviceDto deviceDto) {
         Integer areaId = requireAreaId(deviceDto.getAreaId());
-        Integer deviceId = requireDeviceId(deviceDto.getDeviceId());
+        Integer deviceId = parseRequiredNumericIotId(deviceDto.getDeviceId(), "设备ID");
         RestResult<Integer> response = executeIotCall("读取CT倍率", () -> restClient.get()
                 .uri(buildUrl(areaId, "/api/commands/" + deviceId + "/ct"))
                 .accept(MediaType.APPLICATION_JSON)
@@ -346,8 +349,9 @@ public class DefaultEnergyServiceImpl implements EnergyService {
      */
     private DeviceSaveRequest toDeviceRequest(String deviceNo, Integer portNo, Integer meterAddress,
                                               String deviceSecret, Integer slaveAddress,
-                                              String productCode, Integer parentId) {
-        return new DeviceSaveRequest(deviceNo, portNo, meterAddress, deviceSecret, slaveAddress, productCode, parentId);
+                                              String productCode, String parentId) {
+        Integer parentDeviceId = parseOptionalNumericIotId(parentId, "父设备ID");
+        return new DeviceSaveRequest(deviceNo, portNo, meterAddress, deviceSecret, slaveAddress, productCode, parentDeviceId);
     }
 
     /**
@@ -554,11 +558,39 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     /**
      * 校验并返回设备 ID。
      */
-    private Integer requireDeviceId(Integer deviceId) {
-        if (deviceId == null) {
+    private String requireDeviceId(String deviceId) {
+        if (StringUtils.isBlank(deviceId)) {
             throw new BusinessRuntimeException("设备ID不能为空");
         }
-        return deviceId;
+        return deviceId.trim();
+    }
+
+    /**
+     * 校验必填外部设备ID并转换为数字ID（当前默认IoT接口要求数字ID）。
+     */
+    private Integer parseRequiredNumericIotId(String deviceId, String fieldName) {
+        return parseNumericIotId(requireDeviceId(deviceId), fieldName);
+    }
+
+    /**
+     * 校验可选外部设备ID并转换为数字ID（当前默认IoT接口要求数字ID）。
+     */
+    private Integer parseOptionalNumericIotId(String deviceId, String fieldName) {
+        if (StringUtils.isBlank(deviceId)) {
+            return null;
+        }
+        return parseNumericIotId(deviceId.trim(), fieldName);
+    }
+
+    /**
+     * 将外部设备ID转换为数字ID。
+     */
+    private Integer parseNumericIotId(String deviceId, String fieldName) {
+        try {
+            return Integer.valueOf(deviceId);
+        } catch (NumberFormatException ex) {
+            throw new BusinessRuntimeException(fieldName + "格式不正确，仅支持数字ID");
+        }
     }
 
     private record DeviceSaveRequest(String deviceNo, Integer portNo, Integer meterAddress,

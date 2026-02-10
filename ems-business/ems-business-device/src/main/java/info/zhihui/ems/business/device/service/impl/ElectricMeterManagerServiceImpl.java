@@ -184,7 +184,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         );
 
         // 删除iot电表关联
-        if (old.getIotId() != null) {
+        if (StringUtils.isNotBlank(old.getIotId())) {
             EnergyService energyService = deviceModuleContext.getService(EnergyService.class, old.getOwnAreaId());
             energyService.delDevice(new BaseElectricDeviceDto().setDeviceId(old.getIotId()).setAreaId(old.getOwnAreaId()));
         }
@@ -224,7 +224,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
      */
     private ElectricMeterBo validateMeterForSwitchOperation(Integer id) {
         ElectricMeterBo meter = electricMeterInfoService.getDetail(id);
-        if (meter.getIotId() == null) {
+        if (StringUtils.isBlank(meter.getIotId())) {
             throw new BusinessRuntimeException(
                     String.format("设备%s异常，请联系管理员处理", meter.getMeterNo()));
         }
@@ -1022,14 +1022,14 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, entity.getOwnAreaId());
         ElectricDeviceAddDto addDto = createDeviceAddDto(entity);
 
-        Integer iotId = energyService.addDevice(addDto);
+        String iotId = energyService.addDevice(addDto);
         updateMeterIotId(entity.getId(), iotId);
 
         log.info("电表同步到IoT平台成功，电表ID: {}, IoT设备ID: {}", entity.getId(), iotId);
     }
 
     private void syncDeviceNoToIotPlatform(ElectricMeterBo old, String deviceNo) {
-        if (old == null || old.getIotId() == null) {
+        if (old == null || StringUtils.isBlank(old.getIotId())) {
             throw new BusinessRuntimeException("电表未同步到IoT平台，无法更新设备编号");
         }
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, old.getOwnAreaId());
@@ -1063,7 +1063,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (gateway == null) {
             throw new BusinessRuntimeException("网关不存在，网关ID: " + gatewayId);
         }
-        if (gateway.getIotId() == null) {
+        if (StringUtils.isBlank(gateway.getIotId())) {
             throw new BusinessRuntimeException("网关未同步到IoT平台，网关ID: " + gatewayId);
         }
     }
@@ -1134,7 +1134,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     /**
      * 更新电表IoT ID
      */
-    private void updateMeterIotId(Integer meterId, Integer iotId) {
+    private void updateMeterIotId(Integer meterId, String iotId) {
         ElectricMeterEntity updateEntity = new ElectricMeterEntity()
                 .setId(meterId)
                 .setIotId(iotId);
@@ -1147,7 +1147,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
     private void saveMeterCommandAndRun(MeterCommandDto meterCommandDto) {
         ElectricMeterBo meter = meterCommandDto.getMeter();
-        if (meter.getIotId() == null) {
+        if (StringUtils.isBlank(meter.getIotId())) {
             throw new BusinessRuntimeException("电表未同步到IoT平台，无法下发命令");
         }
         String spaceName = Optional.ofNullable(spaceService.getDetail(meter.getSpaceId()))
@@ -1160,7 +1160,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setCommandData(meterCommandDto.getCommandData())
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
                 .setDeviceId(meter.getId())
-                .setDeviceIotId(meter.getIotId().toString())
+                .setDeviceIotId(meter.getIotId())
                 .setDeviceNo(meter.getDeviceNo())
                 .setDeviceName(meter.getMeterName())
                 .setSpaceId(meter.getSpaceId())
@@ -1347,7 +1347,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
      */
     private GatewayBo validateGateway(ElectricMeterEntity entity) {
         GatewayBo gateway = gatewayService.getDetail(entity.getGatewayId());
-        if (gateway == null || gateway.getIotId() == null) {
+        if (gateway == null || StringUtils.isBlank(gateway.getIotId())) {
             throw new BusinessRuntimeException("网关信息有误，请重新选择");
         }
         if (!BooleanUtil.isTrue(gateway.getIsOnline())) {

@@ -18,7 +18,7 @@ public class GatewayQo {
 
     private Boolean isOnline;
 
-    private Integer iotId;
+    private String iotId;
 
     private List<Integer> spaceIds;
 

@@ -55,7 +55,7 @@ public class ElectricMeterController {
     @SaCheckPermission("devices:meters:iot-detail")
     @GetMapping("/iot/{iotId}")
     @Operation(summary = "根据物联网ID获取电表详情")
-    public RestResult<ElectricMeterDetailVo> getElectricMeterByIotId(@Parameter(description = "物联网ID") @PathVariable Integer iotId) {
+    public RestResult<ElectricMeterDetailVo> getElectricMeterByIotId(@Parameter(description = "物联网ID") @PathVariable String iotId) {
         return ResultUtil.success(electricMeterBiz.getElectricMeterByIotId(iotId));
     }
 

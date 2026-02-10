@@ -59,7 +59,7 @@ public class ElectricMeterVo {
     private String remark;
 
     @Schema(description = "物联网ID")
-    private Integer iotId;
+    private String iotId;
 
     @Schema(description = "是否计量")
     private Boolean isCalculate;

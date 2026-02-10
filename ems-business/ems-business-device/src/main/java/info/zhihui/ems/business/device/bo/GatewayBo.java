@@ -59,7 +59,7 @@ public class GatewayBo {
     /**
      * iot服务里的id
      */
-    private Integer iotId;
+    private String iotId;
 
     /**
      * 网关是否在线

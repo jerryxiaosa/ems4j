@@ -44,7 +44,7 @@ public class DeviceCommandSetDateDuration implements DeviceCommandExecutor {
             throw new BusinessRuntimeException("命令参数格式错误");
         }
 
-        dto.setDeviceId(commandRecordBo.getDeviceId())
+        dto.setDeviceId(commandRecordBo.getDeviceIotId())
                 .setAreaId(commandRecordBo.getAreaId());
 
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, commandRecordBo.getAreaId());

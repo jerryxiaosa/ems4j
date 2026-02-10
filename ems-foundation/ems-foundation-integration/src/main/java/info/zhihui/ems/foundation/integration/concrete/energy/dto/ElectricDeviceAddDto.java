@@ -13,7 +13,7 @@ public class ElectricDeviceAddDto {
 
     private String deviceSecret;
 
-    private Integer parentId;
+    private String parentId;
 
     private Integer portNo;
 

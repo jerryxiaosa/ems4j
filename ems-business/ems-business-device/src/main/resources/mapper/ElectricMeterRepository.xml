@@ -21,7 +21,7 @@
             <if test="accountId != null">
                 and t.account_id = #{accountId}
             </if>
-            <if test="iotId != null">
+            <if test="iotId != null and iotId != ''">
                 and t.iot_id = #{iotId}
             </if>
             <if test="gatewayId != null">

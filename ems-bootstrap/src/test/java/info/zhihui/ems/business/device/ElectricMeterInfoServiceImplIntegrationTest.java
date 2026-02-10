@@ -149,7 +149,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         assertNotNull(result.getAccountId(), "账户ID不应为null");
 
         // 验证电表的基本属性
-        assertTrue(result.getIotId() > 0, "物联网设备ID应大于0");
+        assertFalse(result.getIotId().isBlank(), "物联网设备ID不应为空");
         assertNotNull(result.getMeterName(), "电表名称不应为null");
 
         // 测试查询不存在的电表ID
@@ -163,7 +163,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
     @DisplayName("getByIotId方法集成测试 - 测试根据物联网设备ID查询电表功能")
     void testGetByIotId_Success() {
         // 准备测试数据 - 使用测试数据中存在的物联网设备ID
-        Integer testIotId = 1001;
+        String testIotId = "1001";
 
         // 执行测试
         ElectricMeterBo result = electricMeterInfoService.getByIotId(testIotId);
@@ -180,7 +180,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         assertNotNull(result.getMeterName(), "电表名称不应为null");
 
         // 测试查询不存在的物联网设备ID
-        Integer nonExistentIotId = 99999;
+        String nonExistentIotId = "99999";
         assertThrows(Exception.class, () -> {
             electricMeterInfoService.getByIotId(nonExistentIotId);
         }, "查询不存在的物联网设备ID应抛出异常");
@@ -194,7 +194,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         q.setMeterName("EM");
         q.setMeterNo("EM");
         q.setAccountId(1);
-        q.setIotId(1);
+        q.setIotId("1");
         q.setGatewayId(1);
         q.setIsOnline(true);
         q.setIsCutOff(false);

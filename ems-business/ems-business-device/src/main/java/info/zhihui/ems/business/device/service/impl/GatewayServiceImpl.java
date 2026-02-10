@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.device.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
@@ -96,8 +97,11 @@ public class GatewayServiceImpl implements GatewayService {
     @Override
     public PageResult<GatewayBo> findPage(GatewayQueryDto query, PageParam pageParam) {
         GatewayQo queryQo = mapper.queryDtoToQo(query);
-        PageInfo<GatewayEntity> pageInfo = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize()).doSelectPageInfo(() -> repository.findList(queryQo));
-        return mapper.pageEntityToBo(pageInfo);
+
+        try (Page<GatewayEntity> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
+            PageInfo<GatewayEntity> pageInfo = page.doSelectPageInfo(() -> repository.findList(queryQo));
+            return mapper.pageEntityToBo(pageInfo);
+        }
     }
 
     /**
@@ -135,7 +139,7 @@ public class GatewayServiceImpl implements GatewayService {
 
         // 同步到IoT平台
         syncToIotPlatform(entity);
-        if (entity.getIotId() != null) {
+        if (StringUtils.isNotBlank(entity.getIotId())) {
             repository.updateById(new GatewayEntity().setId(entity.getId()).setIotId(entity.getIotId()));
         }
 
@@ -157,7 +161,7 @@ public class GatewayServiceImpl implements GatewayService {
         boolean configChanged = StringUtils.isNotBlank(dto.getConfigInfo()) && !dto.getConfigInfo().equals(old.getConfigInfo());
         boolean deviceNoChanged = StringUtils.isNotBlank(entity.getDeviceNo()) && !entity.getDeviceNo().equals(old.getDeviceNo());
         if (configChanged || deviceNoChanged) {
-            if (old.getIotId() == null) {
+            if (StringUtils.isBlank(old.getIotId())) {
                 throw new BusinessRuntimeException("数据异常：网关没有对应的iot数据");
             }
             entity.setIotId(old.getIotId());
@@ -245,20 +249,18 @@ public class GatewayServiceImpl implements GatewayService {
      * 同步到IoT平台
      */
     private void syncToIotPlatform(GatewayEntity entity) {
-        Integer newIotId;
-        if (entity.getIotId() == null) {
-            newIotId = createIotDevice(entity);
-        } else {
-            newIotId = updateIotDevice(entity, entity.getIotId());
+        if (StringUtils.isBlank(entity.getIotId())) {
+            String newIotId = createIotDevice(entity);
+            entity.setIotId(newIotId);
+            return;
         }
-
-        entity.setIotId(newIotId);
+        updateIotDevice(entity, entity.getIotId());
     }
 
     /**
      * 创建IoT设备
      */
-    private Integer createIotDevice(GatewayEntity entity) {
+    private String createIotDevice(GatewayEntity entity) {
         EnergyService energyService = deviceModuleContext.getService(
                 EnergyService.class,
                 entity.getOwnAreaId());
@@ -271,7 +273,7 @@ public class GatewayServiceImpl implements GatewayService {
         return energyService.addDevice(addDto);
     }
 
-    private Integer updateIotDevice(GatewayEntity entity, Integer oldIotId) {
+    private void updateIotDevice(GatewayEntity entity, String oldIotId) {
         EnergyService energyService = deviceModuleContext.getService(
                 EnergyService.class,
                 entity.getOwnAreaId());
@@ -282,7 +284,7 @@ public class GatewayServiceImpl implements GatewayService {
                 .setDeviceId(oldIotId)
                 .setAreaId(entity.getOwnAreaId());
 
-        return energyService.editDevice(updateDto);
+        energyService.editDevice(updateDto);
     }
 
     /**
@@ -303,7 +305,7 @@ public class GatewayServiceImpl implements GatewayService {
         }
 
         // 同步iot平台
-        if (old.getIotId() != null) {
+        if (StringUtils.isNotBlank(old.getIotId())) {
             EnergyService energyService = deviceModuleContext.getService(EnergyService.class, old.getOwnAreaId());
             energyService.delDevice(new BaseElectricDeviceDto().setDeviceId(old.getIotId()).setAreaId(old.getOwnAreaId()));
         }

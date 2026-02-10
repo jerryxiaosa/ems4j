@@ -43,7 +43,7 @@ public class GatewayVo {
     private String imei;
 
     @Schema(description = "物联网ID")
-    private Integer iotId;
+    private String iotId;
 
     @Schema(description = "是否在线")
     private Boolean isOnline;

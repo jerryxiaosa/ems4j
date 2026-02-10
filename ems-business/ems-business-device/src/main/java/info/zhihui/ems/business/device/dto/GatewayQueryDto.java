@@ -16,7 +16,7 @@ public class GatewayQueryDto {
 
     private Boolean isOnline;
 
-    private Long iotId;
+    private String iotId;
 
     private List<Integer> spaceIds;
 

@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class BaseElectricDeviceDto {
-    private Integer deviceId;
+    private String deviceId;
 
     private Integer areaId;
 }

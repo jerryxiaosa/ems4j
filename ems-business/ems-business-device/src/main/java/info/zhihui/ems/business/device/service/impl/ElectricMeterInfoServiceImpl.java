@@ -18,6 +18,7 @@ import info.zhihui.ems.business.device.repository.ElectricMeterRepository;
 import info.zhihui.ems.business.device.repository.MeterCancelRecordRepository;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -100,13 +101,13 @@ public class ElectricMeterInfoServiceImpl implements ElectricMeterInfoService {
      * @throws BusinessRuntimeException 当存在多个电表时
      */
     @Override
-    public ElectricMeterBo getByIotId(Integer iotId) {
+    public ElectricMeterBo getByIotId(@NotBlank String iotId) {
         List<ElectricMeterEntity> meterList = repository.findList(new ElectricMeterQo().setIotId(iotId));
 
         if (meterList.isEmpty()) {
-            throw new NotFoundException(String.format("能耗系统查询到iotId=%d没有匹配的电表", iotId));
+            throw new NotFoundException(String.format("能耗系统查询到iotId=%s没有匹配的电表", iotId));
         } else if (meterList.size() > 1) {
-            throw new BusinessRuntimeException(String.format("能耗系统查询到iotId=%d的电表数量=%d无法匹配电表", iotId, meterList.size()));
+            throw new BusinessRuntimeException(String.format("能耗系统查询到iotId=%s的电表数量=%d无法匹配电表", iotId, meterList.size()));
         }
 
         return mapper.entityToBo(meterList.get(0));

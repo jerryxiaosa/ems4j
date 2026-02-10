@@ -31,7 +31,7 @@ public class DeviceCommandTurnOff implements DeviceCommandExecutor {
 
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, commandRecordBo.getAreaId());
         energyService.cutOff(new BaseElectricDeviceDto()
-                .setDeviceId(commandRecordBo.getDeviceId())
+                .setDeviceId(commandRecordBo.getDeviceIotId())
                 .setAreaId(commandRecordBo.getAreaId()));
     }
 }

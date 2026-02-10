@@ -164,7 +164,7 @@ CREATE TABLE energy_electric_meter
     is_online         BOOLEAN              DEFAULT NULL,
     is_cut_off        BOOLEAN     NOT NULL DEFAULT FALSE,
     remark            VARCHAR(500)         DEFAULT NULL,
-    iot_id            INTEGER              DEFAULT NULL,
+    iot_id            VARCHAR(100)         DEFAULT NULL,
     is_calculate      BOOLEAN     NOT NULL DEFAULT FALSE,
     calculate_type    INTEGER              DEFAULT NULL,
     is_prepay         BOOLEAN     NOT NULL DEFAULT FALSE,
@@ -186,6 +186,7 @@ CREATE TABLE energy_electric_meter
     PRIMARY KEY (id)
 );
 CREATE UNIQUE INDEX uk_energy_electric_meter_active_device_no ON energy_electric_meter (active_device_no);
+CREATE INDEX idx_energy_electric_meter_iot_id ON energy_electric_meter (iot_id);
 
 -- 智能网关
 DROP TABLE IF EXISTS energy_gateway;
@@ -204,7 +205,7 @@ CREATE TABLE energy_gateway
     is_online         BOOLEAN          DEFAULT NULL,
     config_info       text,
     remark            varchar(500),
-    iot_id            int              DEFAULT NULL,
+    iot_id            VARCHAR(100)     DEFAULT NULL,
     create_user       INTEGER          DEFAULT NULL,
     create_user_name  VARCHAR(50)      DEFAULT NULL,
     create_time       TIMESTAMP        DEFAULT NULL,
@@ -217,6 +218,7 @@ CREATE TABLE energy_gateway
     PRIMARY KEY (id)
 );
 CREATE UNIQUE INDEX uk_energy_gateway_active_device_no ON energy_gateway (active_device_no);
+CREATE INDEX idx_energy_gateway_iot_id ON energy_gateway (iot_id);
 
 -- 智能设备品类表
 DROP TABLE IF EXISTS device_type;

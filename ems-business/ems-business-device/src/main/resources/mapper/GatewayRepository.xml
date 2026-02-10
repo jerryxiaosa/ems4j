@@ -10,7 +10,7 @@
       <if test="searchKey != null and searchKey != ''">
         and (gateway_name like concat('%',#{searchKey},'%') or gateway_no like concat('%',#{searchKey},'%'))
       </if>
-      <if test="iotId != null">
+      <if test="iotId != null and iotId != ''">
         and iot_id = #{iotId}
       </if>
       <if test="eqSn != null and eqSn != ''">

@@ -15,15 +15,14 @@ public interface EnergyService extends CommonDeviceModule {
      *
      * @return iotId
      */
-    Integer addDevice(ElectricDeviceAddDto addDto);
+    String addDevice(ElectricDeviceAddDto addDto);
 
     /**
      * 修改设备
      *
      * @param updateDto 修改信息
-     * @return iotId
      */
-    Integer editDevice(ElectricDeviceUpdateDto updateDto);
+    void editDevice(ElectricDeviceUpdateDto updateDto);
 
     /**
      * 删除设备

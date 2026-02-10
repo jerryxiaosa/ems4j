@@ -31,7 +31,7 @@ public class DeviceCommandTurnOn implements DeviceCommandExecutor {
 
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, commandRecordBo.getAreaId());
         energyService.recover(new BaseElectricDeviceDto()
-                .setDeviceId(commandRecordBo.getDeviceId())
+                .setDeviceId(commandRecordBo.getDeviceIotId())
                 .setAreaId(commandRecordBo.getAreaId()));
     }
 }

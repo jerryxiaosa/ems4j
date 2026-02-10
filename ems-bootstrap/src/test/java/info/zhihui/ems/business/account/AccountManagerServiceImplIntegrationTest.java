@@ -500,7 +500,7 @@ public class AccountManagerServiceImplIntegrationTest {
         assertEquals("1号楼电表", closeMeter.getMeterName(), "电表名称应为'1号楼电表'");
         assertEquals("EM001", closeMeter.getMeterNo(), "电表编号应为'EM001'");
         assertEquals(Boolean.TRUE, closeMeter.getIsOnline(), "电表应为在线状态");
-        assertEquals(1001, closeMeter.getIotId(), "电表IoT ID应为1001");
+        assertEquals("1001", closeMeter.getIotId(), "电表IoT ID应为1001");
         assertEquals(1, closeMeter.getModelId(), "电表型号ID应为1");
         assertEquals("DDS102", closeMeter.getProductCode(), "电表型号名称应为'DDS102'");
         assertEquals("Modbus", closeMeter.getCommunicateModel(), "通信模式应为'Modbus'");

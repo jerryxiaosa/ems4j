@@ -247,7 +247,7 @@ CREATE TABLE `energy_electric_meter`
     `is_online`         BIT(1)                                                                 DEFAULT NULL COMMENT '是否在线：0不在线，1在线',
     `is_cut_off`        BIT(1)                                                        NOT NULL DEFAULT b'0' COMMENT '是否断电：0未断闸，1断闸',
     `remark`            VARCHAR(500) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '备注',
-    `iot_id`            INT                                                                    DEFAULT NULL COMMENT 'iot服务里的id',
+    `iot_id`            VARCHAR(100) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci         DEFAULT NULL COMMENT 'iot服务里的id',
     `is_calculate`      BIT(1)                                                        NOT NULL DEFAULT b'0' COMMENT '汇总时是否计算在内，和calculate_type无关',
     `calculate_type`    INT                                                                    DEFAULT NULL COMMENT '用量类型，和is_calculate无关',
     `is_prepay`         BIT(1)                                                        NOT NULL DEFAULT b'0' COMMENT '是否预付费电表：0不是预付费，1是预付费',
@@ -267,6 +267,7 @@ CREATE TABLE `energy_electric_meter`
     `own_area_id`       INT                                                                    DEFAULT NULL COMMENT '所属区域',
     `active_device_no`  VARCHAR(100) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS ((IF(`is_deleted` = b'0', `device_no`, NULL))) STORED COMMENT '活跃设备编号（未删除时等于设备编号）',
     PRIMARY KEY (`id`) USING BTREE,
+    KEY `idx_energy_electric_meter_iot_id` (`iot_id`),
     UNIQUE KEY `uk_energy_electric_meter_active_device_no` (`active_device_no`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
@@ -462,7 +463,7 @@ CREATE TABLE `energy_gateway`
     `is_online`         BIT(1)                                                                 DEFAULT NULL COMMENT '是否在线：0不在线，1在线',
     `config_info`       text CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci COMMENT '网关配置信息,json字符串',
     `remark`            VARCHAR(500) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '备注',
-    `iot_id`            INT                                                                    DEFAULT NULL COMMENT 'iot服务里的id',
+    `iot_id`            VARCHAR(100) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci         DEFAULT NULL COMMENT 'iot服务里的id',
     `create_user`       INT UNSIGNED                                                           DEFAULT NULL,
     `create_user_name`  VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci           DEFAULT NULL,
     `create_time`       DATETIME                                                               DEFAULT NULL,
@@ -473,6 +474,7 @@ CREATE TABLE `energy_gateway`
     `own_area_id`       INT                                                                    DEFAULT NULL COMMENT '所属区域',
     `active_device_no`  VARCHAR(100) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS ((IF(`is_deleted` = b'0', `device_no`, NULL))) STORED COMMENT '活跃设备编号（未删除时等于设备编号）',
     PRIMARY KEY (`id`),
+    KEY `idx_energy_gateway_iot_id` (`iot_id`),
     UNIQUE KEY `uk_energy_gateway_active_device_no` (`active_device_no`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
