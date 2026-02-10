@@ -84,7 +84,8 @@ public class DefaultEnergyServiceImpl implements EnergyService {
         if (StringUtils.isBlank(iotIdValue)) {
             throw new BusinessRuntimeException("新增设备失败：IoT设备ID为空");
         }
-        return iotIdValue;
+        Integer validatedIotId = parseNumericIotId(iotIdValue, "IoT设备ID");
+        return String.valueOf(validatedIotId);
     }
 
     /**
