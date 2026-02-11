@@ -5,9 +5,11 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.RoleBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.RoleQueryDto;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
@@ -552,12 +554,15 @@ class UserServiceImplTest {
         when(passwordService.encode(mockResetPasswordDto.getNewPassword())).thenReturn("123abc");
         when(userRepository.updateById(any(UserEntity.class))).thenReturn(1);
 
-        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
+        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class);
+             MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1)).thenReturn(true);
             userService.resetPassword(mockResetPasswordDto);
 
             verify(userRepository).selectById(1);
             verify(userRepository).updateById(argThat((UserEntity entity) ->
                     entity.getId().equals(1) && entity.getPassword().equals("123abc")));
+            redisMock.verify(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1));
             stpMock.verify(() -> StpUtil.logout(1));
         }
     }

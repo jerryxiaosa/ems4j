@@ -7,11 +7,14 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.utils.TransactionUtil;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
+import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.RoleBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.*;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
@@ -238,9 +241,19 @@ public class UserServiceImpl implements UserService {
         if (updateRows <= 0) {
             throw new BusinessRuntimeException("重置密码失败");
         }
+        Integer userId = dto.getId();
+        TransactionUtil.afterCommitSyncExecute(() -> clearLoginStateAfterResetPassword(userId));
+    }
 
+    /**
+     * 重置密码成功后，清理登录失败计数并强制用户下线。
+     *
+     * @param userId 用户ID
+     */
+    private void clearLoginStateAfterResetPassword(Integer userId) {
+        RedisUtil.deleteObject(LoginConstant.PWD_ERR + userId);
         try {
-            StpUtil.logout(dto.getId());
+            StpUtil.logout(userId);
         } catch (NotLoginException ignore) {
             // ignore when user is not logged in
         }
