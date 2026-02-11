@@ -36,6 +36,11 @@ public class ElectricMeterQueryDto {
     private String iotId;
 
     /**
+     * 设备编号，设备上报标识
+     */
+    private String deviceNo;
+
+    /**
      * 区域id
      */
     private Integer areaId;

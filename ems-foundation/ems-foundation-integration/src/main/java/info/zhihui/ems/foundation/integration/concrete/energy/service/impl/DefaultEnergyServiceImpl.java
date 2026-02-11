@@ -13,10 +13,9 @@ import info.zhihui.ems.foundation.integration.core.enums.ModuleEnum;
 import info.zhihui.ems.foundation.integration.core.service.DeviceModuleConfigService;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.platform.DefaultIotHttpRequestConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -24,7 +23,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.util.ArrayList;
@@ -37,20 +35,13 @@ import java.util.function.Supplier;
 @Service
 public class DefaultEnergyServiceImpl implements EnergyService {
 
-    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(5);
     private final DeviceModuleConfigService deviceModuleConfigService;
     private final RestClient restClient;
 
-    public DefaultEnergyServiceImpl(DeviceModuleConfigService deviceModuleConfigService) {
+    public DefaultEnergyServiceImpl(DeviceModuleConfigService deviceModuleConfigService,
+                                    @Qualifier("iotRestClient") RestClient restClient) {
         this.deviceModuleConfigService = deviceModuleConfigService;
-        int timeoutMillis = Math.toIntExact(HTTP_TIMEOUT.toMillis());
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(timeoutMillis);
-        requestFactory.setReadTimeout(timeoutMillis);
-        this.restClient = RestClient.builder()
-                .requestFactory(requestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        this.restClient = restClient;
     }
 
     /**

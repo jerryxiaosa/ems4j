@@ -177,64 +177,66 @@ class ElectricMeterInfoServiceImplTest {
     }
 
     @Test
-    void testGetByIotId_Success() {
+    void testGetByDeviceNo_Success() {
         // 准备数据
-        String iotId = "12345";
+        String deviceNo = "DEV-001";
+        entity.setDeviceNo(deviceNo);
+        bo.setDeviceNo(deviceNo);
         List<ElectricMeterEntity> entityList = Collections.singletonList(entity);
 
         // Mock行为
-        ElectricMeterQo queryQo = new ElectricMeterQo().setIotId(iotId);
+        ElectricMeterQo queryQo = new ElectricMeterQo().setDeviceNo(deviceNo);
         when(repository.findList(queryQo)).thenReturn(entityList);
         when(mapper.entityToBo(entity)).thenReturn(bo);
 
         // 执行测试
-        ElectricMeterBo result = electricMeterInfoService.getByIotId(iotId);
+        ElectricMeterBo result = electricMeterInfoService.getByDeviceNo(deviceNo);
 
         // 验证结果
         assertNotNull(result);
         assertEquals(1, result.getId());
-        assertEquals(iotId, result.getIotId());
+        assertEquals(deviceNo, result.getDeviceNo());
         verify(repository).findList(queryQo);
         verify(mapper).entityToBo(entity);
     }
 
     @Test
-    void testGetByIotId_NotFound() {
+    void testGetByDeviceNo_NotFound() {
         // 准备数据
-        String iotId = "99999";
+        String deviceNo = "DEV-404";
         List<ElectricMeterEntity> emptyList = Collections.emptyList();
 
         // Mock行为
-        ElectricMeterQo queryQo = new ElectricMeterQo().setIotId(iotId);
+        ElectricMeterQo queryQo = new ElectricMeterQo().setDeviceNo(deviceNo);
         when(repository.findList(queryQo)).thenReturn(emptyList);
 
         // 执行测试并验证异常
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> electricMeterInfoService.getByIotId(iotId));
+                () -> electricMeterInfoService.getByDeviceNo(deviceNo));
 
-        assertEquals("能耗系统查询到iotId=99999没有匹配的电表", exception.getMessage());
+        assertEquals("能耗系统查询到deviceNo=DEV-404没有匹配的电表", exception.getMessage());
         verify(repository).findList(queryQo);
     }
 
     @Test
-    void testGetByIotId_MultipleFound() {
+    void testGetByDeviceNo_MultipleFound() {
         // 准备数据
-        String iotId = "12345";
+        String deviceNo = "DEV-001";
         ElectricMeterEntity entity2 = new ElectricMeterEntity();
         entity2.setId(2)
                 .setMeterName("测试电表2")
-                .setIotId(iotId);
+                .setDeviceNo(deviceNo);
         List<ElectricMeterEntity> multipleEntityList = List.of(entity, entity2);
 
         // Mock行为
-        ElectricMeterQo queryQo = new ElectricMeterQo().setIotId(iotId);
+        ElectricMeterQo queryQo = new ElectricMeterQo().setDeviceNo(deviceNo);
         when(repository.findList(queryQo)).thenReturn(multipleEntityList);
 
         // 执行测试并验证异常
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> electricMeterInfoService.getByIotId(iotId));
+                () -> electricMeterInfoService.getByDeviceNo(deviceNo));
 
-        assertEquals("能耗系统查询到iotId=12345的电表数量=2无法匹配电表", exception.getMessage());
+        assertEquals("能耗系统查询到deviceNo=DEV-001的电表数量=2无法匹配电表", exception.getMessage());
         verify(repository).findList(queryQo);
     }
 

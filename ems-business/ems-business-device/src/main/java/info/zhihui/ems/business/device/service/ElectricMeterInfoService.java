@@ -47,14 +47,14 @@ public interface ElectricMeterInfoService {
     ElectricMeterBo getDetail(@NotNull Integer id);
 
     /**
-     * 根据物联网设备ID获取电表信息
+     * 根据设备编号获取电表信息
      *
-     * @param iotId 物联网设备ID
+     * @param deviceNo 设备编号
      * @return 电表信息
      * @throws NotFoundException        当电表不存在时
      * @throws BusinessRuntimeException 当存在多个电表时
      */
-    ElectricMeterBo getByIotId(@NotBlank String iotId);
+    ElectricMeterBo getByDeviceNo(@NotBlank String deviceNo);
 
     /**
      * 根据销户编号查询销表明细

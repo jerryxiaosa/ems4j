@@ -168,4 +168,4 @@ mq:
       # 事务消息最大重试次数
       max-retry-times: 10
       # 每次重试任务拉取的事务消息数量
-      fetch-size: 100
+      fetch-size: 500

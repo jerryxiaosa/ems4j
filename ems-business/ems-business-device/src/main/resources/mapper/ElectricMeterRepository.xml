@@ -24,6 +24,9 @@
             <if test="iotId != null and iotId != ''">
                 and t.iot_id = #{iotId}
             </if>
+            <if test="deviceNo != null and deviceNo != ''">
+                and t.device_no = #{deviceNo}
+            </if>
             <if test="gatewayId != null">
                 and t.gateway_id = #{gatewayId}
             </if>

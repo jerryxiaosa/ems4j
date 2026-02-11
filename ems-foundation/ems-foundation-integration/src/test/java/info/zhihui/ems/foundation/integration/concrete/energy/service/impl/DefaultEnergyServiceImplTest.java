@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,7 +65,7 @@ class DefaultEnergyServiceImplTest {
         config.setAddressUrl("http://127.0.0.1:" + httpServer.getAddress().getPort());
         when(deviceModuleConfigService.getDeviceConfigValue(eq(EnergyService.class),
                 eq(DefaultIotHttpRequestConfig.class), eq(AREA_ID))).thenReturn(config);
-        return new DefaultEnergyServiceImpl(deviceModuleConfigService);
+        return new DefaultEnergyServiceImpl(deviceModuleConfigService, RestClient.builder().build());
     }
 
     private ElectricDeviceAddDto buildAddDto() {
@@ -89,4 +90,3 @@ class DefaultEnergyServiceImplTest {
         return httpServer;
     }
 }
-

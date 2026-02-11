@@ -56,6 +56,12 @@ public class RetryTransactionMessage {
             } catch (Exception e) {
                 log.error("事务消息投递失败: businessType={}, sn={}, error={}",
                         messageBo.getBusinessType(), messageBo.getSn(), e.getMessage(), e);
+                try {
+                    transactionMessageService.failure(messageBo.getBusinessType(), messageBo.getSn());
+                } catch (Exception ex) {
+                    log.error("更新事务消息失败状态失败: businessType={}, sn={}, error={}",
+                            messageBo.getBusinessType(), messageBo.getSn(), ex.getMessage(), ex);
+                }
             }
         }
 
