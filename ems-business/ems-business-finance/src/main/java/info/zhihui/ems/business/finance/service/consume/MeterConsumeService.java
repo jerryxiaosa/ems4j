@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.finance.service.consume;
 
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
+import info.zhihui.ems.business.finance.dto.PowerConsumeDetailDto;
 import info.zhihui.ems.business.finance.dto.PowerConsumeQueryDto;
 import info.zhihui.ems.business.finance.dto.PowerConsumeRecordDto;
 import info.zhihui.ems.common.paging.PageParam;
@@ -23,4 +24,9 @@ public interface MeterConsumeService {
      */
     PageResult<PowerConsumeRecordDto> findPowerConsumePage(@Valid @NotNull PowerConsumeQueryDto queryDto,
                                                            @NotNull PageParam pageParam);
+
+    /**
+     * 查询电量消费明细
+     */
+    PowerConsumeDetailDto getPowerConsumeDetail(@NotNull Integer id);
 }

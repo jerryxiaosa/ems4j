@@ -4,11 +4,17 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
 import info.zhihui.ems.business.finance.dto.PowerConsumeQueryDto;
+import info.zhihui.ems.business.finance.dto.PowerConsumeDetailDto;
 import info.zhihui.ems.business.finance.dto.PowerConsumeRecordDto;
 import info.zhihui.ems.business.finance.entity.ElectricMeterBalanceConsumeRecordEntity;
+import info.zhihui.ems.business.finance.entity.ElectricMeterPowerConsumeRecordEntity;
+import info.zhihui.ems.business.finance.enums.ConsumeTypeEnum;
 import info.zhihui.ems.business.finance.repository.ElectricMeterBalanceConsumeRecordRepository;
+import info.zhihui.ems.business.finance.repository.ElectricMeterPowerConsumeRecordRepository;
 import info.zhihui.ems.business.finance.service.consume.impl.MeterConsumeServiceImpl;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +44,9 @@ class MeterConsumeServiceQueryTest {
 
     @Mock
     private ElectricMeterBalanceConsumeRecordRepository electricMeterBalanceConsumeRecordRepository;
+
+    @Mock
+    private ElectricMeterPowerConsumeRecordRepository electricMeterPowerConsumeRecordRepository;
 
     @InjectMocks
     private MeterConsumeServiceImpl meterConsumeService;
@@ -202,6 +211,104 @@ class MeterConsumeServiceQueryTest {
             assertEquals(1, result.getList().size());
             assertEquals("电表001", result.getList().get(0).getMeterName());
         }
+    }
+
+    @Test
+    void testGetPowerConsumeDetail_Success() {
+        Integer consumeRecordId = 1;
+        Integer meterConsumeRecordId = 101;
+
+        ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(consumeRecordId)
+                .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
+                .setMeterConsumeRecordId(meterConsumeRecordId)
+                .setConsumeNo("CP202601010001")
+                .setAccountId(10)
+                .setMeterId(20)
+                .setMeterName("测试电表")
+                .setMeterNo("M001")
+                .setSpaceName("A101")
+                .setConsumeAmount(new BigDecimal("8.66"))
+                .setConsumeAmountHigh(new BigDecimal("2.00"))
+                .setConsumeAmountLow(new BigDecimal("6.66"))
+                .setBeginBalance(new BigDecimal("100.00"))
+                .setEndBalance(new BigDecimal("91.34"))
+                .setMeterConsumeTime(LocalDateTime.of(2026, 2, 10, 12, 30))
+                .setIsDeleted(false);
+        when(electricMeterBalanceConsumeRecordRepository.selectById(consumeRecordId)).thenReturn(balanceRecord);
+
+        ElectricMeterPowerConsumeRecordEntity powerRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setId(meterConsumeRecordId)
+                .setBeginPower(new BigDecimal("1000.00"))
+                .setEndPower(new BigDecimal("1010.50"))
+                .setConsumePower(new BigDecimal("10.50"))
+                .setConsumePowerHigh(new BigDecimal("3.20"))
+                .setConsumePowerLow(new BigDecimal("7.30"))
+                .setBeginRecordTime(LocalDateTime.of(2026, 2, 10, 12, 0))
+                .setEndRecordTime(LocalDateTime.of(2026, 2, 10, 12, 30))
+                .setIsDeleted(false);
+        when(electricMeterPowerConsumeRecordRepository.selectById(meterConsumeRecordId)).thenReturn(powerRecord);
+
+        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(consumeRecordId);
+
+        assertNotNull(detailDto);
+        assertEquals(consumeRecordId, detailDto.getId());
+        assertEquals(meterConsumeRecordId, detailDto.getMeterConsumeRecordId());
+        assertEquals("CP202601010001", detailDto.getConsumeNo());
+        assertEquals(new BigDecimal("10.50"), detailDto.getConsumePower());
+        assertEquals(new BigDecimal("8.66"), detailDto.getConsumeAmount());
+        assertEquals(LocalDateTime.of(2026, 2, 10, 12, 30), detailDto.getConsumeTime());
+    }
+
+    @Test
+    void testGetPowerConsumeDetail_WhenBalanceRecordNotFound_ShouldThrow() {
+        when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(null);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(1));
+        assertEquals("电量消费记录不存在", exception.getMessage());
+    }
+
+    @Test
+    void testGetPowerConsumeDetail_WhenNotElectricConsume_ShouldThrow() {
+        ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(1)
+                .setConsumeType(0)
+                .setIsDeleted(false);
+        when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(balanceRecord);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(1));
+        assertEquals("当前记录不是电量消费记录", exception.getMessage());
+    }
+
+    @Test
+    void testGetPowerConsumeDetail_WhenMeterConsumeRecordIdNull_ShouldThrow() {
+        ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(1)
+                .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
+                .setMeterConsumeRecordId(null)
+                .setIsDeleted(false);
+        when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(balanceRecord);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(1));
+        assertEquals("电量消费记录数据异常：缺少电量明细记录", exception.getMessage());
+    }
+
+    @Test
+    void testGetPowerConsumeDetail_WhenPowerRecordNotFound_ShouldThrow() {
+        ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(1)
+                .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
+                .setMeterConsumeRecordId(101)
+                .setIsDeleted(false);
+        when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(balanceRecord);
+        when(electricMeterPowerConsumeRecordRepository.selectById(101)).thenReturn(null);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(1));
+        assertEquals("电量明细记录不存在", exception.getMessage());
     }
 
     /**

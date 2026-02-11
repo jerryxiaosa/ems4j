@@ -809,6 +809,36 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     }
 
     /**
+     * 查询电量消费明细
+     *
+     * @param id 余额消费记录ID
+     * @return 电量消费明细
+     */
+    @Override
+    public PowerConsumeDetailDto getPowerConsumeDetail(@NotNull Integer id) {
+        ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord = electricMeterBalanceConsumeRecordRepository.selectById(id);
+        if (balanceConsumeRecord == null) {
+            throw new NotFoundException("电量消费记录不存在");
+        }
+
+        if (!Objects.equals(ConsumeTypeEnum.ELECTRIC.getCode(), balanceConsumeRecord.getConsumeType())) {
+            throw new BusinessRuntimeException("当前记录不是电量消费记录");
+        }
+
+        Integer meterConsumeRecordId = balanceConsumeRecord.getMeterConsumeRecordId();
+        if (meterConsumeRecordId == null) {
+            throw new BusinessRuntimeException("电量消费记录数据异常：缺少电量明细记录");
+        }
+
+        ElectricMeterPowerConsumeRecordEntity powerConsumeRecord = electricMeterPowerConsumeRecordRepository.selectById(meterConsumeRecordId);
+        if (powerConsumeRecord == null || Boolean.TRUE.equals(powerConsumeRecord.getIsDeleted())) {
+            throw new NotFoundException("电量明细记录不存在");
+        }
+
+        return convertToPowerConsumeDetailDto(balanceConsumeRecord, powerConsumeRecord);
+    }
+
+    /**
      * 指定金额补正
      *
      * @param correctMeterAmountDto 补正金额
@@ -958,6 +988,59 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                 .setEndBalance(entity.getEndBalance())
                 .setRemark(entity.getRemark())
                 .setMeterConsumeTime(entity.getMeterConsumeTime());
+    }
+
+    private PowerConsumeDetailDto convertToPowerConsumeDetailDto(ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord,
+                                                                 ElectricMeterPowerConsumeRecordEntity powerConsumeRecord) {
+        return new PowerConsumeDetailDto()
+                .setId(balanceConsumeRecord.getId())
+                .setMeterConsumeRecordId(balanceConsumeRecord.getMeterConsumeRecordId())
+                .setConsumeNo(balanceConsumeRecord.getConsumeNo())
+                .setAccountId(balanceConsumeRecord.getAccountId())
+                .setMeterId(balanceConsumeRecord.getMeterId())
+                .setMeterName(balanceConsumeRecord.getMeterName())
+                .setMeterNo(balanceConsumeRecord.getMeterNo())
+                .setSpaceName(balanceConsumeRecord.getSpaceName())
+                .setOwnerId(balanceConsumeRecord.getOwnerId())
+                .setOwnerType(balanceConsumeRecord.getOwnerType())
+                .setOwnerName(balanceConsumeRecord.getOwnerName())
+                .setBeginBalance(balanceConsumeRecord.getBeginBalance())
+                .setConsumeAmount(balanceConsumeRecord.getConsumeAmount())
+                .setConsumeAmountHigher(balanceConsumeRecord.getConsumeAmountHigher())
+                .setConsumeAmountHigh(balanceConsumeRecord.getConsumeAmountHigh())
+                .setConsumeAmountLow(balanceConsumeRecord.getConsumeAmountLow())
+                .setConsumeAmountLower(balanceConsumeRecord.getConsumeAmountLower())
+                .setConsumeAmountDeepLow(balanceConsumeRecord.getConsumeAmountDeepLow())
+                .setEndBalance(balanceConsumeRecord.getEndBalance())
+                .setStepStartValue(balanceConsumeRecord.getStepStartValue())
+                .setHistoryPowerOffset(balanceConsumeRecord.getHistoryPowerOffset())
+                .setStepRate(balanceConsumeRecord.getStepRate())
+                .setPriceHigher(balanceConsumeRecord.getPriceHigher())
+                .setPriceHigh(balanceConsumeRecord.getPriceHigh())
+                .setPriceLow(balanceConsumeRecord.getPriceLow())
+                .setPriceLower(balanceConsumeRecord.getPriceLower())
+                .setPriceDeepLow(balanceConsumeRecord.getPriceDeepLow())
+                .setBeginPower(powerConsumeRecord.getBeginPower())
+                .setEndPower(powerConsumeRecord.getEndPower())
+                .setConsumePower(powerConsumeRecord.getConsumePower())
+                .setBeginPowerHigher(powerConsumeRecord.getBeginPowerHigher())
+                .setBeginPowerHigh(powerConsumeRecord.getBeginPowerHigh())
+                .setBeginPowerLow(powerConsumeRecord.getBeginPowerLow())
+                .setBeginPowerLower(powerConsumeRecord.getBeginPowerLower())
+                .setBeginPowerDeepLow(powerConsumeRecord.getBeginPowerDeepLow())
+                .setEndPowerHigher(powerConsumeRecord.getEndPowerHigher())
+                .setEndPowerHigh(powerConsumeRecord.getEndPowerHigh())
+                .setEndPowerLow(powerConsumeRecord.getEndPowerLow())
+                .setEndPowerLower(powerConsumeRecord.getEndPowerLower())
+                .setEndPowerDeepLow(powerConsumeRecord.getEndPowerDeepLow())
+                .setConsumePowerHigher(powerConsumeRecord.getConsumePowerHigher())
+                .setConsumePowerHigh(powerConsumeRecord.getConsumePowerHigh())
+                .setConsumePowerLow(powerConsumeRecord.getConsumePowerLow())
+                .setConsumePowerLower(powerConsumeRecord.getConsumePowerLower())
+                .setConsumePowerDeepLow(powerConsumeRecord.getConsumePowerDeepLow())
+                .setBeginRecordTime(powerConsumeRecord.getBeginRecordTime())
+                .setEndRecordTime(powerConsumeRecord.getEndRecordTime())
+                .setConsumeTime(balanceConsumeRecord.getMeterConsumeTime());
     }
 
 }

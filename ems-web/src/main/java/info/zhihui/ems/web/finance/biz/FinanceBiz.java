@@ -47,6 +47,11 @@ public class FinanceBiz {
         return financeWebMapper.toPowerConsumeRecordVoPage(page);
     }
 
+    public PowerConsumeDetailVo getPowerConsumeDetail(Integer id) {
+        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(id);
+        return financeWebMapper.toPowerConsumeDetailVo(detailDto);
+    }
+
     public PageResult<CorrectionRecordVo> findCorrectionRecordPage(CorrectionRecordQueryVo queryVo, Integer pageNum, Integer pageSize) {
         MeterCorrectionRecordQueryDto queryDto = financeWebMapper.toCorrectionRecordQueryDto(queryVo);
         PageParam pageParam = buildPageParam(pageNum, pageSize);
