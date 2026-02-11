@@ -8,6 +8,7 @@ import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
@@ -19,11 +20,15 @@ class ProtocolInboundEventListenerTest {
         return Mockito.mock(RestClient.class);
     }
 
+    private TaskExecutor directTaskExecutor() {
+        return Runnable::run;
+    }
+
     @Test
     void testHandleHeartbeat_DeviceNoMissing_ShouldSkipUpdate() {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         ProtocolInboundEventListener listener =
-                new ProtocolInboundEventListener(deviceRegistry, new IotEnergyReportPushProperties(), mockRestClient());
+                new ProtocolInboundEventListener(deviceRegistry, new IotEnergyReportPushProperties(), mockRestClient(), directTaskExecutor());
         ProtocolHeartbeatInboundEvent event = new ProtocolHeartbeatInboundEvent().setDeviceNo(" ");
 
         listener.handleHeartbeat(event);
@@ -37,7 +42,7 @@ class ProtocolInboundEventListenerTest {
         Device device = new Device().setDeviceNo("dev-1");
         Mockito.when(deviceRegistry.getByDeviceNo("dev-1")).thenReturn(device);
         ProtocolInboundEventListener listener =
-                new ProtocolInboundEventListener(deviceRegistry, new IotEnergyReportPushProperties(), mockRestClient());
+                new ProtocolInboundEventListener(deviceRegistry, new IotEnergyReportPushProperties(), mockRestClient(), directTaskExecutor());
         LocalDateTime receivedAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
         ProtocolHeartbeatInboundEvent event = new ProtocolHeartbeatInboundEvent()
                 .setDeviceNo("dev-1")
@@ -55,7 +60,7 @@ class ProtocolInboundEventListenerTest {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         IotEnergyReportPushProperties properties = new IotEnergyReportPushProperties();
         properties.setEnabled(false);
-        ProtocolInboundEventListener listener = new ProtocolInboundEventListener(deviceRegistry, properties, mockRestClient());
+        ProtocolInboundEventListener listener = new ProtocolInboundEventListener(deviceRegistry, properties, mockRestClient(), directTaskExecutor());
 
         ProtocolEnergyReportInboundEvent event = new ProtocolEnergyReportInboundEvent()
                 .setDeviceNo("dev-1")

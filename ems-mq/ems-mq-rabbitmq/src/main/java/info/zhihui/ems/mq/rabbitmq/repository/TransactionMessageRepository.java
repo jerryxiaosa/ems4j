@@ -26,14 +26,20 @@ public interface TransactionMessageRepository extends BaseMapper<TransactionMess
     TransactionMessageEntity getByBusinessTypeAndSn(@Param("businessType") String businessType, @Param("sn") String sn);
 
     /**
-     * 根据成功状态查询消息
+     * 基于游标分页查询失败消息
      *
-     * @param maxRetry 最大重试次数
-     * @param pastTime 查询最久的时间
-     * @param limit    查询数量
+     * @param maxRetry          最大重试次数
+     * @param pastTime          查询最久的时间
+     * @param cursorCreateTime  游标创建时间（包含排序字段）
+     * @param cursorId          游标主键（用于同一创建时间的稳定分页）
+     * @param limit             查询数量
      * @return 事务消息列表
      */
-    List<TransactionMessageEntity> getPastUnsuccessful(@Param("maxRetry") Integer maxRetry, @Param("pastTime") LocalDateTime pastTime, @Param("limit") Integer limit);
+    List<TransactionMessageEntity> getPastUnsuccessfulWithCursor(@Param("maxRetry") Integer maxRetry,
+                                                                  @Param("pastTime") LocalDateTime pastTime,
+                                                                  @Param("cursorCreateTime") LocalDateTime cursorCreateTime,
+                                                                  @Param("cursorId") Integer cursorId,
+                                                                  @Param("limit") Integer limit);
 
     /**
      * 更新事务消息

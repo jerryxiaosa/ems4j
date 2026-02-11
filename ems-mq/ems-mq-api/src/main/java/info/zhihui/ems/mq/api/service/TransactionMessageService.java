@@ -41,7 +41,7 @@ public interface TransactionMessageService {
     void failure(@NotNull TransactionMessageBusinessTypeEnum businessType, @NotBlank String sn);
 
     /**
-     * 获取最近一天的失败记录
+     * 获取最近两天的失败记录
      *
      * @return 失败记录列表
      */

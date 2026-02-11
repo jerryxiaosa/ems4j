@@ -13,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -33,13 +35,16 @@ public class ProtocolInboundEventListener {
     private final DeviceRegistry deviceRegistry;
     private final IotEnergyReportPushProperties energyReportPushProperties;
     private final RestClient iotRestClient;
+    private final TaskExecutor energyReportPushExecutor;
 
     public ProtocolInboundEventListener(DeviceRegistry deviceRegistry,
                                         IotEnergyReportPushProperties energyReportPushProperties,
-                                        @Qualifier("iotRestClient") RestClient iotRestClient) {
+                                        @Qualifier("iotRestClient") RestClient iotRestClient,
+                                        @Qualifier("iotEnergyReportPushExecutor") TaskExecutor energyReportPushExecutor) {
         this.deviceRegistry = deviceRegistry;
         this.energyReportPushProperties = energyReportPushProperties;
         this.iotRestClient = iotRestClient;
+        this.energyReportPushExecutor = energyReportPushExecutor;
     }
 
     @EventListener
@@ -75,11 +80,7 @@ public class ProtocolInboundEventListener {
                     reportEvent.getDeviceNo(), reportEvent.getReportedAt());
             return;
         }
-        try {
-            pushEnergyReport(reportEvent);
-        } catch (Exception ex) {
-            log.error("能耗上报处理异常，deviceNo={}", reportEvent.getDeviceNo(), ex);
-        }
+        dispatchEnergyReportPush(reportEvent);
     }
 
     private DeviceEnergyReportEvent buildDeviceEnergyReportEvent(ProtocolEnergyReportInboundEvent event,
@@ -140,6 +141,20 @@ public class ProtocolInboundEventListener {
                     reportEvent.getDeviceNo(), ex.getStatusCode(), ex.getResponseBodyAsString(), ex);
         } catch (RestClientException ex) {
             log.error("能耗上报推送失败（网络异常，可重试），deviceNo={}", reportEvent.getDeviceNo(), ex);
+        }
+    }
+
+    private void dispatchEnergyReportPush(DeviceEnergyReportEvent reportEvent) {
+        try {
+            energyReportPushExecutor.execute(() -> {
+                try {
+                    pushEnergyReport(reportEvent);
+                } catch (Exception ex) {
+                    log.error("能耗上报处理异常，deviceNo={}", reportEvent.getDeviceNo(), ex);
+                }
+            });
+        } catch (TaskRejectedException ex) {
+            log.error("能耗上报推送任务被线程池拒绝，deviceNo={}", reportEvent.getDeviceNo(), ex);
         }
     }
 
