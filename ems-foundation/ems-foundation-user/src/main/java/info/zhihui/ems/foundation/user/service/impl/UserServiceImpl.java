@@ -251,10 +251,10 @@ public class UserServiceImpl implements UserService {
      * @param userId 用户ID
      */
     private void clearLoginStateAfterResetPassword(Integer userId) {
-        RedisUtil.deleteObject(LoginConstant.PWD_ERR + userId);
         try {
+            RedisUtil.deleteObject(LoginConstant.PWD_ERR + userId);
             StpUtil.logout(userId);
-        } catch (NotLoginException ignore) {
+        } catch (Exception ignore) {
             // ignore when user is not logged in
         }
     }
