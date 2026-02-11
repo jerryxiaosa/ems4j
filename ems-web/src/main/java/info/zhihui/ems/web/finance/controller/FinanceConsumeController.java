@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,14 @@ public class FinanceConsumeController {
             @Parameter(description = "页码", example = "1") @RequestParam(defaultValue = "1") Integer pageNum,
             @Parameter(description = "每页数量", example = "10") @RequestParam(defaultValue = "10") Integer pageSize) {
         return ResultUtil.success(financeBiz.findPowerConsumePage(queryVo, pageNum, pageSize));
+    }
+
+    @SaCheckPermission("finance:meter-consume:detail")
+    @GetMapping("/meter-consumes/{id}")
+    @Operation(summary = "查询电量消费记录明细")
+    public RestResult<PowerConsumeDetailVo> getPowerConsumeDetail(
+            @NotNull @Parameter(description = "电量消费记录ID", example = "1") @PathVariable Integer id) {
+        return ResultUtil.success(financeBiz.getPowerConsumeDetail(id));
     }
 
     @SaCheckPermission("finance:meter-correction:page")

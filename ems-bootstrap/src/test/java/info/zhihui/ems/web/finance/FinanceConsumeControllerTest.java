@@ -89,6 +89,26 @@ class FinanceConsumeControllerTest {
     }
 
     @Test
+    @DisplayName("查询电量消费记录明细")
+    void testGetPowerConsumeDetail() throws Exception {
+        PowerConsumeDetailVo detailVo = new PowerConsumeDetailVo()
+                .setId(1001)
+                .setMeterConsumeRecordId(2001)
+                .setConsumeNo("CONSUME_001")
+                .setMeterName("1号楼电表")
+                .setConsumeAmount(new BigDecimal("50.50"))
+                .setConsumePower(new BigDecimal("100.00"));
+        when(financeBiz.getPowerConsumeDetail(1001)).thenReturn(detailVo);
+
+        mockMvc.perform(get("/finance/meter-consumes/{id}", 1001))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1001))
+                .andExpect(jsonPath("$.data.consumeNo").value("CONSUME_001"))
+                .andExpect(jsonPath("$.data.meterName").value("1号楼电表"));
+    }
+
+    @Test
     @DisplayName("分页查询补正记录")
     void testFindCorrectionRecordPage() throws Exception {
         PageResult<CorrectionRecordVo> page = new PageResult<CorrectionRecordVo>()

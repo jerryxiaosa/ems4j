@@ -27,6 +27,8 @@ public interface FinanceWebMapper {
 
     PowerConsumeRecordVo toPowerConsumeRecordVo(PowerConsumeRecordDto dto);
 
+    PowerConsumeDetailVo toPowerConsumeDetailVo(PowerConsumeDetailDto dto);
+
     CorrectionRecordVo toCorrectionRecordVo(MeterCorrectionRecordDto dto);
 
     default PageResult<AccountConsumeRecordVo> toAccountConsumeRecordVoPage(PageResult<AccountConsumeRecordDto> dtoPage) {

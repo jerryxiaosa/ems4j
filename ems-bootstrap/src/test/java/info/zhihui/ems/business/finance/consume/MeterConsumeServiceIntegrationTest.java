@@ -3,6 +3,7 @@ package info.zhihui.ems.business.finance.consume;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
+import info.zhihui.ems.business.finance.dto.PowerConsumeDetailDto;
 import info.zhihui.ems.business.finance.dto.PowerConsumeQueryDto;
 import info.zhihui.ems.business.finance.dto.PowerConsumeRecordDto;
 import info.zhihui.ems.business.finance.entity.ElectricMeterBalanceConsumeRecordEntity;
@@ -20,6 +21,7 @@ import info.zhihui.ems.common.enums.CalculateTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import jakarta.validation.ConstraintViolationException;
@@ -702,6 +704,79 @@ class MeterConsumeServiceIntegrationTest {
         }
     }
 
+    @Test
+    @DisplayName("getPowerConsumeDetail方法集成测试 - 参数校验测试")
+    void testGetPowerConsumeDetail_Validation_ShouldThrowException() {
+        assertThrows(ConstraintViolationException.class, () -> meterConsumeService.getPowerConsumeDetail(null));
+    }
+
+    @Test
+    @DisplayName("getPowerConsumeDetail方法集成测试 - 正常查询测试")
+    void testGetPowerConsumeDetail_Success() {
+        prepareTestDataForPowerConsumeDetail();
+
+        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(3001);
+
+        assertNotNull(detailDto);
+        assertEquals(3001, detailDto.getId());
+        assertEquals(4001, detailDto.getMeterConsumeRecordId());
+        assertEquals("DETAIL_CONSUME_001", detailDto.getConsumeNo());
+        assertEquals(101, detailDto.getMeterId());
+        assertEquals("明细测试电表", detailDto.getMeterName());
+        assertEquals(0, detailDto.getConsumePower().compareTo(new BigDecimal("12.50")));
+        assertEquals(0, detailDto.getConsumeAmount().compareTo(new BigDecimal("8.75")));
+        assertEquals(0, detailDto.getEndPower().compareTo(new BigDecimal("105.00")));
+        assertEquals(0, detailDto.getEndBalance().compareTo(new BigDecimal("191.25")));
+        assertNotNull(detailDto.getConsumeTime());
+    }
+
+    @Test
+    @DisplayName("getPowerConsumeDetail方法集成测试 - 记录不存在测试")
+    void testGetPowerConsumeDetail_NotFound_ShouldThrowException() {
+        prepareTestDataForPowerConsumeDetail();
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(999999));
+        assertEquals("电量消费记录不存在", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("getPowerConsumeDetail方法集成测试 - 非电量消费记录测试")
+    void testGetPowerConsumeDetail_NotElectricConsume_ShouldThrowException() {
+        prepareTestDataForPowerConsumeDetail();
+
+        ElectricMeterBalanceConsumeRecordEntity nonElectricRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(3002)
+                .setMeterConsumeRecordId(4001)
+                .setConsumeNo("DETAIL_CONSUME_002")
+                .setConsumeType(ConsumeTypeEnum.CORRECTION.getCode())
+                .setMeterType(1)
+                .setAccountId(1)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
+                .setMeterId(101)
+                .setMeterName("明细测试电表")
+                .setMeterNo("EM-DETAIL-001")
+                .setCreateTime(LocalDateTime.now())
+                .setIsDeleted(false);
+        electricMeterBalanceConsumeRecordRepository.insert(nonElectricRecord);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(3002));
+        assertEquals("当前记录不是电量消费记录", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("getPowerConsumeDetail方法集成测试 - 明细记录不存在测试")
+    void testGetPowerConsumeDetail_PowerConsumeNotFound_ShouldThrowException() {
+        prepareTestDataForPowerConsumeDetail();
+
+        electricMeterPowerConsumeRecordRepository.deleteById(4001);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> meterConsumeService.getPowerConsumeDetail(3001));
+        assertEquals("电量明细记录不存在", exception.getMessage());
+    }
+
     /**
      * 准备测试数据到ElectricMeterBalanceConsumeRecordEntity表
      */
@@ -836,6 +911,89 @@ class MeterConsumeServiceIntegrationTest {
         electricMeterBalanceConsumeRecordRepository.insert(record1);
         electricMeterBalanceConsumeRecordRepository.insert(record2);
         electricMeterBalanceConsumeRecordRepository.insert(record3);
+    }
+
+    /**
+     * 准备电量消费明细测试数据
+     */
+    private void prepareTestDataForPowerConsumeDetail() {
+        electricMeterBalanceConsumeRecordRepository.delete(new QueryWrapper<>());
+        electricMeterPowerConsumeRecordRepository.delete(new QueryWrapper<>());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        ElectricMeterPowerConsumeRecordEntity powerConsumeRecord = new ElectricMeterPowerConsumeRecordEntity()
+                .setId(4001)
+                .setMeterId(101)
+                .setIsCalculate(true)
+                .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING.getCode())
+                .setAccountId(1)
+                .setSpaceId(201)
+                .setBeginRecordId(5001)
+                .setBeginPower(new BigDecimal("92.50"))
+                .setBeginPowerHigher(new BigDecimal("10.00"))
+                .setBeginPowerHigh(new BigDecimal("15.00"))
+                .setBeginPowerLow(new BigDecimal("20.00"))
+                .setBeginPowerLower(new BigDecimal("25.00"))
+                .setBeginPowerDeepLow(new BigDecimal("22.50"))
+                .setBeginRecordTime(now.minusHours(1))
+                .setEndRecordId(5002)
+                .setEndPower(new BigDecimal("105.00"))
+                .setEndPowerHigher(new BigDecimal("11.50"))
+                .setEndPowerHigh(new BigDecimal("17.00"))
+                .setEndPowerLow(new BigDecimal("22.00"))
+                .setEndPowerLower(new BigDecimal("27.00"))
+                .setEndPowerDeepLow(new BigDecimal("27.50"))
+                .setEndRecordTime(now)
+                .setConsumePower(new BigDecimal("12.50"))
+                .setConsumePowerHigher(new BigDecimal("1.50"))
+                .setConsumePowerHigh(new BigDecimal("2.00"))
+                .setConsumePowerLow(new BigDecimal("2.00"))
+                .setConsumePowerLower(new BigDecimal("2.00"))
+                .setConsumePowerDeepLow(new BigDecimal("5.00"))
+                .setMeterConsumeTime(now)
+                .setCreateTime(now)
+                .setIsDeleted(false);
+        electricMeterPowerConsumeRecordRepository.insert(powerConsumeRecord);
+
+        ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord = new ElectricMeterBalanceConsumeRecordEntity()
+                .setId(3001)
+                .setMeterConsumeRecordId(4001)
+                .setConsumeNo("DETAIL_CONSUME_001")
+                .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
+                .setMeterType(1)
+                .setAccountId(1)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
+                .setOwnerId(1001)
+                .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
+                .setOwnerName("张三")
+                .setMeterId(101)
+                .setMeterName("明细测试电表")
+                .setMeterNo("EM-DETAIL-001")
+                .setSpaceId(201)
+                .setSpaceName("测试房间")
+                .setPricePlanId(1)
+                .setPricePlanName("居民用电")
+                .setStepStartValue(BigDecimal.ZERO)
+                .setHistoryPowerOffset(BigDecimal.ZERO)
+                .setStepRate(BigDecimal.ONE)
+                .setConsumeAmount(new BigDecimal("8.75"))
+                .setConsumeAmountHigher(new BigDecimal("1.20"))
+                .setConsumeAmountHigh(new BigDecimal("1.50"))
+                .setConsumeAmountLow(new BigDecimal("2.00"))
+                .setConsumeAmountLower(new BigDecimal("1.80"))
+                .setConsumeAmountDeepLow(new BigDecimal("2.25"))
+                .setPriceHigher(new BigDecimal("0.80"))
+                .setPriceHigh(new BigDecimal("0.75"))
+                .setPriceLow(new BigDecimal("0.60"))
+                .setPriceLower(new BigDecimal("0.45"))
+                .setPriceDeepLow(new BigDecimal("0.45"))
+                .setBeginBalance(new BigDecimal("200.00"))
+                .setEndBalance(new BigDecimal("191.25"))
+                .setMeterConsumeTime(now)
+                .setCreateTime(now)
+                .setIsDeleted(false);
+        electricMeterBalanceConsumeRecordRepository.insert(balanceConsumeRecord);
     }
 
 }
