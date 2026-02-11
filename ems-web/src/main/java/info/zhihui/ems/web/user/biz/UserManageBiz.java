@@ -5,6 +5,7 @@ import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
+import info.zhihui.ems.foundation.user.dto.UserResetPasswordDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import info.zhihui.ems.foundation.user.service.UserService;
@@ -112,5 +113,17 @@ public class UserManageBiz {
         UserUpdatePasswordDto dto = userManageWebMapper.toUserUpdatePasswordDto(passwordUpdateVo);
         dto.setId(id);
         userService.updatePassword(dto);
+    }
+
+    /**
+     * 管理员重置密码。
+     *
+     * @param id              用户ID
+     * @param passwordResetVo 密码重置参数
+     */
+    public void resetPassword(Integer id, UserPasswordResetVo passwordResetVo) {
+        UserResetPasswordDto dto = userManageWebMapper.toUserResetPasswordDto(passwordResetVo);
+        dto.setId(id);
+        userService.resetPassword(dto);
     }
 }

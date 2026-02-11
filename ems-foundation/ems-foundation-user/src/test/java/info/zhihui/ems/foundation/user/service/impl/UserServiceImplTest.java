@@ -5,12 +5,15 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.RoleBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
+import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.RoleQueryDto;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
+import info.zhihui.ems.foundation.user.dto.UserResetPasswordDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
@@ -80,6 +83,7 @@ class UserServiceImplTest {
     private UserCreateDto mockCreateDto;
     private UserUpdateDto mockUpdateDto;
     private UserUpdatePasswordDto mockUpdatePasswordDto;
+    private UserResetPasswordDto mockResetPasswordDto;
     private UserQueryDto mockQueryDto;
     private UserQueryQo mockQueryQo;
     private PageParam mockPageParam;
@@ -140,6 +144,10 @@ class UserServiceImplTest {
         mockUpdatePasswordDto = new UserUpdatePasswordDto()
                 .setId(1)
                 .setOldPassword("hashedpassword")
+                .setNewPassword("newhashedpassworD123");
+
+        mockResetPasswordDto = new UserResetPasswordDto()
+                .setId(1)
                 .setNewPassword("newhashedpassworD123");
 
         mockQueryDto = new UserQueryDto()
@@ -534,6 +542,76 @@ class UserServiceImplTest {
         verify(passwordService).matchesPassword("wrongpassword", "hashedpassword");
         verify(passwordService, never()).encode(anyString());
         verify(userRepository, never()).updateById(any(UserEntity.class));
+    }
+
+    // ==================== resetPassword 测试 ====================
+
+    @Test
+    @DisplayName("resetPassword - 成功重置密码")
+    void testResetPassword_Success() {
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(passwordService.matchesPassword(mockResetPasswordDto.getNewPassword(), mockEntity.getPassword())).thenReturn(false);
+        when(passwordService.encode(mockResetPasswordDto.getNewPassword())).thenReturn("123abc");
+        when(userRepository.updateById(any(UserEntity.class))).thenReturn(1);
+
+        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class);
+             MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1)).thenReturn(true);
+            userService.resetPassword(mockResetPasswordDto);
+
+            verify(userRepository).selectById(1);
+            verify(userRepository).updateById(argThat((UserEntity entity) ->
+                    entity.getId().equals(1) && entity.getPassword().equals("123abc")));
+            redisMock.verify(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1));
+            stpMock.verify(() -> StpUtil.logout(1));
+        }
+    }
+
+    @Test
+    @DisplayName("resetPassword - 用户不存在")
+    void testResetPassword_UserNotFound() {
+        when(userRepository.selectById(999)).thenReturn(null);
+
+        UserResetPasswordDto dto = new UserResetPasswordDto()
+                .setId(999)
+                .setNewPassword("Newpassword123");
+
+        assertThatThrownBy(() -> userService.resetPassword(dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("用户不存在");
+
+        verify(userRepository).selectById(999);
+        verify(userRepository, never()).updateById(any(UserEntity.class));
+    }
+
+    @Test
+    @DisplayName("resetPassword - 新密码与旧密码一致")
+    void testResetPassword_SameAsOldPassword() {
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(passwordService.matchesPassword(mockResetPasswordDto.getNewPassword(), mockEntity.getPassword())).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.resetPassword(mockResetPasswordDto))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("新密码不能与旧密码一致");
+
+        verify(userRepository).selectById(1);
+        verify(userRepository, never()).updateById(any(UserEntity.class));
+    }
+
+    @Test
+    @DisplayName("resetPassword - 更新失败")
+    void testResetPassword_UpdateFailed() {
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(passwordService.matchesPassword(mockResetPasswordDto.getNewPassword(), mockEntity.getPassword())).thenReturn(false);
+        when(passwordService.encode(mockResetPasswordDto.getNewPassword())).thenReturn("123abc");
+        when(userRepository.updateById(any(UserEntity.class))).thenReturn(0);
+
+        assertThatThrownBy(() -> userService.resetPassword(mockResetPasswordDto))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("重置密码失败");
+
+        verify(userRepository).selectById(1);
+        verify(userRepository).updateById(any(UserEntity.class));
     }
 
     // ==================== fillUserRoles 测试 ====================

@@ -84,4 +84,13 @@ public class UserManageController {
         userManageBiz.updatePassword(id, passwordUpdateVo);
         return ResultUtil.success();
     }
+
+    @SaCheckPermission("users:users:password:reset")
+    @PutMapping("/{id}/password/reset")
+    @Operation(summary = "重置用户密码")
+    public RestResult<Void> resetPassword(@Parameter(description = "用户ID") @PathVariable Integer id,
+                                          @Valid @RequestBody UserPasswordResetVo passwordResetVo) {
+        userManageBiz.resetPassword(id, passwordResetVo);
+        return ResultUtil.success();
+    }
 }
