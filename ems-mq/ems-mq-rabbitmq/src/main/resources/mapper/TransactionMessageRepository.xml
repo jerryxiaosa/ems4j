@@ -17,15 +17,21 @@
         LIMIT 1
     </select>
 
-    <select id="getPastUnsuccessful" resultType="info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity">
+    <select id="getPastUnsuccessfulWithCursor" resultType="info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity">
         SELECT
         <include refid="Base_Column_List"/>
         FROM sys_transaction_message
         WHERE is_success = 0
-        AND try_times  <![CDATA[ < ]]> #{maxRetry}
-        AND create_time  <![CDATA[ > ]]> #{pastTime}
-        ORDER BY create_time ASC
-        limit #{limit}
+        AND try_times <![CDATA[ < ]]> #{maxRetry}
+        AND create_time <![CDATA[ > ]]> #{pastTime}
+        <if test="cursorCreateTime != null and cursorId != null">
+            AND (
+                create_time <![CDATA[ > ]]> #{cursorCreateTime}
+                OR (create_time = #{cursorCreateTime} AND id <![CDATA[ > ]]> #{cursorId})
+            )
+        </if>
+        ORDER BY create_time ASC, id ASC
+        LIMIT #{limit}
     </select>
 
     <!-- 更新事务消息 -->

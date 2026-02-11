@@ -1,10 +1,13 @@
 package info.zhihui.ems.foundation.system;
 
+import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.bo.TransactionMessageBo;
 import info.zhihui.ems.mq.api.dto.TransactionMessageDto;
 import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
 import info.zhihui.ems.mq.api.service.TransactionMessageService;
+import info.zhihui.ems.mq.rabbitmq.entity.TransactionMessageEntity;
+import info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,6 +37,9 @@ class TransactionMessageServiceImplIntegrationTest {
 
     @Autowired
     private TransactionMessageService transactionMessageService;
+
+    @Autowired
+    private TransactionMessageRepository transactionMessageRepository;
 
     private TransactionMessageDto validAddDto;
 
@@ -180,7 +190,7 @@ class TransactionMessageServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("获取最近一天失败记录 - 正常查询功能测试")
+    @DisplayName("获取最近二天失败记录 - 正常查询功能测试")
     void findRecentFailureRecords_Success() {
         // When: 调用查询方法
         List<TransactionMessageBo> result = transactionMessageService.findRecentFailureRecords();
@@ -225,5 +235,61 @@ class TransactionMessageServiceImplIntegrationTest {
                 assertNotNull(firstRecord.getMessage().getMessageDestination(), "消息目的地不应为null");
             }
         }
+    }
+
+    @Test
+    @DisplayName("获取最近失败记录 - 首批未到退避窗口时应继续补拉")
+    void findRecentFailureRecords_FirstPageNotReady_ShouldContinuePulling() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime baseCreateTime = now.minusMinutes(10);
+
+        Set<String> notReadySnSet = IntStream.range(0, 100)
+                .mapToObj(index -> "INT-BACKOFF-NOT-READY-" + index)
+                .collect(Collectors.toSet());
+
+        for (int index = 0; index < 100; index++) {
+            MqMessage payload = new MqMessage()
+                    .setMessageDestination("integration-topic")
+                    .setRoutingIdentifier("integration-route")
+                    .setPayload("not-ready-" + index);
+            TransactionMessageEntity entity = new TransactionMessageEntity()
+                    .setBusinessType(TransactionMessageBusinessTypeEnum.ORDER_PAYMENT.name())
+                    .setSn("INT-BACKOFF-NOT-READY-" + index)
+                    .setDestination("integration-topic")
+                    .setRoute("integration-route")
+                    .setPayloadType(MqMessage.class.getName())
+                    .setPayload(JacksonUtil.toJson(payload))
+                    .setLastRunAt(now.minusSeconds(10))
+                    .setTryTimes(1)
+                    .setCreateTime(baseCreateTime.plusSeconds(index))
+                    .setIsSuccess(false);
+            transactionMessageRepository.insert(entity);
+        }
+
+        String readySn = "INT-BACKOFF-READY-101";
+        MqMessage readyPayload = new MqMessage()
+                .setMessageDestination("integration-topic")
+                .setRoutingIdentifier("integration-route")
+                .setPayload("ready-101");
+        TransactionMessageEntity readyEntity = new TransactionMessageEntity()
+                .setBusinessType(TransactionMessageBusinessTypeEnum.ORDER_PAYMENT.name())
+                .setSn(readySn)
+                .setDestination("integration-topic")
+                .setRoute("integration-route")
+                .setPayloadType(MqMessage.class.getName())
+                .setPayload(JacksonUtil.toJson(readyPayload))
+                .setLastRunAt(now.minusMinutes(5))
+                .setTryTimes(1)
+                .setCreateTime(baseCreateTime.plusSeconds(100))
+                .setIsSuccess(false);
+        transactionMessageRepository.insert(readyEntity);
+
+        List<TransactionMessageBo> result = transactionMessageService.findRecentFailureRecords();
+
+        assertNotNull(result);
+        assertTrue(result.stream().map(TransactionMessageBo::getSn).anyMatch(readySn::equals),
+                "应能补拉到首批100条之后的可重试消息");
+        assertTrue(result.stream().map(TransactionMessageBo::getSn).noneMatch(notReadySnSet::contains),
+                "未到退避窗口的前100条消息不应被返回");
     }
 }

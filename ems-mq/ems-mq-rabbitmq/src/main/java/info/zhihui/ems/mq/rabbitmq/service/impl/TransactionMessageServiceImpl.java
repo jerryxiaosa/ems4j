@@ -40,6 +40,11 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
     private static final long RETRY_MAX_SECONDS = 3600L;
 
     /**
+     * 单次查询补拉的最大扫描轮次，避免长时间占用数据库。
+     */
+    private static final int MAX_SCAN_ROUNDS = 10;
+
+    /**
      * 最大重试次数。
      */
     private final Integer maxRetryTimes;
@@ -122,24 +127,61 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
     public List<TransactionMessageBo> findRecentFailureRecords() {
         try {
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime twoDaysAgo = LocalDateTime.now().minusDays(2);
-            List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessful(maxRetryTimes, twoDaysAgo, fetchSize);
-
+            LocalDateTime twoDaysAgo = now.minusDays(2);
             List<TransactionMessageBo> messageBoList = new ArrayList<>();
-            for (TransactionMessageEntity entity : entityList) {
-                try {
-                    TransactionMessageBo messageBo = entityToBo(entity);
-                    if (shouldRetryNow(messageBo, now)) {
-                        messageBoList.add(messageBo);
-                    }
-                } catch (Exception e) {
-                    handleConvertFailed(entity, e);
+
+            LocalDateTime cursorCreateTime = null;
+            Integer cursorId = null;
+            int scanRounds = 0;
+            while (messageBoList.size() < fetchSize && scanRounds < MAX_SCAN_ROUNDS) {
+                scanRounds++;
+                List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessfulWithCursor(
+                        maxRetryTimes,
+                        twoDaysAgo,
+                        cursorCreateTime,
+                        cursorId,
+                        fetchSize
+                );
+
+                if (entityList == null || entityList.isEmpty()) {
+                    break;
                 }
+
+                for (TransactionMessageEntity entity : entityList) {
+                    try {
+                        TransactionMessageBo messageBo = entityToBo(entity);
+                        if (shouldRetryNow(messageBo, now)) {
+                            messageBoList.add(messageBo);
+                            if (messageBoList.size() >= fetchSize) {
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        handleConvertFailed(entity, e);
+                    }
+                }
+
+                TransactionMessageEntity lastEntity = entityList.get(entityList.size() - 1);
+                if (lastEntity.getCreateTime() == null || lastEntity.getId() == null) {
+                    log.warn("事务消息分页游标字段为空，提前结束补拉，id: {}, createTime: {}",
+                            lastEntity.getId(), lastEntity.getCreateTime());
+                    break;
+                }
+                cursorCreateTime = lastEntity.getCreateTime();
+                cursorId = lastEntity.getId();
+
+                if (entityList.size() < fetchSize) {
+                    break;
+                }
+            }
+            if (scanRounds >= MAX_SCAN_ROUNDS && messageBoList.size() < fetchSize) {
+                log.warn("事务消息补拉达到扫描上限，已扫描{}轮，命中{}条，fetchSize={}",
+                        scanRounds, messageBoList.size(), fetchSize);
             }
             return messageBoList;
         } catch (Exception e) {
-            log.error("获取最近一天失败记录失败", e);
-            throw new RuntimeException("获取最近一天失败记录失败", e);
+            log.error("获取最近两天失败记录失败", e);
+            throw new RuntimeException("获取最近两天失败记录失败", e);
         }
     }
 
