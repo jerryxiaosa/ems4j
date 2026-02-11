@@ -177,6 +177,7 @@ class TransactionMessageServiceImplTest {
     @DisplayName("获取最近一天失败记录 - 成功场景")
     void findRecentFailureRecords_Success() {
         // Given: 准备测试数据
+        LocalDateTime oldTime = LocalDateTime.now().minusHours(2);
         String payload1 = JacksonUtil.toJson(new EnergyTopUpSuccessMessage().setOrderSn("test1"));
         String payload2 = JacksonUtil.toJson(new EnergyTopUpSuccessMessage().setOrderSn("test2"));
         TransactionMessageEntity entity1 = new TransactionMessageEntity()
@@ -187,8 +188,8 @@ class TransactionMessageServiceImplTest {
                 .setRoute("test-key")
                 .setPayloadType(EnergyTopUpSuccessMessage.class.getName())
                 .setPayload(payload1)
-                .setCreateTime(LocalDateTime.now())
-                .setLastRunAt(LocalDateTime.now())
+                .setCreateTime(oldTime.minusMinutes(5))
+                .setLastRunAt(oldTime)
                 .setTryTimes(3)
                 .setIsSuccess(false);
 
@@ -200,8 +201,8 @@ class TransactionMessageServiceImplTest {
                 .setRoute("test-key2")
                 .setPayloadType(EnergyTopUpSuccessMessage.class.getName())
                 .setPayload(payload2)
-                .setCreateTime(LocalDateTime.now())
-                .setLastRunAt(LocalDateTime.now())
+                .setCreateTime(oldTime.minusMinutes(3))
+                .setLastRunAt(oldTime.minusMinutes(1))
                 .setTryTimes(5)
                 .setIsSuccess(false);
 
@@ -239,6 +240,39 @@ class TransactionMessageServiceImplTest {
         Assertions.assertNotNull(bo2.getMessage());
         assertEquals("test-topic2", bo2.getMessage().getMessageDestination());
 
+        Mockito.verify(transactionMessageRepository, Mockito.times(1))
+                .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
+                        ArgumentMatchers.any(LocalDateTime.class),
+                        ArgumentMatchers.eq(DEFAULT_FETCH_SIZE));
+    }
+
+    @Test
+    @DisplayName("获取最近一天失败记录 - 未到退避窗口不返回")
+    void findRecentFailureRecords_NotReachBackoffWindow() {
+        // Given: 最近执行时间较近，尚未达到退避时间
+        String payload = JacksonUtil.toJson(new EnergyTopUpSuccessMessage().setOrderSn("test-window"));
+        TransactionMessageEntity entity = new TransactionMessageEntity()
+                .setId(10)
+                .setBusinessType("ORDER_PAYMENT")
+                .setSn("TEST-SN-BACKOFF")
+                .setDestination("test-topic")
+                .setRoute("test-key")
+                .setPayloadType(EnergyTopUpSuccessMessage.class.getName())
+                .setPayload(payload)
+                .setCreateTime(LocalDateTime.now().minusHours(1))
+                .setLastRunAt(LocalDateTime.now().minusMinutes(2))
+                .setTryTimes(3)
+                .setIsSuccess(false);
+        Mockito.when(transactionMessageRepository.getPastUnsuccessful(ArgumentMatchers.anyInt(),
+                        ArgumentMatchers.any(LocalDateTime.class), ArgumentMatchers.anyInt()))
+                .thenReturn(List.of(entity));
+
+        // When
+        List<TransactionMessageBo> result = transactionMessageService.findRecentFailureRecords();
+
+        // Then
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.isEmpty());
         Mockito.verify(transactionMessageRepository, Mockito.times(1))
                 .getPastUnsuccessful(ArgumentMatchers.eq(DEFAULT_MAX_RETRY_TIMES),
                         ArgumentMatchers.any(LocalDateTime.class),

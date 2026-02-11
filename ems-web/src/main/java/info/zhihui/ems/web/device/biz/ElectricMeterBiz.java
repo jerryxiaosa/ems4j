@@ -76,16 +76,6 @@ public class ElectricMeterBiz {
     }
 
     /**
-     * 根据物联网ID获取电表详情
-     *
-     * @param iotId 物联网ID
-     * @return 电表详情
-     */
-    public ElectricMeterDetailVo getElectricMeterByIotId(String iotId) {
-        return electricMeterWebMapper.toElectricMeterDetailVo(electricMeterInfoService.getByIotId(iotId));
-    }
-
-    /**
      * 新增电表
      *
      * @param createVo 新增参数

@@ -93,21 +93,21 @@ public class ElectricMeterInfoServiceImpl implements ElectricMeterInfoService {
     }
 
     /**
-     * 根据物联网设备ID获取电表信息
+     * 根据设备编号获取电表信息
      *
-     * @param iotId 物联网设备ID
+     * @param deviceNo 设备编号
      * @return 电表信息
      * @throws NotFoundException        当电表不存在时
      * @throws BusinessRuntimeException 当存在多个电表时
      */
     @Override
-    public ElectricMeterBo getByIotId(@NotBlank String iotId) {
-        List<ElectricMeterEntity> meterList = repository.findList(new ElectricMeterQo().setIotId(iotId));
+    public ElectricMeterBo getByDeviceNo(@NotBlank String deviceNo) {
+        List<ElectricMeterEntity> meterList = repository.findList(new ElectricMeterQo().setDeviceNo(deviceNo));
 
         if (meterList.isEmpty()) {
-            throw new NotFoundException(String.format("能耗系统查询到iotId=%s没有匹配的电表", iotId));
+            throw new NotFoundException(String.format("能耗系统查询到deviceNo=%s没有匹配的电表", deviceNo));
         } else if (meterList.size() > 1) {
-            throw new BusinessRuntimeException(String.format("能耗系统查询到iotId=%s的电表数量=%d无法匹配电表", iotId, meterList.size()));
+            throw new BusinessRuntimeException(String.format("能耗系统查询到deviceNo=%s的电表数量=%d无法匹配电表", deviceNo, meterList.size()));
         }
 
         return mapper.entityToBo(meterList.get(0));

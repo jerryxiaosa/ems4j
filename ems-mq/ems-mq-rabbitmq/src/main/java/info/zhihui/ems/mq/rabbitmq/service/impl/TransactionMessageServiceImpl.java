@@ -29,11 +29,28 @@ import java.util.List;
 @Slf4j
 @Validated
 public class TransactionMessageServiceImpl implements TransactionMessageService {
-    private final TransactionMessageRepository transactionMessageRepository;
+    /**
+     * 指数退避基础秒数。
+     */
+    private static final long RETRY_BASE_SECONDS = 60L;
+
+    /**
+     * 指数退避最大秒数上限。
+     */
+    private static final long RETRY_MAX_SECONDS = 3600L;
+
+    /**
+     * 最大重试次数。
+     */
     private final Integer maxRetryTimes;
+
+    /**
+     * 每次查询的最大条数。
+     */
     private final Integer fetchSize;
-    private static final String LEGACY_MQ_MESSAGE_CLASS = "info.zhihui.ems.common.model.MqMessage";
-    private static final String NEW_MQ_MESSAGE_CLASS = "info.zhihui.ems.mq.api.model.MqMessage";
+
+    private final TransactionMessageRepository transactionMessageRepository;
+
 
     public TransactionMessageServiceImpl(TransactionMessageRepository transactionMessageRepository,
                                          Integer maxRetryTimes,
@@ -104,13 +121,17 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
     @Override
     public List<TransactionMessageBo> findRecentFailureRecords() {
         try {
-            LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
-            List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessful(maxRetryTimes, oneDayAgo, fetchSize);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime twoDaysAgo = LocalDateTime.now().minusDays(2);
+            List<TransactionMessageEntity> entityList = transactionMessageRepository.getPastUnsuccessful(maxRetryTimes, twoDaysAgo, fetchSize);
 
             List<TransactionMessageBo> messageBoList = new ArrayList<>();
             for (TransactionMessageEntity entity : entityList) {
                 try {
-                    messageBoList.add(entityToBo(entity));
+                    TransactionMessageBo messageBo = entityToBo(entity);
+                    if (shouldRetryNow(messageBo, now)) {
+                        messageBoList.add(messageBo);
+                    }
                 } catch (Exception e) {
                     handleConvertFailed(entity, e);
                 }
@@ -174,9 +195,6 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
         String payloadType = entity.getPayloadType();
         try {
             if (StringUtils.hasText(payloadType)) {
-                if (LEGACY_MQ_MESSAGE_CLASS.equals(payloadType)) {
-                    payloadType = NEW_MQ_MESSAGE_CLASS;
-                }
                 Class<?> payloadClass = Class.forName(payloadType);
                 return JacksonUtil.fromJson(payloadJson, payloadClass);
             }
@@ -195,5 +213,49 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
             return null;
         }
         return payload.getClass().getName();
+    }
+
+    /**
+     * 判断当前事务消息是否达到重试时间窗口。
+     *
+     * @param messageBo 事务消息
+     * @param now       当前时间
+     * @return true-达到重试窗口；false-未达到重试窗口
+     */
+    private boolean shouldRetryNow(TransactionMessageBo messageBo, LocalDateTime now) {
+        LocalDateTime baseTime = messageBo.getLastRunAt();
+        if (baseTime == null) {
+            baseTime = messageBo.getCreateTime();
+        }
+        if (baseTime == null) {
+            return true;
+        }
+
+        long backoffSeconds = calculateBackoffSeconds(messageBo.getTryTimes());
+        LocalDateTime nextRetryAt = baseTime.plusSeconds(backoffSeconds);
+        return !nextRetryAt.isAfter(now);
+    }
+
+    /**
+     * 计算指数退避秒数。
+     * 公式：delay = min(base * 2^(tryTimes-1), max)，其中 tryTimes<=1 时按 base 处理。
+     *
+     * @param tryTimes 当前重试次数
+     * @return 退避秒数
+     */
+    private long calculateBackoffSeconds(Integer tryTimes) {
+        int safeTryTimes = tryTimes == null ? 0 : Math.max(tryTimes, 0);
+        if (safeTryTimes <= 1) {
+            return RETRY_BASE_SECONDS;
+        }
+
+        long delaySeconds = RETRY_BASE_SECONDS;
+        for (int i = 1; i < safeTryTimes; i++) {
+            if (delaySeconds >= RETRY_MAX_SECONDS) {
+                return RETRY_MAX_SECONDS;
+            }
+            delaySeconds = Math.min(delaySeconds * 2, RETRY_MAX_SECONDS);
+        }
+        return delaySeconds;
     }
 }

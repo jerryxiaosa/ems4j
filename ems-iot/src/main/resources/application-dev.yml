@@ -7,6 +7,14 @@ transport:
     bossThreads: 1
     workerThreads: 4
 
+iot:
+  report:
+    push:
+      enabled: true
+      base-url: http://127.0.0.1:8080
+      path: /device/energy-reports/standard
+      source: IOT
+
 spring:
   application:
     name: IOT-SERVICE

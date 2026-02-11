@@ -30,5 +30,5 @@ public class TransactionMessageRetryProperties {
      */
     @NotNull
     @Min(1)
-    private Integer fetchSize = 100;
+    private Integer fetchSize = 500;
 }

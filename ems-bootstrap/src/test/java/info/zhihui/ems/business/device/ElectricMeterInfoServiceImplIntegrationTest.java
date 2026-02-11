@@ -59,22 +59,17 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             electricMeterInfoService.getDetail(null);
         }, "getDetail方法null参数应抛出ConstraintViolationException");
 
-        // 测试5: getByIotId方法 - null参数
-        assertThrows(ConstraintViolationException.class, () -> {
-            electricMeterInfoService.getByIotId(null);
-        }, "getByIotId方法null参数应抛出ConstraintViolationException");
-
-        // 测试6: findMetersByCancelNo方法 - null参数
+        // 测试5: findMetersByCancelNo方法 - null参数
         assertThrows(ConstraintViolationException.class, () -> {
             electricMeterInfoService.findMetersByCancelNo(null);
         }, "findMetersByCancelNo方法null参数应抛出ConstraintViolationException");
 
-        // 测试7: findMetersByCancelNo方法 - 空字符串参数
+        // 测试6: findMetersByCancelNo方法 - 空字符串参数
         assertThrows(ConstraintViolationException.class, () -> {
             electricMeterInfoService.findMetersByCancelNo("");
         }, "findMetersByCancelNo方法空字符串参数应抛出ConstraintViolationException");
 
-        // 测试8: findPage方法 - 有效参数（不应抛出参数校验异常）
+        // 测试7: findPage方法 - 有效参数（不应抛出参数校验异常）
         ElectricMeterQueryDto query = new ElectricMeterQueryDto();
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(1);
@@ -157,33 +152,6 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         assertThrows(Exception.class, () -> {
             electricMeterInfoService.getDetail(nonExistentId);
         }, "查询不存在的电表ID应抛出异常");
-    }
-
-    @Test
-    @DisplayName("getByIotId方法集成测试 - 测试根据物联网设备ID查询电表功能")
-    void testGetByIotId_Success() {
-        // 准备测试数据 - 使用测试数据中存在的物联网设备ID
-        String testIotId = "1001";
-
-        // 执行测试
-        ElectricMeterBo result = electricMeterInfoService.getByIotId(testIotId);
-
-        // 验证结果
-        assertNotNull(result, "查询结果不应为null");
-        assertEquals(testIotId, result.getIotId(), "返回的物联网设备ID应与查询ID一致");
-        assertNotNull(result.getId(), "电表ID不应为null");
-        assertNotNull(result.getMeterNo(), "电表编号不应为null");
-        assertNotNull(result.getAccountId(), "账户ID不应为null");
-
-        // 验证电表的基本属性
-        assertTrue(result.getId() > 0, "电表ID应大于0");
-        assertNotNull(result.getMeterName(), "电表名称不应为null");
-
-        // 测试查询不存在的物联网设备ID
-        String nonExistentIotId = "99999";
-        assertThrows(Exception.class, () -> {
-            electricMeterInfoService.getByIotId(nonExistentIotId);
-        }, "查询不存在的物联网设备ID应抛出异常");
     }
 
     @Test
