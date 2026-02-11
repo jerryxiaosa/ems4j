@@ -7,6 +7,7 @@ import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
+import info.zhihui.ems.foundation.user.dto.UserResetPasswordDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import jakarta.validation.Valid;
@@ -79,6 +80,15 @@ public interface UserService {
      * @throws BusinessRuntimeException 当旧密码不正确时抛出
      */
     void updatePassword(@NotNull @Valid UserUpdatePasswordDto dto);
+
+    /**
+     * 管理员重置用户密码
+     *
+     * @param dto 重置密码DTO（包含用户ID、新密码）
+     * @throws NotFoundException        当用户不存在时抛出
+     * @throws BusinessRuntimeException 当新密码与原密码一致时抛出
+     */
+    void resetPassword(@NotNull @Valid UserResetPasswordDto dto);
 
     /**
      * 判断当前用户是否拥有指定权限

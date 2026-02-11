@@ -129,8 +129,35 @@ class UserManageControllerTest {
 
         mockMvc.perform(put("/users/1/password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(passwordVo)))
+                .content(objectMapper.writeValueAsString(passwordVo)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("重置用户密码")
+    void testResetPassword() throws Exception {
+        UserPasswordResetVo resetVo = new UserPasswordResetVo();
+        resetVo.setNewPassword("newPass123");
+
+        mockMvc.perform(put("/users/1/password/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetVo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("重置用户密码-参数校验失败")
+    void testResetPassword_ValidationFailed() throws Exception {
+        UserPasswordResetVo resetVo = new UserPasswordResetVo();
+        resetVo.setNewPassword("");
+
+        mockMvc.perform(put("/users/1/password/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetVo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(-102001));
     }
 }

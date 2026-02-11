@@ -5,6 +5,7 @@ import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
+import info.zhihui.ems.foundation.user.dto.UserResetPasswordDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import info.zhihui.ems.foundation.user.enums.CertificatesTypeEnum;
@@ -31,6 +32,8 @@ public interface UserManageWebMapper {
     UserUpdateDto toUserUpdateDto(UserUpdateVo vo);
 
     UserUpdatePasswordDto toUserUpdatePasswordDto(UserPasswordUpdateVo vo);
+
+    UserResetPasswordDto toUserResetPasswordDto(UserPasswordResetVo vo);
 
     @Mapping(target = "userGender", expression = "java(mapUserGenderCode(bo.getUserGender()))")
     @Mapping(target = "certificatesType", expression = "java(mapCertificatesTypeCode(bo.getCertificatesType()))")

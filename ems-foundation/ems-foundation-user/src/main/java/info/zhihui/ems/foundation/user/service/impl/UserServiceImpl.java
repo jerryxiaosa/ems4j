@@ -216,6 +216,37 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 管理员重置用户密码
+     *
+     * @param dto 重置密码DTO（包含用户ID、新密码）
+     * @throws NotFoundException        当用户不存在时抛出
+     * @throws BusinessRuntimeException 当新密码与原密码一致时抛出
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(@NotNull @Valid UserResetPasswordDto dto) {
+        UserEntity entity = repository.selectById(dto.getId());
+        if (entity == null) {
+            throw new NotFoundException("用户不存在");
+        }
+        if (passwordService.matchesPassword(dto.getNewPassword(), entity.getPassword())) {
+            throw new BusinessRuntimeException("新密码不能与旧密码一致");
+        }
+
+        entity.setPassword(encodePasswordAfterSecurityCheck(dto.getNewPassword()));
+        int updateRows = repository.updateById(entity);
+        if (updateRows <= 0) {
+            throw new BusinessRuntimeException("重置密码失败");
+        }
+
+        try {
+            StpUtil.logout(dto.getId());
+        } catch (NotLoginException ignore) {
+            // ignore when user is not logged in
+        }
+    }
+
+    /**
      * 判断当前用户是否拥有指定权限
      *
      * @param userId     用户ID
