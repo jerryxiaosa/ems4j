@@ -6,7 +6,7 @@
 
 [中文文档](README.md)
 
-EMS4J is a Spring Boot multi-module energy prepaid management system that supports prepaid operations and analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), along with peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and the codebase is cleanly structured for easy extension.
+EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and the codebase is cleanly structured for easy extension.
 
 ## Motivation
 In an era where AI can churn out runnable code in seconds, merely “working” code is losing its value; what is becoming precious is the taste and design embodied in that code. Such taste is never born overnight—it is forged through long-term architectural refinement and deep design reflection.

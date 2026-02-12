@@ -8,6 +8,7 @@
         balance_type = #{balanceType}
         and balance_relation_id = #{balanceRelationId}
         and account_id = #{accountId}
+        and is_deleted = 0
     </update>
 
     <select id="balanceQuery" resultType="info.zhihui.ems.business.finance.entity.BalanceEntity">
@@ -17,13 +18,16 @@
         1=1
         and balance_type = #{balanceType}
         and balance_relation_id = #{balanceRelationId}
+        and is_deleted = 0
         limit 1;
     </select>
 
-    <delete id="deleteBalance">
-        delete from energy_account_balance
+    <update id="deleteBalance">
+        update energy_account_balance
+        set is_deleted = 1
         where
         balance_type = #{balanceType}
         and balance_relation_id = #{balanceRelationId}
-    </delete>
+        and is_deleted = 0
+    </update>
 </mapper>

@@ -8,7 +8,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 余额管理 | 账户/电表余额初始化、充值、扣费、查询 |
+| 余额管理 | 账户/电表余额初始化、充值、扣费、查询、软删除 |
 | 订单管理 | 订单创建、支付回调处理、完结/关闭、状态广播 |
 | 电量消费 | 抄表数据落库、分时电量差值计算、金额消费计算 |
 | 账户消费 | 包月扣费、账户级消费记录 |
@@ -159,12 +159,23 @@
 | 步骤 | 核心动作 | 关键校验/规则 | 失败处理 |
 |------|----------|---------------|----------|
 | 1 | 写入流水 `OrderFlowEntity` | `consumeId(orderNo)` 唯一，防止重复操作 | 重复写入抛业务异常 |
-| 2 | 更新余额 | `balanceTopUp` 影响行数必须为 1 | 更新失败抛业务异常 |
+| 2 | 更新余额 | `balanceTopUp` 仅更新 `is_deleted=0` 的记录，影响行数必须为 1 | 更新失败抛业务异常 |
 | 3 | 发布余额变动事件 | 读取最新余额后发送 `BALANCE_CHANGED` 消息 | 找不到余额仅告警，不中断主流程 |
-| 4 | 余额查询 | 按 `balanceRelationId + balanceType` 查询 | 未命中抛 `NotFoundException` |
-| 5 | 余额初始化/删除 | 初始化时防重复；删除要求影响行数为 1 | 异常抛业务异常 |
+| 4 | 余额查询 | 按 `balanceRelationId + balanceType` 且 `is_deleted=0` 查询 | 未命中抛 `NotFoundException` |
+| 5 | 余额初始化/软删除 | 初始化时防重复；删除通过更新 `is_deleted=1` 实现软删除，影响行数要求为 1 | 异常抛业务异常 |
 
 补充说明：
 
 - `deduct` 通过金额取负复用统一结算逻辑，减少重复分支。
 - 余额事件采用 `sendMessageAfterCommit`，保证“库内成功后再发消息”。
+- 余额表通过 `active_balance_key`（`balanceRelationId_balanceType`）配合唯一索引，保证“未删除余额记录”唯一。
+
+### 5.4 余额软删除与唯一键策略（`energy_account_balance`）
+
+| 项目 | 说明 |
+|------|------|
+| 删除策略 | `deleteBalance` 从物理删除改为更新 `is_deleted=1` |
+| 活跃唯一键 | `active_balance_key` 在 `is_deleted=0` 时生效，值为 `balance_relation_id + '_' + balance_type` |
+| 唯一约束 | `uk_energy_account_balance_active_key` 约束同一余额维度仅存在一条“活跃记录” |
+| 查询/扣费防误操作 | `balanceQuery`、`balanceTopUp` 均增加 `is_deleted=0` 条件，避免操作历史软删除记录 |
+| 测试与生产一致性 | `sql/ems.sql` 与 `ems-bootstrap/src/test/resources/h2-schema.sql` 均已同步软删除字段与唯一键策略 |

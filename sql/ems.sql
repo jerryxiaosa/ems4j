@@ -144,8 +144,17 @@ CREATE TABLE `energy_account_balance`
     `balance_type`        SMALLINT       NOT NULL COMMENT '余额类型：0账户余额，1电表余额，2水表余额',
     `balance`             DECIMAL(20, 8) NOT NULL DEFAULT '0.00000000' COMMENT '余额金额',
     `account_id`          INT            NOT NULL COMMENT '账户id',
+    `is_deleted`          BIT(1)         NOT NULL DEFAULT b'0' COMMENT '是否删除：0未删除，1已删除',
+    `active_balance_key`  VARCHAR(64) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS ((IF(`is_deleted` = b'0',
+                                                                                              CONCAT(
+                                                                                                      `balance_relation_id`,
+                                                                                                      '_',
+                                                                                                      `balance_type`
+                                                                                              ),
+                                                                                              NULL))) STORED COMMENT '活跃余额唯一键（未删除时有效）',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY `idx_balance_id` (`balance_relation_id`, `balance_type`)
+    KEY `idx_balance_id` (`balance_relation_id`, `balance_type`),
+    UNIQUE KEY `uk_energy_account_balance_active_key` (`active_balance_key`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = UTF8MB4
