@@ -39,15 +39,20 @@ class AccountControllerTest {
     private SaWebConfig saWebConfig;
 
     @Test
-    @DisplayName("查询账户列表")
-    void testFindAccountList() throws Exception {
+    @DisplayName("分页查询账户列表")
+    void testFindAccountPage() throws Exception {
         AccountVo vo = new AccountVo().setId(1).setOwnerName("企业A");
-        when(accountBiz.findAccountList(any())).thenReturn(List.of(vo));
+        PageResult<AccountVo> pageResult = new PageResult<AccountVo>()
+                .setList(List.of(vo))
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L);
+        when(accountBiz.findAccountPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/accounts"))
+        mockMvc.perform(get("/accounts/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].ownerName").value("企业A"));
+                .andExpect(jsonPath("$.data.list[0].ownerName").value("企业A"));
     }
 
     @Test

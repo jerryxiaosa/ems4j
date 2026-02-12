@@ -154,12 +154,4 @@ public interface AccountWebMapper {
                 .setTotal(pageResult.getTotal())
                 .setList(list == null ? Collections.emptyList() : list);
     }
-
-    default List<AccountCancelRecordVo> safeCancelRecordList(List<AccountCancelRecordDto> list) {
-        return toAccountCancelRecordVoList(list == null ? Collections.emptyList() : list);
-    }
-
-    default List<AccountVo> safeAccountVoList(List<AccountBo> list) {
-        return list == null ? Collections.emptyList() : toAccountVoList(list);
-    }
 }

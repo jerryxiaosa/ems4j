@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * 账户管理接口
  */
@@ -28,12 +26,15 @@ public class AccountController {
 
     private final AccountBiz accountBiz;
 
-    @SaCheckPermission("accounts:accounts:list")
-    @GetMapping
-    @Operation(summary = "查询账户列表")
-    public RestResult<List<AccountVo>> findAccountList(@Valid @ModelAttribute AccountQueryVo queryVo) {
-        List<AccountVo> list = accountBiz.findAccountList(queryVo);
-        return ResultUtil.success(list);
+    @SaCheckPermission("accounts:accounts:page")
+    @GetMapping("/page")
+    @Operation(summary = "分页查询账户列表")
+    public RestResult<PageResult<AccountVo>> findAccountPage(
+            @Valid @ModelAttribute AccountQueryVo queryVo,
+            @Parameter(description = "页码", example = "1") @RequestParam(defaultValue = "1") Integer pageNum,
+            @Parameter(description = "每页数量", example = "10") @RequestParam(defaultValue = "10") Integer pageSize) {
+        PageResult<AccountVo> page = accountBiz.findAccountPage(queryVo, pageNum, pageSize);
+        return ResultUtil.success(page);
     }
 
     @SaCheckPermission("accounts:accounts:detail")
