@@ -1,11 +1,7 @@
 package info.zhihui.ems.business.finance.consume;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
-import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.finance.dto.PowerConsumeDetailDto;
-import info.zhihui.ems.business.finance.dto.PowerConsumeQueryDto;
-import info.zhihui.ems.business.finance.dto.PowerConsumeRecordDto;
+import info.zhihui.ems.business.finance.dto.*;
 import info.zhihui.ems.business.finance.entity.ElectricMeterBalanceConsumeRecordEntity;
 import info.zhihui.ems.business.finance.entity.ElectricMeterPowerConsumeRecordEntity;
 import info.zhihui.ems.business.finance.entity.ElectricMeterPowerRecordEntity;

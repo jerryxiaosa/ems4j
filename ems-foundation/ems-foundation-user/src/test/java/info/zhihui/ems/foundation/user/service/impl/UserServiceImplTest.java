@@ -1,15 +1,12 @@
 package info.zhihui.ems.foundation.user.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
-import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.RoleBo;
 import info.zhihui.ems.foundation.user.bo.RoleSimpleBo;
 import info.zhihui.ems.foundation.user.bo.UserBo;
-import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.RoleQueryDto;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
@@ -18,6 +15,8 @@ import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
+import info.zhihui.ems.foundation.user.event.UserDeletedEvent;
+import info.zhihui.ems.foundation.user.event.UserPasswordResetEvent;
 import info.zhihui.ems.foundation.user.event.UserProfileUpdatedEvent;
 import info.zhihui.ems.foundation.user.enums.CertificatesTypeEnum;
 import info.zhihui.ems.foundation.user.enums.UserGenderEnum;
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -472,18 +470,44 @@ class UserServiceImplTest {
     @Test
     @DisplayName("delete - 成功删除用户")
     void testDelete_Success() {
-        // Given
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
         when(userRepository.deleteById(1)).thenReturn(1);
 
-        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class)) {
-            // When
-            userService.delete(1);
+        userService.delete(1);
 
-            // Then
-            stpMock.verify(() -> StpUtil.logout(1));
-            verify(userRoleRepository).deleteByUserId(1);
-            verify(userRepository).deleteById(1);
-        }
+        verify(userRepository).selectById(1);
+        verify(userRoleRepository).deleteByUserId(1);
+        verify(userRepository).deleteById(1);
+        verify(applicationEventPublisher).publishEvent(any(UserDeletedEvent.class));
+    }
+
+    @Test
+    @DisplayName("delete - 用户不存在")
+    void testDelete_UserNotFound() {
+        when(userRepository.selectById(999)).thenReturn(null);
+
+        assertThatThrownBy(() -> userService.delete(999))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("用户不存在或已删除");
+
+        verify(userRoleRepository, never()).deleteByUserId(anyInt());
+        verify(userRepository, never()).deleteById(anyInt());
+        verify(applicationEventPublisher, never()).publishEvent(any(UserDeletedEvent.class));
+    }
+
+    @Test
+    @DisplayName("delete - 删除失败")
+    void testDelete_DeleteFailed() {
+        when(userRepository.selectById(1)).thenReturn(mockEntity);
+        when(userRepository.deleteById(1)).thenReturn(0);
+
+        assertThatThrownBy(() -> userService.delete(1))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("删除用户失败");
+
+        verify(userRoleRepository).deleteByUserId(1);
+        verify(userRepository).deleteById(1);
+        verify(applicationEventPublisher, never()).publishEvent(any(UserDeletedEvent.class));
     }
 
     // ==================== updatePassword 测试 ====================
@@ -554,17 +578,12 @@ class UserServiceImplTest {
         when(passwordService.encode(mockResetPasswordDto.getNewPassword())).thenReturn("123abc");
         when(userRepository.updateById(any(UserEntity.class))).thenReturn(1);
 
-        try (MockedStatic<StpUtil> stpMock = mockStatic(StpUtil.class);
-             MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
-            redisMock.when(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1)).thenReturn(true);
-            userService.resetPassword(mockResetPasswordDto);
+        userService.resetPassword(mockResetPasswordDto);
 
-            verify(userRepository).selectById(1);
-            verify(userRepository).updateById(argThat((UserEntity entity) ->
-                    entity.getId().equals(1) && entity.getPassword().equals("123abc")));
-            redisMock.verify(() -> RedisUtil.deleteObject(LoginConstant.PWD_ERR + 1));
-            stpMock.verify(() -> StpUtil.logout(1));
-        }
+        verify(userRepository).selectById(1);
+        verify(userRepository).updateById(argThat((UserEntity entity) ->
+                entity.getId().equals(1) && entity.getPassword().equals("123abc")));
+        verify(applicationEventPublisher).publishEvent(any(UserPasswordResetEvent.class));
     }
 
     @Test
@@ -582,6 +601,7 @@ class UserServiceImplTest {
 
         verify(userRepository).selectById(999);
         verify(userRepository, never()).updateById(any(UserEntity.class));
+        verify(applicationEventPublisher, never()).publishEvent(any(UserPasswordResetEvent.class));
     }
 
     @Test
@@ -596,6 +616,7 @@ class UserServiceImplTest {
 
         verify(userRepository).selectById(1);
         verify(userRepository, never()).updateById(any(UserEntity.class));
+        verify(applicationEventPublisher, never()).publishEvent(any(UserPasswordResetEvent.class));
     }
 
     @Test
@@ -612,6 +633,7 @@ class UserServiceImplTest {
 
         verify(userRepository).selectById(1);
         verify(userRepository).updateById(any(UserEntity.class));
+        verify(applicationEventPublisher, never()).publishEvent(any(UserPasswordResetEvent.class));
     }
 
     // ==================== fillUserRoles 测试 ====================

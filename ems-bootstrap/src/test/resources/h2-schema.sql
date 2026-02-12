@@ -556,10 +556,15 @@ CREATE TABLE energy_account_balance
     balance_type        SMALLINT       NOT NULL,
     balance             DECIMAL(20, 8) NOT NULL DEFAULT 0.00000000,
     account_id          INTEGER        NOT NULL,
+    is_deleted          BOOLEAN        NOT NULL DEFAULT FALSE,
+    active_balance_key  VARCHAR(64) GENERATED ALWAYS AS (
+        CASE WHEN is_deleted = FALSE THEN CAST(balance_relation_id AS VARCHAR) || '_' || CAST(balance_type AS VARCHAR) ELSE NULL END
+    ),
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_balance_id ON energy_account_balance (balance_relation_id, balance_type);
+CREATE INDEX idx_balance_id ON energy_account_balance (balance_relation_id, balance_type);
+CREATE UNIQUE INDEX uk_energy_account_balance_active_key ON energy_account_balance (active_balance_key);
 CREATE UNIQUE INDEX config_key ON sys_config (config_key);
 
 -- 能耗包月消费记录表

@@ -147,14 +147,14 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
     /**
-     * 删除账户余额
+     * 软删除账户余额
      *
      * @param deleteDto 删除参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBalance(@Valid @NotNull BalanceDeleteDto deleteDto) {
-        log.info("开始删除账户余额，参数：{}", deleteDto);
+        log.info("开始软删除账户余额，参数：{}", deleteDto);
 
         // @NOTICE
         // 先查询余额是否存在，再删除仍然有可能删除余额不为0的账户
@@ -163,14 +163,14 @@ public class BalanceServiceImpl implements BalanceService {
                 .setBalanceType(deleteDto.getBalanceType().getCode())
                 .setBalanceRelationId(deleteDto.getBalanceRelationId());
 
-        // 执行删除操作
+        // 执行软删除操作
         Integer deleteRow = balanceRepository.deleteBalance(queryQo);
         if (deleteRow != 1) {
-            log.error("删除账户余额异常，参数：{}", deleteDto);
+            log.error("软删除账户余额异常，参数：{}", deleteDto);
             throw new BusinessRuntimeException("账户余额删除异常，请重试");
         }
 
-        log.info("账户余额删除成功，参数：{}", deleteDto);
+        log.info("账户余额软删除成功，参数：{}", deleteDto);
     }
 
     private void initBalanceByType(Integer relationId, BalanceTypeEnum balanceType, Integer accountId) {
