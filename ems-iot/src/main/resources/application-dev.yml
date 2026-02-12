@@ -59,7 +59,6 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"
 
 springdoc:
-  paths-to-match: /api/**
   group-configs:
     - group: '设备管理'
       packages-to-scan: info.zhihui.ems.iot.api

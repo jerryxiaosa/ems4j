@@ -9,12 +9,14 @@ import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.constants.LoginConstant;
+import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.entity.UserEntity;
 import info.zhihui.ems.foundation.user.entity.UserRoleEntity;
 import info.zhihui.ems.foundation.user.dto.UserCreateDto;
 import info.zhihui.ems.foundation.user.dto.UserQueryDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdateDto;
 import info.zhihui.ems.foundation.user.dto.UserUpdatePasswordDto;
+import info.zhihui.ems.foundation.user.dto.UserResetPasswordDto;
 import info.zhihui.ems.foundation.user.enums.CertificatesTypeEnum;
 import info.zhihui.ems.foundation.user.enums.UserGenderEnum;
 import info.zhihui.ems.foundation.user.repository.UserRepository;
@@ -611,5 +613,98 @@ class UserServiceImplIntegrationTest {
             assertThat(result1.getList().get(0).getId())
                     .isNotEqualTo(result2.getList().get(0).getId());
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("管理员重置密码 - 事务提交后应清理登录态")
+    void testResetPassword_ShouldClearLoginState_AfterCommit() {
+        String randomSuffix = String.valueOf(ThreadLocalRandom.current().nextInt(10000000, 99999999));
+        UserCreateDto createDto = new UserCreateDto()
+                .setUserName("resetuser" + randomSuffix)
+                .setPassword("ResetPass1!")
+                .setRealName("重置密码用户")
+                .setUserPhone("139" + randomSuffix)
+                .setUserGender(UserGenderEnum.MALE)
+                .setCertificatesType(CertificatesTypeEnum.ID_CARD)
+                .setCertificatesNo("11010119900101" + randomSuffix.substring(0, 4))
+                .setOrganizationId(1)
+                .setRoleIds(List.of(2));
+
+        Integer userId = userService.add(createDto);
+        String pwdErrKey = LoginConstant.PWD_ERR + userId;
+        RedisUtil.setCacheObject(pwdErrKey, 3);
+
+        SaTokenContextMockUtil.setMockContext(() -> {
+            try {
+                StpUtil.login(userId);
+                assertThat(StpUtil.isLogin()).isTrue();
+
+                UserResetPasswordDto resetPasswordDto = new UserResetPasswordDto()
+                        .setId(userId)
+                        .setNewPassword("Abc" + randomSuffix + "!x");
+
+                userService.resetPassword(resetPasswordDto);
+
+                assertThat(StpUtil.isLogin()).isFalse();
+                assertThat(RedisUtil.hasKey(pwdErrKey)).isFalse();
+            } finally {
+                try {
+                    StpUtil.logout();
+                } catch (NotLoginException ignore) {
+                    // ignore for cleanup
+                }
+                RedisUtil.deleteObject(pwdErrKey);
+                try {
+                    userService.delete(userId);
+                } catch (NotFoundException ignore) {
+                    // ignore for cleanup
+                }
+            }
+        });
+    }
+
+    @Test
+    @DisplayName("管理员重置密码 - 事务提交前不应清理登录态")
+    void testResetPassword_ShouldNotClearLoginState_BeforeCommit() {
+        String randomSuffix = String.valueOf(ThreadLocalRandom.current().nextInt(10000000, 99999999));
+        UserCreateDto createDto = new UserCreateDto()
+                .setUserName("pendinguser" + randomSuffix)
+                .setPassword("PendingPass1!")
+                .setRealName("事务中用户")
+                .setUserPhone("137" + randomSuffix)
+                .setUserGender(UserGenderEnum.MALE)
+                .setCertificatesType(CertificatesTypeEnum.ID_CARD)
+                .setCertificatesNo("11010119900102" + randomSuffix.substring(0, 4))
+                .setOrganizationId(1)
+                .setRoleIds(List.of(2));
+
+        Integer userId = userService.add(createDto);
+        String pwdErrKey = LoginConstant.PWD_ERR + userId;
+        RedisUtil.setCacheObject(pwdErrKey, 5);
+
+        SaTokenContextMockUtil.setMockContext(() -> {
+            try {
+                StpUtil.login(userId);
+                assertThat(StpUtil.isLogin()).isTrue();
+
+                UserResetPasswordDto resetPasswordDto = new UserResetPasswordDto()
+                        .setId(userId)
+                        .setNewPassword("Abc" + randomSuffix + "!y");
+
+                userService.resetPassword(resetPasswordDto);
+
+                // 当前测试事务尚未提交，AFTER_COMMIT 监听器不应触发
+                assertThat(StpUtil.isLogin()).isTrue();
+                assertThat(RedisUtil.hasKey(pwdErrKey)).isTrue();
+            } finally {
+                try {
+                    StpUtil.logout();
+                } catch (NotLoginException ignore) {
+                    // ignore for cleanup
+                }
+                RedisUtil.deleteObject(pwdErrKey);
+            }
+        });
     }
 }
