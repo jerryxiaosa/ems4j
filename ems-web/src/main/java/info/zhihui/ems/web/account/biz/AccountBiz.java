@@ -30,14 +30,17 @@ public class AccountBiz {
     private final ElectricMeterInfoService electricMeterInfoService;
 
     /**
-     * 查询账户列表
+     * 分页查询账户列表
      */
-    public List<AccountVo> findAccountList(AccountQueryVo queryVo) {
+    public PageResult<AccountVo> findAccountPage(AccountQueryVo queryVo, Integer pageNum, Integer pageSize) {
         AccountQueryDto queryDto = accountWebMapper.toAccountQueryDto(queryVo);
         if (queryDto == null) {
             queryDto = new AccountQueryDto();
         }
-        return accountWebMapper.safeAccountVoList(accountInfoService.findList(queryDto));
+        PageParam pageParam = new PageParam()
+                .setPageNum(Objects.requireNonNullElse(pageNum, 1))
+                .setPageSize(Objects.requireNonNullElse(pageSize, 10));
+        return accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
     }
 
     /**
