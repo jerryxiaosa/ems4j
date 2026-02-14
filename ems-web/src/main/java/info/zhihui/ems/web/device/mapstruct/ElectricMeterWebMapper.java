@@ -178,11 +178,11 @@ public interface ElectricMeterWebMapper {
     }
 
     default WarnTypeEnum mapWarnType(String name) {
-        return name == null ? null : WarnTypeEnum.valueOf(name);
+        return name == null ? null : CodeEnum.fromCode(name, WarnTypeEnum.class);
     }
 
     default String mapWarnTypeEnumToString(WarnTypeEnum warnTypeEnum) {
-        return warnTypeEnum == null ? null : warnTypeEnum.name();
+        return warnTypeEnum == null ? null : warnTypeEnum.getCode();
     }
 
     default Optional<ElectricPricePeriodEnum> mapElectricDegreeType(Integer code) {

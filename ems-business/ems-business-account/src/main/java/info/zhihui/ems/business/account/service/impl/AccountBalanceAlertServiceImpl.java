@@ -83,7 +83,7 @@ public class AccountBalanceAlertServiceImpl implements AccountBalanceAlertServic
 
         AccountEntity updateEntity = new AccountEntity()
                 .setId(accountBo.getId())
-                .setElectricWarnType(newWarnType.name());
+                .setElectricWarnType(newWarnType.getCode());
         accountRepository.updateById(updateEntity);
         log.info("账户{}预警等级更新：{} -> {}", accountBo.getId(), currentWarnType, newWarnType);
     }

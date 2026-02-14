@@ -476,7 +476,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         // 验证操作成功
         ElectricMeterEntity meter = electricMeterRepository.selectById(meterId);
         assertNotNull(meter);
-        assertEquals(WarnTypeEnum.NONE.name(), meter.getWarnType());
+        assertEquals(WarnTypeEnum.NONE.getCode(), meter.getWarnType());
 
         assertDoesNotThrow(() -> {
             electricMeterManagerService.setMeterWarnLevel(meterIds, WarnTypeEnum.FIRST);
@@ -484,7 +484,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
 
         meter = electricMeterRepository.selectById(meterId);
         assertNotNull(meter);
-        assertEquals(WarnTypeEnum.FIRST.name(), meter.getWarnType());
+        assertEquals(WarnTypeEnum.FIRST.getCode(), meter.getWarnType());
     }
 
     /**
@@ -505,7 +505,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         ElectricMeterEntity meter = electricMeterRepository.selectById(meterId);
         assertNotNull(meter);
         assertEquals(1, meter.getWarnPlanId());
-        assertEquals(WarnTypeEnum.NONE.name(), meter.getWarnType());
+        assertEquals(WarnTypeEnum.NONE.getCode(), meter.getWarnType());
     }
 
     /**

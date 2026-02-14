@@ -267,7 +267,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
         }
 
         // 重置警告等级
-        entity.setElectricWarnType(WarnTypeEnum.NONE.name());
+        entity.setElectricWarnType(WarnTypeEnum.NONE.getCode());
         entity.setCreateTime(LocalDateTime.now());
 
         repository.insert(entity);

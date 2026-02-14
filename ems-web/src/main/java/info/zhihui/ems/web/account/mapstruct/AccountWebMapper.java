@@ -133,7 +133,7 @@ public interface AccountWebMapper {
     }
 
     default String mapWarnTypeCode(WarnTypeEnum warnTypeEnum) {
-        return warnTypeEnum == null ? null : warnTypeEnum.name();
+        return warnTypeEnum == null ? null : warnTypeEnum.getCode();
     }
 
     default CleanBalanceTypeEnum mapCleanBalanceType(Integer code) {
