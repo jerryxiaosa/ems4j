@@ -65,7 +65,7 @@ class AccountBalanceAlertServiceImplTest {
         ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
         verify(accountRepository).updateById(captor.capture());
         assertThat(captor.getValue().getId()).isEqualTo(10);
-        assertThat(captor.getValue().getElectricWarnType()).isEqualTo(WarnTypeEnum.SECOND.name());
+        assertThat(captor.getValue().getElectricWarnType()).isEqualTo(WarnTypeEnum.SECOND.getCode());
     }
 
     @Test
@@ -90,7 +90,7 @@ class AccountBalanceAlertServiceImplTest {
         ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
         verify(accountRepository).updateById(captor.capture());
         assertThat(captor.getValue().getId()).isEqualTo(11);
-        assertThat(captor.getValue().getElectricWarnType()).isEqualTo(WarnTypeEnum.NONE.name());
+        assertThat(captor.getValue().getElectricWarnType()).isEqualTo(WarnTypeEnum.NONE.getCode());
     }
 
     @Test

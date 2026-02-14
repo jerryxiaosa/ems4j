@@ -81,20 +81,12 @@ public interface ElectricMeterMapper {
 
     @Named("stringToWarnTypeEnum")
     default WarnTypeEnum stringToWarnTypeEnum(String warnType) {
-        if (warnType == null) {
-            return null;
-        }
-        for (WarnTypeEnum value : WarnTypeEnum.values()) {
-            if (value.name().equals(warnType)) {
-                return value;
-            }
-        }
-        return null;
+        return warnType == null ? null : CodeEnum.fromCode(warnType, WarnTypeEnum.class);
     }
 
     @Named("warnTypeEnumToString")
     default String warnTypeEnumToString(WarnTypeEnum warnTypeEnum) {
-        return warnTypeEnum == null ? null : warnTypeEnum.name();
+        return warnTypeEnum == null ? null : warnTypeEnum.getCode();
     }
 
 }

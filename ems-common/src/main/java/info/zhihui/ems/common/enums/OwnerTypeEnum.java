@@ -8,13 +8,16 @@ import lombok.Getter;
  */
 @Getter
 public enum OwnerTypeEnum implements CodeEnum<Integer> {
-    ENTERPRISE(0),
-    PERSONAL(1),
+    ENTERPRISE(0, "企业"),
+    PERSONAL(1, "个人"),
     ;
 
     private final Integer code;
 
-    OwnerTypeEnum(Integer code) {
+    private final String info;
+
+    OwnerTypeEnum(Integer code, String info) {
         this.code = code;
+        this.info = info;
     }
 }

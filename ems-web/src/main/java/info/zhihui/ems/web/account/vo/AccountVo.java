@@ -2,6 +2,7 @@ package info.zhihui.ems.web.account.vo;
 
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
+import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.web.account.resolver.WarnPlanNameResolver;
@@ -54,6 +55,10 @@ public class AccountVo {
 
     @Schema(description = "电费预警级别，参考 warnType")
     private String electricWarnType;
+
+    @Schema(description = "电费预警级别名称")
+    @EnumLabel(source = "electricWarnType", enumClass = WarnTypeEnum.class)
+    private String electricWarnTypeName;
 
     @Schema(description = "账户所属电表数量")
     private Integer meterCount;

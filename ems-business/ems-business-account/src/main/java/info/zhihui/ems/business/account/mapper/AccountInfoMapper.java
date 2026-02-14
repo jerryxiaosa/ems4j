@@ -55,14 +55,6 @@ public interface AccountInfoMapper {
 
     @Named("getWarnTypeEnum")
     default WarnTypeEnum getWarnTypeEnum(String warnType) {
-        if (warnType == null) {
-            return null;
-        }
-        for (WarnTypeEnum value : WarnTypeEnum.values()) {
-            if (value.name().equals(warnType)) {
-                return value;
-            }
-        }
-        return null;
+        return warnType == null ? null : CodeEnum.fromCode(warnType, WarnTypeEnum.class);
     }
 }

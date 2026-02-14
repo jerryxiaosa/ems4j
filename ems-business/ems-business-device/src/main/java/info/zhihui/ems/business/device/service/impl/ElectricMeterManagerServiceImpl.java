@@ -408,7 +408,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         checkMeter(meterIds);
 
         ElectricMeterBatchUpdateQo updateQo = createBaseUpdateQo(meterIds);
-        updateQo.setWarnType(warnType.name());
+        updateQo.setWarnType(warnType.getCode());
         int affectedRows = repository.batchUpdate(updateQo);
         if (affectedRows != meterIds.size()) {
             log.warn("批量设置警告等级{}，没有全部成功，请检查对应电表{}", warnType, meterIds);
