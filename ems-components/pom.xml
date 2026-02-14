@@ -16,6 +16,8 @@
         <module>ems-components-lock</module>
         <module>ems-components-context</module>
         <module>ems-components-redis</module>
+        <module>ems-components-translate-core</module>
+        <module>ems-components-translate-web</module>
     </modules>
 
 </project>

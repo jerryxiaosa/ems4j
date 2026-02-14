@@ -65,9 +65,6 @@ info/zhihui/ems/iot/plugins/acrel
     ├── common
     │   └── message
     ├── constant
-    ├── support
-    │   └── outbound
-    │       └── modbus
     ├── fourthgeneration
     │   ├── tcp
     │   │   ├── message

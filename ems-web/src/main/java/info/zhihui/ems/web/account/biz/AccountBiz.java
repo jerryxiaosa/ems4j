@@ -40,15 +40,17 @@ public class AccountBiz {
         PageParam pageParam = new PageParam()
                 .setPageNum(Objects.requireNonNullElse(pageNum, 1))
                 .setPageSize(Objects.requireNonNullElse(pageSize, 10));
-        return accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
+        PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
+        fillMeterCount(pageResult.getList());
+        return pageResult;
     }
 
     /**
      * 根据ID获取账户详情
      */
-    public AccountVo getAccount(Integer id) {
+    public AccountDetailVo getAccount(Integer id) {
         AccountBo accountBo = accountInfoService.getById(id);
-        AccountVo accountVo = accountWebMapper.toAccountVo(accountBo);
+        AccountDetailVo accountVo = accountWebMapper.toAccountDetailVo(accountBo);
 
         List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(id));
         accountVo.setMeterList(accountWebMapper.toAccountMeterVoList(meterBos));
@@ -109,5 +111,22 @@ public class AccountBiz {
         CancelAccountDto dto = accountWebMapper.toCancelAccountDto(cancelAccountVo);
         CancelAccountResponseDto responseDto = accountManagerService.cancelAccount(dto);
         return accountWebMapper.toCancelAccountResponseVo(responseDto);
+    }
+
+    /**
+     * 填充账户电表数量
+     */
+    private void fillMeterCount(List<AccountVo> accountVoList) {
+        if (accountVoList == null || accountVoList.isEmpty()) {
+            return;
+        }
+
+        for (AccountVo accountVo : accountVoList) {
+            if (accountVo == null || accountVo.getId() == null) {
+                continue;
+            }
+            int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(accountVo.getId())).size();
+            accountVo.setMeterCount(meterCount);
+        }
     }
 }

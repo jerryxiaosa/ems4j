@@ -58,7 +58,7 @@ class AccountControllerTest {
     @Test
     @DisplayName("根据ID获取账户详情")
     void testGetAccount() throws Exception {
-        AccountVo vo = new AccountVo().setId(10).setOwnerName("账号详情");
+        AccountDetailVo vo = new AccountDetailVo().setId(10).setOwnerName("账号详情");
         when(accountBiz.getAccount(10)).thenReturn(vo);
 
         mockMvc.perform(get("/accounts/10"))

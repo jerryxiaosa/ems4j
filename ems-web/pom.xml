@@ -74,6 +74,11 @@
         </dependency>
 
         <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-components-translate-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
         </dependency>
