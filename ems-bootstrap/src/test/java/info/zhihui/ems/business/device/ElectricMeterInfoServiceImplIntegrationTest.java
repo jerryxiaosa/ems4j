@@ -161,7 +161,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         q.setMeterId(1);
         q.setMeterName("EM");
         q.setMeterNo("EM");
-        q.setAccountId(1);
+        q.setAccountIds(List.of(1));
         q.setIotId("1");
         q.setGatewayId(1);
         q.setIsOnline(true);

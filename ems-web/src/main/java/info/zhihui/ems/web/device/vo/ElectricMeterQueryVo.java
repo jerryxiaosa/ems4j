@@ -21,8 +21,8 @@ public class ElectricMeterQueryVo {
     @Schema(description = "电表编号")
     private String meterNo;
 
-    @Schema(description = "账户ID")
-    private Integer accountId;
+    @Schema(description = "账户ID列表")
+    private List<Integer> accountIds;
 
     @Schema(description = "物联网设备ID")
     private String iotId;

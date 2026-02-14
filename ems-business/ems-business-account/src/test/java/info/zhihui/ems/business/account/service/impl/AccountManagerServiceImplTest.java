@@ -771,7 +771,7 @@ class AccountManagerServiceImplTest {
 
         // Mock account operations
         when(accountInfoService.getById(1)).thenReturn(accountBo);
-        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1).setInIds(List.of(1))))
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)).setInIds(List.of(1))))
                 .thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
@@ -850,7 +850,7 @@ class AccountManagerServiceImplTest {
                 .setId(1)
                 .setAccountId(1);
         ElectricMeterQueryDto query = new ElectricMeterQueryDto()
-                .setAccountId(1)
+                .setAccountIds(List.of(1))
                 .setInIds(List.of(1));
 
         // Mock account operations
@@ -929,7 +929,7 @@ class AccountManagerServiceImplTest {
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
         when(accountInfoService.getById(1)).thenReturn(accountBo);
-        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1).setInIds(List.of(1))))
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)).setInIds(List.of(1))))
                 .thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
@@ -978,7 +978,7 @@ class AccountManagerServiceImplTest {
         );
 
         ElectricMeterQueryDto query = new ElectricMeterQueryDto()
-                .setAccountId(1).setInIds(List.of(1));
+                .setAccountIds(List.of(1)).setInIds(List.of(1));
 
         // Mock lock operations
         when(lockTemplate.getLock(any(String.class))).thenReturn(lock);
@@ -987,7 +987,7 @@ class AccountManagerServiceImplTest {
 
         // Mock account operations - 部分销户，账户下还有其他电表
         when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
-        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1))).thenReturn(List.of(new ElectricMeterBo().setAccountId(1)));
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)))).thenReturn(List.of(new ElectricMeterBo().setAccountId(1)));
         when(accountInfoService.getById(1)).thenReturn(accountBo);
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
@@ -1041,7 +1041,7 @@ class AccountManagerServiceImplTest {
         );
 
         ElectricMeterQueryDto query = new ElectricMeterQueryDto()
-                .setAccountId(1).setInIds(List.of(1));
+                .setAccountIds(List.of(1)).setInIds(List.of(1));
 
         // Mock lock operations
         when(lockTemplate.getLock(any(String.class))).thenReturn(lock);
@@ -1123,7 +1123,7 @@ class AccountManagerServiceImplTest {
         );
 
         ElectricMeterQueryDto query = new ElectricMeterQueryDto()
-                .setAccountId(1)
+                .setAccountIds(List.of(1))
                 .setInIds(List.of(1));
 
         when(lockTemplate.getLock(any(String.class))).thenReturn(lock);
@@ -1132,7 +1132,7 @@ class AccountManagerServiceImplTest {
         when(accountInfoService.getById(1)).thenReturn(accountBo);
         when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
-        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1))).thenReturn(List.of());
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)))).thenReturn(List.of());
         when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
                 .thenReturn(new BalanceBo().setBalance(null));
 
@@ -1169,7 +1169,7 @@ class AccountManagerServiceImplTest {
 
         // Mock account operations
         when(accountInfoService.getById(1)).thenReturn(accountBo);
-        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(1).setInIds(List.of(999)))).thenReturn(List.of(electricMeterBo)); // 账户下的电表不包含999
+        when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)).setInIds(List.of(999)))).thenReturn(List.of(electricMeterBo)); // 账户下的电表不包含999
 
         // When & Then
         assertThrows(BusinessRuntimeException.class, () -> accountManagerService.cancelAccount(cancelAccountDto));
