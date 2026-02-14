@@ -40,7 +40,7 @@ public class AccountController {
     @SaCheckPermission("accounts:accounts:detail")
     @GetMapping("/{id}")
     @Operation(summary = "获取账户详情")
-    public RestResult<AccountVo> getAccount(@Parameter(description = "账户ID") @PathVariable Integer id) {
+    public RestResult<AccountDetailVo> getAccount(@Parameter(description = "账户ID") @PathVariable Integer id) {
         return ResultUtil.success(accountBiz.getAccount(id));
     }
 

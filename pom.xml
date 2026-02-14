@@ -265,6 +265,18 @@
 
             <dependency>
                 <groupId>info.zhihui</groupId>
+                <artifactId>ems-components-translate-core</artifactId>
+                <version>0.1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>info.zhihui</groupId>
+                <artifactId>ems-components-translate-web</artifactId>
+                <version>0.1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>info.zhihui</groupId>
                 <artifactId>ems-foundation-integration</artifactId>
                 <version>0.1.0</version>
             </dependency>

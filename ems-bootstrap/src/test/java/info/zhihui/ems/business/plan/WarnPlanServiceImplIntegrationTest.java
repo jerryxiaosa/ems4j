@@ -121,6 +121,18 @@ class WarnPlanServiceImplIntegrationTest {
     }
 
     @Test
+    @DisplayName("按ID集合查询列表")
+    void testFindList_FilterByIds() {
+        Integer id = warnPlanService.add(buildSaveDto("query-by-ids-" + UUID.randomUUID(), new BigDecimal("240"), new BigDecimal("160")));
+
+        WarnPlanQueryDto query = new WarnPlanQueryDto();
+        query.setIds(List.of(id));
+        List<WarnPlanBo> result = warnPlanService.findList(query);
+        assertEquals(1, result.size());
+        assertEquals(id, result.get(0).getId());
+    }
+
+    @Test
     @DisplayName("查询不存在的方案抛出异常")
     void testGetDetail_NotFound() {
         assertThrows(NotFoundException.class, () -> warnPlanService.getDetail(987654));

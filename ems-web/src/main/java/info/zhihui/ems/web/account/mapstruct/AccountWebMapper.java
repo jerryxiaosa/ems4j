@@ -42,6 +42,11 @@ public interface AccountWebMapper {
 
     List<AccountVo> toAccountVoList(List<AccountBo> bos);
 
+    @Mapping(target = "ownerType", expression = "java(mapOwnerTypeCode(bo.getOwnerType()))")
+    @Mapping(target = "electricAccountType", expression = "java(mapElectricTypeCode(bo.getElectricAccountType()))")
+    @Mapping(target = "electricWarnType", expression = "java(mapWarnTypeCode(bo.getElectricWarnType()))")
+    AccountDetailVo toAccountDetailVo(AccountBo bo);
+
     @Mapping(target = "cleanBalanceType", expression = "java(mapCleanBalanceTypeCode(dto.getCleanBalanceType()))")
     AccountCancelRecordVo toAccountCancelRecordVo(AccountCancelRecordDto dto);
 

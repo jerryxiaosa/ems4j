@@ -116,9 +116,10 @@
 | 1 | DTO 转实体 | `add` 强制 `id=null`；`edit` 先校验原记录存在 | 原记录不存在抛异常 |
 | 2 | 阈值规则校验 | 一级阈值必须大于二级阈值 | 不满足规则抛业务异常 |
 | 3 | 持久化 | `insert` / `updateById` / `deleteById` | 数据库异常抛出 |
-| 4 | 查询返回 | `findList/getDetail` 提供方案数据给账户/设备模块使用 | 未命中时 `getDetail` 抛 `NotFoundException` |
+| 4 | 查询返回 | `findList/getDetail` 提供方案数据给账户/设备模块使用；`findList` 支持 `name` 和 `ids` 过滤 | 未命中时 `getDetail` 抛 `NotFoundException` |
 
 补充说明：
 
 - 当前预警方案不依赖外部配置中心，规则完全由本模块维护。
 - 预警方案会被账户与电表开户流程引用，变更后应评估存量数据影响。
+- `findList(ids)` 可用于批量 `warnPlanId -> warnPlanName` 名称映射，避免列表场景 N+1 查询。
