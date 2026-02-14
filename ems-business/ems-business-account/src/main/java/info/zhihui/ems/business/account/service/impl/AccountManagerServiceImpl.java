@@ -405,7 +405,9 @@ public class AccountManagerServiceImpl implements AccountManagerService {
      */
     private void updateMeterAccount(AccountConfigUpdateDto accountConfigUpdateDto, ElectricAccountTypeEnum accountType) {
         if (ElectricAccountTypeEnum.QUANTITY.equals(accountType)) {
-            List<ElectricMeterBo> meterList = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(accountConfigUpdateDto.getAccountId()));
+            List<ElectricMeterBo> meterList = electricMeterInfoService.findList(
+                    new ElectricMeterQueryDto().setAccountIds(List.of(accountConfigUpdateDto.getAccountId()))
+            );
             if (CollectionUtils.isEmpty(meterList)) {
                 return;
             }
@@ -498,7 +500,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
 
         List<ElectricMeterBo> electricMeterBoList = electricMeterInfoService.findList(
                 new ElectricMeterQueryDto()
-                        .setAccountId(cancelAccountDto.getAccountId())
+                        .setAccountIds(List.of(cancelAccountDto.getAccountId()))
                         .setInIds(meterIds)
         );
 
@@ -543,7 +545,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
      */
     private boolean checkFullCancel(Integer accountId) {
         List<ElectricMeterBo> existMeterList = electricMeterInfoService.findList(
-                new ElectricMeterQueryDto().setAccountId(accountId)
+                new ElectricMeterQueryDto().setAccountIds(List.of(accountId))
         );
         return CollectionUtils.isEmpty(existMeterList);
     }

@@ -45,7 +45,7 @@ class AccountBizIntegrationTest {
                 continue;
             }
             int expectedMeterCount = electricMeterInfoService
-                    .findList(new ElectricMeterQueryDto().setAccountId(accountVo.getId()))
+                    .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountVo.getId())))
                     .size();
             assertEquals(expectedMeterCount, accountVo.getMeterCount());
         }
@@ -64,7 +64,7 @@ class AccountBizIntegrationTest {
         List<?> meterList = detailVo.getMeterList();
         int actualMeterCount = meterList == null ? 0 : meterList.size();
         int expectedMeterCount = electricMeterInfoService
-                .findList(new ElectricMeterQueryDto().setAccountId(accountId))
+                .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountId)))
                 .size();
         assertEquals(expectedMeterCount, actualMeterCount);
     }

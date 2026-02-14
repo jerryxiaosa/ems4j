@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * 转换元数据缓存
- *
+ * <p>
  * 作用：
  * 1. 把“反射扫描 + 注解解析”成本前置为一次构建。
  * 2. 后续同类型对象复用元数据，降低运行期开销。
@@ -36,7 +36,7 @@ public class TranslateMetadataCache {
 
     /**
      * 扫描类字段并生成转换元信息。
-     *
+     * <p>
      * 规则：
      * 1. 仅处理声明了 @EnumLabel / @BizLabel 的目标字段。
      * 2. 同一字段同时声明两个注解时跳过并告警。

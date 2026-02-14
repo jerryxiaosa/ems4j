@@ -191,7 +191,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表数据
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(account.getId()));
+                new ElectricMeterQo().setAccountIds(List.of(account.getId())));
         assertNotNull(meters);
         assertEquals(2, meters.size());
 
@@ -360,7 +360,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters, "电表列表不应为空");
 
         // 验证电表状态已更新
@@ -428,7 +428,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters, "电表列表不应为空");
 
         // 验证电表状态已更新
@@ -492,7 +492,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters);
         ElectricMeterEntity closeMeter = electricMeterRepository.selectById(1);
         assertNotNull(closeMeter);
@@ -588,7 +588,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters);
     }
 
@@ -601,7 +601,7 @@ public class AccountManagerServiceImplIntegrationTest {
         Integer accountId = 3;
 
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(accountId));
+                new ElectricMeterQo().setAccountIds(List.of(accountId)));
         assertNotNull(meters, "电表列表不应为空");
         assertFalse(meters.isEmpty(), "账户应存在电表以触发全部销户");
 
@@ -668,7 +668,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters, "电表列表不应为空");
 
         // 验证手动输入的电量数据被正确处理
@@ -725,7 +725,7 @@ public class AccountManagerServiceImplIntegrationTest {
 
         // 查询数据库验证电表状态
         List<ElectricMeterEntity> meters = electricMeterRepository.findList(
-                new ElectricMeterQo().setAccountId(1));
+                new ElectricMeterQo().setAccountIds(List.of(1)));
         assertNotNull(meters, "电表列表不应为空");
 
         // 验证电表状态已更新

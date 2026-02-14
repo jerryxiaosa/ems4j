@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 账户业务编排层
@@ -52,7 +54,7 @@ public class AccountBiz {
         AccountBo accountBo = accountInfoService.getById(id);
         AccountDetailVo accountVo = accountWebMapper.toAccountDetailVo(accountBo);
 
-        List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(id));
+        List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(id)));
         accountVo.setMeterList(accountWebMapper.toAccountMeterVoList(meterBos));
         return accountVo;
     }
@@ -121,12 +123,28 @@ public class AccountBiz {
             return;
         }
 
+        List<Integer> accountIdList = accountVoList.stream()
+                .filter(Objects::nonNull)
+                .map(AccountVo::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (accountIdList.isEmpty()) {
+            return;
+        }
+
+        List<ElectricMeterBo> meterBoList = electricMeterInfoService.findList(
+                new ElectricMeterQueryDto().setAccountIds(accountIdList)
+        );
+        Map<Integer, Integer> meterCountMap = meterBoList.stream()
+                .map(ElectricMeterBo::getAccountId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(accountId -> accountId, Collectors.summingInt(ignore -> 1)));
+
         for (AccountVo accountVo : accountVoList) {
-            if (accountVo == null || accountVo.getId() == null) {
-                continue;
+            if (accountVo != null && accountVo.getId() != null) {
+                accountVo.setMeterCount(meterCountMap.getOrDefault(accountVo.getId(), 0));
             }
-            int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountId(accountVo.getId())).size();
-            accountVo.setMeterCount(meterCount);
         }
     }
 }

@@ -18,8 +18,11 @@
             <if test="meterNo != null and meterNo != ''">
                 and t.meter_no like concat('%', #{meterNo}, '%')
             </if>
-            <if test="accountId != null">
-                and t.account_id = #{accountId}
+            <if test="accountIds != null and accountIds.size() > 0">
+                and t.account_id in
+                <foreach item="item" index="index" collection="accountIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="iotId != null and iotId != ''">
                 and t.iot_id = #{iotId}

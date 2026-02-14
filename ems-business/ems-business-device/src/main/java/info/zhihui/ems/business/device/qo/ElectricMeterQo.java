@@ -26,9 +26,9 @@ public class ElectricMeterQo {
     private String meterNo;
 
     /**
-     * 所属账户id
+     * 所属账户id列表
      */
-    private Integer accountId;
+    private List<Integer> accountIds;
 
     /**
      * iot服务里的id
