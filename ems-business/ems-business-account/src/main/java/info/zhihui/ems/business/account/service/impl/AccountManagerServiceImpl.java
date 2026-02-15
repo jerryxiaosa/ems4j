@@ -83,7 +83,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
     private final RequestContext requestContext;
 
     private static final String LOCK_OWNER = "LOCK:OWNER:%d:%d";
-    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT:%d";
+    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT-MANAGER:%d";
 
     /**
      * 开户
