@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountSpaceLeaseServiceImpl implements AccountSpaceLeaseService {
 
-    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT:%d";
+    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT-RENT:%d";
 
     private final AccountInfoService accountInfoService;
     private final AccountSpaceRelRepository accountSpaceRelRepository;

@@ -46,7 +46,7 @@ public class AccountConsumeServiceImpl implements AccountConsumeService {
     private final AccountBalanceConsumeRecordRepository accountBalanceConsumeRecordRepository;
     private final LockTemplate lockTemplate;
 
-    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT:%d";
+    private static final String LOCK_ACCOUNT = "LOCK:ACCOUNT-CONSUME:%d";
 
     /**
      * 包月消费，账户每月只能扣除一次
