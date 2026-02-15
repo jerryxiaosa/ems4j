@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -76,6 +77,26 @@ public class AccountController {
     public RestResult<Void> appendMeters(@Parameter(description = "账户ID") @PathVariable Integer id,
                                          @Valid @RequestBody AccountMetersOpenVo accountMetersOpenVo) {
         accountBiz.appendMeters(id, accountMetersOpenVo);
+        return ResultUtil.success();
+    }
+
+    @SaCheckPermission("accounts:spaces:rent")
+    @PostMapping("/{id}/spaces/rent")
+    @Operation(summary = "账户租赁空间")
+    public RestResult<Void> rentSpaces(@Parameter(description = "账户ID") @PathVariable Integer id,
+                                       @NotNull(message = "请求参数不能为空")
+                                       @Valid @RequestBody AccountSpaceRentVo accountSpaceRentVo) {
+        accountBiz.rentSpaces(id, accountSpaceRentVo);
+        return ResultUtil.success();
+    }
+
+    @SaCheckPermission("accounts:spaces:unrent")
+    @PostMapping("/{id}/spaces/unrent")
+    @Operation(summary = "账户退租空间")
+    public RestResult<Void> unrentSpaces(@Parameter(description = "账户ID") @PathVariable Integer id,
+                                         @NotNull(message = "请求参数不能为空")
+                                         @Valid @RequestBody AccountSpaceUnrentVo accountSpaceUnrentVo) {
+        accountBiz.unrentSpaces(id, accountSpaceUnrentVo);
         return ResultUtil.success();
     }
 

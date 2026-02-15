@@ -25,6 +25,25 @@ CREATE TABLE `energy_account`
   DEFAULT CHARSET = UTF8MB4
   COLLATE = utf8mb4_unicode_ci COMMENT ='能耗账户表';
 
+CREATE TABLE `energy_account_space_rel`
+(
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `account_id`       INT      NOT NULL COMMENT '账户id',
+    `space_id`         INT      NOT NULL COMMENT '空间id',
+    `create_user`      INT UNSIGNED                                                 DEFAULT NULL,
+    `create_user_name` VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `create_time`      DATETIME                                                     DEFAULT NULL,
+    `update_user`      INT UNSIGNED                                                 DEFAULT NULL,
+    `update_user_name` VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `update_time`      DATETIME                                                     DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_space_id` (`space_id`),
+    KEY `idx_account_id` (`account_id`)
+) ENGINE = INNODB
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = UTF8MB4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='账户空间租赁关系';
+
 CREATE TABLE `energy_open_meter_record`
 (
     `id`               INT      NOT NULL AUTO_INCREMENT,
