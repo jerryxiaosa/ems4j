@@ -35,6 +35,16 @@ public class AccountEntity extends BaseEntity {
     private String ownerName;
 
     /**
+     * 联系人
+     */
+    private String contactName;
+
+    /**
+     * 联系方式
+     */
+    private String contactPhone;
+
+    /**
      * 预警方案id
      */
     private Integer warnPlanId;

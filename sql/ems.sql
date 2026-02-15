@@ -4,6 +4,8 @@ CREATE TABLE `energy_account`
     `owner_id`               INT                                                           DEFAULT NULL COMMENT '账户归属者id',
     `owner_type`             SMALLINT                                                      DEFAULT NULL COMMENT '账户类型，0企业1个人',
     `owner_name`             VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '企业/个人名称',
+    `contact_name`           VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '联系人',
+    `contact_phone`          VARCHAR(40) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '联系方式',
     `electric_account_type`  SMALLINT                                                      DEFAULT NULL COMMENT '电费账户类型：0按需、1包月、2合并计费',
     `monthly_pay_amount`     DECIMAL(20, 8)                                                DEFAULT NULL COMMENT '包月费用',
     `electric_price_plan_id` INT                                                           DEFAULT NULL COMMENT '计费方案id',

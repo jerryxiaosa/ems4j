@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
@@ -289,13 +290,13 @@ public class AccountManagerServiceImpl implements AccountManagerService {
     }
 
     /**
-     * 更新账户配置
+     * 更新账户信息
      *
-     * @param accountConfigUpdateDto 配置信息
+     * @param accountConfigUpdateDto 账户信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateAccountConfig(@NotNull @Valid AccountConfigUpdateDto accountConfigUpdateDto) {
+    public void updateAccount(@NotNull @Valid AccountConfigUpdateDto accountConfigUpdateDto) {
         Integer accountId = accountConfigUpdateDto.getAccountId();
 
         Lock lock = getAccountLock(accountId);
@@ -308,41 +309,101 @@ public class AccountManagerServiceImpl implements AccountManagerService {
 
             AccountBo accountBo = accountInfoService.getById(accountId);
 
-            ElectricAccountTypeEnum accountType = accountBo.getElectricAccountType();
-            if (accountType == null) {
-                throw new BusinessRuntimeException("账户计费类型缺失，请联系管理员");
-            }
-
             AccountEntity updateEntity = new AccountEntity().setId(accountId);
-            boolean needUpdate = ElectricAccountTypeEnum.MONTHLY.equals(accountType)
-                    ? applyMonthlyUpdate(accountBo, accountConfigUpdateDto, updateEntity)
-                    : applyNotMonthlyUpdate(accountBo, accountConfigUpdateDto, updateEntity);
+            boolean hasConfigField = hasConfigUpdateField(accountConfigUpdateDto);
+            boolean configNeedUpdate = false;
+            ElectricAccountTypeEnum accountType = accountBo.getElectricAccountType();
+            if (hasConfigField) {
+                if (accountType == null) {
+                    throw new BusinessRuntimeException("账户计费类型缺失，请联系管理员");
+                }
+                configNeedUpdate = ElectricAccountTypeEnum.MONTHLY.equals(accountType)
+                        ? applyMonthlyUpdate(accountBo, accountConfigUpdateDto, updateEntity)
+                        : applyNotMonthlyUpdate(accountBo, accountConfigUpdateDto, updateEntity);
+            }
+            boolean contactNeedUpdate = applyContactUpdate(accountBo, accountConfigUpdateDto, updateEntity);
+            boolean needUpdate = configNeedUpdate || contactNeedUpdate;
 
             if (!needUpdate) {
-                log.info("账户配置未发生变化，accountId={}", accountId);
+                log.info("账户信息未发生变化，accountId={}", accountId);
                 return;
             }
 
             repository.updateById(updateEntity);
 
             // 按需类型的账户还需要更新电表的配置
-            updateMeterAccount(accountConfigUpdateDto, accountType);
+            if (configNeedUpdate) {
+                updateMeterAccount(accountConfigUpdateDto, accountType);
+            }
 
         } catch (Exception e) {
-            log.error("更新账户配置失败，accountId={}", accountId, e);
-            throw new BusinessRuntimeException("更新账户配置失败：" + e.getMessage());
+            log.error("更新账户信息失败，accountId={}", accountId, e);
+            throw new BusinessRuntimeException("更新账户信息失败：" + e.getMessage());
         } finally {
             lock.unlock();
-            log.debug("更新账户配置结束释放账户锁，账户ID: {}", accountId);
+            log.debug("更新账户信息结束释放账户锁，账户ID: {}", accountId);
         }
     }
 
     private void checkUpdateInfo(AccountConfigUpdateDto dto) {
-        if (dto.getElectricPricePlanId() == null
-                && dto.getWarnPlanId() == null
-                && dto.getMonthlyPayAmount() == null) {
-            throw new BusinessRuntimeException("请至少提供一个需要更新的配置项");
+        normalizeContactField(dto);
+        validateContactField(dto);
+
+        boolean hasConfigField = hasConfigUpdateField(dto);
+        boolean hasContactField = hasContactUpdateField(dto);
+        if (!hasConfigField && !hasContactField) {
+            throw new BusinessRuntimeException("请至少提供一个需要更新的字段");
         }
+    }
+
+    private void normalizeContactField(AccountConfigUpdateDto dto) {
+        dto.setContactName(normalizeNullableText(dto.getContactName()));
+        dto.setContactPhone(normalizeNullableText(dto.getContactPhone()));
+    }
+
+    private String normalizeNullableText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private boolean hasConfigUpdateField(AccountConfigUpdateDto dto) {
+        return dto.getElectricPricePlanId() != null
+                || dto.getWarnPlanId() != null
+                || dto.getMonthlyPayAmount() != null;
+    }
+
+    private boolean hasContactUpdateField(AccountConfigUpdateDto dto) {
+        return dto.getContactName() != null || dto.getContactPhone() != null;
+    }
+
+    private void validateContactField(AccountConfigUpdateDto dto) {
+        boolean hasContactName = dto.getContactName() != null;
+        boolean hasContactPhone = dto.getContactPhone() != null;
+        if (hasContactName != hasContactPhone) {
+            throw new BusinessRuntimeException("联系人和联系方式需同时填写，且不能为空");
+        }
+    }
+
+    private boolean applyContactUpdate(AccountBo accountBo,
+                                       AccountConfigUpdateDto dto,
+                                       AccountEntity updateEntity) {
+        if (!hasContactUpdateField(dto)) {
+            return false;
+        }
+
+        String contactName = dto.getContactName();
+        String contactPhone = dto.getContactPhone();
+        boolean needUpdate = !Objects.equals(contactName, accountBo.getContactName())
+                || !Objects.equals(contactPhone, accountBo.getContactPhone());
+        if (!needUpdate) {
+            return false;
+        }
+
+        updateEntity.setContactName(contactName);
+        updateEntity.setContactPhone(contactPhone);
+        return true;
     }
 
     private boolean applyMonthlyUpdate(AccountBo accountBo,

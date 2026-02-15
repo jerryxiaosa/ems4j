@@ -37,6 +37,16 @@ public class AccountBo extends OperatorInfo {
     private String ownerName;
 
     /**
+     * 联系人
+     */
+    private String contactName;
+
+    /**
+     * 联系方式
+     */
+    private String contactPhone;
+
+    /**
      * 电费计费类型
      * @see ElectricAccountTypeEnum
      */
