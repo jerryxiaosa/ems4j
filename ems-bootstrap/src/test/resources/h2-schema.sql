@@ -27,6 +27,25 @@ CREATE TABLE energy_account
     PRIMARY KEY (id)
 );
 
+-- 账户空间租赁关系表
+DROP TABLE IF EXISTS energy_account_space_rel;
+CREATE TABLE energy_account_space_rel
+(
+    id               INTEGER NOT NULL AUTO_INCREMENT,
+    account_id       INTEGER NOT NULL,
+    space_id         INTEGER NOT NULL,
+    create_user      INTEGER          DEFAULT NULL,
+    create_user_name VARCHAR(50)      DEFAULT NULL,
+    create_time      TIMESTAMP        DEFAULT NULL,
+    update_user      INTEGER          DEFAULT NULL,
+    update_user_name VARCHAR(50)      DEFAULT NULL,
+    update_time      TIMESTAMP        DEFAULT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE UNIQUE INDEX uk_space_id ON energy_account_space_rel (space_id);
+CREATE INDEX idx_account_id_account_space_rel ON energy_account_space_rel (account_id);
+
 -- 开户时刻表数据记录
 DROP TABLE IF EXISTS energy_open_meter_record;
 CREATE TABLE energy_open_meter_record

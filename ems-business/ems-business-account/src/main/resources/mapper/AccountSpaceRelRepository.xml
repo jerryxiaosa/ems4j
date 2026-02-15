@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.account.repository.AccountSpaceRelRepository">
+
+    <sql id="Base_Column_List">
+        id, account_id, space_id,
+        create_user, create_user_name, create_time,
+        update_user, update_user_name, update_time
+    </sql>
+
+    <select id="findListBySpaceIds" resultType="info.zhihui.ems.business.account.entity.AccountSpaceRelEntity">
+        select <include refid="Base_Column_List"/>
+        from energy_account_space_rel
+        where space_id in
+        <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
+            #{spaceId}
+        </foreach>
+    </select>
+
+    <select id="findListByAccountIdAndSpaceIds" resultType="info.zhihui.ems.business.account.entity.AccountSpaceRelEntity">
+        select <include refid="Base_Column_List"/>
+        from energy_account_space_rel
+        where account_id = #{accountId}
+          and space_id in
+        <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
+            #{spaceId}
+        </foreach>
+    </select>
+
+    <delete id="deleteByAccountIdAndSpaceIds">
+        delete
+        from energy_account_space_rel
+        where account_id = #{accountId}
+          and space_id in
+        <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
+            #{spaceId}
+        </foreach>
+    </delete>
+
+</mapper>

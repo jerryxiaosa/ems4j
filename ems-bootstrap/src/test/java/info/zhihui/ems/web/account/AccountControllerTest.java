@@ -146,6 +146,30 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("账户租赁空间成功")
+    void testRentSpaces_Success() throws Exception {
+        AccountSpaceRentVo vo = new AccountSpaceRentVo().setSpaceIds(List.of(101, 102));
+
+        mockMvc.perform(post("/accounts/{id}/spaces/rent", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("账户退租空间成功")
+    void testUnrentSpaces_Success() throws Exception {
+        AccountSpaceUnrentVo vo = new AccountSpaceUnrentVo().setSpaceIds(List.of(101));
+
+        mockMvc.perform(post("/accounts/{id}/spaces/unrent", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
     @DisplayName("修改账户信息成功")
     void testUpdateAccountConfig_Success() throws Exception {
         AccountConfigUpdateVo vo = new AccountConfigUpdateVo()

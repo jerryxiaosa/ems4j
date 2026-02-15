@@ -4,6 +4,7 @@ import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.*;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.account.service.AccountManagerService;
+import info.zhihui.ems.business.account.service.AccountSpaceLeaseService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
@@ -28,6 +29,7 @@ public class AccountBiz {
 
     private final AccountInfoService accountInfoService;
     private final AccountManagerService accountManagerService;
+    private final AccountSpaceLeaseService accountSpaceLeaseService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
 
@@ -95,6 +97,24 @@ public class AccountBiz {
         AccountMetersOpenDto dto = accountWebMapper.toAccountMetersOpenDto(accountMetersOpenVo);
         dto.setAccountId(accountId);
         accountManagerService.appendMeters(dto);
+    }
+
+    /**
+     * 租赁空间
+     */
+    public void rentSpaces(Integer accountId, AccountSpaceRentVo accountSpaceRentVo) {
+        AccountSpaceRentDto dto = accountWebMapper.toAccountSpaceRentDto(accountSpaceRentVo);
+        dto.setAccountId(accountId);
+        accountSpaceLeaseService.rentSpaces(dto);
+    }
+
+    /**
+     * 退租空间
+     */
+    public void unrentSpaces(Integer accountId, AccountSpaceUnrentVo accountSpaceUnrentVo) {
+        AccountSpaceUnrentDto dto = accountWebMapper.toAccountSpaceUnrentDto(accountSpaceUnrentVo);
+        dto.setAccountId(accountId);
+        accountSpaceLeaseService.unrentSpaces(dto);
     }
 
     /**
