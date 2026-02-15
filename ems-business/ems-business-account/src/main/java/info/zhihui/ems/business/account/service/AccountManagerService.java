@@ -30,8 +30,9 @@ public interface AccountManagerService {
     CancelAccountResponseDto cancelAccount(@Valid @NotNull CancelAccountDto cancelAccountDto);
 
     /**
-     * 更新账户配置
-     * @param accountConfigUpdateDto 配置信息
+     * 更新账户信息
+     *
+     * @param accountConfigUpdateDto 账户信息
      */
-    void updateAccountConfig(@NotNull @Valid AccountConfigUpdateDto accountConfigUpdateDto);
+    void updateAccount(@NotNull @Valid AccountConfigUpdateDto accountConfigUpdateDto);
 }

@@ -103,7 +103,7 @@ public class AccountBiz {
     public void updateAccountConfig(Integer accountId, AccountConfigUpdateVo accountConfigUpdateVo) {
         AccountConfigUpdateDto dto = accountWebMapper.toAccountConfigUpdateDto(accountConfigUpdateVo);
         dto.setAccountId(accountId);
-        accountManagerService.updateAccountConfig(dto);
+        accountManagerService.updateAccount(dto);
     }
 
     /**

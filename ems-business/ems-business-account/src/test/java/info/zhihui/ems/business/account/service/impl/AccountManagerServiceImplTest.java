@@ -402,7 +402,7 @@ class AccountManagerServiceImplTest {
     }
 
     @Test
-    void testUpdateAccountConfig_Success_Monthly() {
+    void testUpdateAccount_Success_Monthly() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -417,7 +417,7 @@ class AccountManagerServiceImplTest {
                 .setAccountId(1)
                 .setMonthlyPayAmount(new BigDecimal("180"));
 
-        accountManagerService.updateAccountConfig(dto);
+        accountManagerService.updateAccount(dto);
 
         ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
         verify(repository).updateById(captor.capture());
@@ -428,7 +428,7 @@ class AccountManagerServiceImplTest {
     }
 
     @Test
-    void testUpdateAccountConfig_Success_Quantity() {
+    void testUpdateAccount_Success_Quantity() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -447,7 +447,7 @@ class AccountManagerServiceImplTest {
                 .setElectricPricePlanId(5)
                 .setWarnPlanId(9);
 
-        accountManagerService.updateAccountConfig( dto);
+        accountManagerService.updateAccount( dto);
 
         ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
         verify(repository).updateById(captor.capture());
@@ -457,7 +457,7 @@ class AccountManagerServiceImplTest {
     }
 
     @Test
-    void testUpdateAccountConfig_Success_Merged() {
+    void testUpdateAccount_Success_Merged() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -473,7 +473,7 @@ class AccountManagerServiceImplTest {
                 .setAccountId(3)
                 .setElectricPricePlanId(8);
 
-        accountManagerService.updateAccountConfig(dto);
+        accountManagerService.updateAccount(dto);
 
         ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
         verify(repository).updateById(captor.capture());
@@ -483,7 +483,7 @@ class AccountManagerServiceImplTest {
     }
 
     @Test
-    void testUpdateAccountConfig_NoChange_Monthly() {
+    void testUpdateAccount_NoChange_Monthly() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -498,14 +498,14 @@ class AccountManagerServiceImplTest {
                 .setAccountId(7)
                 .setMonthlyPayAmount(new BigDecimal("100"));
 
-        accountManagerService.updateAccountConfig(dto);
+        accountManagerService.updateAccount(dto);
 
         verify(repository, never()).updateById(any(AccountEntity.class));
         verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
     }
 
     @Test
-    void testUpdateAccountConfig_NoChange_Quantity() {
+    void testUpdateAccount_NoChange_Quantity() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -522,14 +522,14 @@ class AccountManagerServiceImplTest {
                 .setElectricPricePlanId(5)
                 .setWarnPlanId(9);
 
-        accountManagerService.updateAccountConfig(dto);
+        accountManagerService.updateAccount(dto);
 
         verify(repository, never()).updateById(any(AccountEntity.class));
         verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
     }
 
     @Test
-    void testUpdateAccountConfig_Error_InvalidForMonthly() {
+    void testUpdateAccount_Error_InvalidForMonthly() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -545,19 +545,19 @@ class AccountManagerServiceImplTest {
                 .setElectricPricePlanId(1);
 
         assertThrows(BusinessRuntimeException.class,
-                () -> accountManagerService.updateAccountConfig(dto));
+                () -> accountManagerService.updateAccount(dto));
 
         verify(repository, never()).updateById(any(AccountEntity.class));
     }
 
     @Test
-    void testUpdateAccountConfig_Error_NoConfigProvided() {
+    void testUpdateAccountConfig_Error_NoProvided() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
         assertThrows(BusinessRuntimeException.class,
-                () -> accountManagerService.updateAccountConfig(new AccountConfigUpdateDto().setAccountId(5)));
+                () -> accountManagerService.updateAccount(new AccountConfigUpdateDto().setAccountId(5)));
         verify(repository, never()).updateById(any(AccountEntity.class));
     }
 
@@ -571,7 +571,133 @@ class AccountManagerServiceImplTest {
         AccountConfigUpdateDto dto = new AccountConfigUpdateDto().setAccountId(6).setElectricPricePlanId(1);
 
         assertThrows(BusinessRuntimeException.class,
-                () -> accountManagerService.updateAccountConfig(dto));
+                () -> accountManagerService.updateAccount(dto));
+        verify(repository, never()).updateById(any(AccountEntity.class));
+    }
+
+    @Test
+    void testUpdateAccount_Success_ContactOnly() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+        when(accountInfoService.getById(9)).thenReturn(new AccountBo()
+                .setId(9)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setContactName("旧联系人")
+                .setContactPhone("13000000000"));
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(9)
+                .setContactName("张三")
+                .setContactPhone("13800138000");
+
+        accountManagerService.updateAccount(dto);
+
+        ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).updateById(captor.capture());
+        AccountEntity updateEntity = captor.getValue();
+        assertThat(updateEntity.getId()).isEqualTo(9);
+        assertThat(updateEntity.getContactName()).isEqualTo("张三");
+        assertThat(updateEntity.getContactPhone()).isEqualTo("13800138000");
+        verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
+    }
+
+    @Test
+    void testUpdateAccount_Error_ContactIncomplete() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(10)
+                .setContactName("张三");
+
+        assertThrows(BusinessRuntimeException.class, () -> accountManagerService.updateAccount(dto));
+        verify(repository, never()).updateById(any(AccountEntity.class));
+    }
+
+    @Test
+    void testUpdateAccount_NoChange_Contact() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+        when(accountInfoService.getById(11)).thenReturn(new AccountBo()
+                .setId(11)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setContactName("张三")
+                .setContactPhone("13800138000"));
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(11)
+                .setContactName(" 张三 ")
+                .setContactPhone("13800138000");
+
+        accountManagerService.updateAccount(dto);
+
+        verify(repository, never()).updateById(any(AccountEntity.class));
+        verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
+    }
+
+    @Test
+    void testUpdateAccountConfig_Success_WithBlankContact_ShouldIgnoreContact() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+        when(accountInfoService.getById(12)).thenReturn(new AccountBo()
+                .setId(12)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setMonthlyPayAmount(new BigDecimal("80"))
+                .setContactName("旧联系人")
+                .setContactPhone("13000000000"));
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(12)
+                .setMonthlyPayAmount(new BigDecimal("100"))
+                .setContactName("   ")
+                .setContactPhone("\t");
+
+        accountManagerService.updateAccount(dto);
+
+        ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).updateById(captor.capture());
+        AccountEntity updateEntity = captor.getValue();
+        assertThat(updateEntity.getId()).isEqualTo(12);
+        assertThat(updateEntity.getMonthlyPayAmount()).isEqualByComparingTo("100.00");
+        assertThat(updateEntity.getContactName()).isNull();
+        assertThat(updateEntity.getContactPhone()).isNull();
+        verifyNoInteractions(electricPricePlanService, warnPlanService, electricMeterManagerService);
+    }
+
+    @Test
+    void testUpdateAccountConfig_Error_WithPartialContact_ShouldThrow() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(13)
+                .setMonthlyPayAmount(new BigDecimal("120"))
+                .setContactName("张三")
+                .setContactPhone(" ");
+
+        assertThrows(BusinessRuntimeException.class, () -> accountManagerService.updateAccount(dto));
+        verify(accountInfoService, never()).getById(anyInt());
+        verify(repository, never()).updateById(any(AccountEntity.class));
+    }
+
+    @Test
+    void testUpdateAccount_Error_BlankContactOnly_ShouldThrow() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(14)
+                .setContactName("   ")
+                .setContactPhone("\n");
+
+        assertThrows(BusinessRuntimeException.class, () -> accountManagerService.updateAccount(dto));
+        verify(accountInfoService, never()).getById(anyInt());
         verify(repository, never()).updateById(any(AccountEntity.class));
     }
 

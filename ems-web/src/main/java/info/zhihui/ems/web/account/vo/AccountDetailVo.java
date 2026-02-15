@@ -27,6 +27,12 @@ public class AccountDetailVo {
     @Schema(description = "账户归属者名称")
     private String ownerName;
 
+    @Schema(description = "联系人")
+    private String contactName;
+
+    @Schema(description = "联系方式")
+    private String contactPhone;
+
     @Schema(description = "电费计费类型，参考 electricAccountType")
     private Integer electricAccountType;
 
@@ -42,4 +48,3 @@ public class AccountDetailVo {
     @Schema(description = "账户所属电表列表")
     private List<AccountMeterVo> meterList;
 }
-

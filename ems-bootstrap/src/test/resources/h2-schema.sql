@@ -9,6 +9,8 @@ CREATE TABLE energy_account
     owner_id               INTEGER          DEFAULT NULL,
     owner_type             SMALLINT         DEFAULT NULL,
     owner_name             VARCHAR(50)      DEFAULT NULL,
+    contact_name           VARCHAR(50)      DEFAULT NULL,
+    contact_phone          VARCHAR(40)      DEFAULT NULL,
     electric_account_type  SMALLINT         DEFAULT NULL,
     monthly_pay_amount     DECIMAL(20, 8)   DEFAULT NULL,
     electric_price_plan_id INTEGER          DEFAULT NULL,

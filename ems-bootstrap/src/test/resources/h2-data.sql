@@ -43,14 +43,14 @@ INSERT INTO sys_config (id, config_module_name, config_key, config_name, config_
 VALUES (9, 'electric', 'electric_price_type', '默认尖峰平谷电价', '[{"type":1,"price":1.2},{"type":2,"price":1.0},{"type":3,"price":0.8},{"type":4,"price":0.6},{"type":5,"price":0.4}]', TRUE, FALSE, '2023-01-01 00:00:00');
 
 -- 插入能耗账户测试数据
-INSERT INTO energy_account (id, owner_id, owner_type, owner_name, electric_account_type, monthly_pay_amount,  warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
-VALUES (1, 1001, 0, '账户1', 1, 500.00000000,  1, 'NONE', 1, 'admin', '2025-01-02 03:04:05', FALSE);
-INSERT INTO energy_account (id, owner_id, owner_type, owner_name, electric_account_type, monthly_pay_amount,  warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
-VALUES (2, 1002, 1, '账户2', 2, null, 1, 'NORMAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
-INSERT INTO energy_account (id, owner_id, owner_type, owner_name, electric_account_type, monthly_pay_amount,  warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
-VALUES (3, 1003, 1, '账户3', 0, null, 1, 'BALANCE_CRITICAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
-INSERT INTO energy_account (id, owner_id, owner_type, owner_name, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
-VALUES (4, 1004, 0, '账户4', 1, 1000.00000000, 1, 'NORMAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
+INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
+VALUES (1, 1001, 0, '账户1', '联系人1', '13800000001', 1, 500.00000000, 1, 'NONE', 1, 'admin', '2025-01-02 03:04:05', FALSE);
+INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
+VALUES (2, 1002, 1, '账户2', '联系人2', '13800000002', 2, null, 1, 'NORMAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
+INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
+VALUES (3, 1003, 1, '账户3', '联系人3', '13800000003', 0, null, 1, 'BALANCE_CRITICAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
+INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
+VALUES (4, 1004, 0, '账户4', '联系人4', '13800000004', 1, 1000.00000000, 1, 'NORMAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
 
 -- 插入电表测试数据
 INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)

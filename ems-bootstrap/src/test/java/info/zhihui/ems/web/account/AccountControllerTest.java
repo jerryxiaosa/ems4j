@@ -145,4 +145,19 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
+    @Test
+    @DisplayName("修改账户信息成功")
+    void testUpdateAccountConfig_Success() throws Exception {
+        AccountConfigUpdateVo vo = new AccountConfigUpdateVo()
+                .setMonthlyPayAmount(new BigDecimal("100"))
+                .setContactName("张三")
+                .setContactPhone("13800138000");
+
+        mockMvc.perform(put("/accounts/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
 }

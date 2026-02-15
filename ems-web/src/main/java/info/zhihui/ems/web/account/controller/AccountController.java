@@ -81,7 +81,7 @@ public class AccountController {
 
     @SaCheckPermission("accounts:accounts:edit")
     @PutMapping("/{id}")
-    @Operation(summary = "修改账户配置")
+    @Operation(summary = "修改账户信息")
     public RestResult<Void> updateAccountConfig(@Parameter(description = "账户ID") @PathVariable Integer id,
                                                 @Valid @RequestBody AccountConfigUpdateVo accountConfigUpdateVo) {
         accountBiz.updateAccountConfig(id, accountConfigUpdateVo);
