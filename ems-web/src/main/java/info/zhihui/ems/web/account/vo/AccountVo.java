@@ -66,6 +66,6 @@ public class AccountVo {
     @EnumLabel(source = "electricWarnType", enumClass = WarnTypeEnum.class)
     private String electricWarnTypeName;
 
-    @Schema(description = "账户所属电表数量")
-    private Integer meterCount;
+    @Schema(description = "账户开户电表数量")
+    private Integer openMeterCount;
 }
