@@ -47,7 +47,7 @@ class AccountBizIntegrationTest {
             int expectedMeterCount = electricMeterInfoService
                     .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountVo.getId())))
                     .size();
-            assertEquals(expectedMeterCount, accountVo.getMeterCount());
+            assertEquals(expectedMeterCount, accountVo.getOpenMeterCount());
         }
     }
 

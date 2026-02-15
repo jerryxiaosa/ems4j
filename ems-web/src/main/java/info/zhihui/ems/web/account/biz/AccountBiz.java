@@ -163,7 +163,7 @@ public class AccountBiz {
 
         for (AccountVo accountVo : accountVoList) {
             if (accountVo != null && accountVo.getId() != null) {
-                accountVo.setMeterCount(meterCountMap.getOrDefault(accountVo.getId(), 0));
+                accountVo.setOpenMeterCount(meterCountMap.getOrDefault(accountVo.getId(), 0));
             }
         }
     }
