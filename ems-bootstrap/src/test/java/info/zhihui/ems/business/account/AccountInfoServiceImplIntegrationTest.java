@@ -16,12 +16,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,6 +41,9 @@ class AccountInfoServiceImplIntegrationTest {
 
     @Autowired
     private AccountInfoService accountInfoService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     @DisplayName("参数校验测试 - 覆盖所有方法的null参数和有效参数场景")
@@ -95,6 +101,30 @@ class AccountInfoServiceImplIntegrationTest {
             // 其他异常（如业务异常）是可以接受的，我们只关心参数校验
         }
 
+    }
+
+    @Test
+    @DisplayName("countTotalOpenableMeterByAccountIds集成测试 - 混合账户ID应返回正确可开户电表总数")
+    void testCountTotalOpenableMeterByAccountIds_WithMixedAccountIds_ShouldReturnExpectedResult() {
+        List<Integer> accountIdList = Arrays.asList(1, 1, 2, 3, 4, 999, null);
+
+        Map<Integer, Integer> result = accountInfoService.countTotalOpenableMeterByAccountIds(accountIdList);
+
+        assertNotNull(result, "统计结果不应为null");
+        assertEquals(5, result.size(), "结果应去重并过滤null后返回5个账户");
+
+        List<Integer> expectedAccountIdList = List.of(1, 2, 3, 4, 999);
+        for (Integer accountId : expectedAccountIdList) {
+            Integer expectedCount = jdbcTemplate.queryForObject(
+                    "select count(1) " +
+                            "from energy_electric_meter m " +
+                            "join energy_account_space_rel r on r.space_id = m.space_id " +
+                            "where m.is_deleted = false and r.account_id = ?",
+                    Integer.class,
+                    accountId
+            );
+            assertEquals(expectedCount, result.get(accountId), "账户可开户电表总数应与SQL统计一致");
+        }
     }
 
     @Test

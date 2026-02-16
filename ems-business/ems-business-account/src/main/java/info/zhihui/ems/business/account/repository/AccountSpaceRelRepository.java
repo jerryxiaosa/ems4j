@@ -20,6 +20,11 @@ public interface AccountSpaceRelRepository extends BaseMapper<AccountSpaceRelEnt
     List<AccountSpaceRelEntity> findListBySpaceIds(@Param("spaceIds") Collection<Integer> spaceIds);
 
     /**
+     * 根据账户ID集合查询租赁关系
+     */
+    List<AccountSpaceRelEntity> findListByAccountIds(@Param("accountIds") Collection<Integer> accountIds);
+
+    /**
      * 根据账户与空间ID集合查询租赁关系
      */
     List<AccountSpaceRelEntity> findListByAccountIdAndSpaceIds(@Param("accountId") Integer accountId,
