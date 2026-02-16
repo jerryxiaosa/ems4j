@@ -45,7 +45,17 @@ public class AccountBiz {
                 .setPageNum(Objects.requireNonNullElse(pageNum, 1))
                 .setPageSize(Objects.requireNonNullElse(pageSize, 10));
         PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
-        fillMeterCount(pageResult.getList());
+        List<AccountVo> accountVoList = pageResult.getList();
+        if (accountVoList == null || accountVoList.isEmpty()) {
+            return pageResult;
+        }
+        List<Integer> accountIdList = extractAccountIdList(accountVoList);
+        if (accountIdList.isEmpty()) {
+            return pageResult;
+        }
+
+        fillOpenedMeterCount(accountVoList, accountIdList);
+        fillTotalOpenableMeterCount(accountVoList, accountIdList);
         return pageResult;
     }
 
@@ -138,21 +148,7 @@ public class AccountBiz {
     /**
      * 填充账户电表数量
      */
-    private void fillMeterCount(List<AccountVo> accountVoList) {
-        if (accountVoList == null || accountVoList.isEmpty()) {
-            return;
-        }
-
-        List<Integer> accountIdList = accountVoList.stream()
-                .filter(Objects::nonNull)
-                .map(AccountVo::getId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        if (accountIdList.isEmpty()) {
-            return;
-        }
-
+    private void fillOpenedMeterCount(List<AccountVo> accountVoList, List<Integer> accountIdList) {
         List<ElectricMeterBo> meterBoList = electricMeterInfoService.findList(
                 new ElectricMeterQueryDto().setAccountIds(accountIdList)
         );
@@ -163,8 +159,32 @@ public class AccountBiz {
 
         for (AccountVo accountVo : accountVoList) {
             if (accountVo != null && accountVo.getId() != null) {
-                accountVo.setOpenMeterCount(meterCountMap.getOrDefault(accountVo.getId(), 0));
+                accountVo.setOpenedMeterCount(meterCountMap.getOrDefault(accountVo.getId(), 0));
             }
         }
+    }
+
+    /**
+     * 填充账户可开户电表总数（租赁空间内电表数）
+     */
+    private void fillTotalOpenableMeterCount(List<AccountVo> accountVoList, List<Integer> accountIdList) {
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountInfoService.countTotalOpenableMeterByAccountIds(accountIdList);
+        for (AccountVo accountVo : accountVoList) {
+            if (accountVo != null && accountVo.getId() != null) {
+                accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(accountVo.getId(), 0));
+            }
+        }
+    }
+
+    /**
+     * 提取有效账户ID列表
+     */
+    private List<Integer> extractAccountIdList(List<AccountVo> accountVoList) {
+        return accountVoList.stream()
+                .filter(Objects::nonNull)
+                .map(AccountVo::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
     }
 }

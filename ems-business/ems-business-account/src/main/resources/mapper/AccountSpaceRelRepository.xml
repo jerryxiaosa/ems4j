@@ -17,6 +17,15 @@
         </foreach>
     </select>
 
+    <select id="findListByAccountIds" resultType="info.zhihui.ems.business.account.entity.AccountSpaceRelEntity">
+        select <include refid="Base_Column_List"/>
+        from energy_account_space_rel
+        where account_id in
+        <foreach collection="accountIds" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+    </select>
+
     <select id="findListByAccountIdAndSpaceIds" resultType="info.zhihui.ems.business.account.entity.AccountSpaceRelEntity">
         select <include refid="Base_Column_List"/>
         from energy_account_space_rel

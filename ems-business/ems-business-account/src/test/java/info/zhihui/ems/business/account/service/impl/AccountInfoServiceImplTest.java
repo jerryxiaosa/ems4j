@@ -7,6 +7,7 @@ import info.zhihui.ems.business.account.dto.AccountCancelRecordDto;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
 import info.zhihui.ems.business.account.entity.AccountCancelRecordEntity;
 import info.zhihui.ems.business.account.entity.AccountEntity;
+import info.zhihui.ems.business.account.entity.AccountSpaceRelEntity;
 import info.zhihui.ems.business.account.enums.CleanBalanceTypeEnum;
 import info.zhihui.ems.business.account.mapper.AccountCancelMapper;
 import info.zhihui.ems.business.account.mapper.AccountInfoMapper;
@@ -14,7 +15,10 @@ import info.zhihui.ems.business.account.qo.AccountCancelRecordQo;
 import info.zhihui.ems.business.account.qo.AccountQo;
 import info.zhihui.ems.business.account.repository.AccountCancelRecordRepository;
 import info.zhihui.ems.business.account.repository.AccountRepository;
+import info.zhihui.ems.business.account.repository.AccountSpaceRelRepository;
+import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.CanceledMeterDto;
+import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
@@ -28,9 +32,17 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class AccountInfoServiceImplTest {
@@ -48,6 +60,9 @@ class AccountInfoServiceImplTest {
 
     @Mock
     private ElectricMeterInfoService electricMeterInfoService;
+
+    @Mock
+    private AccountSpaceRelRepository accountSpaceRelRepository;
 
     @InjectMocks
     private AccountInfoServiceImpl accountInfoService;
@@ -214,6 +229,65 @@ class AccountInfoServiceImplTest {
         Mockito.verify(accountCancelRecordRepository).selectByCancelNo(cancelNo);
         Mockito.verify(accountCancelMapper, Mockito.never()).entityToDetailDto(ArgumentMatchers.any());
         Mockito.verify(electricMeterInfoService, Mockito.never()).findMetersByCancelNo(ArgumentMatchers.any());
+    }
+
+    @Test
+    void testCountTotalOpenableMeterByAccountIds_Success() {
+        List<Integer> inputAccountIds = Arrays.asList(1, 1, 2, 3, null);
+        List<AccountSpaceRelEntity> accountSpaceRelList = List.of(
+                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(101),
+                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(102),
+                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(102),
+                new AccountSpaceRelEntity().setAccountId(2).setSpaceId(201),
+                new AccountSpaceRelEntity().setAccountId(null).setSpaceId(301),
+                new AccountSpaceRelEntity().setAccountId(3).setSpaceId(null)
+        );
+        List<ElectricMeterBo> meterBoList = List.of(
+                new ElectricMeterBo().setSpaceId(101),
+                new ElectricMeterBo().setSpaceId(101),
+                new ElectricMeterBo().setSpaceId(102),
+                new ElectricMeterBo().setSpaceId(201),
+                new ElectricMeterBo().setSpaceId(201),
+                new ElectricMeterBo().setSpaceId(201),
+                new ElectricMeterBo().setSpaceId(null)
+        );
+
+        Mockito.when(accountSpaceRelRepository.findListByAccountIds(argThat(accountIds ->
+                accountIds != null
+                        && accountIds.size() == 3
+                        && accountIds.containsAll(List.of(1, 2, 3))
+        ))).thenReturn(accountSpaceRelList);
+        Mockito.when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(meterBoList);
+
+        Map<Integer, Integer> result = accountInfoService.countTotalOpenableMeterByAccountIds(inputAccountIds);
+
+        assertEquals(3, result.get(1));
+        assertEquals(3, result.get(2));
+        assertEquals(0, result.get(3));
+        verify(accountSpaceRelRepository).findListByAccountIds(any());
+        verify(electricMeterInfoService).findList(any(ElectricMeterQueryDto.class));
+    }
+
+    @Test
+    void testCountTotalOpenableMeterByAccountIds_WhenNoValidAccountId_ShouldReturnEmptyMap() {
+        Map<Integer, Integer> result = accountInfoService.countTotalOpenableMeterByAccountIds(Arrays.asList(null, null));
+
+        assertTrue(result.isEmpty());
+        verifyNoInteractions(accountSpaceRelRepository);
+        verify(electricMeterInfoService, never()).findList(any(ElectricMeterQueryDto.class));
+    }
+
+    @Test
+    void testCountTotalOpenableMeterByAccountIds_WhenNoSpaceRel_ShouldReturnZeroMap() {
+        List<Integer> inputAccountIds = List.of(1, 2);
+        Mockito.when(accountSpaceRelRepository.findListByAccountIds(List.of(1, 2))).thenReturn(List.of());
+
+        Map<Integer, Integer> result = accountInfoService.countTotalOpenableMeterByAccountIds(inputAccountIds);
+
+        assertEquals(0, result.get(1));
+        assertEquals(0, result.get(2));
+        verify(accountSpaceRelRepository).findListByAccountIds(List.of(1, 2));
+        verify(electricMeterInfoService, never()).findList(any(ElectricMeterQueryDto.class));
     }
 
 }

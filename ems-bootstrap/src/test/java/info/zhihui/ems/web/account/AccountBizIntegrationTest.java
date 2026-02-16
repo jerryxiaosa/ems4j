@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +32,11 @@ class AccountBizIntegrationTest {
     @Autowired
     private ElectricMeterInfoService electricMeterInfoService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
-    @DisplayName("分页查询应填充每个账户的电表数量")
+    @DisplayName("分页查询应填充每个账户的已开户电表数量与可开户电表总数")
     void testFindAccountPage_DefaultQuery_ShouldFillMeterCount() {
         PageResult<AccountVo> pageResult = accountBiz.findAccountPage(new AccountQueryVo(), 1, 10);
 
@@ -47,7 +51,16 @@ class AccountBizIntegrationTest {
             int expectedMeterCount = electricMeterInfoService
                     .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountVo.getId())))
                     .size();
-            assertEquals(expectedMeterCount, accountVo.getOpenMeterCount());
+            assertEquals(expectedMeterCount, accountVo.getOpenedMeterCount());
+
+            int expectedTotalOpenableMeterCount = jdbcTemplate.queryForObject(
+                    "select count(1) from energy_electric_meter m " +
+                            "join energy_account_space_rel r on r.space_id = m.space_id " +
+                            "where r.account_id = ? and m.is_deleted = false",
+                    Integer.class,
+                    accountVo.getId()
+            );
+            assertEquals(expectedTotalOpenableMeterCount, accountVo.getTotalOpenableMeterCount());
         }
     }
 
