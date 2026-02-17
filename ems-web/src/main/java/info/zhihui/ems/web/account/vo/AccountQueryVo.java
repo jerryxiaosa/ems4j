@@ -18,7 +18,7 @@ public class AccountQueryVo {
     private Integer ownerType;
 
     @Size(max = 100, message = "账户名称模糊搜索长度不能超过100")
-    @Schema(description = "账户名称模糊搜索（通过组织名称匹配归属ID）")
+    @Schema(description = "账户归属名称模糊搜索（直接匹配账户owner_name）")
     private String ownerNameLike;
 
     @Schema(description = "电费计费类型编码，参考 electricAccountType")

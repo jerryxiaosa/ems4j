@@ -15,6 +15,8 @@ public class AccountQo {
 
     private List<Integer> ownerIds;
 
+    private String ownerNameLike;
+
     private Integer electricAccountType;
 
     private Integer warnPlanId;

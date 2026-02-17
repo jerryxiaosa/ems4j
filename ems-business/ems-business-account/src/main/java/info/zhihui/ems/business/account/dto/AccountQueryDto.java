@@ -17,6 +17,8 @@ public class AccountQueryDto {
 
     private List<Integer> ownerIds;
 
+    private String ownerNameLike;
+
     private ElectricAccountTypeEnum electricAccountType;
 
     private Integer warnPlanId;

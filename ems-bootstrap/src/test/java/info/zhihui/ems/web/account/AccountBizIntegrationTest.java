@@ -86,18 +86,18 @@ class AccountBizIntegrationTest {
     }
 
     @Test
-    @DisplayName("按账户名称模糊搜索应通过组织名称匹配归属ID")
-    void testFindAccountPage_ByOwnerNameLike_ShouldAssembleOwnerIdsFromOrganization() {
-        String ownerNameLike = "测试科技";
-        Set<Integer> expectedOwnerIdSet = jdbcTemplate.queryForList(
-                        "select id from sys_organization where is_deleted = false and organization_name like ?",
+    @DisplayName("按账户名称模糊搜索应直接匹配账户名称")
+    void testFindAccountPage_ByOwnerNameLike_ShouldMatchAccountOwnerName() {
+        String ownerNameLike = "账户";
+        Set<Integer> expectedAccountIdSet = jdbcTemplate.queryForList(
+                        "select id from energy_account where is_deleted = false and owner_name like ?",
                         Integer.class,
                         "%" + ownerNameLike + "%"
                 )
                 .stream()
                 .filter(id -> id != null)
                 .collect(Collectors.toSet());
-        assertFalse(expectedOwnerIdSet.isEmpty());
+        assertFalse(expectedAccountIdSet.isEmpty());
 
         AccountQueryVo queryVo = new AccountQueryVo();
         queryVo.setOwnerNameLike(ownerNameLike);
@@ -112,15 +112,15 @@ class AccountBizIntegrationTest {
         assertFalse(pageResult.getList().isEmpty());
         assertTrue(pageResult.getList().stream()
                 .allMatch(item -> item != null
-                        && item.getOwnerId() != null
-                        && expectedOwnerIdSet.contains(item.getOwnerId())));
+                        && item.getId() != null
+                        && expectedAccountIdSet.contains(item.getId())));
     }
 
     @Test
-    @DisplayName("按账户名称模糊搜索未命中组织时应返回空分页")
+    @DisplayName("按账户名称模糊搜索未命中账户时应返回空分页")
     void testFindAccountPage_ByOwnerNameLike_WhenNoMatch_ShouldReturnEmptyPage() {
         AccountQueryVo queryVo = new AccountQueryVo();
-        queryVo.setOwnerNameLike("不存在的组织名称");
+        queryVo.setOwnerNameLike("不存在的账户名称");
         PageResult<AccountVo> pageResult = accountBiz.findAccountPage(
                 queryVo,
                 1,
