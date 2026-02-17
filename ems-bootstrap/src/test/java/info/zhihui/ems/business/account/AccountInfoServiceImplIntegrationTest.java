@@ -162,11 +162,12 @@ class AccountInfoServiceImplIntegrationTest {
     @Test
     @DisplayName("findList方法集成测试 - 覆盖所有查询字段条件")
     void testFindList_AllFilterFields_Coverage() {
-        // 覆盖 includeDeleted / ownerType / ownerIds / electricAccountType / warnPlanId
+        // 覆盖 includeDeleted / ownerType / ownerIds / ownerNameLike / electricAccountType / warnPlanId
         AccountQueryDto q = new AccountQueryDto()
                 .setIncludeDeleted(Boolean.TRUE)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                 .setOwnerIds(List.of(1001, 1002))
+                .setOwnerNameLike("账户")
                 .setElectricAccountType(info.zhihui.ems.common.enums.ElectricAccountTypeEnum.MONTHLY)
                 .setWarnPlanId(1);
 

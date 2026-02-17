@@ -18,6 +18,9 @@
                     #{item}
                 </foreach>
             </if>
+            <if test="ownerNameLike != null and ownerNameLike != ''">
+                and t.owner_name like concat('%', #{ownerNameLike}, '%')
+            </if>
             <if test="electricAccountType != null">
                 and t.electric_account_type = #{electricAccountType}
             </if>

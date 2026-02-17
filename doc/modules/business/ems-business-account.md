@@ -10,7 +10,7 @@
 |------|------|
 | 开户 | 创建用电账户，绑定业主、电表、计费方案 |
 | 销户 | 账户注销，余额清算，解绑电表 |
-| 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（组织名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`、`warnPlanName`），详情返回电表明细列表 |
+| 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（账户归属名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`、`warnPlanName`），详情返回电表明细列表 |
 | 余额预警 | 低余额预警、欠费预警 |
 | 账户充值 | 通过订单模块进行充值 |
 
@@ -139,7 +139,7 @@
 |------|----------|---------------|----------|
 | 1 | 接收查询参数 | HTTP 入参为 `includeDeleted`、`ownerType`、`ownerNameLike`、`electricAccountType`、`warnPlanId` | 参数转换失败返回请求错误 |
 | 2 | VO 转 DTO | `AccountQueryVo` 转为 `AccountQueryDto` | 若转换结果为空则兜底为默认 DTO |
-| 3 | 归属组织ID拼装 | 当 `ownerNameLike` 有值时，仅调用 `OrganizationService.findOrganizationList` 模糊查询组织并提取 `ownerIds` | 若组织命中为空，直接返回空分页 |
+| 3 | 按归属名称模糊查询 | 当 `ownerNameLike` 有值时，直接按 `energy_account.owner_name like` 过滤 | 无命中时返回空分页 |
 | 4 | 执行分页查询 | 调用 `AccountInfoService.findPage` 查询账户数据 | 下游异常透传业务异常 |
 | 5 | 批量填充已开户电表数 | 基于账户ID集合一次性查询电表列表并分组统计 `openedMeterCount` | 空列表直接跳过填充 |
 | 6 | 批量填充可开户电表总数 | 调用 `AccountInfoService.countTotalOpenableMeterByAccountIds` 一次性回填 `totalOpenableMeterCount` | 空列表直接跳过填充 |
@@ -150,11 +150,11 @@
 |------|------|------|
 | includeDeleted | 否 | 是否包含已删除账户 |
 | ownerType | 否 | 业主类型枚举编码 |
-| ownerNameLike | 否 | 账户归属名称模糊搜索（基于组织名称匹配并拼装 `ownerIds`） |
+| ownerNameLike | 否 | 账户归属名称模糊搜索（直接匹配 `owner_name`） |
 | electricAccountType | 否 | 计费类型枚举编码 |
 | warnPlanId | 否 | 预警方案 ID |
 
 补充说明：
 
 - `ownerId`、`ownerIds` 已从 HTTP 查询参数移除，不再由前端直接传入。
-- 查询链路统一由 Biz 层根据 `ownerNameLike` 从组织域拼装 `ownerIds` 后下传 Service 层。
+- 查询链路由账户仓储层直接按 `owner_name` 模糊匹配，不再依赖组织域做 `ownerIds` 拼装。
