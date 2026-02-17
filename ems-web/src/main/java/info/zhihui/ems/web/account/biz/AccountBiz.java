@@ -10,11 +10,16 @@ import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.foundation.organization.bo.OrganizationBo;
+import info.zhihui.ems.foundation.organization.dto.OrganizationQueryDto;
+import info.zhihui.ems.foundation.organization.service.OrganizationService;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,18 +37,33 @@ public class AccountBiz {
     private final AccountSpaceLeaseService accountSpaceLeaseService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
+    private final OrganizationService organizationService;
 
     /**
      * 分页查询账户列表
      */
     public PageResult<AccountVo> findAccountPage(AccountQueryVo queryVo, Integer pageNum, Integer pageSize) {
+        PageParam pageParam = new PageParam()
+                .setPageNum(Objects.requireNonNullElse(pageNum, 1))
+                .setPageSize(Objects.requireNonNullElse(pageSize, 10));
+
         AccountQueryDto queryDto = accountWebMapper.toAccountQueryDto(queryVo);
         if (queryDto == null) {
             queryDto = new AccountQueryDto();
         }
-        PageParam pageParam = new PageParam()
-                .setPageNum(Objects.requireNonNullElse(pageNum, 1))
-                .setPageSize(Objects.requireNonNullElse(pageSize, 10));
+
+        List<Integer> ownerIds = findOwnerIdsByOwnerNameLike(queryVo);
+        if (ownerIds != null) {
+            if (ownerIds.isEmpty()) {
+                return new PageResult<AccountVo>()
+                        .setPageNum(pageParam.getPageNum())
+                        .setPageSize(pageParam.getPageSize())
+                        .setTotal(0L)
+                        .setList(Collections.emptyList());
+            }
+            queryDto.setOwnerIds(ownerIds);
+        }
+
         PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
         List<AccountVo> accountVoList = pageResult.getList();
         if (accountVoList == null || accountVoList.isEmpty()) {
@@ -183,6 +203,23 @@ public class AccountBiz {
         return accountVoList.stream()
                 .filter(Objects::nonNull)
                 .map(AccountVo::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * 通过组织名称模糊查询拼装账户归属ID集合
+     */
+    private List<Integer> findOwnerIdsByOwnerNameLike(AccountQueryVo queryVo) {
+        if (queryVo == null || !StringUtils.hasText(queryVo.getOwnerNameLike())) {
+            return null;
+        }
+
+        return organizationService.findOrganizationList(
+                        new OrganizationQueryDto().setOrganizationNameLike(queryVo.getOwnerNameLike().trim())
+                ).stream()
+                .map(OrganizationBo::getId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();

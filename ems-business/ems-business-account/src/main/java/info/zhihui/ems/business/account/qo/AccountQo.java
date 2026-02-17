@@ -13,8 +13,6 @@ public class AccountQo {
 
     private Integer ownerType;
 
-    private Integer ownerId;
-
     private List<Integer> ownerIds;
 
     private Integer electricAccountType;

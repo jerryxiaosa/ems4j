@@ -224,7 +224,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
     private void validateAccountExist(OpenAccountDto openAccountDto) {
         List<AccountBo> accountList = accountInfoService.findList(new AccountQueryDto()
                 .setOwnerType(openAccountDto.getOwnerType())
-                .setOwnerId(openAccountDto.getOwnerId()));
+                .setOwnerIds(List.of(openAccountDto.getOwnerId())));
         if (!CollectionUtils.isEmpty(accountList)) {
             throw new BusinessRuntimeException("账户已存在，请勿重复开户");
         }

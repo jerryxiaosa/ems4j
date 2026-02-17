@@ -69,8 +69,8 @@ class AccountInfoServiceImplTest {
 
     @Test
     void testFindList() {
-        AccountQueryDto query = new AccountQueryDto().setOwnerId(1);
-        AccountQo qo = new AccountQo().setOwnerId(1);
+        AccountQueryDto query = new AccountQueryDto().setOwnerIds(List.of(1));
+        AccountQo qo = new AccountQo().setOwnerIds(List.of(1));
         List<AccountEntity> entityList = List.of(new AccountEntity());
         List<AccountBo> boList = List.of(new AccountBo());
         Mockito.when(accountInfoMapper.queryToQo(query)).thenReturn(qo);

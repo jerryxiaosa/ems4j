@@ -15,8 +15,6 @@ public class AccountQueryDto {
 
     private OwnerTypeEnum ownerType;
 
-    private Integer ownerId;
-
     private List<Integer> ownerIds;
 
     private ElectricAccountTypeEnum electricAccountType;
