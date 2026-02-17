@@ -149,7 +149,7 @@ class AccountInfoServiceImplIntegrationTest {
         // 测试按条件查询 - 查询特定归属者类型的账户
         AccountQueryDto specificQuery = new AccountQueryDto()
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
-                .setOwnerId(1001);
+                .setOwnerIds(List.of(1001));
 
         List<AccountBo> specificResult = accountInfoService.findList(specificQuery);
         assertNotNull(specificResult, "特定条件查询结果不应为null");
@@ -162,11 +162,10 @@ class AccountInfoServiceImplIntegrationTest {
     @Test
     @DisplayName("findList方法集成测试 - 覆盖所有查询字段条件")
     void testFindList_AllFilterFields_Coverage() {
-        // 覆盖 includeDeleted / ownerType / ownerId / ownerIds / electricAccountType / warnPlanId
+        // 覆盖 includeDeleted / ownerType / ownerIds / electricAccountType / warnPlanId
         AccountQueryDto q = new AccountQueryDto()
                 .setIncludeDeleted(Boolean.TRUE)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
-                .setOwnerId(1001)
                 .setOwnerIds(List.of(1001, 1002))
                 .setElectricAccountType(info.zhihui.ems.common.enums.ElectricAccountTypeEnum.MONTHLY)
                 .setWarnPlanId(1);
@@ -203,7 +202,7 @@ class AccountInfoServiceImplIntegrationTest {
 
         AccountQueryDto specificQuery = new AccountQueryDto()
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
-                .setOwnerId(1001);
+                .setOwnerIds(List.of(1001));
         PageResult<AccountBo> specificResult = accountInfoService.findPage(
                 specificQuery,
                 new PageParam().setPageNum(1).setPageSize(10)

@@ -12,9 +12,6 @@
             <if test="ownerType != null">
                 and t.owner_type = #{ownerType}
             </if>
-            <if test="ownerId != null">
-                and t.owner_id = #{ownerId}
-            </if>
             <if test="ownerIds != null and ownerIds.size() > 0">
                 and t.owner_id in
                 <foreach item="item" index="index" collection="ownerIds" open="(" separator="," close=")">

@@ -1,9 +1,8 @@
 package info.zhihui.ems.web.account.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * 账户查询 VO
@@ -18,11 +17,9 @@ public class AccountQueryVo {
     @Schema(description = "账户类型编码，参考 ownerType")
     private Integer ownerType;
 
-    @Schema(description = "单一归属ID")
-    private Integer ownerId;
-
-    @Schema(description = "归属ID集合")
-    private List<Integer> ownerIds;
+    @Size(max = 100, message = "账户名称模糊搜索长度不能超过100")
+    @Schema(description = "账户名称模糊搜索（通过组织名称匹配归属ID）")
+    private String ownerNameLike;
 
     @Schema(description = "电费计费类型编码，参考 electricAccountType")
     private Integer electricAccountType;

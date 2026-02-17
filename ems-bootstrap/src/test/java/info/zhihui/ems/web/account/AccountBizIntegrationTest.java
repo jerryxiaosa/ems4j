@@ -16,10 +16,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("integrationtest")
@@ -80,5 +83,53 @@ class AccountBizIntegrationTest {
                 .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountId)))
                 .size();
         assertEquals(expectedMeterCount, actualMeterCount);
+    }
+
+    @Test
+    @DisplayName("按账户名称模糊搜索应通过组织名称匹配归属ID")
+    void testFindAccountPage_ByOwnerNameLike_ShouldAssembleOwnerIdsFromOrganization() {
+        String ownerNameLike = "测试科技";
+        Set<Integer> expectedOwnerIdSet = jdbcTemplate.queryForList(
+                        "select id from sys_organization where is_deleted = false and organization_name like ?",
+                        Integer.class,
+                        "%" + ownerNameLike + "%"
+                )
+                .stream()
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        assertFalse(expectedOwnerIdSet.isEmpty());
+
+        AccountQueryVo queryVo = new AccountQueryVo();
+        queryVo.setOwnerNameLike(ownerNameLike);
+        PageResult<AccountVo> pageResult = accountBiz.findAccountPage(
+                queryVo,
+                1,
+                10
+        );
+
+        assertNotNull(pageResult);
+        assertNotNull(pageResult.getList());
+        assertFalse(pageResult.getList().isEmpty());
+        assertTrue(pageResult.getList().stream()
+                .allMatch(item -> item != null
+                        && item.getOwnerId() != null
+                        && expectedOwnerIdSet.contains(item.getOwnerId())));
+    }
+
+    @Test
+    @DisplayName("按账户名称模糊搜索未命中组织时应返回空分页")
+    void testFindAccountPage_ByOwnerNameLike_WhenNoMatch_ShouldReturnEmptyPage() {
+        AccountQueryVo queryVo = new AccountQueryVo();
+        queryVo.setOwnerNameLike("不存在的组织名称");
+        PageResult<AccountVo> pageResult = accountBiz.findAccountPage(
+                queryVo,
+                1,
+                10
+        );
+
+        assertNotNull(pageResult);
+        assertNotNull(pageResult.getList());
+        assertTrue(pageResult.getList().isEmpty());
+        assertEquals(0L, pageResult.getTotal());
     }
 }
