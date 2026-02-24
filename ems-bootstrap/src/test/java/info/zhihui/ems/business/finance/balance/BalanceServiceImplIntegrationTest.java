@@ -116,7 +116,7 @@ class BalanceServiceImplIntegrationTest {
         assertEquals(testTopUpDto.getAccountId(), savedOrderFlow.getAccountId());
 
         // 验证余额已更新
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         assertEquals(testTopUpDto.getAmount(), balance.getBalance().setScale(2, RoundingMode.FLOOR));
     }
 
@@ -142,7 +142,7 @@ class BalanceServiceImplIntegrationTest {
         assertTrue(exception.getMessage().startsWith("订单不能重复操作，订单号"));
 
         // 验证余额没有重复增加
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         assertEquals(testTopUpDto.getAmount(), balance.getBalance().setScale(2, RoundingMode.FLOOR));
     }
 
@@ -164,7 +164,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(secondTopUpDto);
 
         // 验证余额累计
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = testTopUpDto.getAmount().add(secondTopUpDto.getAmount());
         assertEquals(expectedBalance, balance.getBalance().setScale(2, RoundingMode.FLOOR));
     }
@@ -177,7 +177,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(testTopUpDto);
 
         // 查询余额
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
 
         assertNotNull(balance);
         assertEquals(testAccountId, balance.getBalanceRelationId());
@@ -195,7 +195,7 @@ class BalanceServiceImplIntegrationTest {
                 .setBalanceRelationId(99999); // 不存在的关联ID
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            balanceService.query(nonExistentQueryDto);
+            balanceService.getByQuery(nonExistentQueryDto);
         });
 
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
@@ -211,7 +211,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(testTopUpDto);
 
         // 验证充值后余额
-        BalanceBo balanceBeforeDeduct = balanceService.query(testQueryDto);
+        BalanceBo balanceBeforeDeduct = balanceService.getByQuery(testQueryDto);
         assertEquals(testTopUpDto.getAmount(), balanceBeforeDeduct.getBalance().setScale(2, RoundingMode.FLOOR));
 
         // 执行扣费
@@ -233,7 +233,7 @@ class BalanceServiceImplIntegrationTest {
         assertEquals(testDeductDto.getAccountId(), savedOrderFlow.getAccountId());
 
         // 验证余额已正确减少
-        BalanceBo balanceAfterDeduct = balanceService.query(testQueryDto);
+        BalanceBo balanceAfterDeduct = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = testTopUpDto.getAmount().subtract(testDeductDto.getAmount());
         assertEquals(expectedBalance, balanceAfterDeduct.getBalance().setScale(2, RoundingMode.FLOOR));
     }
@@ -263,7 +263,7 @@ class BalanceServiceImplIntegrationTest {
         assertTrue(exception.getMessage().startsWith("订单不能重复操作，订单号"));
 
         // 验证余额没有重复扣费
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = testTopUpDto.getAmount().subtract(testDeductDto.getAmount());
         assertEquals(expectedBalance, balance.getBalance().setScale(2, RoundingMode.FLOOR));
     }
@@ -296,7 +296,7 @@ class BalanceServiceImplIntegrationTest {
         });
 
         // 验证余额变为负数
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = smallTopUpDto.getAmount().subtract(largeDeductDto.getAmount());
         assertEquals(expectedBalance, balance.getBalance().setScale(2, RoundingMode.FLOOR));
         assertTrue(balance.getBalance().compareTo(BigDecimal.ZERO) < 0, "余额应为负数");
@@ -336,7 +336,7 @@ class BalanceServiceImplIntegrationTest {
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
                 .setBalanceRelationId(testElectricMeterId);
 
-        BalanceBo balance = balanceService.query(electricMeterQueryDto);
+        BalanceBo balance = balanceService.getByQuery(electricMeterQueryDto);
         BigDecimal expectedBalance = electricMeterTopUpDto.getAmount().subtract(electricMeterDeductDto.getAmount());
         assertEquals(expectedBalance, balance.getBalance().setScale(2, RoundingMode.FLOOR));
         assertEquals(testElectricMeterId, balance.getBalanceRelationId());
@@ -382,7 +382,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.deduct(secondDeductDto);
 
         // 验证余额累计扣费
-        BalanceBo balance = balanceService.query(testQueryDto);
+        BalanceBo balance = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = largeTopUpDto.getAmount()
                 .subtract(testDeductDto.getAmount())
                 .subtract(secondDeductDto.getAmount());
@@ -427,7 +427,7 @@ class BalanceServiceImplIntegrationTest {
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
                 .setBalanceRelationId(testElectricMeterId);
 
-        BalanceBo balance = balanceService.query(electricMeterQueryDto);
+        BalanceBo balance = balanceService.getByQuery(electricMeterQueryDto);
 
         assertNotNull(balance);
         assertEquals(testElectricMeterId, balance.getBalanceRelationId());
@@ -479,7 +479,7 @@ class BalanceServiceImplIntegrationTest {
         assertEquals(threadCount, successCount.get(), "所有充值任务都应该成功");
 
         // 验证最终余额
-        BalanceBo finalBalance = balanceService.query(new BalanceQueryDto()
+        BalanceBo finalBalance = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceType(BalanceTypeEnum.ACCOUNT)
                 .setBalanceRelationId(testAccountId));
         BigDecimal expectedBalance = BigDecimal.ZERO.add(amountPerThread.multiply(new BigDecimal(threadCount)));
@@ -526,13 +526,13 @@ class BalanceServiceImplIntegrationTest {
         BalanceQueryDto accountQueryDto = new BalanceQueryDto()
                 .setBalanceType(BalanceTypeEnum.ACCOUNT)
                 .setBalanceRelationId(businessAccountId);
-        BalanceBo accountBalance = balanceService.query(accountQueryDto);
+        BalanceBo accountBalance = balanceService.getByQuery(accountQueryDto);
 
         // 查询电表余额
         BalanceQueryDto meterQueryDto = new BalanceQueryDto()
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
                 .setBalanceRelationId(businessElectricMeterId);
-        BalanceBo meterBalance = balanceService.query(meterQueryDto);
+        BalanceBo meterBalance = balanceService.getByQuery(meterQueryDto);
 
         // 验证结果
         assertEquals(new BigDecimal("500.00"), accountBalance.getBalance().setScale(2, RoundingMode.FLOOR));
@@ -549,7 +549,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(testTopUpDto);
 
         // 验证余额存在
-        BalanceBo balanceBeforeDelete = balanceService.query(testQueryDto);
+        BalanceBo balanceBeforeDelete = balanceService.getByQuery(testQueryDto);
         assertNotNull(balanceBeforeDelete);
         assertEquals(testTopUpDto.getAmount(), balanceBeforeDelete.getBalance().setScale(2, RoundingMode.FLOOR));
 
@@ -560,7 +560,7 @@ class BalanceServiceImplIntegrationTest {
 
         // 验证余额已被删除
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            balanceService.query(testQueryDto);
+            balanceService.getByQuery(testQueryDto);
         });
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
     }
@@ -588,7 +588,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(testTopUpDto);
 
         // 验证余额存在
-        BalanceBo balanceBeforeDelete = balanceService.query(testQueryDto);
+        BalanceBo balanceBeforeDelete = balanceService.getByQuery(testQueryDto);
         assertNotNull(balanceBeforeDelete);
 
         // 执行删除
@@ -596,7 +596,7 @@ class BalanceServiceImplIntegrationTest {
 
         // 验证删除后无法查询到记录
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            balanceService.query(testQueryDto);
+            balanceService.getByQuery(testQueryDto);
         });
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
     }
@@ -623,7 +623,7 @@ class BalanceServiceImplIntegrationTest {
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
                 .setBalanceRelationId(testElectricMeterId);
 
-        BalanceBo balanceBeforeDelete = balanceService.query(electricMeterQueryDto);
+        BalanceBo balanceBeforeDelete = balanceService.getByQuery(electricMeterQueryDto);
         assertNotNull(balanceBeforeDelete);
         assertEquals(electricMeterTopUpDto.getAmount(), balanceBeforeDelete.getBalance().setScale(2, RoundingMode.FLOOR));
 
@@ -639,7 +639,7 @@ class BalanceServiceImplIntegrationTest {
 
         // 验证电表余额已被删除
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            balanceService.query(electricMeterQueryDto);
+            balanceService.getByQuery(electricMeterQueryDto);
         });
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
     }
@@ -662,7 +662,7 @@ class BalanceServiceImplIntegrationTest {
         balanceService.topUp(secondTopUpDto);
 
         // 验证累计余额
-        BalanceBo balanceBeforeDelete = balanceService.query(testQueryDto);
+        BalanceBo balanceBeforeDelete = balanceService.getByQuery(testQueryDto);
         BigDecimal expectedBalance = testTopUpDto.getAmount().add(secondTopUpDto.getAmount());
         assertEquals(expectedBalance, balanceBeforeDelete.getBalance().setScale(2, RoundingMode.FLOOR));
 
@@ -671,7 +671,7 @@ class BalanceServiceImplIntegrationTest {
 
         // 验证余额已被删除
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            balanceService.query(testQueryDto);
+            balanceService.getByQuery(testQueryDto);
         });
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
     }

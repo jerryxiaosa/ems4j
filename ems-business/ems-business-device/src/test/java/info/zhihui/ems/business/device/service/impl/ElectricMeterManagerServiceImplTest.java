@@ -1765,9 +1765,9 @@ class ElectricMeterManagerServiceImplTest {
         when(warnPlanService.getDetail(1)).thenReturn(new WarnPlanBo().setFirstLevel(new BigDecimal("1000")).setSecondLevel(new BigDecimal("400")));
         when(electricMeterInfoService.getDetail(1)).thenReturn(meterList.get(0));
         when(electricMeterInfoService.getDetail(2)).thenReturn(meterList.get(1));
-        when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ELECTRIC_METER)))
+        when(balanceService.getByQuery(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("800")));
-        when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(2).setBalanceType(BalanceTypeEnum.ELECTRIC_METER)))
+        when(balanceService.getByQuery(new BalanceQueryDto().setBalanceRelationId(2).setBalanceType(BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("300")));
         when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setInIds(List.of(1)))).thenReturn(List.of(meterList2.get(0)));
         when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setInIds(List.of(2)))).thenReturn(List.of(meterList2.get(1)));
@@ -3148,7 +3148,7 @@ class ElectricMeterManagerServiceImplTest {
                 .thenReturn(new BigDecimal("25.15"))
                 .thenReturn(new BigDecimal("15.05"))
                 .thenReturn(new BigDecimal("10.00"));
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
         when(meterCancelRecordRepository.insert(any(MeterCancelRecordEntity.class))).thenReturn(1);
         when(repository.resetMeterAccountInfo(any(ElectricMeterResetAccountQo.class))).thenReturn(1);
@@ -3200,7 +3200,7 @@ class ElectricMeterManagerServiceImplTest {
             return true;
         }));
 
-        verify(balanceService).query(ArgumentMatchers.argThat(dto ->
+        verify(balanceService).getByQuery(ArgumentMatchers.argThat(dto ->
                 dto.getBalanceRelationId().equals(1) &&
                         dto.getBalanceType().equals(BalanceTypeEnum.ELECTRIC_METER)
         ));
@@ -3282,7 +3282,7 @@ class ElectricMeterManagerServiceImplTest {
         // Mock 行为
         when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(meterCancelRecordRepository.insert(any(MeterCancelRecordEntity.class))).thenReturn(1);
         when(repository.resetMeterAccountInfo(any(ElectricMeterResetAccountQo.class))).thenReturn(1);
 
@@ -3332,7 +3332,7 @@ class ElectricMeterManagerServiceImplTest {
             return true;
         }));
 
-        verify(balanceService).query(any(BalanceQueryDto.class));
+        verify(balanceService).getByQuery(any(BalanceQueryDto.class));
 
         // 验证 cancelMeterRecordRepository.insert 的所有入参
         verify(meterCancelRecordRepository).insert(ArgumentMatchers.<MeterCancelRecordEntity>argThat(entity -> {
@@ -3457,7 +3457,7 @@ class ElectricMeterManagerServiceImplTest {
         }));
 
         // 包月账户不查询余额
-        verify(balanceService, never()).query(any(BalanceQueryDto.class));
+        verify(balanceService, never()).getByQuery(any(BalanceQueryDto.class));
         // 无空间信息不调用空间服务
         verify(spaceService, never()).getDetail(any());
 
@@ -3583,7 +3583,7 @@ class ElectricMeterManagerServiceImplTest {
         // Mock 行为
         when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(meterCancelRecordRepository.insert(any(MeterCancelRecordEntity.class))).thenReturn(1);
         when(repository.resetMeterAccountInfo(any(ElectricMeterResetAccountQo.class))).thenReturn(1);
 
@@ -3649,7 +3649,7 @@ class ElectricMeterManagerServiceImplTest {
         // Mock 行为
         when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(meterCancelRecordRepository.insert(any(MeterCancelRecordEntity.class))).thenReturn(1);
         when(repository.resetMeterAccountInfo(any(ElectricMeterResetAccountQo.class))).thenReturn(1);
 
@@ -3697,7 +3697,7 @@ class ElectricMeterManagerServiceImplTest {
 
         when(electricMeterInfoService.getDetail(2)).thenReturn(secondMeterBo);
         when(spaceService.getDetail(200)).thenReturn(secondSpaceBo);
-        when(balanceService.query(ArgumentMatchers.argThat(dto -> dto.getBalanceRelationId().equals(2)))).thenReturn(secondBalanceBo);
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto -> dto.getBalanceRelationId().equals(2)))).thenReturn(secondBalanceBo);
         when(repository.resetMeterAccountInfo(any(ElectricMeterResetAccountQo.class))).thenReturn(1);
 
         // When - 执行第二次销户
@@ -3773,13 +3773,13 @@ class ElectricMeterManagerServiceImplTest {
                 .setFirstLevel(new BigDecimal("1000"))
                 .setSecondLevel(new BigDecimal("400")));
 
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(1).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("800")));
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(2).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("300")));
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(3).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("2000")));
 
@@ -3822,7 +3822,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setFirstLevel(new BigDecimal("100"))
                 .setSecondLevel(null));
 
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(21).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("50")));
 
@@ -3853,7 +3853,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setFirstLevel(null)
                 .setSecondLevel(new BigDecimal("80")));
 
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(22).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("50")));
 
@@ -3893,7 +3893,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setFirstLevel(new BigDecimal("1000"))
                 .setSecondLevel(new BigDecimal("400")));
 
-        when(balanceService.query(ArgumentMatchers.argThat(dto ->
+        when(balanceService.getByQuery(ArgumentMatchers.argThat(dto ->
                 dto != null && Integer.valueOf(11).equals(dto.getBalanceRelationId()) && dto.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)))
                 .thenThrow(new NotFoundException("余额不存在"));
 

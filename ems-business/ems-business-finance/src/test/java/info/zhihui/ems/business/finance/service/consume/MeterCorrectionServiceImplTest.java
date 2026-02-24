@@ -83,7 +83,7 @@ class MeterCorrectionServiceImplTest {
                 .setAmount(new BigDecimal("12.349"))
                 .setReason("补扣差额");
 
-        when(balanceService.query(any(BalanceQueryDto.class)))
+        when(balanceService.getByQuery(any(BalanceQueryDto.class)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("80.00")));
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class)))
                 .thenReturn(1);
@@ -170,7 +170,7 @@ class MeterCorrectionServiceImplTest {
                 .setAmount(new BigDecimal("5.678"))
                 .setReason("返还差额");
 
-        when(balanceService.query(any(BalanceQueryDto.class)))
+        when(balanceService.getByQuery(any(BalanceQueryDto.class)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("120.00")));
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class)))
                 .thenReturn(1);

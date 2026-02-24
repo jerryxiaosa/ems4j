@@ -4,7 +4,10 @@ import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
+import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
+import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import lombok.Data;
@@ -12,6 +15,7 @@ import lombok.experimental.Accessors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -234,8 +238,29 @@ class TranslateEngineTest {
         assertEquals("启用", vo.getStatusName());
     }
 
+    @Test
+    @DisplayName("本地格式化注解应输出两位小数字符串")
+    void testTranslate_FormatText_ShouldFormatMoneyScale2() {
+        TranslateEngine engine = buildEngine(
+                new EnumLabelResolver(),
+                Collections.emptyList(),
+                List.of(new MoneyScale2TextFormatter())
+        );
+
+        MoneyFormatVo vo = new MoneyFormatVo().setAmount(new BigDecimal("12.3"));
+        engine.translate(vo, new TranslateContext());
+
+        assertEquals("12.30", vo.getAmountText());
+    }
+
     private TranslateEngine buildEngine(EnumLabelResolver enumLabelResolver, List<BatchLabelResolver<?>> resolverList) {
-        return new TranslateEngine(new TranslateMetadataCache(), enumLabelResolver, resolverList);
+        return buildEngine(enumLabelResolver, resolverList, Collections.emptyList());
+    }
+
+    private TranslateEngine buildEngine(EnumLabelResolver enumLabelResolver,
+                                        List<BatchLabelResolver<?>> resolverList,
+                                        List<FieldTextFormatter> formatterList) {
+        return new TranslateEngine(new TranslateMetadataCache(), enumLabelResolver, resolverList, formatterList);
     }
 
     private enum TestStatusEnum implements CodeEnum<Integer> {
@@ -394,6 +419,15 @@ class TranslateEngineTest {
 
         @EnumLabel(source = "status", enumClass = TestStatusEnum.class)
         private Object statusName;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class MoneyFormatVo {
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = MoneyScale2TextFormatter.class)
+        private String amountText;
     }
 
     private static class TestUserResolver implements BatchLabelResolver<Integer> {

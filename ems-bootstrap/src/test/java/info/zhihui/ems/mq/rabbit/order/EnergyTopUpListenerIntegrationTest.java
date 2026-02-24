@@ -6,7 +6,7 @@ import info.zhihui.ems.business.device.repository.ElectricMeterRepository;
 import info.zhihui.ems.business.finance.entity.BalanceEntity;
 import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
-import info.zhihui.ems.business.finance.qo.BalanceQo;
+import info.zhihui.ems.business.finance.qo.BalanceListQueryQo;
 import info.zhihui.ems.business.finance.repository.BalanceRepository;
 import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,11 +106,13 @@ class EnergyTopUpListenerIntegrationTest {
     }
 
     private BalanceContext prepareBalanceContext(ElectricMeterEntity meter) {
-        BalanceQo balanceQo = new BalanceQo()
-                .setBalanceRelationId(meter.getId())
-                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
-                .setAccountId(meter.getAccountId());
-        BalanceEntity balanceEntity = balanceRepository.balanceQuery(balanceQo);
+        BalanceEntity balanceEntity = balanceRepository.findListByQuery(new BalanceListQueryQo()
+                        .setAccountIds(List.of(meter.getAccountId()))
+                        .setBalanceRelationIds(List.of(meter.getId()))
+                        .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode()))
+                .stream()
+                .findFirst()
+                .orElse(null);
 
         if (balanceEntity == null) {
             BalanceEntity newBalance = new BalanceEntity()
@@ -138,11 +141,13 @@ class EnergyTopUpListenerIntegrationTest {
     }
 
     private BigDecimal queryBalance(ElectricMeterEntity meter) {
-        BalanceQo balanceQo = new BalanceQo()
-                .setBalanceRelationId(meter.getId())
-                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
-                .setAccountId(meter.getAccountId());
-        BalanceEntity balanceEntity = balanceRepository.balanceQuery(balanceQo);
+        BalanceEntity balanceEntity = balanceRepository.findListByQuery(new BalanceListQueryQo()
+                        .setAccountIds(List.of(meter.getAccountId()))
+                        .setBalanceRelationIds(List.of(meter.getId()))
+                        .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode()))
+                .stream()
+                .findFirst()
+                .orElse(null);
         return Objects.requireNonNull(balanceEntity, "电表余额记录不存在").getBalance();
     }
 

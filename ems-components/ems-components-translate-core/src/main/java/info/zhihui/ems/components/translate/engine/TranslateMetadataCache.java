@@ -2,6 +2,7 @@ package info.zhihui.ems.components.translate.engine;
 
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.components.translate.annotation.FormatText;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +39,8 @@ public class TranslateMetadataCache {
      * 扫描类字段并生成转换元信息。
      * <p>
      * 规则：
-     * 1. 仅处理声明了 @EnumLabel / @BizLabel 的目标字段。
-     * 2. 同一字段同时声明两个注解时跳过并告警。
+     * 1. 仅处理声明了 @EnumLabel / @BizLabel / @FormatText 的目标字段。
+     * 2. 同一字段同时声明多个转换注解时跳过并告警。
      * 3. 找不到 source 字段时跳过并告警。
      */
     private TranslateMetadata buildMetadata(Class<?> clazz) {
@@ -62,12 +63,14 @@ public class TranslateMetadataCache {
 
             EnumLabel enumLabel = targetField.getAnnotation(EnumLabel.class);
             BizLabel bizLabel = targetField.getAnnotation(BizLabel.class);
-            if (enumLabel == null && bizLabel == null) {
+            FormatText formatText = targetField.getAnnotation(FormatText.class);
+            if (enumLabel == null && bizLabel == null && formatText == null) {
                 continue;
             }
 
-            if (enumLabel != null && bizLabel != null) {
-                log.warn("字段{}同时声明@EnumLabel和@BizLabel，已跳过", buildFieldName(clazz, targetField));
+            int annotationCount = (enumLabel == null ? 0 : 1) + (bizLabel == null ? 0 : 1) + (formatText == null ? 0 : 1);
+            if (annotationCount > 1) {
+                log.warn("字段{}同时声明多个转换注解，已跳过", buildFieldName(clazz, targetField));
                 continue;
             }
 
@@ -87,6 +90,25 @@ public class TranslateMetadataCache {
                         enumLabel.whenNullSkip(),
                         enumLabel.fallback(),
                         enumLabel.fallbackText()
+                ));
+                continue;
+            }
+
+            if (formatText != null) {
+                Field sourceField = fieldMap.get(formatText.source());
+                if (sourceField == null) {
+                    log.warn("格式化字段{}找不到源字段{}，已跳过", buildFieldName(clazz, targetField), formatText.source());
+                    continue;
+                }
+                sourceField.setAccessible(true);
+                targetField.setAccessible(true);
+                result.add(TranslateFieldMetadata.formatMetadata(
+                        sourceField,
+                        targetField,
+                        formatText.formatter(),
+                        formatText.whenNullSkip(),
+                        formatText.fallback(),
+                        formatText.fallbackText()
                 ));
                 continue;
             }

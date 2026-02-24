@@ -299,7 +299,7 @@ class MeterConsumeServiceImplTest {
 
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
 
@@ -411,7 +411,7 @@ class MeterConsumeServiceImplTest {
 
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);
@@ -597,7 +597,7 @@ class MeterConsumeServiceImplTest {
         when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);
@@ -671,7 +671,7 @@ class MeterConsumeServiceImplTest {
         when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);
@@ -775,7 +775,7 @@ class MeterConsumeServiceImplTest {
         when(electricMeterPowerRecordRepository.findRecordList(any(ElectricMeterPowerRecordQo.class))).thenReturn(recordList);
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);
@@ -814,7 +814,7 @@ class MeterConsumeServiceImplTest {
         when(electricMeterPowerRecordRepository.selectById(100)).thenReturn(lastPowerRecord);
         when(electricMeterPowerConsumeRecordRepository.insert(any(ElectricMeterPowerConsumeRecordEntity.class))).thenReturn(1);
         when(electricPricePlanService.getDetail(1)).thenReturn(pricePlanDetailBo);
-        when(balanceService.query(any(BalanceQueryDto.class))).thenReturn(balanceBo);
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(balanceBo);
         when(electricMeterBalanceConsumeRecordRepository.insert(any(ElectricMeterBalanceConsumeRecordEntity.class))).thenReturn(1);
         when(spaceService.getDetail(1)).thenReturn(spaceBo);
         when(organizationService.getDetail(1)).thenReturn(organizationBo);

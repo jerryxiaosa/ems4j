@@ -1,9 +1,12 @@
 package info.zhihui.ems.components.translate.web.advice;
 
 import info.zhihui.ems.common.enums.CodeEnum;
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.SkipResponseTranslate;
+import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
@@ -20,7 +23,9 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -119,11 +124,46 @@ class ResponseTranslateAdviceTest {
         assertNull(data.getStatusName());
     }
 
+    @Test
+    @DisplayName("beforeBodyWrite应支持FormatText格式化分页数据")
+    void testBeforeBodyWrite_PageResultWithFormatText_ShouldFormat() throws Exception {
+        ResponseTranslateAdvice advice = new ResponseTranslateAdvice(
+                providerOf(TranslateEngine.class, buildTranslateEngine()),
+                providerOf(TranslateResponseProperties.class, null)
+        );
+        MethodParameter returnType = new MethodParameter(TestController.class.getDeclaredMethod("queryPage"), -1);
+
+        FormattedTestData data = new FormattedTestData();
+        data.setAmount(new BigDecimal("12.3"));
+        PageResult<FormattedTestData> page = new PageResult<FormattedTestData>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(data));
+        RestResult<PageResult<FormattedTestData>> body = new RestResult<>();
+        body.setSuccess(true);
+        body.setData(page);
+
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/translate/test");
+        Object result = advice.beforeBodyWrite(
+                body,
+                returnType,
+                MediaType.APPLICATION_JSON,
+                MappingJackson2HttpMessageConverter.class,
+                new ServletServerHttpRequest(servletRequest),
+                new ServletServerHttpResponse(new MockHttpServletResponse())
+        );
+
+        assertSame(body, result);
+        assertEquals("12.30", data.getAmountText());
+    }
+
     private static TranslateEngine buildTranslateEngine() {
         return new TranslateEngine(
                 new TranslateMetadataCache(),
                 new EnumLabelResolver(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                List.of(new MoneyScale2TextFormatter())
         );
     }
 
@@ -145,6 +185,10 @@ class ResponseTranslateAdviceTest {
         RestResult<TestData> querySkip() {
             return new RestResult<>();
         }
+
+        RestResult<PageResult<FormattedTestData>> queryPage() {
+            return new RestResult<>();
+        }
     }
 
     private static class TestData {
@@ -163,6 +207,25 @@ class ResponseTranslateAdviceTest {
 
         String getStatusName() {
             return statusName;
+        }
+    }
+
+    private static class FormattedTestData {
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = MoneyScale2TextFormatter.class)
+        private String amountText;
+
+        BigDecimal getAmount() {
+            return amount;
+        }
+
+        void setAmount(BigDecimal amount) {
+            this.amount = amount;
+        }
+
+        String getAmountText() {
+            return amountText;
         }
     }
 

@@ -63,7 +63,7 @@ class AccountConsumeServiceImplTest {
 
         when(accountBalanceConsumeRecordRepository.countMonthlyConsume(anyInt(), any(), any()))
                 .thenReturn(0);
-        when(balanceService.query(any(BalanceQueryDto.class)))
+        when(balanceService.getByQuery(any(BalanceQueryDto.class)))
                 .thenReturn(new BalanceBo().setBalance(BigDecimal.valueOf(1000)));
 
         assertDoesNotThrow(() -> accountConsumeService.monthlyConsume(dto));
@@ -76,7 +76,7 @@ class AccountConsumeServiceImplTest {
                         && expectedOrderNo.equals(balanceDto.getOrderNo())
                         && balanceDto.getAmount().compareTo(BigDecimal.valueOf(500)) == 0));
 
-        verify(balanceService).query(argThat(query ->
+        verify(balanceService).getByQuery(argThat(query ->
                 query.getBalanceRelationId().equals(1)
                         && query.getBalanceType() == BalanceTypeEnum.ACCOUNT));
 

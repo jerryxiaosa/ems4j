@@ -41,7 +41,11 @@ class AccountControllerTest {
     @Test
     @DisplayName("分页查询账户列表")
     void testFindAccountPage() throws Exception {
-        AccountVo vo = new AccountVo().setId(1).setOwnerName("企业A");
+        AccountVo vo = new AccountVo()
+                .setId(1)
+                .setOwnerName("企业A")
+                .setElectricBalanceAmount(new BigDecimal("12.34"))
+                .setElectricBalanceAmountText("12.34");
         PageResult<AccountVo> pageResult = new PageResult<AccountVo>()
                 .setList(List.of(vo))
                 .setPageNum(1)
@@ -52,19 +56,27 @@ class AccountControllerTest {
         mockMvc.perform(get("/accounts/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list[0].ownerName").value("企业A"));
+                .andExpect(jsonPath("$.data.list[0].ownerName").value("企业A"))
+                .andExpect(jsonPath("$.data.list[0].electricBalanceAmount").value(12.34))
+                .andExpect(jsonPath("$.data.list[0].electricBalanceAmountText").value("12.34"));
     }
 
     @Test
     @DisplayName("根据ID获取账户详情")
     void testGetAccount() throws Exception {
-        AccountDetailVo vo = new AccountDetailVo().setId(10).setOwnerName("账号详情");
+        AccountDetailVo vo = new AccountDetailVo()
+                .setId(10)
+                .setOwnerName("账号详情")
+                .setOpenedMeterCount(2)
+                .setTotalOpenableMeterCount(6);
         when(accountBiz.getAccount(10)).thenReturn(vo);
 
         mockMvc.perform(get("/accounts/10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.id").value(10));
+                .andExpect(jsonPath("$.data.id").value(10))
+                .andExpect(jsonPath("$.data.openedMeterCount").value(2))
+                .andExpect(jsonPath("$.data.totalOpenableMeterCount").value(6));
     }
 
     @Test

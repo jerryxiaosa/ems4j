@@ -11,15 +11,28 @@
         and is_deleted = 0
     </update>
 
-    <select id="balanceQuery" resultType="info.zhihui.ems.business.finance.entity.BalanceEntity">
+    <select id="findListByQuery" resultType="info.zhihui.ems.business.finance.entity.BalanceEntity">
         select *
         from energy_account_balance
-        where
-        1=1
-        and balance_type = #{balanceType}
-        and balance_relation_id = #{balanceRelationId}
-        and is_deleted = 0
-        limit 1;
+        <where>
+            is_deleted = 0
+            <if test="qo.balanceType != null">
+                and balance_type = #{qo.balanceType}
+            </if>
+            <if test="qo.balanceRelationIds != null and qo.balanceRelationIds.size() > 0">
+                and balance_relation_id in
+                <foreach item="item" collection="qo.balanceRelationIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="qo.accountIds != null and qo.accountIds.size() > 0">
+                and account_id in
+                <foreach item="item" collection="qo.accountIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by account_id asc, id asc
     </select>
 
     <update id="deleteBalance">

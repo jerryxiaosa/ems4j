@@ -691,7 +691,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         for (Integer meterId : meterIds) {
             BigDecimal balance = null;
             try {
-                BalanceBo balanceBo = balanceService.query(new BalanceQueryDto()
+                BalanceBo balanceBo = balanceService.getByQuery(new BalanceQueryDto()
                         .setBalanceRelationId(meterId)
                         .setBalanceType(BalanceTypeEnum.ELECTRIC_METER));
                 balance = balanceBo.getBalance();
@@ -1596,7 +1596,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
      */
     private BigDecimal queryMeterBalance(ElectricMeterDetailDto meterDto, ElectricAccountTypeEnum accountType) {
         if (ElectricAccountTypeEnum.QUANTITY.equals(accountType)) {
-            BalanceBo balanceBo = balanceService.query(new BalanceQueryDto()
+            BalanceBo balanceBo = balanceService.getByQuery(new BalanceQueryDto()
                     .setBalanceRelationId(meterDto.getMeterId())
                     .setBalanceType(BalanceTypeEnum.ELECTRIC_METER));
             return balanceBo.getBalance();

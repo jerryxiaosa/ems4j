@@ -2,6 +2,8 @@ package info.zhihui.ems.web.account;
 
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.account.biz.AccountBiz;
 import info.zhihui.ems.web.account.vo.AccountDetailVo;
@@ -15,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,6 +67,19 @@ class AccountBizIntegrationTest {
                     accountVo.getId()
             );
             assertEquals(expectedTotalOpenableMeterCount, accountVo.getTotalOpenableMeterCount());
+
+            Integer balanceTypeCode = ElectricAccountTypeEnum.QUANTITY.getCode().equals(accountVo.getElectricAccountType())
+                    ? BalanceTypeEnum.ELECTRIC_METER.getCode()
+                    : BalanceTypeEnum.ACCOUNT.getCode();
+            BigDecimal expectedElectricBalanceAmount = jdbcTemplate.queryForObject(
+                    "select coalesce(sum(balance), 0) from energy_account_balance " +
+                            "where account_id = ? and balance_type = ? and is_deleted = false",
+                    BigDecimal.class,
+                    accountVo.getId(),
+                    balanceTypeCode
+            );
+            assertNotNull(accountVo.getElectricBalanceAmount());
+            assertEquals(0, expectedElectricBalanceAmount.compareTo(accountVo.getElectricBalanceAmount()));
         }
     }
 
@@ -83,6 +99,16 @@ class AccountBizIntegrationTest {
                 .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountId)))
                 .size();
         assertEquals(expectedMeterCount, actualMeterCount);
+        assertEquals(expectedMeterCount, detailVo.getOpenedMeterCount());
+
+        int expectedTotalOpenableMeterCount = jdbcTemplate.queryForObject(
+                "select count(1) from energy_electric_meter m " +
+                        "join energy_account_space_rel r on r.space_id = m.space_id " +
+                        "where r.account_id = ? and m.is_deleted = false",
+                Integer.class,
+                accountId
+        );
+        assertEquals(expectedTotalOpenableMeterCount, detailVo.getTotalOpenableMeterCount());
     }
 
     @Test

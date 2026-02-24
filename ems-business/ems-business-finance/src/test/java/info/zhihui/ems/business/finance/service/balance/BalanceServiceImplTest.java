@@ -6,6 +6,7 @@ import info.zhihui.ems.business.finance.dto.BalanceDto;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.entity.BalanceEntity;
 import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
+import info.zhihui.ems.business.finance.qo.BalanceListQueryQo;
 import info.zhihui.ems.business.finance.qo.BalanceQo;
 import info.zhihui.ems.business.finance.repository.BalanceRepository;
 import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +104,7 @@ class BalanceServiceImplTest {
         // Given
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(balanceEntity);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(balanceEntity));
 
         // When
         assertDoesNotThrow(() -> balanceService.topUp(topUpDto));
@@ -179,10 +181,10 @@ class BalanceServiceImplTest {
     @DisplayName("测试正常查询余额场景")
     void testQuery_Normal() {
         // Given
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(balanceEntity);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(balanceEntity));
 
         // When
-        BalanceBo result = balanceService.query(queryDto);
+        BalanceBo result = balanceService.getByQuery(queryDto);
 
         // Then
         assertNotNull(result);
@@ -192,7 +194,7 @@ class BalanceServiceImplTest {
         assertEquals(balanceEntity.getAccountId(), result.getAccountId());
         assertEquals(balanceEntity.getBalance(), result.getBalance());
 
-        verify(balanceRepository).balanceQuery(any(BalanceQo.class));
+        verify(balanceRepository).findListByQuery(any(BalanceListQueryQo.class));
     }
 
     /**
@@ -202,14 +204,14 @@ class BalanceServiceImplTest {
     @DisplayName("测试查询余额不存在异常")
     void testQuery_NotFound() {
         // Given
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(null);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of());
 
         // When & Then
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> balanceService.query(queryDto));
+                () -> balanceService.getByQuery(queryDto));
         assertEquals("查询余额信息失败，余额信息不存在", exception.getMessage());
 
-        verify(balanceRepository).balanceQuery(any(BalanceQo.class));
+        verify(balanceRepository).findListByQuery(any(BalanceListQueryQo.class));
     }
 
     /**
@@ -221,16 +223,61 @@ class BalanceServiceImplTest {
         // Given
         queryDto.setBalanceType(BalanceTypeEnum.ELECTRIC_METER);
         balanceEntity.setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode());
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(balanceEntity);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(balanceEntity));
 
         // When
-        BalanceBo result = balanceService.query(queryDto);
+        BalanceBo result = balanceService.getByQuery(queryDto);
 
         // Then
         assertNotNull(result);
         assertEquals(BalanceTypeEnum.ELECTRIC_METER, result.getBalanceType());
 
-        verify(balanceRepository).balanceQuery(any(BalanceQo.class));
+        verify(balanceRepository).findListByQuery(any(BalanceListQueryQo.class));
+    }
+
+    @Test
+    @DisplayName("测试按账户ID批量查询余额明细场景")
+    void testFindListByAccountIds_Normal() {
+        // Given
+        BalanceEntity accountBalanceEntity = new BalanceEntity()
+                .setId(1)
+                .setAccountId(1)
+                .setBalanceRelationId(1)
+                .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
+                .setBalance(new BigDecimal("100.00"));
+        BalanceEntity meterBalanceEntity = new BalanceEntity()
+                .setId(2)
+                .setAccountId(1)
+                .setBalanceRelationId(101)
+                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
+                .setBalance(new BigDecimal("-5.50"));
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(accountBalanceEntity, meterBalanceEntity));
+
+        // When
+        List<BalanceBo> result = balanceService.findListByAccountIds(List.of(1, 1));
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(BalanceTypeEnum.ACCOUNT, result.get(0).getBalanceType());
+        assertEquals(BalanceTypeEnum.ELECTRIC_METER, result.get(1).getBalanceType());
+        verify(balanceRepository).findListByQuery(ArgumentMatchers.argThat(qo ->
+                qo.getAccountIds().equals(List.of(1))
+                        && qo.getBalanceType() == null
+                        && (qo.getBalanceRelationIds() == null || qo.getBalanceRelationIds().isEmpty())
+        ));
+    }
+
+    @Test
+    @DisplayName("测试按账户ID批量查询余额明细空参数场景")
+    void testFindListByAccountIds_Empty() {
+        // When
+        List<BalanceBo> result = balanceService.findListByAccountIds(List.of());
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(balanceRepository, never()).findListByQuery(any(BalanceListQueryQo.class));
     }
 
     /**
@@ -439,7 +486,8 @@ class BalanceServiceImplTest {
         // Given
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(new BalanceEntity().setBalance(new BigDecimal("12.00")));
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class)))
+                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("12.00"))));
 
         // When
         assertDoesNotThrow(() -> balanceService.deduct(deductDto));
@@ -533,7 +581,8 @@ class BalanceServiceImplTest {
 
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
-        when(balanceRepository.balanceQuery(any(BalanceQo.class))).thenReturn(new BalanceEntity().setBalance(new BigDecimal("12.00")));
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class)))
+                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("12.00"))));
 
         // When
         assertDoesNotThrow(() -> balanceService.deduct(electricMeterDeductDto));

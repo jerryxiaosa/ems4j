@@ -585,6 +585,7 @@ CREATE TABLE energy_account_balance
 );
 
 CREATE INDEX idx_balance_id ON energy_account_balance (balance_relation_id, balance_type);
+CREATE INDEX idx_account_id_is_deleted_balance ON energy_account_balance (account_id, is_deleted);
 CREATE UNIQUE INDEX uk_energy_account_balance_active_key ON energy_account_balance (active_balance_key);
 CREATE UNIQUE INDEX config_key ON sys_config (config_key);
 

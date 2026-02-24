@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import info.zhihui.ems.business.device.entity.ElectricMeterEntity;
 import info.zhihui.ems.business.device.repository.ElectricMeterRepository;
 import info.zhihui.ems.business.finance.entity.BalanceEntity;
-import info.zhihui.ems.business.finance.qo.BalanceQo;
+import info.zhihui.ems.business.finance.qo.BalanceListQueryQo;
 import info.zhihui.ems.business.finance.repository.BalanceRepository;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
@@ -280,18 +280,22 @@ class TerminationListenerIntegrationTest {
     }
 
     private BalanceEntity queryBalance(ElectricMeterEntity meter) {
-        BalanceQo balanceQo = new BalanceQo()
-                .setBalanceRelationId(meter.getId())
-                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
-                .setAccountId(meter.getAccountId());
-        return balanceRepository.balanceQuery(balanceQo);
+        return balanceRepository.findListByQuery(new BalanceListQueryQo()
+                        .setAccountIds(List.of(meter.getAccountId()))
+                        .setBalanceRelationIds(List.of(meter.getId()))
+                        .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode()))
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 
     private BalanceEntity queryAccountBalance(Integer accountId) {
-        BalanceQo balanceQo = new BalanceQo()
-                .setBalanceRelationId(accountId)
-                .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
-                .setAccountId(accountId);
-        return balanceRepository.balanceQuery(balanceQo);
+        return balanceRepository.findListByQuery(new BalanceListQueryQo()
+                        .setAccountIds(List.of(accountId))
+                        .setBalanceRelationIds(List.of(accountId))
+                        .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode()))
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 }

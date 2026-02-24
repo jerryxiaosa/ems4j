@@ -73,7 +73,7 @@ public class AccountConsumeServiceImpl implements AccountConsumeService {
                     .setOrderNo(consumeNo)
                     .setAmount(monthlyConsumeDto.getMonthlyPayAmount()));
 
-            BigDecimal endBalance = balanceService.query(new BalanceQueryDto()
+            BigDecimal endBalance = balanceService.getByQuery(new BalanceQueryDto()
                     .setBalanceRelationId(monthlyConsumeDto.getAccountId())
                     .setBalanceType(BalanceTypeEnum.ACCOUNT)).getBalance();
 
