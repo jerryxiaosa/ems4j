@@ -175,6 +175,7 @@ CREATE TABLE `energy_account_balance`
                                                                                               NULL))) STORED COMMENT '活跃余额唯一键（未删除时有效）',
     PRIMARY KEY (`id`) USING BTREE,
     KEY `idx_balance_id` (`balance_relation_id`, `balance_type`),
+    KEY `idx_account_id_is_deleted` (`account_id`, `is_deleted`),
     UNIQUE KEY `uk_energy_account_balance_active_key` (`active_balance_key`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1

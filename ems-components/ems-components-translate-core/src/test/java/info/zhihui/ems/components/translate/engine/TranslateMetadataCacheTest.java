@@ -3,7 +3,9 @@ package info.zhihui.ems.components.translate.engine;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
+import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -179,6 +181,22 @@ class TranslateMetadataCacheTest {
         assertEquals("默认用户", bizMetadata.getFallbackText());
     }
 
+    @Test
+    @DisplayName("应正确构建本地格式化转换元数据")
+    void testGetMetadata_FormatField_ShouldBuildFormatMetadata() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(FormatVo.class);
+
+        assertFalse(metadata.isEmpty());
+        assertEquals(1, metadata.getFieldList().size());
+
+        TranslateFieldMetadata formatMetadata = metadata.getFieldList().get(0);
+        assertEquals(TranslateFieldTypeEnum.FORMAT, formatMetadata.getType());
+        assertEquals("amount", formatMetadata.getSourceField().getName());
+        assertEquals(TestFormatter.class, formatMetadata.getFormatterClass());
+    }
+
     private enum TestStatusEnum implements CodeEnum<Integer> {
         DISABLED(0, "停用"),
         ENABLED(1, "启用");
@@ -276,6 +294,20 @@ class TranslateMetadataCacheTest {
         @BizLabel(source = "userId", resolver = TestUserResolver.class,
                 whenNullSkip = false, fallback = TranslateFallbackEnum.FIXED_TEXT, fallbackText = "默认用户")
         private String userName;
+    }
+
+    private static class FormatVo {
+        private String amount;
+
+        @FormatText(source = "amount", formatter = TestFormatter.class)
+        private String amountText;
+    }
+
+    private static class TestFormatter implements FieldTextFormatter {
+        @Override
+        public String format(Object sourceValue, TranslateContext context) {
+            return sourceValue == null ? null : String.valueOf(sourceValue);
+        }
     }
 
     private static class TestUserResolver implements BatchLabelResolver<Integer> {

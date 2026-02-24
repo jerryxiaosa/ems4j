@@ -163,7 +163,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
         checkAccount(openAccountDto);
         AccountBo newAccountBo = saveAccount(openAccountDto);
 
-        // 初始化账户余额
+        // 初始化账户余额，包括按需模式也统一初始化
         balanceService.initAccountBalance(newAccountBo.getId());
 
         // 开户扣费
@@ -634,7 +634,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
             }
         } else if (fullCancel) {
             // 非按量计费且全部销户：查询账户余额
-            BalanceBo balanceBo = balanceService.query(new BalanceQueryDto()
+            BalanceBo balanceBo = balanceService.getByQuery(new BalanceQueryDto()
                     .setBalanceRelationId(accountBo.getId())
                     .setBalanceType(BalanceTypeEnum.ACCOUNT)
             );

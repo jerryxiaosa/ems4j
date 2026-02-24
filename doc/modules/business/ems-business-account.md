@@ -10,7 +10,7 @@
 |------|------|
 | 开户 | 创建用电账户，绑定业主、电表、计费方案 |
 | 销户 | 账户注销，余额清算，解绑电表 |
-| 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（账户归属名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`、`warnPlanName`），详情返回电表明细列表 |
+| 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（账户归属名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`），详情返回电表明细列表 |
 | 余额预警 | 低余额预警、欠费预警 |
 | 账户充值 | 通过订单模块进行充值 |
 

@@ -58,7 +58,7 @@ class MeterCorrectionServiceIntegrationTest {
                 .setOrderNo("TOPUP-CORR-" + System.currentTimeMillis())
                 .setAmount(new BigDecimal("50.00")));
 
-        BalanceBo before = balanceService.query(new BalanceQueryDto()
+        BalanceBo before = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceRelationId(1)
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER));
 
@@ -77,7 +77,7 @@ class MeterCorrectionServiceIntegrationTest {
 
         meterCorrectionService.correctByAmount(dto);
 
-        BalanceBo after = balanceService.query(new BalanceQueryDto()
+        BalanceBo after = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceRelationId(1)
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER));
 
@@ -93,7 +93,7 @@ class MeterCorrectionServiceIntegrationTest {
     @Test
     @DisplayName("correctByAmount - 合并账户退款成功")
     void testCorrectByAmount_RefundMergedAccount_Success() {
-        BalanceBo before = balanceService.query(new BalanceQueryDto()
+        BalanceBo before = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceRelationId(1)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT));
 
@@ -110,7 +110,7 @@ class MeterCorrectionServiceIntegrationTest {
 
         meterCorrectionService.correctByAmount(dto);
 
-        BalanceBo after = balanceService.query(new BalanceQueryDto()
+        BalanceBo after = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceRelationId(1)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT));
 

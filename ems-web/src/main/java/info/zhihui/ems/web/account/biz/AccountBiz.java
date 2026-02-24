@@ -8,13 +8,19 @@ import info.zhihui.ems.business.account.service.AccountSpaceLeaseService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
+import info.zhihui.ems.business.finance.bo.BalanceBo;
+import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +38,7 @@ public class AccountBiz {
     private final AccountSpaceLeaseService accountSpaceLeaseService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
+    private final BalanceService balanceService;
 
     /**
      * 分页查询账户列表
@@ -55,6 +62,7 @@ public class AccountBiz {
 
         fillOpenedMeterCount(accountVoList, accountIdList);
         fillTotalOpenableMeterCount(accountVoList, accountIdList);
+        fillElectricBalanceAmount(accountVoList, accountIdList);
         return pageResult;
     }
 
@@ -67,6 +75,10 @@ public class AccountBiz {
 
         List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(id)));
         accountVo.setMeterList(accountWebMapper.toAccountMeterVoList(meterBos));
+        accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
+
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountInfoService.countTotalOpenableMeterByAccountIds(List.of(id));
+        accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(id, 0));
         return accountVo;
     }
 
@@ -172,6 +184,51 @@ public class AccountBiz {
             if (accountVo != null && accountVo.getId() != null) {
                 accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(accountVo.getId(), 0));
             }
+        }
+    }
+
+    /**
+     * 填充账户电费余额（按需=电表余额合计；包月/合并=账户余额）
+     */
+    private void fillElectricBalanceAmount(List<AccountVo> accountVoList, List<Integer> accountIdList) {
+        List<BalanceBo> balanceBoList = balanceService.findListByAccountIds(accountIdList);
+        if (balanceBoList == null || balanceBoList.isEmpty()) {
+            for (AccountVo accountVo : accountVoList) {
+                if (accountVo != null) {
+                    accountVo.setElectricBalanceAmount(BigDecimal.ZERO);
+                }
+            }
+            return;
+        }
+
+        Map<Integer, BigDecimal> accountBalanceMap = new HashMap<>();
+        Map<Integer, BigDecimal> meterBalanceSumMap = new HashMap<>();
+        for (BalanceBo balanceBo : balanceBoList) {
+            if (balanceBo == null || balanceBo.getAccountId() == null || balanceBo.getBalanceType() == null) {
+                continue;
+            }
+            BigDecimal balanceAmount = Objects.requireNonNullElse(balanceBo.getBalance(), BigDecimal.ZERO);
+            if (BalanceTypeEnum.ACCOUNT.equals(balanceBo.getBalanceType())) {
+                accountBalanceMap.put(balanceBo.getAccountId(), balanceAmount);
+                continue;
+            }
+            if (BalanceTypeEnum.ELECTRIC_METER.equals(balanceBo.getBalanceType())) {
+                meterBalanceSumMap.merge(balanceBo.getAccountId(), balanceAmount, BigDecimal::add);
+            }
+        }
+
+        for (AccountVo accountVo : accountVoList) {
+            if (accountVo == null || accountVo.getId() == null) {
+                continue;
+            }
+            BigDecimal electricBalanceAmount = BigDecimal.ZERO;
+            if (ElectricAccountTypeEnum.QUANTITY.getCode().equals(accountVo.getElectricAccountType())) {
+                electricBalanceAmount = meterBalanceSumMap.getOrDefault(accountVo.getId(), BigDecimal.ZERO);
+            } else if (ElectricAccountTypeEnum.MONTHLY.getCode().equals(accountVo.getElectricAccountType())
+                    || ElectricAccountTypeEnum.MERGED.getCode().equals(accountVo.getElectricAccountType())) {
+                electricBalanceAmount = accountBalanceMap.getOrDefault(accountVo.getId(), BigDecimal.ZERO);
+            }
+            accountVo.setElectricBalanceAmount(electricBalanceAmount);
         }
     }
 

@@ -67,12 +67,12 @@ class AccountConsumeServiceIntegrationTest {
         BalanceQueryDto queryDto = new BalanceQueryDto()
                 .setBalanceRelationId(1)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT);
-        BalanceBo balanceBefore = balanceService.query(queryDto);
+        BalanceBo balanceBefore = balanceService.getByQuery(queryDto);
         int recordCountBefore = accountBalanceConsumeRecordRepository.selectList(null).size();
 
         assertDoesNotThrow(() -> accountConsumeService.monthlyConsume(monthlyConsumeDto));
 
-        BalanceBo balanceAfter = balanceService.query(queryDto);
+        BalanceBo balanceAfter = balanceService.getByQuery(queryDto);
         assertEquals(balanceBefore.getBalance().subtract(monthlyConsumeDto.getMonthlyPayAmount()),
                 balanceAfter.getBalance(), "余额应减少包月金额");
 
@@ -97,11 +97,11 @@ class AccountConsumeServiceIntegrationTest {
         BalanceQueryDto queryDto = new BalanceQueryDto()
                 .setBalanceRelationId(accountId)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT);
-        BalanceBo balanceBefore = balanceService.query(queryDto);
+        BalanceBo balanceBefore = balanceService.getByQuery(queryDto);
 
         assertDoesNotThrow(() -> accountConsumeService.monthlyConsume(monthlyConsumeDto));
 
-        BalanceBo balanceAfterFirst = balanceService.query(queryDto);
+        BalanceBo balanceAfterFirst = balanceService.getByQuery(queryDto);
         assertEquals(balanceBefore.getBalance().subtract(monthlyConsumeDto.getMonthlyPayAmount()),
                 balanceAfterFirst.getBalance(), "第一次调用后余额应减少一次");
 
@@ -109,7 +109,7 @@ class AccountConsumeServiceIntegrationTest {
                 () -> accountConsumeService.monthlyConsume(monthlyConsumeDto));
         assertTrue(ex.getMessage() == null || ex.getMessage().contains("当前账期已扣除月租费，请勿重复操作"));
 
-        BalanceBo balanceAfterSecond = balanceService.query(queryDto);
+        BalanceBo balanceAfterSecond = balanceService.getByQuery(queryDto);
         assertEquals(balanceAfterFirst.getBalance(), balanceAfterSecond.getBalance(),
                 "重复调用不应再次扣费");
     }

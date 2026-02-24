@@ -1178,7 +1178,7 @@ class AccountManagerServiceImplTest {
         when(accountInfoService.getById(1)).thenReturn(accountBo);
         when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
-        when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
+        when(balanceService.getByQuery(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
                 .thenReturn(new BalanceBo().setBalance(new BigDecimal("100.00")));
         when(cancelRecordRepository.insert(any(AccountCancelRecordEntity.class))).thenReturn(1);
         when(repository.softDelete(eq(1), any(LocalDateTime.class), eq(100), eq("李四"), any(LocalDateTime.class))).thenReturn(1);
@@ -1259,7 +1259,7 @@ class AccountManagerServiceImplTest {
         when(electricMeterInfoService.findList(query)).thenReturn(List.of(electricMeterBo));
         when(electricMeterManagerService.cancelMeterAccount(any())).thenReturn(meterCancelBalances);
         when(electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(1)))).thenReturn(List.of());
-        when(balanceService.query(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
+        when(balanceService.getByQuery(new BalanceQueryDto().setBalanceRelationId(1).setBalanceType(BalanceTypeEnum.ACCOUNT)))
                 .thenReturn(new BalanceBo().setBalance(null));
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,

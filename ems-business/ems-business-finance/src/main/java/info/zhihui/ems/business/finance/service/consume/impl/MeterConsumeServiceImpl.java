@@ -534,7 +534,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
             // 查询扣费后余额
             BalanceBo balanceBo;
             try {
-                balanceBo = balanceService.query(new BalanceQueryDto()
+                balanceBo = balanceService.getByQuery(new BalanceQueryDto()
                         .setBalanceType(topUpDto.getBalanceType())
                         .setBalanceRelationId(topUpDto.getBalanceRelationId()));
             } catch (NotFoundException e) {
@@ -885,7 +885,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
         }
 
         // 获取最新账户余额
-        BalanceBo balanceBo = balanceService.query(new BalanceQueryDto()
+        BalanceBo balanceBo = balanceService.getByQuery(new BalanceQueryDto()
                 .setBalanceType(balanceType)
                 .setBalanceRelationId(balanceRelationId));
 

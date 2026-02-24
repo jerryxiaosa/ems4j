@@ -1,6 +1,7 @@
 package info.zhihui.ems.components.translate.engine;
 
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
+import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ import java.lang.reflect.Field;
  * 说明：
  * 1. sourceField 读取源值（如 ownerType / userId）。
  * 2. targetField 回填展示值（如 ownerTypeName / userName）。
- * 3. enumClass 与 resolverClass 二选一，由 type 决定生效分支。
+ * 3. enumClass / resolverClass / formatterClass 三选一，由 type 决定生效分支。
  */
 @Getter
 class TranslateFieldMetadata {
@@ -27,6 +28,8 @@ class TranslateFieldMetadata {
 
     private final Class<? extends BatchLabelResolver<?>> resolverClass;
 
+    private final Class<? extends FieldTextFormatter> formatterClass;
+
     private final boolean whenNullSkip;
 
     private final TranslateFallbackEnum fallback;
@@ -38,6 +41,7 @@ class TranslateFieldMetadata {
                                    Field targetField,
                                    Class<? extends Enum<?>> enumClass,
                                    Class<? extends BatchLabelResolver<?>> resolverClass,
+                                   Class<? extends FieldTextFormatter> formatterClass,
                                    boolean whenNullSkip,
                                    TranslateFallbackEnum fallback,
                                    String fallbackText) {
@@ -46,6 +50,7 @@ class TranslateFieldMetadata {
         this.targetField = targetField;
         this.enumClass = enumClass;
         this.resolverClass = resolverClass;
+        this.formatterClass = formatterClass;
         this.whenNullSkip = whenNullSkip;
         this.fallback = fallback;
         this.fallbackText = fallbackText;
@@ -65,6 +70,7 @@ class TranslateFieldMetadata {
                 sourceField,
                 targetField,
                 enumClass,
+                null,
                 null,
                 whenNullSkip,
                 fallback,
@@ -87,6 +93,29 @@ class TranslateFieldMetadata {
                 targetField,
                 null,
                 resolverClass,
+                null,
+                whenNullSkip,
+                fallback,
+                fallbackText
+        );
+    }
+
+    /**
+     * 构建本地格式化转换元信息
+     */
+    static TranslateFieldMetadata formatMetadata(Field sourceField,
+                                                 Field targetField,
+                                                 Class<? extends FieldTextFormatter> formatterClass,
+                                                 boolean whenNullSkip,
+                                                 TranslateFallbackEnum fallback,
+                                                 String fallbackText) {
+        return new TranslateFieldMetadata(
+                TranslateFieldTypeEnum.FORMAT,
+                sourceField,
+                targetField,
+                null,
+                null,
+                formatterClass,
                 whenNullSkip,
                 fallback,
                 fallbackText

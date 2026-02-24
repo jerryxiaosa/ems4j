@@ -5,6 +5,6 @@ package info.zhihui.ems.components.translate.engine;
  */
 public enum TranslateFieldTypeEnum {
     ENUM,
-    BIZ
+    BIZ,
+    FORMAT
 }
-

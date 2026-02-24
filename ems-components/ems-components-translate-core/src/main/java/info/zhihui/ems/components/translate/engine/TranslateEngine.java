@@ -2,6 +2,7 @@ package info.zhihui.ems.components.translate.engine;
 
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
+import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 响应对象转换引擎
@@ -27,6 +30,9 @@ public class TranslateEngine {
     private final TranslateMetadataCache metadataCache;
     private final EnumLabelResolver enumLabelResolver;
     private final List<BatchLabelResolver<?>> resolverList;
+    private final List<FieldTextFormatter> formatterList;
+    private final ConcurrentMap<Class<? extends FieldTextFormatter>, FieldTextFormatter> formatterCache = new ConcurrentHashMap<>();
+    private final Set<Class<? extends FieldTextFormatter>> missingFormatterClassSet = ConcurrentHashMap.newKeySet();
 
     /**
      * 对任意对象执行展示字段转换
@@ -60,7 +66,7 @@ public class TranslateEngine {
         Map<Class<? extends Enum<?>>, Map<Object, String>> enumLabelMap = resolveEnumLabels(enumKeyMap, useContext);
         Map<Class<? extends BatchLabelResolver<?>>, Map<Object, String>> bizLabelMap = resolveBizLabels(bizKeyMap, useContext);
 
-        fillTargetField(taskList, enumLabelMap, bizLabelMap);
+        fillTargetField(taskList, enumLabelMap, bizLabelMap, useContext);
     }
 
     /**
@@ -113,7 +119,9 @@ public class TranslateEngine {
                     enumKeyMap.computeIfAbsent(fieldMetadata.getEnumClass(), ignored -> new LinkedHashSet<>()).add(sourceValue);
                     continue;
                 }
-                bizKeyMap.computeIfAbsent(fieldMetadata.getResolverClass(), ignored -> new LinkedHashSet<>()).add(sourceValue);
+                if (fieldMetadata.getType() == TranslateFieldTypeEnum.BIZ) {
+                    bizKeyMap.computeIfAbsent(fieldMetadata.getResolverClass(), ignored -> new LinkedHashSet<>()).add(sourceValue);
+                }
             }
         }
     }
@@ -187,11 +195,12 @@ public class TranslateEngine {
      */
     private void fillTargetField(List<TranslateTask> taskList,
                                  Map<Class<? extends Enum<?>>, Map<Object, String>> enumLabelMap,
-                                 Map<Class<? extends BatchLabelResolver<?>>, Map<Object, String>> bizLabelMap) {
+                                 Map<Class<? extends BatchLabelResolver<?>>, Map<Object, String>> bizLabelMap,
+                                 TranslateContext context) {
         for (TranslateTask task : taskList) {
             TranslateFieldMetadata metadata = task.fieldMetadata();
             Object sourceValue = task.sourceValue();
-            String value = resolveValue(task, enumLabelMap, bizLabelMap);
+            String value = resolveValue(task, enumLabelMap, bizLabelMap, context);
             if (value == null) {
                 value = fallback(metadata, sourceValue);
             }
@@ -201,7 +210,8 @@ public class TranslateEngine {
 
     private String resolveValue(TranslateTask task,
                                 Map<Class<? extends Enum<?>>, Map<Object, String>> enumLabelMap,
-                                Map<Class<? extends BatchLabelResolver<?>>, Map<Object, String>> bizLabelMap) {
+                                Map<Class<? extends BatchLabelResolver<?>>, Map<Object, String>> bizLabelMap,
+                                TranslateContext context) {
         TranslateFieldMetadata metadata = task.fieldMetadata();
         Object sourceValue = task.sourceValue();
         if (sourceValue == null) {
@@ -211,8 +221,43 @@ public class TranslateEngine {
             Map<Object, String> map = enumLabelMap.get(metadata.getEnumClass());
             return map == null ? null : map.get(sourceValue);
         }
+        if (metadata.getType() == TranslateFieldTypeEnum.FORMAT) {
+            FieldTextFormatter formatter = findFormatter(metadata.getFormatterClass());
+            if (formatter == null) {
+                return null;
+            }
+            try {
+                return formatter.format(sourceValue, context);
+            } catch (RuntimeException e) {
+                log.warn("格式化执行失败: {}", metadata.getFormatterClass().getName(), e);
+                return null;
+            }
+        }
         Map<Object, String> map = bizLabelMap.get(metadata.getResolverClass());
         return map == null ? null : map.get(sourceValue);
+    }
+
+    /**
+     * 从容器注入列表中匹配目标格式化器。
+     */
+    private FieldTextFormatter findFormatter(Class<? extends FieldTextFormatter> formatterClass) {
+        FieldTextFormatter cachedFormatter = formatterCache.get(formatterClass);
+        if (cachedFormatter != null) {
+            return cachedFormatter;
+        }
+        if (missingFormatterClassSet.contains(formatterClass)) {
+            return null;
+        }
+        for (FieldTextFormatter formatter : formatterList) {
+            if (formatterClass.isAssignableFrom(formatter.getClass())) {
+                formatterCache.putIfAbsent(formatterClass, formatter);
+                return formatter;
+            }
+        }
+        if (missingFormatterClassSet.add(formatterClass)) {
+            log.warn("未找到格式化器实现: {}", formatterClass.getName());
+        }
+        return null;
     }
 
     /**

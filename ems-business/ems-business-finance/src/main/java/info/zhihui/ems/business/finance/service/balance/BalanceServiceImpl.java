@@ -5,11 +5,13 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceDeleteDto;
-import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.BalanceDto;
+import info.zhihui.ems.business.finance.dto.BalanceListQueryDto;
+import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.entity.BalanceEntity;
 import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.business.finance.qo.BalanceListQueryQo;
 import info.zhihui.ems.business.finance.qo.BalanceQo;
 import info.zhihui.ems.business.finance.repository.BalanceRepository;
 import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
@@ -18,6 +20,7 @@ import info.zhihui.ems.mq.api.constant.finance.FinanceMqConstant;
 import info.zhihui.ems.mq.api.message.finance.BalanceChangedMessage;
 import info.zhihui.ems.mq.api.service.MqService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,9 @@ import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 账户余额操作接口
@@ -107,22 +113,26 @@ public class BalanceServiceImpl implements BalanceService {
      * @return 账户余额
      */
     @Override
-    public BalanceBo query(BalanceQueryDto queryDto) {
-        BalanceQo qo = new BalanceQo()
-                .setBalanceType(queryDto.getBalanceType().getCode())
-                .setBalanceRelationId(queryDto.getBalanceRelationId());
-        BalanceEntity entity = balanceRepository.balanceQuery(qo);
-
-        if (entity == null) {
+    public BalanceBo getByQuery(@Valid @NotNull BalanceQueryDto queryDto) throws NotFoundException {
+        BalanceBo balanceBo = findFirstByQuery(new BalanceListQueryDto()
+                .setBalanceType(queryDto.getBalanceType())
+                .setBalanceRelationIds(List.of(queryDto.getBalanceRelationId()))
+        );
+        if (balanceBo == null) {
             throw new NotFoundException("查询余额信息失败，余额信息不存在");
         }
+        return balanceBo;
+    }
 
-        return new BalanceBo()
-                .setId(entity.getId())
-                .setBalanceRelationId(entity.getBalanceRelationId())
-                .setBalanceType(CodeEnum.fromCode(entity.getBalanceType(), BalanceTypeEnum.class))
-                .setAccountId(entity.getAccountId())
-                .setBalance(entity.getBalance());
+    /**
+     * 按账户ID批量查询余额明细（仅未删除数据）
+     *
+     * @param accountIds 账户ID列表
+     * @return 余额明细列表
+     */
+    @Override
+    public List<BalanceBo> findListByAccountIds(@NotEmpty List<@NotNull Integer> accountIds) {
+        return findListByQuery(new BalanceListQueryDto().setAccountIds(accountIds));
     }
 
     /**
@@ -188,11 +198,67 @@ public class BalanceServiceImpl implements BalanceService {
         }
     }
 
+    /**
+     * 通用余额明细查询，供单条查询与列表查询复用。
+     */
+    private List<BalanceBo> findListByQuery(BalanceListQueryDto queryDto) {
+        List<Integer> accountIdList = normalizeIdList(queryDto.getAccountIds());
+        List<Integer> balanceRelationIdList = normalizeIdList(queryDto.getBalanceRelationIds());
+        BalanceTypeEnum balanceType = queryDto.getBalanceType();
+
+        if (accountIdList.isEmpty() && balanceRelationIdList.isEmpty() && balanceType == null) {
+            return Collections.emptyList();
+        }
+
+        BalanceListQueryQo queryQo = new BalanceListQueryQo()
+                .setAccountIds(accountIdList)
+                .setBalanceRelationIds(balanceRelationIdList)
+                .setBalanceType(balanceType == null ? null : balanceType.getCode());
+        List<BalanceEntity> entityList = balanceRepository.findListByQuery(queryQo);
+        if (entityList == null || entityList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return entityList.stream()
+                .filter(Objects::nonNull)
+                .map(this::toBalanceBo)
+                .toList();
+    }
+
+    /**
+     * 通用单条余额查询，供强语义查询与事件发布复用。
+     */
+    private BalanceBo findFirstByQuery(BalanceListQueryDto queryDto) {
+        List<BalanceBo> balanceBoList = findListByQuery(queryDto);
+        if (balanceBoList.isEmpty()) {
+            return null;
+        }
+        return balanceBoList.get(0);
+    }
+
+    private List<Integer> normalizeIdList(List<Integer> idList) {
+        if (idList == null || idList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return idList.stream()
+                .distinct()
+                .toList();
+    }
+
+    private BalanceBo toBalanceBo(BalanceEntity entity) {
+        return new BalanceBo()
+                .setId(entity.getId())
+                .setBalanceRelationId(entity.getBalanceRelationId())
+                .setBalanceType(CodeEnum.fromCode(entity.getBalanceType(), BalanceTypeEnum.class))
+                .setAccountId(entity.getAccountId())
+                .setBalance(entity.getBalance());
+    }
+
     private void publishBalanceChangedEvent(BalanceDto balanceDto) {
-        BalanceQo balanceQo = new BalanceQo()
-                .setBalanceRelationId(balanceDto.getBalanceRelationId())
-                .setBalanceType(balanceDto.getBalanceType().getCode());
-        BalanceEntity latest = balanceRepository.balanceQuery(balanceQo);
+        BalanceBo latest = findFirstByQuery(new BalanceListQueryDto()
+                .setBalanceType(balanceDto.getBalanceType())
+                .setBalanceRelationIds(List.of(balanceDto.getBalanceRelationId()))
+        );
         if (latest == null) {
             log.warn("余额信息不存在，余额变动事件未发布：{}", balanceDto);
             return;
