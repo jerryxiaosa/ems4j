@@ -5,6 +5,8 @@ import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.web.account.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -52,6 +54,13 @@ public class AccountDetailVo {
 
     @Schema(description = "包月费用")
     private BigDecimal monthlyPayAmount;
+
+    @Schema(description = "电费余额")
+    private BigDecimal electricBalanceAmount;
+
+    @Schema(description = "电费余额展示值（保留两位小数）")
+    @FormatText(source = "electricBalanceAmount", formatter = MoneyScale2TextFormatter.class)
+    private String electricBalanceAmountText;
 
     @Schema(description = "预警方案ID")
     private Integer warnPlanId;

@@ -2,6 +2,11 @@ package info.zhihui.ems.web.account;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.zhihui.ems.config.satoken.SaWebConfig;
+import info.zhihui.ems.components.translate.engine.TranslateEngine;
+import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
+import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
+import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
+import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
 import info.zhihui.ems.web.account.biz.AccountBiz;
 import info.zhihui.ems.web.account.controller.AccountController;
 import info.zhihui.ems.web.account.vo.*;
@@ -11,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,6 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AccountController.class)
+@Import({
+        ResponseTranslateAdvice.class,
+        TranslateEngine.class,
+        TranslateMetadataCache.class,
+        EnumLabelResolver.class,
+        MoneyScale2TextFormatter.class
+})
 class AccountControllerTest {
 
     @Autowired
@@ -86,19 +99,31 @@ class AccountControllerTest {
     @Test
     @DisplayName("根据ID获取账户详情")
     void testGetAccount() throws Exception {
+        AccountMeterVo meterVo = new AccountMeterVo()
+                .setId(1001)
+                .setMeterName("1号楼电表")
+                .setMeterBalanceAmount(new BigDecimal("345.60"))
+                .setMeterBalanceAmountText("345.60");
         AccountDetailVo vo = new AccountDetailVo()
                 .setId(10)
                 .setOwnerName("账号详情")
+                .setElectricBalanceAmount(new BigDecimal("1200.50"))
                 .setOpenedMeterCount(2)
-                .setTotalOpenableMeterCount(6);
+                .setTotalOpenableMeterCount(6)
+                .setMeterList(List.of(meterVo));
         when(accountBiz.getAccount(10)).thenReturn(vo);
 
         mockMvc.perform(get("/accounts/10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(10))
+                .andExpect(jsonPath("$.data.electricBalanceAmount").value(1200.50))
+                .andExpect(jsonPath("$.data.electricBalanceAmountText").value("1200.50"))
                 .andExpect(jsonPath("$.data.openedMeterCount").value(2))
-                .andExpect(jsonPath("$.data.totalOpenableMeterCount").value(6));
+                .andExpect(jsonPath("$.data.totalOpenableMeterCount").value(6))
+                .andExpect(jsonPath("$.data.meterList[0].id").value(1001))
+                .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmount").value(345.60))
+                .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmountText").value("345.60"));
     }
 
     @Test

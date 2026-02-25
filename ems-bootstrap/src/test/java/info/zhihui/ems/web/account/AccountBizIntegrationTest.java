@@ -7,6 +7,7 @@ import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.account.biz.AccountBiz;
 import info.zhihui.ems.web.account.vo.AccountDetailVo;
+import info.zhihui.ems.web.account.vo.AccountMeterVo;
 import info.zhihui.ems.web.account.vo.AccountQueryVo;
 import info.zhihui.ems.web.account.vo.AccountVo;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -115,8 +117,17 @@ class AccountBizIntegrationTest {
 
         assertNotNull(detailVo);
         assertEquals(accountId, detailVo.getId());
+        BigDecimal expectedAccountElectricBalanceAmount = jdbcTemplate.queryForObject(
+                "select balance from energy_account_balance " +
+                        "where account_id = ? and balance_type = ? and is_deleted = false",
+                BigDecimal.class,
+                accountId,
+                BalanceTypeEnum.ACCOUNT.getCode()
+        );
+        assertNotNull(detailVo.getElectricBalanceAmount());
+        assertEquals(0, expectedAccountElectricBalanceAmount.compareTo(detailVo.getElectricBalanceAmount()));
 
-        List<?> meterList = detailVo.getMeterList();
+        List<AccountMeterVo> meterList = detailVo.getMeterList();
         int actualMeterCount = meterList == null ? 0 : meterList.size();
         int expectedMeterCount = electricMeterInfoService
                 .findList(new ElectricMeterQueryDto().setAccountIds(List.of(accountId)))
@@ -132,6 +143,71 @@ class AccountBizIntegrationTest {
                 accountId
         );
         assertEquals(expectedTotalOpenableMeterCount, detailVo.getTotalOpenableMeterCount());
+
+        assertNotNull(meterList);
+        AccountMeterVo meter1 = meterList.stream()
+                .filter(item -> item != null && Integer.valueOf(1).equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(meter1);
+        assertEquals(Integer.valueOf(1), meter1.getCt());
+        assertEquals("NONE", meter1.getWarnType());
+        assertEquals("无预警", meter1.getWarnTypeName());
+        assertEquals("测试空间2", meter1.getSpaceName());
+        assertNotNull(meter1.getSpaceParentNames());
+        assertNull(meter1.getMeterBalanceAmount());
+        assertNull(meter1.getMeterBalanceAmountText());
+
+        AccountMeterVo meter7 = meterList.stream()
+                .filter(item -> item != null && Integer.valueOf(7).equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(meter7);
+        assertNull(meter7.getSpaceName());
+        assertNull(meter7.getMeterBalanceAmount());
+    }
+
+    @Test
+    @DisplayName("按需账户详情应回填电表余额")
+    void testGetAccount_QuantityAccount_ShouldFillMeterBalanceAmount() {
+        Integer accountId = 3;
+
+        AccountDetailVo detailVo = accountBiz.getAccount(accountId);
+
+        assertNotNull(detailVo);
+        assertEquals(accountId, detailVo.getId());
+        assertEquals(ElectricAccountTypeEnum.QUANTITY.getCode(), detailVo.getElectricAccountType());
+        BigDecimal expectedAccountElectricBalanceAmount = jdbcTemplate.queryForObject(
+                "select coalesce(sum(balance), 0) from energy_account_balance " +
+                        "where account_id = ? and balance_type = ? and is_deleted = false",
+                BigDecimal.class,
+                accountId,
+                BalanceTypeEnum.ELECTRIC_METER.getCode()
+        );
+        assertNotNull(detailVo.getElectricBalanceAmount());
+        assertEquals(0, expectedAccountElectricBalanceAmount.compareTo(detailVo.getElectricBalanceAmount()));
+        assertNotNull(detailVo.getMeterList());
+        assertEquals(1, detailVo.getMeterList().size());
+
+        AccountMeterVo meterVo = detailVo.getMeterList().get(0);
+        assertNotNull(meterVo);
+        assertEquals(Integer.valueOf(3), meterVo.getId());
+        assertEquals(Integer.valueOf(1), meterVo.getCt());
+        assertEquals("测试空间3", meterVo.getSpaceName());
+        assertNotNull(meterVo.getSpaceParentNames());
+
+        BigDecimal expectedMeterBalanceAmount = jdbcTemplate.queryForObject(
+                "select balance from energy_account_balance " +
+                        "where account_id = ? and balance_type = ? and balance_relation_id = ? and is_deleted = false",
+                BigDecimal.class,
+                accountId,
+                BalanceTypeEnum.ELECTRIC_METER.getCode(),
+                meterVo.getId()
+        );
+        assertNotNull(expectedMeterBalanceAmount);
+        assertNotNull(meterVo.getMeterBalanceAmount());
+        assertEquals(0, expectedMeterBalanceAmount.compareTo(meterVo.getMeterBalanceAmount()));
+        assertEquals(expectedMeterBalanceAmount.setScale(2).toPlainString(), meterVo.getMeterBalanceAmountText());
     }
 
     @Test

@@ -10,10 +10,17 @@ import info.zhihui.ems.business.aggregation.service.account.AccountElectricBalan
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
+import info.zhihui.ems.business.finance.bo.BalanceBo;
+import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.components.translate.engine.TranslateEngine;
+import info.zhihui.ems.foundation.space.bo.SpaceBo;
+import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
+import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +47,9 @@ public class AccountBiz {
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
     private final AccountElectricBalanceAggregateService accountElectricBalanceAggregateService;
+    private final SpaceService spaceService;
+    private final BalanceService balanceService;
+    private final TranslateEngine translateEngine;
 
     /**
      * 分页查询账户列表
@@ -72,9 +83,16 @@ public class AccountBiz {
     public AccountDetailVo getAccount(Integer id) {
         AccountBo accountBo = accountInfoService.getById(id);
         AccountDetailVo accountVo = accountWebMapper.toAccountDetailVo(accountBo);
+        List<BalanceBo> quantityBalanceBoList = prefetchQuantityBalanceList(accountBo);
+        fillAccountElectricBalanceAmount(accountBo, accountVo, quantityBalanceBoList);
 
         List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(id)));
-        accountVo.setMeterList(accountWebMapper.toAccountMeterVoList(meterBos));
+        List<AccountMeterVo> meterVoList = accountWebMapper.toAccountMeterVoList(meterBos);
+        fillAccountMeterSpaceInfo(meterVoList);
+        fillAccountMeterBalanceAmount(accountBo, meterVoList, quantityBalanceBoList);
+        // 详情里的 meterList 是嵌套集合，当前响应翻译不会递归处理，这里显式触发一次转换。
+        translateEngine.translate(meterVoList, null);
+        accountVo.setMeterList(meterVoList);
         accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
 
         Map<Integer, Integer> totalOpenableMeterCountMap = accountInfoService.countTotalOpenableMeterByAccountIds(List.of(id));
@@ -226,5 +244,109 @@ public class AccountBiz {
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
+    }
+
+    /**
+     * 填充账户详情中的电费余额（口径与分页一致）。
+     */
+    private void fillAccountElectricBalanceAmount(AccountBo accountBo,
+                                                  AccountDetailVo accountVo,
+                                                  List<BalanceBo> quantityBalanceBoList) {
+        if (accountBo == null || accountVo == null || accountBo.getId() == null) {
+            return;
+        }
+        if (accountBo.getElectricAccountType() == ElectricAccountTypeEnum.QUANTITY) {
+            BigDecimal electricBalanceAmount = (quantityBalanceBoList == null ? Collections.<BalanceBo>emptyList() : quantityBalanceBoList)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .filter(balanceBo -> balanceBo.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)
+                    .map(balanceBo -> Objects.requireNonNullElse(balanceBo.getBalance(), BigDecimal.ZERO))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            accountVo.setElectricBalanceAmount(electricBalanceAmount);
+            return;
+        }
+
+        AccountElectricBalanceAggregateItemDto itemDto = new AccountElectricBalanceAggregateItemDto()
+                .setAccountId(accountBo.getId())
+                .setElectricAccountType(accountBo.getElectricAccountType());
+        Map<Integer, BigDecimal> electricBalanceAmountMap = accountElectricBalanceAggregateService
+                .findElectricBalanceAmountMap(List.of(itemDto));
+        accountVo.setElectricBalanceAmount(electricBalanceAmountMap.getOrDefault(accountBo.getId(), BigDecimal.ZERO));
+    }
+
+    /**
+     * 填充账户详情中的电表空间信息（所在位置、所属区域）。
+     */
+    private void fillAccountMeterSpaceInfo(List<AccountMeterVo> meterVoList) {
+        if (meterVoList == null || meterVoList.isEmpty()) {
+            return;
+        }
+        Set<Integer> spaceIdSet = meterVoList.stream()
+                .filter(Objects::nonNull)
+                .map(AccountMeterVo::getSpaceId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (spaceIdSet.isEmpty()) {
+            return;
+        }
+
+        List<SpaceBo> spaceBoList = spaceService.findSpaceList(new SpaceQueryDto().setIds(spaceIdSet));
+        Map<Integer, SpaceBo> spaceBoMap = spaceBoList.stream()
+                .filter(Objects::nonNull)
+                .filter(spaceBo -> spaceBo.getId() != null)
+                .collect(Collectors.toMap(SpaceBo::getId, spaceBo -> spaceBo, (left, right) -> left));
+
+        for (AccountMeterVo meterVo : meterVoList) {
+            if (meterVo == null || meterVo.getSpaceId() == null) {
+                continue;
+            }
+            SpaceBo spaceBo = spaceBoMap.get(meterVo.getSpaceId());
+            if (spaceBo == null) {
+                continue;
+            }
+            meterVo.setSpaceName(spaceBo.getName());
+            meterVo.setSpaceParentNames(spaceBo.getParentsNames());
+        }
+    }
+
+    /**
+     * 填充账户详情中的电表余额（仅按需计费账户展示电表余额，包月/合并返回null）。
+     */
+    private void fillAccountMeterBalanceAmount(AccountBo accountBo,
+                                               List<AccountMeterVo> meterVoList,
+                                               List<BalanceBo> quantityBalanceBoList) {
+        if (accountBo == null || accountBo.getId() == null || meterVoList == null || meterVoList.isEmpty()) {
+            return;
+        }
+        if (accountBo.getElectricAccountType() != ElectricAccountTypeEnum.QUANTITY) {
+            return;
+        }
+
+        List<BalanceBo> balanceBoList = quantityBalanceBoList == null ? Collections.emptyList() : quantityBalanceBoList;
+        Map<Integer, BigDecimal> meterBalanceAmountMap = balanceBoList.stream()
+                .filter(Objects::nonNull)
+                .filter(balanceBo -> balanceBo.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)
+                .filter(balanceBo -> balanceBo.getBalanceRelationId() != null)
+                .collect(Collectors.toMap(BalanceBo::getBalanceRelationId, BalanceBo::getBalance, (left, right) -> left));
+
+        for (AccountMeterVo meterVo : meterVoList) {
+            if (meterVo == null || meterVo.getId() == null) {
+                continue;
+            }
+            meterVo.setMeterBalanceAmount(meterBalanceAmountMap.get(meterVo.getId()));
+        }
+    }
+
+    /**
+     * 详情仅在按需账户场景预取一次余额明细，供顶层余额和电表余额共用，避免重复查询。
+     */
+    private List<BalanceBo> prefetchQuantityBalanceList(AccountBo accountBo) {
+        if (accountBo == null || accountBo.getId() == null) {
+            return Collections.emptyList();
+        }
+        if (accountBo.getElectricAccountType() != ElectricAccountTypeEnum.QUANTITY) {
+            return Collections.emptyList();
+        }
+        return balanceService.findListByAccountIds(List.of(accountBo.getId()));
     }
 }
