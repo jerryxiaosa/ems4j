@@ -6,6 +6,7 @@ import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.web.account.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -83,5 +84,6 @@ public class AccountDetailVo {
     private Integer totalOpenableMeterCount;
 
     @Schema(description = "账户所属电表列表")
+    @TranslateChild
     private List<AccountMeterVo> meterList;
 }

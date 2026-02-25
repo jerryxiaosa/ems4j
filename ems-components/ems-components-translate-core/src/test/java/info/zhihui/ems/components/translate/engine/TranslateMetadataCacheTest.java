@@ -4,12 +4,14 @@ import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
 import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -197,6 +199,34 @@ class TranslateMetadataCacheTest {
         assertEquals(TestFormatter.class, formatMetadata.getFormatterClass());
     }
 
+    @Test
+    @DisplayName("仅声明递归子字段时也应构建元数据")
+    void testGetMetadata_TranslateChildOnly_ShouldBuildChildFieldMetadata() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(TranslateChildOnlyVo.class);
+
+        assertFalse(metadata.isEmpty());
+        assertTrue(metadata.getFieldList().isEmpty());
+        assertEquals(1, metadata.getChildFieldList().size());
+        assertEquals("children", metadata.getChildFieldList().get(0).getName());
+    }
+
+    @Test
+    @DisplayName("@TranslateChild不支持类型应跳过，仅保留有效字段")
+    void testGetMetadata_TranslateChildUnsupportedType_ShouldSkipInvalidField() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(TranslateChildMixedVo.class);
+
+        assertFalse(metadata.isEmpty());
+        assertTrue(metadata.getFieldList().isEmpty());
+        assertEquals(2, metadata.getChildFieldList().size());
+        assertEquals(Set.of("child", "children"), metadata.getChildFieldList().stream()
+                .map(Field::getName)
+                .collect(java.util.stream.Collectors.toSet()));
+    }
+
     private enum TestStatusEnum implements CodeEnum<Integer> {
         DISABLED(0, "停用"),
         ENABLED(1, "启用");
@@ -301,6 +331,35 @@ class TranslateMetadataCacheTest {
 
         @FormatText(source = "amount", formatter = TestFormatter.class)
         private String amountText;
+    }
+
+    private static class TranslateChildOnlyVo {
+        @TranslateChild
+        private java.util.List<ChildVo> children;
+    }
+
+    private static class TranslateChildMixedVo {
+        @TranslateChild
+        private ChildVo child;
+
+        @TranslateChild
+        private java.util.List<ChildVo> children;
+
+        @TranslateChild
+        private java.util.Map<String, ChildVo> childMap;
+
+        @TranslateChild
+        private String childName;
+
+        @TranslateChild
+        private ChildVo[] childArray;
+
+        @TranslateChild
+        private java.util.Optional<ChildVo> childOptional;
+    }
+
+    private static class ChildVo {
+        private Integer status;
     }
 
     private static class TestFormatter implements FieldTextFormatter {

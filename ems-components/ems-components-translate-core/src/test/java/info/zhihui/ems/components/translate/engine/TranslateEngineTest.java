@@ -5,6 +5,7 @@ import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import info.zhihui.ems.components.translate.annotation.TranslateFallbackEnum;
 import info.zhihui.ems.components.translate.formatter.FieldTextFormatter;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("TranslateEngine测试")
 class TranslateEngineTest {
@@ -68,6 +70,74 @@ class TranslateEngineTest {
         assertEquals("用户-200", item.getUserName());
         assertEquals(1, resolver.invokeCount.get());
         assertNotNull(resolver.latestContext);
+    }
+
+    @Test
+    @DisplayName("应递归转换显式声明的子集合字段")
+    void testTranslate_NestedChildCollection_ShouldTranslateRecursively() {
+        TranslateEngine engine = buildEngine(
+                new EnumLabelResolver(),
+                Collections.emptyList(),
+                List.of(new MoneyScale2TextFormatter())
+        );
+
+        NestedChildItemVo child = new NestedChildItemVo()
+                .setStatus(1)
+                .setAmount(new BigDecimal("45.6"));
+        NestedContainerVo container = new NestedContainerVo().setChildList(List.of(child));
+
+        engine.translate(container, new TranslateContext());
+
+        assertEquals("启用", child.getStatusName());
+        assertEquals("45.60", child.getAmountText());
+    }
+
+    @Test
+    @DisplayName("应递归转换显式声明的子对象字段")
+    void testTranslate_NestedChildObject_ShouldTranslateRecursively() {
+        TranslateEngine engine = buildEngine(new EnumLabelResolver(), Collections.emptyList());
+
+        NestedSingleContainerVo container = new NestedSingleContainerVo()
+                .setChild(new TestVo().setStatus(0).setUserId(1));
+
+        engine.translate(container, new TranslateContext());
+
+        assertEquals("停用", container.getChild().getStatusName());
+    }
+
+    @Test
+    @DisplayName("递归转换遇到循环引用时应跳过重复节点")
+    void testTranslate_RecursiveCycle_ShouldBypassRepeatedNode() {
+        TranslateEngine engine = buildEngine(new EnumLabelResolver(), Collections.emptyList());
+
+        RecursiveNodeVo root = new RecursiveNodeVo().setStatus(1);
+        RecursiveNodeVo child = new RecursiveNodeVo().setStatus(0);
+        root.setChild(child);
+        child.setChild(root);
+
+        assertDoesNotThrow(() -> engine.translate(root, new TranslateContext()));
+        assertEquals("启用", root.getStatusName());
+        assertEquals("停用", child.getStatusName());
+        assertTrue(root != child);
+    }
+
+    @Test
+    @DisplayName("递归层级过深时应跳过超限节点且不抛异常")
+    void testTranslate_RecursiveDepthExceeded_ShouldSkipDeeperNode() {
+        TranslateEngine engine = buildEngine(new EnumLabelResolver(), Collections.emptyList());
+
+        RecursiveNodeVo root = new RecursiveNodeVo().setStatus(1);
+        RecursiveNodeVo currentNode = root;
+        for (int i = 0; i < 32; i++) {
+            RecursiveNodeVo childNode = new RecursiveNodeVo().setStatus(i % 2 == 0 ? 0 : 1);
+            currentNode.setChild(childNode);
+            currentNode = childNode;
+        }
+        RecursiveNodeVo deepestNode = currentNode;
+
+        assertDoesNotThrow(() -> engine.translate(root, new TranslateContext()));
+        assertEquals("启用", root.getStatusName());
+        assertNull(deepestNode.getStatusName());
     }
 
     @Test
@@ -473,6 +543,46 @@ class TranslateEngineTest {
 
         @FormatText(source = "amount", formatter = MoneyScale2TextFormatter.class)
         private String amountText;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class NestedContainerVo {
+        @TranslateChild
+        private List<NestedChildItemVo> childList;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class NestedChildItemVo {
+        private Integer status;
+
+        @EnumLabel(source = "status", enumClass = TestStatusEnum.class)
+        private String statusName;
+
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = MoneyScale2TextFormatter.class)
+        private String amountText;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class NestedSingleContainerVo {
+        @TranslateChild
+        private TestVo child;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class RecursiveNodeVo {
+        private Integer status;
+
+        @EnumLabel(source = "status", enumClass = TestStatusEnum.class)
+        private String statusName;
+
+        @TranslateChild
+        private RecursiveNodeVo child;
     }
 
     @Data

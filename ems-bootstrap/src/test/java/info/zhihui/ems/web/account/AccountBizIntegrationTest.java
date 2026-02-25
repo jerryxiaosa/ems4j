@@ -152,7 +152,7 @@ class AccountBizIntegrationTest {
         assertNotNull(meter1);
         assertEquals(Integer.valueOf(1), meter1.getCt());
         assertEquals("NONE", meter1.getWarnType());
-        assertEquals("无预警", meter1.getWarnTypeName());
+        assertNull(meter1.getWarnTypeName());
         assertEquals("测试空间2", meter1.getSpaceName());
         assertNotNull(meter1.getSpaceParentNames());
         assertNull(meter1.getMeterBalanceAmount());
@@ -207,7 +207,7 @@ class AccountBizIntegrationTest {
         assertNotNull(expectedMeterBalanceAmount);
         assertNotNull(meterVo.getMeterBalanceAmount());
         assertEquals(0, expectedMeterBalanceAmount.compareTo(meterVo.getMeterBalanceAmount()));
-        assertEquals(expectedMeterBalanceAmount.setScale(2).toPlainString(), meterVo.getMeterBalanceAmountText());
+        assertNull(meterVo.getMeterBalanceAmountText());
     }
 
     @Test

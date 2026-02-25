@@ -2,6 +2,7 @@ package info.zhihui.ems.components.translate.engine;
 
 import lombok.Getter;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,18 +16,25 @@ import java.util.List;
 @Getter
 class TranslateMetadata {
 
-    static final TranslateMetadata EMPTY = new TranslateMetadata(Collections.emptyList());
+    static final TranslateMetadata EMPTY = new TranslateMetadata(Collections.emptyList(), Collections.emptyList());
 
     private final List<TranslateFieldMetadata> fieldList;
 
-    TranslateMetadata(List<TranslateFieldMetadata> fieldList) {
+    /**
+     * 显式声明递归转换入口的子字段列表（如 meterList）。
+     */
+    private final List<Field> childFieldList;
+
+    TranslateMetadata(List<TranslateFieldMetadata> fieldList, List<Field> childFieldList) {
         this.fieldList = fieldList;
+        this.childFieldList = childFieldList;
     }
 
     /**
-     * 当前对象类型是否没有可执行的转换字段。
+     * 当前对象类型是否没有可执行的转换配置（字段转换 + 递归子字段）。
      */
     boolean isEmpty() {
-        return fieldList == null || fieldList.isEmpty();
+        return (fieldList == null || fieldList.isEmpty())
+                && (childFieldList == null || childFieldList.isEmpty());
     }
 }
