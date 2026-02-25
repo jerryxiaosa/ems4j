@@ -251,6 +251,51 @@ class TranslateEngineTest {
         engine.translate(vo, new TranslateContext());
 
         assertEquals("12.30", vo.getAmountText());
+
+        MoneyFormatVo anotherVo = new MoneyFormatVo().setAmount(new BigDecimal("8"));
+        engine.translate(anotherVo, new TranslateContext());
+
+        assertEquals("8.00", anotherVo.getAmountText());
+    }
+
+    @Test
+    @DisplayName("未注册格式化器时应按固定文案回退并支持重复调用")
+    void testTranslate_MissingFormatter_ShouldUseFixedTextFallback() {
+        TranslateEngine engine = buildEngine(new EnumLabelResolver(), Collections.emptyList(), Collections.emptyList());
+
+        MissingFormatterVo firstVo = new MissingFormatterVo().setAmount(new BigDecimal("12.3"));
+        engine.translate(firstVo, new TranslateContext());
+        assertEquals("金额异常", firstVo.getAmountText());
+
+        MissingFormatterVo secondVo = new MissingFormatterVo().setAmount(new BigDecimal("5"));
+        engine.translate(secondVo, new TranslateContext());
+        assertEquals("金额异常", secondVo.getAmountText());
+    }
+
+    @Test
+    @DisplayName("格式化器抛出异常时应按固定文案回退")
+    void testTranslate_FormatterThrows_ShouldUseFixedTextFallback() {
+        TranslateEngine engine = buildEngine(
+                new EnumLabelResolver(),
+                Collections.emptyList(),
+                List.of(new ThrowingTextFormatter())
+        );
+
+        ThrowingFormatterVo vo = new ThrowingFormatterVo().setAmount(new BigDecimal("10"));
+        engine.translate(vo, new TranslateContext());
+
+        assertEquals("格式化失败", vo.getAmountText());
+    }
+
+    @Test
+    @DisplayName("业务解析器返回非字符串值时应转换为字符串")
+    void testTranslate_BizResolverReturnNonStringValue_ShouldConvertToString() {
+        TranslateEngine engine = buildEngine(new EnumLabelResolver(), List.of(new NumberValueUserResolver()));
+
+        NumberValueResolverVo vo = new NumberValueResolverVo().setUserId(66);
+        engine.translate(vo, new TranslateContext());
+
+        assertEquals("1066", vo.getUserName());
     }
 
     private TranslateEngine buildEngine(EnumLabelResolver enumLabelResolver, List<BatchLabelResolver<?>> resolverList) {
@@ -430,6 +475,35 @@ class TranslateEngineTest {
         private String amountText;
     }
 
+    @Data
+    @Accessors(chain = true)
+    private static class MissingFormatterVo {
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = MissingTextFormatter.class,
+                fallback = TranslateFallbackEnum.FIXED_TEXT, fallbackText = "金额异常")
+        private String amountText;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class ThrowingFormatterVo {
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = ThrowingTextFormatter.class,
+                fallback = TranslateFallbackEnum.FIXED_TEXT, fallbackText = "格式化失败")
+        private String amountText;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    private static class NumberValueResolverVo {
+        private Integer userId;
+
+        @BizLabel(source = "userId", resolver = NumberValueUserResolver.class)
+        private String userName;
+    }
+
     private static class TestUserResolver implements BatchLabelResolver<Integer> {
         private final AtomicInteger invokeCount = new AtomicInteger(0);
         private Set<Integer> latestKeys = Collections.emptySet();
@@ -480,12 +554,38 @@ class TranslateEngineTest {
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static class NumberValueUserResolver implements BatchLabelResolver<Integer> {
+        @Override
+        public Map<Integer, String> resolveBatch(Set<Integer> keys, TranslateContext context) {
+            Map rawResult = new HashMap();
+            for (Integer key : keys) {
+                rawResult.put(key, key + 1000);
+            }
+            return (Map<Integer, String>) rawResult;
+        }
+    }
+
     private static class NullEnumLabelResolver extends EnumLabelResolver {
         @Override
         public Map<Object, String> resolveBatch(Set<Object> keys,
                                                 Class<? extends Enum<?>> enumClass,
                                                 TranslateContext context) {
             return null;
+        }
+    }
+
+    private static class MissingTextFormatter implements FieldTextFormatter {
+        @Override
+        public String format(Object sourceValue, TranslateContext context) {
+            return "不会被调用";
+        }
+    }
+
+    private static class ThrowingTextFormatter implements FieldTextFormatter {
+        @Override
+        public String format(Object sourceValue, TranslateContext context) {
+            throw new IllegalStateException("mock formatter error");
         }
     }
 }
