@@ -2,7 +2,7 @@
 
 ## 1. 模块概述
 
-`ems-business` 是业务服务层，提供能源管理系统的核心业务能力，包括设备管理、账户管理、财务核算、计费方案等功能。
+`ems-business` 是业务服务层，提供能源管理系统的核心业务能力，包括设备管理、账户管理、财务核算、计费方案，以及跨业务查询聚合能力等功能。
 
 ## 2. 子模块列表
 
@@ -12,6 +12,7 @@
 | [ems-business-account](ems-business-account.md) | 开户、销户、余额、充值 |
 | [ems-business-finance](ems-business-finance.md) | 账单生成、财务流水、订单 |
 | [ems-business-plan](ems-business-plan.md) | 计费方案、费率、尖峰平谷时段 |
+| [ems-business-aggregation](ems-business-aggregation.md) | 跨业务读聚合、查询拼装、必要时的只读 join 查询 |
 
 ## 3. 模块依赖关系
 
@@ -77,6 +78,16 @@
               +---> ems-foundation-system
 ```
 
+### 3.5 ems-business-aggregation
+
+```
++----------------------------------+
+|    ems-business-aggregation      |
++----------------------------------+
+                 |
+                 +---> ems-business-finance
+```
+
 ## 4. 各模块核心 Service
 
 | 模块 | Service | 职责 |
@@ -93,5 +104,4 @@
 | finance | AccountConsumeService | 账户消费汇总 |
 | plan | ElectricPricePlanService | 电价方案管理 |
 | plan | WarnPlanService | 预警方案管理 |
-
-
+| aggregation | AccountElectricBalanceAggregateService | 账户列表展示电费余额聚合 |
