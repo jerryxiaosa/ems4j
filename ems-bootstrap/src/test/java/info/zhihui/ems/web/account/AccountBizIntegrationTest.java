@@ -84,6 +84,29 @@ class AccountBizIntegrationTest {
     }
 
     @Test
+    @DisplayName("分页查询遇到无法识别的账户计费类型时应降级返回0余额而不是报错")
+    void testFindAccountPage_WithUnknownElectricAccountType_ShouldFallbackZeroBalance() {
+        Integer accountId = 1;
+        Integer updateRows = jdbcTemplate.update(
+                "update energy_account set electric_account_type = ? where id = ? and is_deleted = false",
+                99,
+                accountId
+        );
+        assertEquals(1, updateRows);
+
+        PageResult<AccountVo> pageResult = accountBiz.findAccountPage(new AccountQueryVo(), 1, 10);
+
+        assertNotNull(pageResult);
+        assertNotNull(pageResult.getList());
+        AccountVo targetAccountVo = pageResult.getList().stream()
+                .filter(item -> item != null && accountId.equals(item.getId()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(targetAccountVo);
+        assertEquals(0, BigDecimal.ZERO.compareTo(targetAccountVo.getElectricBalanceAmount()));
+    }
+
+    @Test
     @DisplayName("账户详情应返回对应账户的电表列表")
     void testGetAccount_ExistingAccount_ShouldContainMeterList() {
         Integer accountId = 1;

@@ -62,6 +62,28 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("分页查询账户列表应返回降级后的0余额")
+    void testFindAccountPage_WithZeroElectricBalanceAmount() throws Exception {
+        AccountVo vo = new AccountVo()
+                .setId(1)
+                .setOwnerName("企业A")
+                .setElectricBalanceAmount(new BigDecimal("0.00"))
+                .setElectricBalanceAmountText("0.00");
+        PageResult<AccountVo> pageResult = new PageResult<AccountVo>()
+                .setList(List.of(vo))
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L);
+        when(accountBiz.findAccountPage(any(), eq(1), eq(10))).thenReturn(pageResult);
+
+        mockMvc.perform(get("/accounts/page").param("pageNum", "1").param("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.list[0].electricBalanceAmount").value(0.0))
+                .andExpect(jsonPath("$.data.list[0].electricBalanceAmountText").value("0.00"));
+    }
+
+    @Test
     @DisplayName("根据ID获取账户详情")
     void testGetAccount() throws Exception {
         AccountDetailVo vo = new AccountDetailVo()
