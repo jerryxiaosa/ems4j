@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 public class TranslateEngine {
 
+    private static final int MAX_RECURSION_DEPTH = 8;
+
     private final TranslateMetadataCache metadataCache;
     private final EnumLabelResolver enumLabelResolver;
     private final List<BatchLabelResolver<?>> resolverList;
@@ -38,7 +40,7 @@ public class TranslateEngine {
      * 对任意对象执行展示字段转换
      * <p>
      * 总流程：
-     * 1) 拉平数据结构（单对象/集合/分页）。
+     * 1) 遍历对象图（单对象/集合/分页 + 显式声明的子字段递归）。
      * 2) 构建待处理任务与批量key。
      * 3) 按枚举与业务resolver分别批量解析。
      * 4) 回填目标字段。
@@ -49,7 +51,7 @@ public class TranslateEngine {
         }
 
         TranslateContext useContext = context == null ? new TranslateContext() : context;
-        List<Object> targetList = flatten(data);
+        List<Object> targetList = collectTranslateTargetList(data);
         if (targetList.isEmpty()) {
             return;
         }
@@ -70,22 +72,60 @@ public class TranslateEngine {
     }
 
     /**
-     * 将返回体统一拉平成对象列表，便于后续同一流程处理。
+     * 遍历返回体对象图，收集所有需要参与转换扫描的对象。
+     * <p>
+     * 递归边界：
+     * 1. 顶层支持单对象、集合、分页列表。
+     * 2. 子节点仅递归显式声明了 @TranslateChild 的字段。
+     * 3. 使用对象身份去重，避免循环引用导致死循环。
      */
-    private List<Object> flatten(Object data) {
-        if (data instanceof PageResult<?> pageResult) {
-            if (pageResult.getList() == null || pageResult.getList().isEmpty()) {
-                return Collections.emptyList();
-            }
-            return new ArrayList<>(pageResult.getList());
+    private List<Object> collectTranslateTargetList(Object data) {
+        List<Object> result = new ArrayList<>();
+        Set<Object> visitedObjectSet = Collections.newSetFromMap(new IdentityHashMap<>());
+        traverseTranslateTarget(data, result, visitedObjectSet, 0);
+        return result;
+    }
+
+    private void traverseTranslateTarget(Object node,
+                                         List<Object> targetList,
+                                         Set<Object> visitedObjectSet,
+                                         int depth) {
+        if (node == null) {
+            return;
         }
-        if (data instanceof Collection<?> collection) {
-            if (collection.isEmpty()) {
-                return Collections.emptyList();
-            }
-            return new ArrayList<>(collection);
+        if (depth > MAX_RECURSION_DEPTH) {
+            log.warn("响应转换递归深度超过限制，已跳过后续节点。nodeType={}, maxDepth={}",
+                    node.getClass().getName(), MAX_RECURSION_DEPTH);
+            return;
         }
-        return Collections.singletonList(data);
+        if (!visitedObjectSet.add(node)) {
+            return;
+        }
+
+        if (node instanceof PageResult<?> pageResult) {
+            traverseTranslateTarget(pageResult.getList(), targetList, visitedObjectSet, depth + 1);
+            return;
+        }
+        if (node instanceof Collection<?> collection) {
+            for (Object item : collection) {
+                traverseTranslateTarget(item, targetList, visitedObjectSet, depth + 1);
+            }
+            return;
+        }
+
+        targetList.add(node);
+
+        TranslateMetadata metadata = metadataCache.getMetadata(node.getClass());
+        if (metadata.isEmpty() || metadata.getChildFieldList().isEmpty()) {
+            return;
+        }
+        for (Field childField : metadata.getChildFieldList()) {
+            Object childValue = getFieldValue(childField, node);
+            if (childValue == null) {
+                continue;
+            }
+            traverseTranslateTarget(childValue, targetList, visitedObjectSet, depth + 1);
+        }
     }
 
     /**

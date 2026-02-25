@@ -17,7 +17,6 @@ import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
-import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
 import info.zhihui.ems.foundation.space.service.SpaceService;
@@ -49,7 +48,6 @@ public class AccountBiz {
     private final AccountElectricBalanceAggregateService accountElectricBalanceAggregateService;
     private final SpaceService spaceService;
     private final BalanceService balanceService;
-    private final TranslateEngine translateEngine;
 
     /**
      * 分页查询账户列表
@@ -90,8 +88,6 @@ public class AccountBiz {
         List<AccountMeterVo> meterVoList = accountWebMapper.toAccountMeterVoList(meterBos);
         fillAccountMeterSpaceInfo(meterVoList);
         fillAccountMeterBalanceAmount(accountBo, meterVoList, quantityBalanceBoList);
-        // 详情里的 meterList 是嵌套集合，当前响应翻译不会递归处理，这里显式触发一次转换。
-        translateEngine.translate(meterVoList, null);
         accountVo.setMeterList(meterVoList);
         accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
 

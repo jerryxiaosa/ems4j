@@ -1,8 +1,10 @@
 package info.zhihui.ems.components.translate.engine;
 
+import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +41,10 @@ public class TranslateMetadataCache {
      * 扫描类字段并生成转换元信息。
      * <p>
      * 规则：
-     * 1. 仅处理声明了 @EnumLabel / @BizLabel / @FormatText 的目标字段。
-     * 2. 同一字段同时声明多个转换注解时跳过并告警。
-     * 3. 找不到 source 字段时跳过并告警。
+     * 1. 处理声明了 @EnumLabel / @BizLabel / @FormatText 的目标字段。
+     * 2. 处理声明了 @TranslateChild 的递归子字段。
+     * 3. 同一字段同时声明多个转换注解时跳过并告警。
+     * 4. 找不到 source 字段时跳过并告警。
      */
     private TranslateMetadata buildMetadata(Class<?> clazz) {
         List<Field> fieldList = collectFieldList(clazz);
@@ -55,10 +58,22 @@ public class TranslateMetadataCache {
         }
 
         List<TranslateFieldMetadata> result = new ArrayList<>();
+        List<Field> childFieldList = new ArrayList<>();
         for (Field targetField : fieldList) {
             // 静态字段不参与实例对象的响应转换
             if (Modifier.isStatic(targetField.getModifiers())) {
                 continue;
+            }
+
+            TranslateChild translateChild = targetField.getAnnotation(TranslateChild.class);
+            if (translateChild != null) {
+                if (isSupportedTranslateChildFieldType(targetField.getType())) {
+                    targetField.setAccessible(true);
+                    childFieldList.add(targetField);
+                } else {
+                    log.warn("@TranslateChild字段{}类型不受支持，仅支持普通对象/Collection/PageResult，已跳过。type={}",
+                            buildFieldName(clazz, targetField), targetField.getType().getName());
+                }
             }
 
             EnumLabel enumLabel = targetField.getAnnotation(EnumLabel.class);
@@ -131,11 +146,14 @@ public class TranslateMetadataCache {
             ));
         }
 
-        if (result.isEmpty()) {
+        if (result.isEmpty() && childFieldList.isEmpty()) {
             return TranslateMetadata.EMPTY;
         }
 
-        return new TranslateMetadata(Collections.unmodifiableList(result));
+        return new TranslateMetadata(
+                Collections.unmodifiableList(result),
+                Collections.unmodifiableList(childFieldList)
+        );
     }
 
     /**
@@ -153,5 +171,32 @@ public class TranslateMetadataCache {
 
     private String buildFieldName(Class<?> clazz, Field field) {
         return clazz.getName() + "." + field.getName();
+    }
+
+    /**
+     * @TranslateChild 仅允许递归对象/集合/分页容器，避免误标简单值或复杂容器产生“看似生效、实际无效”的隐式行为。
+     */
+    private boolean isSupportedTranslateChildFieldType(Class<?> fieldType) {
+        if (fieldType == null) {
+            return false;
+        }
+        if (fieldType.isPrimitive() || fieldType.isArray() || fieldType.isEnum()) {
+            return false;
+        }
+        if (Map.class.isAssignableFrom(fieldType) || Optional.class.isAssignableFrom(fieldType)) {
+            return false;
+        }
+        if (PageResult.class.isAssignableFrom(fieldType) || Collection.class.isAssignableFrom(fieldType)) {
+            return true;
+        }
+        return !isSimpleValueType(fieldType);
+    }
+
+    private boolean isSimpleValueType(Class<?> fieldType) {
+        return CharSequence.class.isAssignableFrom(fieldType)
+                || Number.class.isAssignableFrom(fieldType)
+                || Boolean.class == fieldType
+                || Character.class == fieldType
+                || Class.class == fieldType;
     }
 }

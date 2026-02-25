@@ -102,8 +102,8 @@ class AccountControllerTest {
         AccountMeterVo meterVo = new AccountMeterVo()
                 .setId(1001)
                 .setMeterName("1号楼电表")
-                .setMeterBalanceAmount(new BigDecimal("345.60"))
-                .setMeterBalanceAmountText("345.60");
+                .setWarnType("NONE")
+                .setMeterBalanceAmount(new BigDecimal("345.60"));
         AccountDetailVo vo = new AccountDetailVo()
                 .setId(10)
                 .setOwnerName("账号详情")
@@ -122,6 +122,7 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.data.openedMeterCount").value(2))
                 .andExpect(jsonPath("$.data.totalOpenableMeterCount").value(6))
                 .andExpect(jsonPath("$.data.meterList[0].id").value(1001))
+                .andExpect(jsonPath("$.data.meterList[0].warnTypeName").value("无预警"))
                 .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmount").value(345.60))
                 .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmountText").value("345.60"));
     }
