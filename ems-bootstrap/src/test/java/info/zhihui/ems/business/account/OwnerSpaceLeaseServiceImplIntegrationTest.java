@@ -1,8 +1,9 @@
 package info.zhihui.ems.business.account;
 
-import info.zhihui.ems.business.account.dto.AccountSpaceRentDto;
-import info.zhihui.ems.business.account.dto.AccountSpaceUnrentDto;
-import info.zhihui.ems.business.account.service.AccountSpaceLeaseService;
+import info.zhihui.ems.business.account.dto.OwnerSpaceRentDto;
+import info.zhihui.ems.business.account.dto.OwnerSpaceUnrentDto;
+import info.zhihui.ems.business.account.service.OwnerSpaceLeaseService;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
@@ -22,15 +23,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * AccountSpaceLeaseService 集成测试
+ * OwnerSpaceLeaseService 集成测试
  */
 @SpringBootTest
 @ActiveProfiles("integrationtest")
 @Transactional
-class AccountSpaceLeaseServiceImplIntegrationTest {
+class OwnerSpaceLeaseServiceImplIntegrationTest {
 
     @Autowired
-    private AccountSpaceLeaseService accountSpaceLeaseService;
+    private OwnerSpaceLeaseService ownerSpaceLeaseService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -43,11 +44,12 @@ class AccountSpaceLeaseServiceImplIntegrationTest {
     @Test
     @DisplayName("参数校验：spaceIds为空时抛出约束异常")
     void testRentSpaces_Validation_EmptySpaceIds() {
-        AccountSpaceRentDto rentDto = new AccountSpaceRentDto()
-                .setAccountId(2)
+        OwnerSpaceRentDto rentDto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.PERSONAL)
+                .setOwnerId(1002)
                 .setSpaceIds(Collections.emptyList());
 
-        assertThrows(ConstraintViolationException.class, () -> accountSpaceLeaseService.rentSpaces(rentDto));
+        assertThrows(ConstraintViolationException.class, () -> ownerSpaceLeaseService.rentSpaces(rentDto));
     }
 
     @Test
@@ -55,13 +57,14 @@ class AccountSpaceLeaseServiceImplIntegrationTest {
     void testRentSpaces_Success() {
         RequestContextSetter.doSet(1, new UserRequestData("测试用户", "13800000001"));
 
-        AccountSpaceRentDto rentDto = new AccountSpaceRentDto()
-                .setAccountId(2)
+        OwnerSpaceRentDto rentDto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.PERSONAL)
+                .setOwnerId(1002)
                 .setSpaceIds(List.of(1));
 
-        accountSpaceLeaseService.rentSpaces(rentDto);
+        ownerSpaceLeaseService.rentSpaces(rentDto);
 
-        assertEquals(1, countAccountSpaceRel(2, 1));
+        assertEquals(1, countOwnerSpaceRel(OwnerTypeEnum.PERSONAL.getCode(), 1002, 1));
     }
 
     @Test
@@ -69,15 +72,16 @@ class AccountSpaceLeaseServiceImplIntegrationTest {
     void testRentSpaces_Conflict() {
         RequestContextSetter.doSet(1, new UserRequestData("测试用户", "13800000001"));
 
-        AccountSpaceRentDto rentDto = new AccountSpaceRentDto()
-                .setAccountId(2)
+        OwnerSpaceRentDto rentDto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.PERSONAL)
+                .setOwnerId(1002)
                 .setSpaceIds(List.of(101));
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> accountSpaceLeaseService.rentSpaces(rentDto));
+                () -> ownerSpaceLeaseService.rentSpaces(rentDto));
 
-        assertTrue(exception.getMessage().contains("空间已被其他账户租赁"));
-        assertEquals(0, countAccountSpaceRel(2, 101));
+        assertTrue(exception.getMessage().contains("空间已被其他主体租赁"));
+        assertEquals(0, countOwnerSpaceRel(OwnerTypeEnum.PERSONAL.getCode(), 1002, 101));
     }
 
     @Test
@@ -85,38 +89,42 @@ class AccountSpaceLeaseServiceImplIntegrationTest {
     void testUnrentSpaces_BlockedByMeter() {
         RequestContextSetter.doSet(1, new UserRequestData("测试用户", "13800000001"));
 
-        AccountSpaceUnrentDto unrentDto = new AccountSpaceUnrentDto()
-                .setAccountId(1)
+        OwnerSpaceUnrentDto unrentDto = new OwnerSpaceUnrentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101));
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> accountSpaceLeaseService.unrentSpaces(unrentDto));
+                () -> ownerSpaceLeaseService.unrentSpaces(unrentDto));
 
         assertTrue(exception.getMessage().contains("空间下存在已开户电表"));
-        assertEquals(1, countAccountSpaceRel(1, 101));
+        assertEquals(1, countOwnerSpaceRel(OwnerTypeEnum.ENTERPRISE.getCode(), 1001, 101));
     }
 
     @Test
     @DisplayName("退租空间成功")
     void testUnrentSpaces_Success() {
         RequestContextSetter.doSet(1, new UserRequestData("测试用户", "13800000001"));
-        jdbcTemplate.update("insert into energy_account_space_rel(account_id, space_id) values (?, ?)", 2, 1);
-        assertEquals(1, countAccountSpaceRel(2, 1));
+        jdbcTemplate.update("insert into energy_owner_space_rel(owner_type, owner_id, space_id) values (?, ?, ?)",
+                OwnerTypeEnum.PERSONAL.getCode(), 1002, 1);
+        assertEquals(1, countOwnerSpaceRel(OwnerTypeEnum.PERSONAL.getCode(), 1002, 1));
 
-        AccountSpaceUnrentDto unrentDto = new AccountSpaceUnrentDto()
-                .setAccountId(2)
+        OwnerSpaceUnrentDto unrentDto = new OwnerSpaceUnrentDto()
+                .setOwnerType(OwnerTypeEnum.PERSONAL)
+                .setOwnerId(1002)
                 .setSpaceIds(List.of(1));
 
-        accountSpaceLeaseService.unrentSpaces(unrentDto);
+        ownerSpaceLeaseService.unrentSpaces(unrentDto);
 
-        assertEquals(0, countAccountSpaceRel(2, 1));
+        assertEquals(0, countOwnerSpaceRel(OwnerTypeEnum.PERSONAL.getCode(), 1002, 1));
     }
 
-    private Integer countAccountSpaceRel(Integer accountId, Integer spaceId) {
+    private Integer countOwnerSpaceRel(Integer ownerType, Integer ownerId, Integer spaceId) {
         return jdbcTemplate.queryForObject(
-                "select count(1) from energy_account_space_rel where account_id = ? and space_id = ?",
+                "select count(1) from energy_owner_space_rel where owner_type = ? and owner_id = ? and space_id = ?",
                 Integer.class,
-                accountId,
+                ownerType,
+                ownerId,
                 spaceId
         );
     }

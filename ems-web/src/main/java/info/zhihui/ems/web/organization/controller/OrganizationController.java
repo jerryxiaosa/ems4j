@@ -6,6 +6,8 @@ import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.web.organization.biz.OrganizationBiz;
 import info.zhihui.ems.web.organization.vo.OrganizationCreateVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionQueryVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionVo;
 import info.zhihui.ems.web.organization.vo.OrganizationQueryVo;
 import info.zhihui.ems.web.organization.vo.OrganizationUpdateVo;
 import info.zhihui.ems.web.organization.vo.OrganizationVo;
@@ -47,6 +49,14 @@ public class OrganizationController {
     @Operation(summary = "查询组织列表")
     public RestResult<List<OrganizationVo>> findOrganizationList(@Valid @ModelAttribute OrganizationQueryVo queryVo) {
         List<OrganizationVo> list = organizationBiz.findOrganizationList(queryVo);
+        return ResultUtil.success(list);
+    }
+
+    @SaCheckPermission("organizations:organizations:list")
+    @GetMapping("/options")
+    @Operation(summary = "查询组织下拉列表")
+    public RestResult<List<OrganizationOptionVo>> findOrganizationOptionList(@Valid @ModelAttribute OrganizationOptionQueryVo queryVo) {
+        List<OrganizationOptionVo> list = organizationBiz.findOrganizationOptionList(queryVo);
         return ResultUtil.success(list);
     }
 

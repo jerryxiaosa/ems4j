@@ -4,7 +4,7 @@ import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.*;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.account.service.AccountManagerService;
-import info.zhihui.ems.business.account.service.AccountSpaceLeaseService;
+import info.zhihui.ems.business.account.service.AccountOpenableMeterService;
 import info.zhihui.ems.business.aggregation.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.aggregation.service.account.AccountElectricBalanceAggregateService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
@@ -42,7 +42,7 @@ public class AccountBiz {
 
     private final AccountInfoService accountInfoService;
     private final AccountManagerService accountManagerService;
-    private final AccountSpaceLeaseService accountSpaceLeaseService;
+    private final AccountOpenableMeterService accountOpenableMeterService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
     private final AccountElectricBalanceAggregateService accountElectricBalanceAggregateService;
@@ -58,19 +58,20 @@ public class AccountBiz {
                 .setPageSize(Objects.requireNonNullElse(pageSize, 10));
 
         AccountQueryDto queryDto = accountWebMapper.toAccountQueryDto(queryVo);
-
-        PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountInfoService.findPage(queryDto, pageParam));
+        PageResult<AccountBo> accountBoPage = accountInfoService.findPage(queryDto, pageParam);
+        PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountBoPage);
         List<AccountVo> accountVoList = pageResult.getList();
         if (accountVoList == null || accountVoList.isEmpty()) {
             return pageResult;
         }
+        List<AccountBo> accountBoList = accountBoPage.getList();
         List<Integer> accountIdList = extractAccountIdList(accountVoList);
         if (accountIdList.isEmpty()) {
             return pageResult;
         }
 
         fillOpenedMeterCount(accountVoList, accountIdList);
-        fillTotalOpenableMeterCount(accountVoList, accountIdList);
+        fillTotalOpenableMeterCount(accountVoList, accountBoList);
         fillElectricBalanceAmount(accountVoList);
         return pageResult;
     }
@@ -91,7 +92,9 @@ public class AccountBiz {
         accountVo.setMeterList(meterVoList);
         accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
 
-        Map<Integer, Integer> totalOpenableMeterCountMap = accountInfoService.countTotalOpenableMeterByAccountIds(List.of(id));
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountOpenableMeterService.countTotalOpenableMeterByAccountOwnerInfoList(
+                List.of(toAccountOwnerInfoDto(accountBo))
+        );
         accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(id, 0));
         return accountVo;
     }
@@ -135,24 +138,6 @@ public class AccountBiz {
     }
 
     /**
-     * 租赁空间
-     */
-    public void rentSpaces(Integer accountId, AccountSpaceRentVo accountSpaceRentVo) {
-        AccountSpaceRentDto dto = accountWebMapper.toAccountSpaceRentDto(accountSpaceRentVo);
-        dto.setAccountId(accountId);
-        accountSpaceLeaseService.rentSpaces(dto);
-    }
-
-    /**
-     * 退租空间
-     */
-    public void unrentSpaces(Integer accountId, AccountSpaceUnrentVo accountSpaceUnrentVo) {
-        AccountSpaceUnrentDto dto = accountWebMapper.toAccountSpaceUnrentDto(accountSpaceUnrentVo);
-        dto.setAccountId(accountId);
-        accountSpaceLeaseService.unrentSpaces(dto);
-    }
-
-    /**
      * 更新账户配置
      */
     public void updateAccountConfig(Integer accountId, AccountConfigUpdateVo accountConfigUpdateVo) {
@@ -192,8 +177,18 @@ public class AccountBiz {
     /**
      * 填充账户可开户电表总数（租赁空间内电表数）
      */
-    private void fillTotalOpenableMeterCount(List<AccountVo> accountVoList, List<Integer> accountIdList) {
-        Map<Integer, Integer> totalOpenableMeterCountMap = accountInfoService.countTotalOpenableMeterByAccountIds(accountIdList);
+    private void fillTotalOpenableMeterCount(List<AccountVo> accountVoList, List<AccountBo> accountBoList) {
+        List<AccountOwnerInfoDto> accountOwnerInfoDtoList = toAccountOwnerInfoDtoList(accountBoList);
+        if (accountOwnerInfoDtoList.isEmpty()) {
+            for (AccountVo accountVo : accountVoList) {
+                if (accountVo != null && accountVo.getId() != null) {
+                    accountVo.setTotalOpenableMeterCount(0);
+                }
+            }
+            return;
+        }
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountOpenableMeterService
+                .countTotalOpenableMeterByAccountOwnerInfoList(accountOwnerInfoDtoList);
         for (AccountVo accountVo : accountVoList) {
             if (accountVo != null && accountVo.getId() != null) {
                 accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(accountVo.getId(), 0));
@@ -240,6 +235,30 @@ public class AccountBiz {
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
+    }
+
+    /**
+     * 提取账户归属主体信息（用于可开户电表统计，避免重复查询账户）。
+     */
+    private List<AccountOwnerInfoDto> toAccountOwnerInfoDtoList(List<AccountBo> accountBoList) {
+        if (accountBoList == null || accountBoList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return accountBoList.stream()
+                .filter(Objects::nonNull)
+                .map(this::toAccountOwnerInfoDto)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private AccountOwnerInfoDto toAccountOwnerInfoDto(AccountBo accountBo) {
+        if (accountBo == null || accountBo.getId() == null) {
+            return null;
+        }
+        return new AccountOwnerInfoDto()
+                .setAccountId(accountBo.getId())
+                .setOwnerType(accountBo.getOwnerType())
+                .setOwnerId(accountBo.getOwnerId());
     }
 
     /**

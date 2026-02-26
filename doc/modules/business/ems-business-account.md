@@ -142,7 +142,7 @@
 | 3 | 按归属名称模糊查询 | 当 `ownerNameLike` 有值时，直接按 `energy_account.owner_name like` 过滤 | 无命中时返回空分页 |
 | 4 | 执行分页查询 | 调用 `AccountInfoService.findPage` 查询账户数据 | 下游异常透传业务异常 |
 | 5 | 批量填充已开户电表数 | 基于账户ID集合一次性查询电表列表并分组统计 `openedMeterCount` | 空列表直接跳过填充 |
-| 6 | 批量填充可开户电表总数 | 调用 `AccountInfoService.countTotalOpenableMeterByAccountIds` 一次性回填 `totalOpenableMeterCount` | 空列表直接跳过填充 |
+| 6 | 批量填充可开户电表总数 | 调用 `AccountOpenableMeterService.countTotalOpenableMeterByAccountOwnerInfoList` 一次性回填 `totalOpenableMeterCount`（分页链路复用已查询账户归属信息，避免账户查询 N+1） | 空列表直接跳过填充 |
 
 ## 6. 账户查询参数口径（`GET /accounts/page`）
 
@@ -158,3 +158,18 @@
 
 - `ownerId`、`ownerIds` 已从 HTTP 查询参数移除，不再由前端直接传入。
 - 查询链路由账户仓储层直接按 `owner_name` 模糊匹配，不再依赖组织域做 `ownerIds` 拼装。
+
+## 7. 主体租赁模型约束（当前版本）
+
+当前版本已将租赁关系建模为主体维度（`owner_type + owner_id`，关系表为 `energy_owner_space_rel`），用于支撑开户前租赁、组织/个人统一租赁入口等场景。
+
+重要约束（避免误用）：
+
+- `OwnerTypeEnum.ENTERPRISE`：当前对应组织主体。
+- `OwnerTypeEnum.PERSONAL`：表示个人主体类型，但 **不等价于“个人主体最终存储就是用户表（`sys_user`）”**。
+- 后续版本计划为个人主体引入独立存储/独立主体模型，届时 `PERSONAL` 的校验与查询入口会调整。
+
+实现约束建议：
+
+- 不要在新的业务代码中固化 `PERSONAL -> UserService` 的长期依赖假设。
+- 涉及主体存在性校验、主体信息读取的逻辑，应收敛到 owner 维度的统一适配层，不要直接依赖 `UserService` 作为个人主体存在性校验入口（便于后续切换存储实现）。

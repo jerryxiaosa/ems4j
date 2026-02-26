@@ -1,13 +1,12 @@
 package info.zhihui.ems.business.account.service.impl;
 
-import info.zhihui.ems.business.account.bo.AccountBo;
-import info.zhihui.ems.business.account.dto.AccountSpaceRentDto;
-import info.zhihui.ems.business.account.dto.AccountSpaceUnrentDto;
-import info.zhihui.ems.business.account.entity.AccountSpaceRelEntity;
-import info.zhihui.ems.business.account.repository.AccountSpaceRelRepository;
-import info.zhihui.ems.business.account.service.AccountInfoService;
+import info.zhihui.ems.business.account.dto.OwnerSpaceRentDto;
+import info.zhihui.ems.business.account.dto.OwnerSpaceUnrentDto;
+import info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity;
+import info.zhihui.ems.business.account.repository.OwnerSpaceRelRepository;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.components.lock.core.LockTemplate;
@@ -33,13 +32,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AccountSpaceLeaseServiceImplTest {
+class OwnerSpaceLeaseServiceImplTest {
 
     @Mock
-    private AccountInfoService accountInfoService;
-
-    @Mock
-    private AccountSpaceRelRepository accountSpaceRelRepository;
+    private OwnerSpaceRelRepository ownerSpaceRelRepository;
 
     @Mock
     private SpaceService spaceService;
@@ -57,19 +53,20 @@ class AccountSpaceLeaseServiceImplTest {
     private Lock lock;
 
     @InjectMocks
-    private AccountSpaceLeaseServiceImpl accountSpaceLeaseService;
+    private OwnerSpaceLeaseServiceImpl ownerSpaceLeaseService;
 
     @Test
     void testRentSpaces_LockFailed() {
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(false);
 
-        AccountSpaceRentDto dto = new AccountSpaceRentDto()
-                .setAccountId(1)
+        OwnerSpaceRentDto dto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101));
 
-        assertThrows(BusinessRuntimeException.class, () -> accountSpaceLeaseService.rentSpaces(dto));
-        verify(accountSpaceRelRepository, never()).insert(any(Collection.class));
+        assertThrows(BusinessRuntimeException.class, () -> ownerSpaceLeaseService.rentSpaces(dto));
+        verify(ownerSpaceRelRepository, never()).insert(any(Collection.class));
     }
 
     @Test
@@ -78,27 +75,28 @@ class AccountSpaceLeaseServiceImplTest {
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(accountInfoService.getById(1)).thenReturn(new AccountBo().setId(1));
         when(spaceService.findSpaceList(any())).thenReturn(List.of(
                 new SpaceBo().setId(101),
                 new SpaceBo().setId(102)
         ));
-        when(accountSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
-                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(101)
+        when(ownerSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
+                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(requestContext.getUserId()).thenReturn(1);
         when(requestContext.getUserRealName()).thenReturn("admin");
 
-        AccountSpaceRentDto dto = new AccountSpaceRentDto()
-                .setAccountId(1)
+        OwnerSpaceRentDto dto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101, 102, 102));
-        accountSpaceLeaseService.rentSpaces(dto);
+        ownerSpaceLeaseService.rentSpaces(dto);
 
-        ArgumentCaptor<Collection<AccountSpaceRelEntity>> captor = ArgumentCaptor.forClass(Collection.class);
-        verify(accountSpaceRelRepository).insert(captor.capture());
-        List<AccountSpaceRelEntity> insertList = captor.getValue().stream().toList();
+        ArgumentCaptor<Collection<OwnerSpaceRelEntity>> captor = ArgumentCaptor.forClass(Collection.class);
+        verify(ownerSpaceRelRepository).insert(captor.capture());
+        List<OwnerSpaceRelEntity> insertList = captor.getValue().stream().toList();
         assertThat(insertList).hasSize(1);
-        assertThat(insertList.get(0).getAccountId()).isEqualTo(1);
+        assertThat(insertList.get(0).getOwnerType()).isEqualTo(OwnerTypeEnum.ENTERPRISE.getCode());
+        assertThat(insertList.get(0).getOwnerId()).isEqualTo(1001);
         assertThat(insertList.get(0).getSpaceId()).isEqualTo(102);
         verify(lock).unlock();
     }
@@ -109,18 +107,18 @@ class AccountSpaceLeaseServiceImplTest {
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(accountInfoService.getById(1)).thenReturn(new AccountBo().setId(1));
         when(spaceService.findSpaceList(any())).thenReturn(List.of(new SpaceBo().setId(101)));
-        when(accountSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
-                new AccountSpaceRelEntity().setAccountId(2).setSpaceId(101)
+        when(ownerSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
+                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(2).setSpaceId(101)
         ));
 
-        AccountSpaceRentDto dto = new AccountSpaceRentDto()
-                .setAccountId(1)
+        OwnerSpaceRentDto dto = new OwnerSpaceRentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101));
 
-        assertThrows(BusinessRuntimeException.class, () -> accountSpaceLeaseService.rentSpaces(dto));
-        verify(accountSpaceRelRepository, never()).insert(any(Collection.class));
+        assertThrows(BusinessRuntimeException.class, () -> ownerSpaceLeaseService.rentSpaces(dto));
+        verify(ownerSpaceRelRepository, never()).insert(any(Collection.class));
         verify(lock).unlock();
     }
 
@@ -130,19 +128,19 @@ class AccountSpaceLeaseServiceImplTest {
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(accountInfoService.getById(1)).thenReturn(new AccountBo().setId(1));
-        when(accountSpaceRelRepository.findListByAccountIdAndSpaceIds(eq(1), any())).thenReturn(List.of(
-                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(101),
-                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(102)
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(eq(OwnerTypeEnum.ENTERPRISE.getCode()), eq(1001), any())).thenReturn(List.of(
+                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
+                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
         ));
         when(electricMeterInfoService.findList(any())).thenReturn(Collections.emptyList());
 
-        AccountSpaceUnrentDto dto = new AccountSpaceUnrentDto()
-                .setAccountId(1)
+        OwnerSpaceUnrentDto dto = new OwnerSpaceUnrentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101, 102));
 
-        accountSpaceLeaseService.unrentSpaces(dto);
-        verify(accountSpaceRelRepository).deleteByAccountIdAndSpaceIds(eq(1), any());
+        ownerSpaceLeaseService.unrentSpaces(dto);
+        verify(ownerSpaceRelRepository).deleteByOwnerAndSpaceIds(eq(OwnerTypeEnum.ENTERPRISE.getCode()), eq(1001), any());
         verify(lock).unlock();
     }
 
@@ -152,20 +150,20 @@ class AccountSpaceLeaseServiceImplTest {
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(accountInfoService.getById(1)).thenReturn(new AccountBo().setId(1));
-        when(accountSpaceRelRepository.findListByAccountIdAndSpaceIds(eq(1), any())).thenReturn(List.of(
-                new AccountSpaceRelEntity().setAccountId(1).setSpaceId(101)
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(eq(OwnerTypeEnum.ENTERPRISE.getCode()), eq(1001), any())).thenReturn(List.of(
+                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(electricMeterInfoService.findList(any())).thenReturn(List.of(
                 new ElectricMeterBo().setId(10).setAccountId(1).setSpaceId(101)
         ));
 
-        AccountSpaceUnrentDto dto = new AccountSpaceUnrentDto()
-                .setAccountId(1)
+        OwnerSpaceUnrentDto dto = new OwnerSpaceUnrentDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerId(1001)
                 .setSpaceIds(List.of(101));
 
-        assertThrows(BusinessRuntimeException.class, () -> accountSpaceLeaseService.unrentSpaces(dto));
-        verify(accountSpaceRelRepository, never()).deleteByAccountIdAndSpaceIds(any(), any());
+        assertThrows(BusinessRuntimeException.class, () -> ownerSpaceLeaseService.unrentSpaces(dto));
+        verify(ownerSpaceRelRepository, never()).deleteByOwnerAndSpaceIds(any(), any(), any());
         verify(lock).unlock();
     }
 }

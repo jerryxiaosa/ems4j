@@ -9,20 +9,25 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 账户空间租赁关系实体
+ * 主体空间租赁关系实体
  */
 @Data
 @Accessors(chain = true)
-@TableName("energy_account_space_rel")
-public class AccountSpaceRelEntity {
+@TableName("energy_owner_space_rel")
+public class OwnerSpaceRelEntity {
 
     @TableId(type = IdType.AUTO)
     private Integer id;
 
     /**
-     * 账户ID
+     * 主体类型（见 OwnerTypeEnum code）
      */
-    private Integer accountId;
+    private Integer ownerType;
+
+    /**
+     * 主体ID
+     */
+    private Integer ownerId;
 
     /**
      * 空间ID

@@ -13,6 +13,7 @@ import info.zhihui.ems.web.account.vo.*;
 import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -23,7 +24,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -199,30 +202,6 @@ class AccountControllerTest {
                 .setElectricMeterList(List.of(new MeterOpenDetailVo().setMeterId(10)));
 
         mockMvc.perform(post("/accounts/{id}/meters/open", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(vo)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("账户租赁空间成功")
-    void testRentSpaces_Success() throws Exception {
-        AccountSpaceRentVo vo = new AccountSpaceRentVo().setSpaceIds(List.of(101, 102));
-
-        mockMvc.perform(post("/accounts/{id}/spaces/rent", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(vo)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("账户退租空间成功")
-    void testUnrentSpaces_Success() throws Exception {
-        AccountSpaceUnrentVo vo = new AccountSpaceUnrentVo().setSpaceIds(List.of(101));
-
-        mockMvc.perform(post("/accounts/{id}/spaces/unrent", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())
