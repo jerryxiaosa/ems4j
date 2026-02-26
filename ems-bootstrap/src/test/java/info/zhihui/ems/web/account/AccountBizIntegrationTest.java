@@ -63,8 +63,9 @@ class AccountBizIntegrationTest {
 
             int expectedTotalOpenableMeterCount = jdbcTemplate.queryForObject(
                     "select count(1) from energy_electric_meter m " +
-                            "join energy_account_space_rel r on r.space_id = m.space_id " +
-                            "where r.account_id = ? and m.is_deleted = false",
+                            "join energy_account a on a.id = ? and a.is_deleted = false " +
+                            "join energy_owner_space_rel r on r.space_id = m.space_id and r.owner_type = a.owner_type and r.owner_id = a.owner_id " +
+                            "where m.is_deleted = false",
                     Integer.class,
                     accountVo.getId()
             );
@@ -137,8 +138,9 @@ class AccountBizIntegrationTest {
 
         int expectedTotalOpenableMeterCount = jdbcTemplate.queryForObject(
                 "select count(1) from energy_electric_meter m " +
-                        "join energy_account_space_rel r on r.space_id = m.space_id " +
-                        "where r.account_id = ? and m.is_deleted = false",
+                        "join energy_account a on a.id = ? and a.is_deleted = false " +
+                        "join energy_owner_space_rel r on r.space_id = m.space_id and r.owner_type = a.owner_type and r.owner_id = a.owner_id " +
+                        "where m.is_deleted = false",
                 Integer.class,
                 accountId
         );

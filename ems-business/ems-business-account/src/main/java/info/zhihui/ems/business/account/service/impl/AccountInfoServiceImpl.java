@@ -10,18 +10,14 @@ import info.zhihui.ems.business.account.dto.AccountCancelRecordDto;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
 import info.zhihui.ems.business.account.entity.AccountCancelRecordEntity;
 import info.zhihui.ems.business.account.entity.AccountEntity;
-import info.zhihui.ems.business.account.entity.AccountSpaceRelEntity;
 import info.zhihui.ems.business.account.mapper.AccountCancelMapper;
 import info.zhihui.ems.business.account.mapper.AccountInfoMapper;
 import info.zhihui.ems.business.account.qo.AccountCancelRecordQo;
 import info.zhihui.ems.business.account.qo.AccountQo;
 import info.zhihui.ems.business.account.repository.AccountCancelRecordRepository;
 import info.zhihui.ems.business.account.repository.AccountRepository;
-import info.zhihui.ems.business.account.repository.AccountSpaceRelRepository;
 import info.zhihui.ems.business.account.service.AccountInfoService;
-import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.CanceledMeterDto;
-import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
@@ -33,10 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 账户基础信息接口
@@ -53,7 +45,6 @@ public class AccountInfoServiceImpl implements AccountInfoService {
     private final AccountCancelRecordRepository accountCancelRecordRepository;
     private final AccountCancelMapper accountCancelMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
-    private final AccountSpaceRelRepository accountSpaceRelRepository;
 
     /**
      * 查询账户列表
@@ -143,61 +134,6 @@ public class AccountInfoServiceImpl implements AccountInfoService {
         detailDto.setMeterList(meterDtoList);
 
         return detailDto;
-    }
-
-    /**
-     * 按账户ID批量统计可开户电表总数（租赁空间内电表数）
-     *
-     * @param accountIds 账户ID列表
-     * @return key=账户ID，value=可开户电表总数
-     */
-    @Override
-    public Map<Integer, Integer> countTotalOpenableMeterByAccountIds(@NotNull List<Integer> accountIds) {
-        List<Integer> validAccountIdList = accountIds.stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        if (validAccountIdList.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<Integer, Set<Integer>> accountSpaceIdMap = accountSpaceRelRepository.findListByAccountIds(validAccountIdList)
-                .stream()
-                // 过滤掉异常脏数据，避免后续分组和统计出现空键值。
-                .filter(item -> item.getAccountId() != null && item.getSpaceId() != null)
-                // 聚合成 accountId -> spaceId 集合，后续按空间统计电表并回卷到账户。
-                .collect(Collectors.groupingBy(
-                        AccountSpaceRelEntity::getAccountId,
-                        Collectors.mapping(AccountSpaceRelEntity::getSpaceId, Collectors.toSet())
-                ));
-        if (accountSpaceIdMap.isEmpty()) {
-            return validAccountIdList.stream().collect(Collectors.toMap(accountId -> accountId, accountId -> 0));
-        }
-
-        List<Integer> allSpaceIdList = accountSpaceIdMap.values().stream()
-                .flatMap(Set::stream)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        if (allSpaceIdList.isEmpty()) {
-            return validAccountIdList.stream().collect(Collectors.toMap(accountId -> accountId, accountId -> 0));
-        }
-
-        Map<Integer, Integer> spaceMeterCountMap = electricMeterInfoService.findList(
-                        new ElectricMeterQueryDto().setSpaceIds(allSpaceIdList)
-                ).stream()
-                .map(ElectricMeterBo::getSpaceId)
-                .filter(Objects::nonNull)
-                // 先按空间聚合电表数量，得到 spaceId -> meterCount。
-                .collect(Collectors.groupingBy(spaceId -> spaceId, Collectors.summingInt(ignore -> 1)));
-
-        return validAccountIdList.stream().collect(Collectors.toMap(
-                accountId -> accountId,
-                // 将账户关联的所有空间电表数求和，得到 accountId -> totalOpenableMeterCount。
-                accountId -> accountSpaceIdMap.getOrDefault(accountId, Set.of()).stream()
-                        .mapToInt(spaceId -> spaceMeterCountMap.getOrDefault(spaceId, 0))
-                        .sum()
-        ));
     }
 
 }

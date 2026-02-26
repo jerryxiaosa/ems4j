@@ -52,12 +52,12 @@ VALUES (3, 1003, 1, '账户3', '联系人3', '13800000003', 0, null, 1, 'BALANCE
 INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)
 VALUES (4, 1004, 0, '账户4', '联系人4', '13800000004', 1, 1000.00000000, 1, 'NORMAL', 1, 'admin', '2025-01-02 03:04:05', FALSE);
 
--- 插入账户空间租赁关系测试数据
-INSERT INTO energy_account_space_rel (id, account_id, space_id, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
-VALUES (1, 1, 101, 1, 'admin', '2025-01-02 03:04:05', 1, 'admin', '2025-01-02 03:04:05');
+-- 插入主体空间租赁关系测试数据
+INSERT INTO energy_owner_space_rel (id, owner_type, owner_id, space_id, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
+VALUES (1, 0, 1001, 101, 1, 'admin', '2025-01-02 03:04:05', 1, 'admin', '2025-01-02 03:04:05');
 
-INSERT INTO energy_account_space_rel (id, account_id, space_id, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
-VALUES (2, 3, 103, 1, 'admin', '2025-01-02 03:04:05', 1, 'admin', '2025-01-02 03:04:05');
+INSERT INTO energy_owner_space_rel (id, owner_type, owner_id, space_id, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
+VALUES (2, 1, 1003, 103, 1, 'admin', '2025-01-02 03:04:05', 1, 'admin', '2025-01-02 03:04:05');
 
 -- 插入电表测试数据
 INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)

@@ -78,10 +78,6 @@ public interface AccountWebMapper {
     @Mapping(target = "inheritHistoryPower", source = "accountMetersOpenVo.inheritHistoryPower")
     AccountMetersOpenDto toAccountMetersOpenDto(AccountMetersOpenVo accountMetersOpenVo);
 
-    AccountSpaceRentDto toAccountSpaceRentDto(AccountSpaceRentVo accountSpaceRentVo);
-
-    AccountSpaceUnrentDto toAccountSpaceUnrentDto(AccountSpaceUnrentVo accountSpaceUnrentVo);
-
     AccountConfigUpdateDto toAccountConfigUpdateDto(AccountConfigUpdateVo accountConfigUpdateVo);
 
     MeterOpenDetailDto toMeterOpenDetailDto(MeterOpenDetailVo vo);

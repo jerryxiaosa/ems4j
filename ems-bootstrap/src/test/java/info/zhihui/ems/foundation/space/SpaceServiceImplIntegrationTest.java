@@ -237,7 +237,7 @@ public class SpaceServiceImplIntegrationTest {
         assertEquals(new BigDecimal("300.00"), savedEntity.getArea());
         assertEquals(1000, savedEntity.getOwnAreaId());
         assertEquals(2, savedEntity.getSortIndex());
-        assertEquals("1000,1011", savedEntity.getFullPath());
+        assertEquals(parentSpace.getFullPath() + "," + spaceId, savedEntity.getFullPath());
         assertFalse(savedEntity.getIsDeleted());
     }
 

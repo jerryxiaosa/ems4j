@@ -5,6 +5,7 @@ import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.web.organization.biz.OrganizationBiz;
 import info.zhihui.ems.web.organization.controller.OrganizationController;
 import info.zhihui.ems.web.organization.vo.OrganizationCreateVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionVo;
 import info.zhihui.ems.web.organization.vo.OrganizationUpdateVo;
 import info.zhihui.ems.web.organization.vo.OrganizationVo;
 import info.zhihui.ems.common.paging.PageResult;
@@ -80,6 +81,40 @@ class OrganizationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].organizationName").value("测试组织"));
+    }
+
+    @Test
+    @DisplayName("查询组织下拉列表-默认limit")
+    void testFindOrganizationOptionList_DefaultLimit() throws Exception {
+        OrganizationOptionVo vo = new OrganizationOptionVo()
+                .setId(1)
+                .setOrganizationName("组织A")
+                .setOrganizationType(1)
+                .setManagerName("张三")
+                .setManagerPhone("13800000000");
+        when(organizationBiz.findOrganizationOptionList(any())).thenReturn(List.of(vo));
+
+        mockMvc.perform(get("/organizations/options").param("organizationNameLike", "组织"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].organizationName").value("组织A"))
+                .andExpect(jsonPath("$.data[0].organizationType").value(1))
+                .andExpect(jsonPath("$.data[0].managerName").value("张三"))
+                .andExpect(jsonPath("$.data[0].managerPhone").value("13800000000"));
+    }
+
+    @Test
+    @DisplayName("查询组织下拉列表-自定义limit")
+    void testFindOrganizationOptionList_CustomLimit() throws Exception {
+        when(organizationBiz.findOrganizationOptionList(any())).thenReturn(List.of());
+
+        mockMvc.perform(get("/organizations/options")
+                        .param("organizationNameLike", "测试")
+                        .param("limit", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
     }
 
     @Test

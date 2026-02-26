@@ -13,6 +13,8 @@ import info.zhihui.ems.foundation.space.enums.SpaceTypeEnum;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.web.organization.mapstruct.OrganizationWebMapper;
 import info.zhihui.ems.web.organization.vo.OrganizationCreateVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionQueryVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionVo;
 import info.zhihui.ems.web.organization.vo.OrganizationQueryVo;
 import info.zhihui.ems.web.organization.vo.OrganizationUpdateVo;
 import info.zhihui.ems.web.organization.vo.OrganizationVo;
@@ -72,6 +74,27 @@ public class OrganizationBiz {
             return Collections.emptyList();
         }
         return organizationWebMapper.toOrganizationVoList(bos);
+    }
+
+    /**
+     * 查询组织下拉列表（默认取第一页）
+     */
+    public List<OrganizationOptionVo> findOrganizationOptionList(OrganizationOptionQueryVo queryVo) {
+        OrganizationOptionQueryVo safeQueryVo = queryVo == null ? new OrganizationOptionQueryVo() : queryVo;
+        Integer limit = Objects.requireNonNullElse(safeQueryVo.getLimit(), 20);
+
+        OrganizationQueryDto queryDto = new OrganizationQueryDto()
+                .setOrganizationNameLike(safeQueryVo.getOrganizationNameLike());
+        PageParam pageParam = new PageParam()
+                .setPageNum(1)
+                .setPageSize(limit);
+
+        PageResult<OrganizationBo> pageResult = organizationService.findOrganizationPage(queryDto, pageParam);
+        List<OrganizationBo> bos = pageResult == null ? null : pageResult.getList();
+        if (CollectionUtils.isEmpty(bos)) {
+            return Collections.emptyList();
+        }
+        return organizationWebMapper.toOrganizationOptionVoList(bos);
     }
 
     /**

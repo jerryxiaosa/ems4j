@@ -1,5 +1,6 @@
 package info.zhihui.ems.business.account.dto;
 
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -8,17 +9,23 @@ import lombok.experimental.Accessors;
 import java.util.List;
 
 /**
- * 账户空间租赁请求
+ * 主体空间租赁请求
  */
 @Data
 @Accessors(chain = true)
-public class AccountSpaceRentDto {
+public class OwnerSpaceRentDto {
 
     /**
-     * 账户ID
+     * 主体类型
      */
-    @NotNull(message = "账户ID不能为空")
-    private Integer accountId;
+    @NotNull(message = "主体类型不能为空")
+    private OwnerTypeEnum ownerType;
+
+    /**
+     * 主体ID
+     */
+    @NotNull(message = "主体ID不能为空")
+    private Integer ownerId;
 
     /**
      * 空间ID列表

@@ -7,6 +7,7 @@ import info.zhihui.ems.foundation.organization.dto.OrganizationQueryDto;
 import info.zhihui.ems.foundation.organization.dto.OrganizationUpdateDto;
 import info.zhihui.ems.foundation.organization.enums.OrganizationTypeEnum;
 import info.zhihui.ems.web.organization.vo.OrganizationCreateVo;
+import info.zhihui.ems.web.organization.vo.OrganizationOptionVo;
 import info.zhihui.ems.web.organization.vo.OrganizationQueryVo;
 import info.zhihui.ems.web.organization.vo.OrganizationUpdateVo;
 import info.zhihui.ems.web.organization.vo.OrganizationVo;
@@ -36,6 +37,12 @@ public interface OrganizationWebMapper {
     OrganizationVo toOrganizationVo(OrganizationBo bo);
 
     List<OrganizationVo> toOrganizationVoList(List<OrganizationBo> bos);
+
+    @Mapping(target = "organizationName", source = "name")
+    @Mapping(target = "organizationType", expression = "java(mapOrganizationTypeCode(bo.getOrganizationType()))")
+    OrganizationOptionVo toOrganizationOptionVo(OrganizationBo bo);
+
+    List<OrganizationOptionVo> toOrganizationOptionVoList(List<OrganizationBo> bos);
 
     default OrganizationTypeEnum mapOrganizationType(Integer code) {
         if (code == null) {

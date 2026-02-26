@@ -10,7 +10,6 @@ import info.zhihui.ems.common.paging.PageResult;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 账户基础信息接口
@@ -60,13 +59,5 @@ public interface AccountInfoService {
      * @return 销户详情
      */
     AccountCancelDetailDto getCancelRecordDetail(@NotNull String cancelNo);
-
-    /**
-     * 按账户ID批量统计可开户电表总数（租赁空间内电表数）
-     *
-     * @param accountIds 账户ID列表
-     * @return key=账户ID，value=可开户电表总数
-     */
-    Map<Integer, Integer> countTotalOpenableMeterByAccountIds(@NotNull List<Integer> accountIds);
 
 }
