@@ -23,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/owner-candidate-meters")
-@Tag(name = "主体候选电表接口")
+@Tag(name = "系统对象主体候选电表接口")
 @Validated
 @RequiredArgsConstructor
 public class OwnerCandidateMeterController {
@@ -32,7 +32,7 @@ public class OwnerCandidateMeterController {
 
     @SaCheckPermission("owners:meters:candidate:list")
     @GetMapping
-    @Operation(summary = "查询主体候选电表列表")
+    @Operation(summary = "查询系统对象主体候选电表列表")
     public RestResult<List<OwnerCandidateMeterVo>> findCandidateMeterList(@Valid @ModelAttribute OwnerCandidateMeterQueryVo queryVo) {
         return ResultUtil.success(ownerCandidateMeterBiz.findCandidateMeterList(queryVo));
     }

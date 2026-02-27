@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/owner-space-leases")
-@Tag(name = "主体空间租赁接口")
+@Tag(name = "系统对象主体空间租赁接口")
 @Validated
 @RequiredArgsConstructor
 public class OwnerSpaceLeaseController {
@@ -28,7 +28,7 @@ public class OwnerSpaceLeaseController {
 
     @SaCheckPermission("owners:spaces:rent")
     @PostMapping("/rent")
-    @Operation(summary = "主体租赁空间")
+    @Operation(summary = "系统对象主体租赁空间")
     public RestResult<Void> rentSpaces(@NotNull(message = "请求参数不能为空")
                                        @Valid @RequestBody OwnerSpaceRentVo rentVo) {
         ownerSpaceLeaseBiz.rentSpaces(rentVo);
@@ -37,7 +37,7 @@ public class OwnerSpaceLeaseController {
 
     @SaCheckPermission("owners:spaces:unrent")
     @PostMapping("/unrent")
-    @Operation(summary = "主体退租空间")
+    @Operation(summary = "系统对象主体退租空间")
     public RestResult<Void> unrentSpaces(@NotNull(message = "请求参数不能为空")
                                          @Valid @RequestBody OwnerSpaceUnrentVo unrentVo) {
         ownerSpaceLeaseBiz.unrentSpaces(unrentVo);

@@ -105,7 +105,7 @@ schedule:
     enabled: true     # 开启调度切面
 
 # 对接真实设备：true；对接模拟数据：false
-useRealDevice: true
+useRealDevice: false
 
 sa-token:
   # token 名称（同时也是 cookie 名称）
@@ -138,6 +138,8 @@ springdoc:
   group-configs:
     - group: '账户管理'
       packages-to-scan: info.zhihui.ems.web.account.controller
+    - group: '系统对象主体管理'
+      packages-to-scan: info.zhihui.ems.web.owner.controller
     - group: '设备管理'
       packages-to-scan: info.zhihui.ems.web.device.controller
     - group: '订单管理'

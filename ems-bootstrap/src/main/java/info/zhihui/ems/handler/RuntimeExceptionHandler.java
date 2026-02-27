@@ -15,8 +15,11 @@ import info.zhihui.ems.common.vo.RestResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,10 +27,32 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
+import java.util.List;
+
 
 @Slf4j
 @RestControllerAdvice
 public class RuntimeExceptionHandler {
+
+    private static final String GENERIC_SYSTEM_MESSAGE = "系统异常，请稍后再试";
+    private static final List<String> SENSITIVE_MESSAGE_KEYWORDS = List.of(
+            "sql",
+            "select",
+            "insert",
+            "update",
+            "delete",
+            "from",
+            "where",
+            "table",
+            "column",
+            "jdbc",
+            "mybatis",
+            "mapper",
+            "bad sql grammar",
+            "unknown column",
+            "###"
+    );
 
     @ExceptionHandler(NotFoundException.class)
     public RestResult<Void> handleRuntimeException(NotFoundException e) {
@@ -50,7 +75,8 @@ public class RuntimeExceptionHandler {
     @ExceptionHandler(BusinessRuntimeException.class)
     public RestResult<Void> handleRuntimeException(BusinessRuntimeException e) {
         log.error("handle BusinessRuntimeException: {}", e.getMessage());
-        return ResultUtil.error(Opt.ofNullable(e.getCode()).orElse(ResultCode.BUSINESS_ERROR.getCode()), e.getMessage());
+        String message = sanitizeBusinessMessage(e.getMessage());
+        return ResultUtil.error(Opt.ofNullable(e.getCode()).orElse(ResultCode.BUSINESS_ERROR.getCode()), message);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -70,8 +96,17 @@ public class RuntimeExceptionHandler {
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public RestResult<Void> handleRuntimeException(RuntimeException e) {
         log.error("handle runtime exception: ", e);
-        String message = "系统异常，请稍后再试";
-        return ResultUtil.error(ResultCode.FAILED.getCode(), message);
+        return ResultUtil.error(ResultCode.FAILED.getCode(), GENERIC_SYSTEM_MESSAGE);
+    }
+
+    /**
+     * 数据库相关异常统一兜底，避免 SQL 细节外泄。
+     */
+    @ExceptionHandler({DataAccessException.class, BadSqlGrammarException.class, PersistenceException.class, SQLException.class})
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    public RestResult<Void> handleDatabaseException(Exception e) {
+        log.error("handle database exception: ", e);
+        return ResultUtil.error(ResultCode.FAILED.getCode(), GENERIC_SYSTEM_MESSAGE);
     }
 
     @ExceptionHandler(DuplicateKeyException.class)
@@ -110,4 +145,20 @@ public class RuntimeExceptionHandler {
         return ResultUtil.error(ResultCode.PERMISSION_ERROR.getCode(), "认证失败");
     }
 
+    private String sanitizeBusinessMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return GENERIC_SYSTEM_MESSAGE;
+        }
+        return containsSensitiveToken(message) ? GENERIC_SYSTEM_MESSAGE : message;
+    }
+
+    private boolean containsSensitiveToken(String message) {
+        String lowerCaseMessage = message.toLowerCase();
+        for (String keyword : SENSITIVE_MESSAGE_KEYWORDS) {
+            if (lowerCaseMessage.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -2,11 +2,9 @@ package info.zhihui.ems.web.account.biz;
 
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.*;
+import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.account.service.AccountManagerService;
-import info.zhihui.ems.business.account.service.AccountOpenableMeterService;
-import info.zhihui.ems.business.aggregation.dto.AccountElectricBalanceAggregateItemDto;
-import info.zhihui.ems.business.aggregation.service.account.AccountElectricBalanceAggregateService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
@@ -42,10 +40,9 @@ public class AccountBiz {
 
     private final AccountInfoService accountInfoService;
     private final AccountManagerService accountManagerService;
-    private final AccountOpenableMeterService accountOpenableMeterService;
+    private final AccountAdditionalInfoService accountAdditionalInfoService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
-    private final AccountElectricBalanceAggregateService accountElectricBalanceAggregateService;
     private final SpaceService spaceService;
     private final BalanceService balanceService;
 
@@ -92,7 +89,7 @@ public class AccountBiz {
         accountVo.setMeterList(meterVoList);
         accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
 
-        Map<Integer, Integer> totalOpenableMeterCountMap = accountOpenableMeterService.countTotalOpenableMeterByAccountOwnerInfoList(
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountAdditionalInfoService.countTotalOpenableMeterByAccountOwnerInfoList(
                 List.of(toAccountOwnerInfoDto(accountBo))
         );
         accountVo.setTotalOpenableMeterCount(totalOpenableMeterCountMap.getOrDefault(id, 0));
@@ -187,7 +184,7 @@ public class AccountBiz {
             }
             return;
         }
-        Map<Integer, Integer> totalOpenableMeterCountMap = accountOpenableMeterService
+        Map<Integer, Integer> totalOpenableMeterCountMap = accountAdditionalInfoService
                 .countTotalOpenableMeterByAccountOwnerInfoList(accountOwnerInfoDtoList);
         for (AccountVo accountVo : accountVoList) {
             if (accountVo != null && accountVo.getId() != null) {
@@ -207,7 +204,7 @@ public class AccountBiz {
                 .toList();
         Map<Integer, BigDecimal> electricBalanceAmountMap = itemDtoList.isEmpty()
                 ? Collections.emptyMap()
-                : accountElectricBalanceAggregateService.findElectricBalanceAmountMap(itemDtoList);
+                : accountAdditionalInfoService.findElectricBalanceAmountMap(itemDtoList);
 
         for (AccountVo accountVo : accountVoList) {
             if (accountVo != null && accountVo.getId() != null) {
@@ -284,7 +281,7 @@ public class AccountBiz {
         AccountElectricBalanceAggregateItemDto itemDto = new AccountElectricBalanceAggregateItemDto()
                 .setAccountId(accountBo.getId())
                 .setElectricAccountType(accountBo.getElectricAccountType());
-        Map<Integer, BigDecimal> electricBalanceAmountMap = accountElectricBalanceAggregateService
+        Map<Integer, BigDecimal> electricBalanceAmountMap = accountAdditionalInfoService
                 .findElectricBalanceAmountMap(List.of(itemDto));
         accountVo.setElectricBalanceAmount(electricBalanceAmountMap.getOrDefault(accountBo.getId(), BigDecimal.ZERO));
     }

@@ -11,6 +11,7 @@
 | 开户 | 创建用电账户，绑定业主、电表、计费方案 |
 | 销户 | 账户注销，余额清算，解绑电表 |
 | 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（账户归属名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`），详情返回电表明细列表 |
+| 账户附加信息 | 统一提供候选电表查询、可开户电表总数统计、展示电费余额聚合（按计费类型口径） |
 | 余额预警 | 低余额预警、欠费预警 |
 | 账户充值 | 通过订单模块进行充值 |
 
@@ -142,7 +143,18 @@
 | 3 | 按归属名称模糊查询 | 当 `ownerNameLike` 有值时，直接按 `energy_account.owner_name like` 过滤 | 无命中时返回空分页 |
 | 4 | 执行分页查询 | 调用 `AccountInfoService.findPage` 查询账户数据 | 下游异常透传业务异常 |
 | 5 | 批量填充已开户电表数 | 基于账户ID集合一次性查询电表列表并分组统计 `openedMeterCount` | 空列表直接跳过填充 |
-| 6 | 批量填充可开户电表总数 | 调用 `AccountOpenableMeterService.countTotalOpenableMeterByAccountOwnerInfoList` 一次性回填 `totalOpenableMeterCount`（分页链路复用已查询账户归属信息，避免账户查询 N+1） | 空列表直接跳过填充 |
+| 6 | 批量填充可开户电表总数 | 调用 `AccountAdditionalInfoService.countTotalOpenableMeterByAccountOwnerInfoList` 一次性回填 `totalOpenableMeterCount`（分页链路复用已查询账户归属信息，避免账户查询 N+1） | 空列表直接跳过填充 |
+| 7 | 批量填充展示电费余额 | 调用 `AccountAdditionalInfoService.findElectricBalanceAmountMap` 按账户计费类型口径回填 `electricBalanceAmount` | 空列表直接跳过填充 |
+
+### 5.4 账户附加信息服务（`AccountAdditionalInfoService`）
+
+该服务聚合账户列表/详情需要的附加读信息，统一收敛原候选电表、可开户统计与展示电费余额逻辑，避免 `ems-web` 编排层承载规则细节。
+
+| 方法 | 说明 | 关键规则 |
+|------|------|----------|
+| `findCandidateMeterList` | 查询主体候选电表（租赁空间内、预付费、未开户） | 候选列表可展示离线表；当前仅对 `ENTERPRISE` 做主体存在性校验 |
+| `countTotalOpenableMeterByAccountOwnerInfoList` | 按账户批量统计可开户电表总数 | 入参按 `accountId` 去重并默认返回 0；按 `owner_type + owner_id` 维度聚合租赁空间电表数 |
+| `findElectricBalanceAmountMap` | 按账户批量计算展示电费余额 | `QUANTITY` 取电表余额合计，`MONTHLY/MERGED` 取账户余额，未知类型返回 0 |
 
 ## 6. 账户查询参数口径（`GET /accounts/page`）
 

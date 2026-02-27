@@ -8,19 +8,13 @@
         update_user, update_user_name, update_time
     </sql>
 
-    <select id="findListBySpaceIds" resultType="info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity">
+    <select id="findListByOwnerTypesAndOwnerIds" resultType="info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity">
         select <include refid="Base_Column_List"/>
         from energy_owner_space_rel
-        where space_id in
-        <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
-            #{spaceId}
+        where owner_type in
+        <foreach collection="ownerTypes" item="ownerType" open="(" separator="," close=")">
+            #{ownerType}
         </foreach>
-    </select>
-
-    <select id="findListByOwnerTypeAndOwnerIds" resultType="info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity">
-        select <include refid="Base_Column_List"/>
-        from energy_owner_space_rel
-        where owner_type = #{ownerType}
           and owner_id in
         <foreach collection="ownerIds" item="ownerId" open="(" separator="," close=")">
             #{ownerId}
@@ -30,12 +24,17 @@
     <select id="findListByOwnerAndSpaceIds" resultType="info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity">
         select <include refid="Base_Column_List"/>
         from energy_owner_space_rel
-        where owner_type = #{ownerType}
-          and owner_id = #{ownerId}
-          and space_id in
-        <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
-            #{spaceId}
-        </foreach>
+        where 1 = 1
+        <if test="spaceIds != null and spaceIds.size() > 0">
+            and space_id in
+            <foreach collection="spaceIds" item="spaceId" open="(" separator="," close=")">
+                #{spaceId}
+            </foreach>
+        </if>
+        <if test="ownerType != null and ownerId != null">
+            and owner_type = #{ownerType}
+            and owner_id = #{ownerId}
+        </if>
     </select>
 
     <delete id="deleteByOwnerAndSpaceIds">

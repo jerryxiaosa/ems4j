@@ -4,7 +4,13 @@
 
 `ems-business-aggregation` 是跨业务模块的读聚合模块，负责在查询场景下对多个业务模块的数据进行编排、拼装和轻量规则计算。
 
-当前模块的首个落地场景是：账户列表展示电费余额聚合（账户模块列表 + 财务余额数据）。
+当前模块用于承载跨业务读聚合能力。当前版本保留模块规范与边界，具体账户附加读信息能力已收敛到 `ems-business-account` 的 `AccountAdditionalInfoService`。
+
+## 当前代码状态
+
+1. 当前版本未承载具体业务 Service 实现。
+2. 模块保留用于沉淀跨业务读聚合规范、准入条件与 SQL 约束。
+3. 后续新增跨业务读聚合能力时，应优先复用业务模块 service，再评估是否在本模块落地。
 
 ## 设计目标
 
@@ -73,8 +79,8 @@
 
 ## 当前已落地能力（阶段1）
 
-1. `AccountElectricBalanceAggregateService`
-2. 账户列表展示电费余额聚合（输入项使用账户计费类型 `ElectricAccountTypeEnum`；通过 `ems-business-finance` 的 `BalanceService.findListByAccountIds` 获取余额明细，再由 aggregation 模块进行 Java 聚合）
+1. 模块规范、准入条件与 SQL 约束（用于后续跨业务读聚合实现）
+2. 账户附加读信息能力（候选电表、可开户总数、电费余额）已迁移到 `ems-business-account`，避免单场景过度拆分模块
 
 ## 演进建议
 

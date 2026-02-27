@@ -3,7 +3,7 @@ package info.zhihui.ems.business.account;
 import info.zhihui.ems.business.account.dto.AccountCandidateMeterDto;
 import info.zhihui.ems.business.account.dto.AccountOwnerInfoDto;
 import info.zhihui.ems.business.account.dto.OwnerCandidateMeterQueryDto;
-import info.zhihui.ems.business.account.service.AccountOpenableMeterService;
+import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,15 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * AccountOpenableMeterService 集成测试
+ * AccountAdditionalInfoService 集成测试
  */
 @SpringBootTest
 @ActiveProfiles("integrationtest")
 @Transactional
-class AccountOpenableMeterServiceImplIntegrationTest {
+class AccountAdditionalInfoServiceImplIntegrationTest {
 
     @Autowired
-    private AccountOpenableMeterService accountOpenableMeterService;
+    private AccountAdditionalInfoService accountAdditionalInfoService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -49,7 +49,7 @@ class AccountOpenableMeterServiceImplIntegrationTest {
                 new AccountOwnerInfoDto().setAccountId(null).setOwnerType(OwnerTypeEnum.ENTERPRISE).setOwnerId(1001)
         );
 
-        Map<Integer, Integer> result = accountOpenableMeterService.countTotalOpenableMeterByAccountOwnerInfoList(accountOwnerInfoDtoList);
+        Map<Integer, Integer> result = accountAdditionalInfoService.countTotalOpenableMeterByAccountOwnerInfoList(accountOwnerInfoDtoList);
 
         assertNotNull(result);
         assertEquals(5, result.size());
@@ -99,7 +99,7 @@ class AccountOpenableMeterServiceImplIntegrationTest {
         insertMeter(9003, matchedSpaceId, "非预付费表", "EM-IT-9003", "DEV-IT-9003", true, false, null);
         insertMeter(9004, unmatchedSpaceId, "其他空间候选表", "EM-IT-9004", "DEV-IT-9004", true, true, null);
 
-        List<AccountCandidateMeterDto> result = accountOpenableMeterService.findCandidateMeterList(
+        List<AccountCandidateMeterDto> result = accountAdditionalInfoService.findCandidateMeterList(
                 new OwnerCandidateMeterQueryDto()
                         .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                         .setOwnerId(ownerId)

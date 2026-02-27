@@ -168,6 +168,8 @@ public class AccountManagerServiceImplIntegrationTest {
                 .setOwnerId(1)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                 .setOwnerName("测试企业")
+                .setContactName("张三")
+                .setContactPhone("13800138000")
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
                 .setMonthlyPayAmount(new BigDecimal("100.00"))
                 .setElectricMeterList(List.of(
@@ -187,6 +189,8 @@ public class AccountManagerServiceImplIntegrationTest {
         assertNotNull(account);
         assertEquals(OwnerTypeEnum.ENTERPRISE, account.getOwnerType());
         assertEquals("测试企业", account.getOwnerName());
+        assertEquals("张三", account.getContactName());
+        assertEquals("13800138000", account.getContactPhone());
         assertEquals(new BigDecimal("100.00"), account.getMonthlyPayAmount().setScale(2, RoundingMode.DOWN));
 
         // 查询数据库验证电表数据
