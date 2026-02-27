@@ -97,6 +97,7 @@
 | device | GatewayService | 网关管理 |
 | account | AccountManagerService | 开户、销户、账户管理 |
 | account | AccountInfoService | 账户信息查询 |
+| account | AccountAdditionalInfoService | 账户附加读信息（候选电表、可开户总数、电费余额） |
 | account | AccountBalanceAlertService | 余额预警 |
 | finance | BalanceService | 余额管理 |
 | finance | OrderService | 订单管理 |
@@ -104,4 +105,3 @@
 | finance | AccountConsumeService | 账户消费汇总 |
 | plan | ElectricPricePlanService | 电价方案管理 |
 | plan | WarnPlanService | 预警方案管理 |
-| aggregation | AccountElectricBalanceAggregateService | 账户列表展示电费余额聚合 |

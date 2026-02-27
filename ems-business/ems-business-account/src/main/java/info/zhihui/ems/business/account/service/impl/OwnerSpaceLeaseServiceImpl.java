@@ -3,6 +3,7 @@ package info.zhihui.ems.business.account.service.impl;
 import info.zhihui.ems.business.account.dto.OwnerSpaceRentDto;
 import info.zhihui.ems.business.account.dto.OwnerSpaceUnrentDto;
 import info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity;
+import info.zhihui.ems.business.account.qo.OwnerSpaceRelQueryQo;
 import info.zhihui.ems.business.account.repository.OwnerSpaceRelRepository;
 import info.zhihui.ems.business.account.service.OwnerSpaceLeaseService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
@@ -49,18 +50,16 @@ public class OwnerSpaceLeaseServiceImpl implements OwnerSpaceLeaseService {
 
     @Override
     public void rentSpaces(@NotNull @Valid OwnerSpaceRentDto rentDto) {
-        Set<Integer> requestedSpaceIdSet = new HashSet<>(rentDto.getSpaceIds());
-        validateOwnerExists(rentDto.getOwnerType(), rentDto.getOwnerId());
-
-        Lock lock = getOwnerLock(rentDto.getOwnerType(), rentDto.getOwnerId());
-        if (!lock.tryLock()) {
-            throw new BusinessRuntimeException("主体正在操作，请稍后重试");
-        }
+        Lock lock = tryLockOwner(rentDto.getOwnerType(), rentDto.getOwnerId());
 
         try {
+            validateOwnerExists(rentDto.getOwnerType(), rentDto.getOwnerId());
+            Set<Integer> requestedSpaceIdSet = new HashSet<>(rentDto.getSpaceIds());
             validateSpacesExist(requestedSpaceIdSet);
 
-            List<OwnerSpaceRelEntity> existingRelationList = ownerSpaceRelRepository.findListBySpaceIds(requestedSpaceIdSet);
+            List<OwnerSpaceRelEntity> existingRelationList = ownerSpaceRelRepository.findListByOwnerAndSpaceIds(
+                    new OwnerSpaceRelQueryQo().setSpaceIds(requestedSpaceIdSet)
+            );
             if (CollectionUtils.isEmpty(existingRelationList)) {
                 existingRelationList = List.of();
             }
@@ -100,17 +99,16 @@ public class OwnerSpaceLeaseServiceImpl implements OwnerSpaceLeaseService {
 
     @Override
     public void unrentSpaces(@NotNull @Valid OwnerSpaceUnrentDto unrentDto) {
-        Set<Integer> requestedSpaceIdSet = new HashSet<>(unrentDto.getSpaceIds());
-        validateOwnerExists(unrentDto.getOwnerType(), unrentDto.getOwnerId());
-
-        Lock lock = getOwnerLock(unrentDto.getOwnerType(), unrentDto.getOwnerId());
-        if (!lock.tryLock()) {
-            throw new BusinessRuntimeException("主体正在操作，请稍后重试");
-        }
+        Lock lock = tryLockOwner(unrentDto.getOwnerType(), unrentDto.getOwnerId());
 
         try {
+            validateOwnerExists(unrentDto.getOwnerType(), unrentDto.getOwnerId());
+            Set<Integer> requestedSpaceIdSet = new HashSet<>(unrentDto.getSpaceIds());
             List<OwnerSpaceRelEntity> relationList = ownerSpaceRelRepository.findListByOwnerAndSpaceIds(
-                    unrentDto.getOwnerType().getCode(), unrentDto.getOwnerId(), requestedSpaceIdSet
+                    new OwnerSpaceRelQueryQo()
+                            .setOwnerType(unrentDto.getOwnerType().getCode())
+                            .setOwnerId(unrentDto.getOwnerId())
+                            .setSpaceIds(requestedSpaceIdSet)
             );
             if (CollectionUtils.isEmpty(relationList)) {
                 return;
@@ -153,6 +151,14 @@ public class OwnerSpaceLeaseServiceImpl implements OwnerSpaceLeaseService {
 
     private Lock getOwnerLock(OwnerTypeEnum ownerType, Integer ownerId) {
         return lockTemplate.getLock(String.format(LOCK_OWNER, ownerType.name(), ownerId));
+    }
+
+    private Lock tryLockOwner(OwnerTypeEnum ownerType, Integer ownerId) {
+        Lock lock = getOwnerLock(ownerType, ownerId);
+        if (!lock.tryLock()) {
+            throw new BusinessRuntimeException("主体正在操作，请稍后重试");
+        }
+        return lock;
     }
 
     /**

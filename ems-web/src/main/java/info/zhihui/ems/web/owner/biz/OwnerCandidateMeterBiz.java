@@ -2,8 +2,9 @@ package info.zhihui.ems.web.owner.biz;
 
 import info.zhihui.ems.business.account.dto.AccountCandidateMeterDto;
 import info.zhihui.ems.business.account.dto.OwnerCandidateMeterQueryDto;
-import info.zhihui.ems.business.account.service.AccountOpenableMeterService;
+import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.common.enums.CodeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.web.owner.vo.OwnerCandidateMeterQueryVo;
@@ -22,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OwnerCandidateMeterBiz {
 
-    private final AccountOpenableMeterService accountOpenableMeterService;
+    private final AccountAdditionalInfoService accountAdditionalInfoService;
 
     /**
      * 查询主体候选电表列表
@@ -35,7 +36,7 @@ public class OwnerCandidateMeterBiz {
                 .setOwnerId(queryVo.getOwnerId())
                 .setSpaceNameLike(queryVo.getSpaceNameLike());
 
-        List<AccountCandidateMeterDto> candidateMeterDtoList = accountOpenableMeterService.findCandidateMeterList(queryDto);
+        List<AccountCandidateMeterDto> candidateMeterDtoList = accountAdditionalInfoService.findCandidateMeterList(queryDto);
         if (CollectionUtils.isEmpty(candidateMeterDtoList)) {
             return Collections.emptyList();
         }
@@ -47,6 +48,7 @@ public class OwnerCandidateMeterBiz {
                 .setId(candidateMeterDto.getId())
                 .setMeterName(candidateMeterDto.getMeterName())
                 .setMeterNo(candidateMeterDto.getMeterNo())
+                .setMeterType(MeterTypeEnum.ELECTRIC.getInfo())
                 .setSpaceId(candidateMeterDto.getSpaceId())
                 .setSpaceName(candidateMeterDto.getSpaceName())
                 .setSpaceParentNames(candidateMeterDto.getSpaceParentNames())
@@ -55,7 +57,7 @@ public class OwnerCandidateMeterBiz {
     }
 
     private OwnerTypeEnum parseOwnerType(Integer ownerTypeCode) {
-        OwnerTypeEnum ownerType = ownerTypeCode == null ? null : CodeEnum.fromCode(ownerTypeCode, OwnerTypeEnum.class);
+        OwnerTypeEnum ownerType = CodeEnum.fromCode(ownerTypeCode, OwnerTypeEnum.class);
         if (ownerType == null) {
             throw new BusinessRuntimeException("主体类型不正确");
         }

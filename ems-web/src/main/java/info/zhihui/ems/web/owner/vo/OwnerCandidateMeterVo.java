@@ -23,6 +23,9 @@ public class OwnerCandidateMeterVo {
     @Schema(description = "电表编号")
     private String meterNo;
 
+    @Schema(description = "表具类型")
+    private String meterType;
+
     @Schema(description = "空间ID")
     private Integer spaceId;
 

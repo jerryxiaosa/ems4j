@@ -50,11 +50,6 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-aggregation</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>info.zhihui</groupId>
             <artifactId>ems-foundation-user</artifactId>
         </dependency>
 

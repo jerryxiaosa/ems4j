@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.aggregation.dto;
+package info.zhihui.ems.business.account.dto;
 
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import jakarta.validation.constraints.NotNull;

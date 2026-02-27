@@ -47,7 +47,7 @@ public class OwnerSpaceLeaseBiz {
     }
 
     private OwnerTypeEnum parseOwnerType(Integer ownerTypeCode) {
-        OwnerTypeEnum ownerType = ownerTypeCode == null ? null : CodeEnum.fromCode(ownerTypeCode, OwnerTypeEnum.class);
+        OwnerTypeEnum ownerType = CodeEnum.fromCode(ownerTypeCode, OwnerTypeEnum.class);
         if (ownerType == null) {
             throw new BusinessRuntimeException("主体类型不正确");
         }

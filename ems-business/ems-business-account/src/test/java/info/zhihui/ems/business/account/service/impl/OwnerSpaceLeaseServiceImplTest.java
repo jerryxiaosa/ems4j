@@ -3,6 +3,7 @@ package info.zhihui.ems.business.account.service.impl;
 import info.zhihui.ems.business.account.dto.OwnerSpaceRentDto;
 import info.zhihui.ems.business.account.dto.OwnerSpaceUnrentDto;
 import info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity;
+import info.zhihui.ems.business.account.qo.OwnerSpaceRelQueryQo;
 import info.zhihui.ems.business.account.repository.OwnerSpaceRelRepository;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
@@ -10,8 +11,11 @@ import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.components.lock.core.LockTemplate;
+import info.zhihui.ems.foundation.organization.bo.OrganizationBo;
+import info.zhihui.ems.foundation.organization.service.OrganizationService;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.service.SpaceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -39,6 +44,9 @@ class OwnerSpaceLeaseServiceImplTest {
 
     @Mock
     private SpaceService spaceService;
+
+    @Mock
+    private OrganizationService organizationService;
 
     @Mock
     private ElectricMeterInfoService electricMeterInfoService;
@@ -71,6 +79,7 @@ class OwnerSpaceLeaseServiceImplTest {
 
     @Test
     void testRentSpaces_Success() {
+        when(organizationService.getDetail(anyInt())).thenReturn(new OrganizationBo());
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
@@ -79,7 +88,14 @@ class OwnerSpaceLeaseServiceImplTest {
                 new SpaceBo().setId(101),
                 new SpaceBo().setId(102)
         ));
-        when(ownerSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(argThat(queryQo ->
+                queryQo != null
+                        && queryQo.getOwnerType() == null
+                        && queryQo.getOwnerId() == null
+                        && queryQo.getSpaceIds() != null
+                        && queryQo.getSpaceIds().size() == 2
+                        && queryQo.getSpaceIds().containsAll(List.of(101, 102))
+        ))).thenReturn(List.of(
                 new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(requestContext.getUserId()).thenReturn(1);
@@ -103,12 +119,20 @@ class OwnerSpaceLeaseServiceImplTest {
 
     @Test
     void testRentSpaces_Conflict() {
+        when(organizationService.getDetail(anyInt())).thenReturn(new OrganizationBo());
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
         when(spaceService.findSpaceList(any())).thenReturn(List.of(new SpaceBo().setId(101)));
-        when(ownerSpaceRelRepository.findListBySpaceIds(any())).thenReturn(List.of(
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(argThat(queryQo ->
+                queryQo != null
+                        && queryQo.getOwnerType() == null
+                        && queryQo.getOwnerId() == null
+                        && queryQo.getSpaceIds() != null
+                        && queryQo.getSpaceIds().size() == 1
+                        && queryQo.getSpaceIds().contains(101)
+        ))).thenReturn(List.of(
                 new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(2).setSpaceId(101)
         ));
 
@@ -124,11 +148,19 @@ class OwnerSpaceLeaseServiceImplTest {
 
     @Test
     void testUnrentSpaces_Success() {
+        when(organizationService.getDetail(anyInt())).thenReturn(new OrganizationBo());
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(eq(OwnerTypeEnum.ENTERPRISE.getCode()), eq(1001), any())).thenReturn(List.of(
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(argThat(queryQo ->
+                queryQo != null
+                        && OwnerTypeEnum.ENTERPRISE.getCode().equals(queryQo.getOwnerType())
+                        && Integer.valueOf(1001).equals(queryQo.getOwnerId())
+                        && queryQo.getSpaceIds() != null
+                        && queryQo.getSpaceIds().size() == 2
+                        && queryQo.getSpaceIds().containsAll(List.of(101, 102))
+        ))).thenReturn(List.of(
                 new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
                 new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
         ));
@@ -146,11 +178,19 @@ class OwnerSpaceLeaseServiceImplTest {
 
     @Test
     void testUnrentSpaces_BlockedByMeter() {
+        when(organizationService.getDetail(anyInt())).thenReturn(new OrganizationBo());
         when(lockTemplate.getLock(anyString())).thenReturn(lock);
         when(lock.tryLock()).thenReturn(true);
         doNothing().when(lock).unlock();
 
-        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(eq(OwnerTypeEnum.ENTERPRISE.getCode()), eq(1001), any())).thenReturn(List.of(
+        when(ownerSpaceRelRepository.findListByOwnerAndSpaceIds(argThat(queryQo ->
+                queryQo != null
+                        && OwnerTypeEnum.ENTERPRISE.getCode().equals(queryQo.getOwnerType())
+                        && Integer.valueOf(1001).equals(queryQo.getOwnerId())
+                        && queryQo.getSpaceIds() != null
+                        && queryQo.getSpaceIds().size() == 1
+                        && queryQo.getSpaceIds().contains(101)
+        ))).thenReturn(List.of(
                 new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(electricMeterInfoService.findList(any())).thenReturn(List.of(

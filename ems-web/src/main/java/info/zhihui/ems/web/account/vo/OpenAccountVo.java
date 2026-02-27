@@ -6,6 +6,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,6 +33,14 @@ public class OpenAccountVo {
     @Schema(description = "账户归属者名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String ownerName;
 
+    @Size(max = 50, message = "联系人长度不能超过50")
+    @Schema(description = "联系人")
+    private String contactName;
+
+    @Size(max = 40, message = "联系方式长度不能超过40")
+    @Schema(description = "联系方式")
+    private String contactPhone;
+
     @NotNull
     @Schema(description = "电费计费类型编码，参考 electricAccountType", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer electricAccountType;
@@ -43,7 +52,7 @@ public class OpenAccountVo {
     @Schema(description = "电价方案ID，非包月必填")
     private Integer electricPricePlanId;
 
-    @Schema(description = "预警方案ID，非包月必填")
+    @Schema(description = "预警方案ID")
     private Integer warnPlanId;
 
     @Schema(description = "是否继承历史阶梯量，默认 false")
