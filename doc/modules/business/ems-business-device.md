@@ -145,3 +145,25 @@
 
 - 该方法为账户销户流程提供输入（每块电表的清算基础数据）。
 - 批量销表在同一事务内执行，保证“记录写入”和“解绑关系”一致性。
+
+### 5.4 电量读取口径（实时值 vs 最近一次上报记录）
+
+设备模块当前同时提供两类读数查询能力，语义必须区分：
+
+- 实时电量：`POST /device/electric-meters/{id}/power`
+  - 直接调用设备能源服务读取当前值。
+  - 请求体通过 `types` 指定读取口径，`0` 表示总读数，`1-5` 分别表示尖/峰/平/谷/深谷。
+  - 返回结果仅包含 `type` 与 `value`，不包含上报时间。
+  - 该接口是只读接口，不会将本次实时查询结果回写到 `energy_electric_meter_power_record`。
+
+- 最近一次上报记录：`GET /device/electric-meters/{id}/latest-power-record`
+  - 查询 `energy_electric_meter_power_record` 中该电表最近一次正式落库的上报记录。
+  - 返回 `recordTime`、`power`、`powerHigher`、`powerHigh`、`powerLow`、`powerLower`、`powerDeepLow`。
+  - `recordTime` 返回格式为 `yyyy-MM-dd HH:mm:ss`。
+  - 若电表存在但当前没有任何上报记录，则返回 `data = null`。
+
+使用约束：
+
+- 详情页如果要展示“当前实时值”，调用 `/power`。
+- 详情页如果要展示“最近一次上报时间与读数快照”，调用 `/latest-power-record`。
+- 不要将“实时查询值”与“最近一次正式上报记录”混为同一业务语义。

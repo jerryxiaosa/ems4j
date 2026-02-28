@@ -9,6 +9,7 @@ import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.web.owner.vo.OwnerCandidateMeterQueryVo;
 import info.zhihui.ems.web.owner.vo.OwnerCandidateMeterVo;
+import info.zhihui.ems.web.util.OfflineDurationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -53,6 +54,8 @@ public class OwnerCandidateMeterBiz {
                 .setSpaceName(candidateMeterDto.getSpaceName())
                 .setSpaceParentNames(candidateMeterDto.getSpaceParentNames())
                 .setIsOnline(candidateMeterDto.getIsOnline())
+                .setOfflineDurationText(OfflineDurationUtil.format(
+                        candidateMeterDto.getIsOnline(), candidateMeterDto.getLastOnlineTime()))
                 .setIsPrepay(candidateMeterDto.getIsPrepay());
     }
 

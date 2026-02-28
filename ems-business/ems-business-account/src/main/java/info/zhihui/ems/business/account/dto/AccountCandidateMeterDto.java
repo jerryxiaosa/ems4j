@@ -3,6 +3,7 @@ package info.zhihui.ems.business.account.dto;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -46,6 +47,11 @@ public class AccountCandidateMeterDto {
      * 是否在线
      */
     private Boolean isOnline;
+
+    /**
+     * 最近一次确认在线时间
+     */
+    private LocalDateTime lastOnlineTime;
 
     /**
      * 是否预付费

@@ -1,5 +1,6 @@
 package info.zhihui.ems.foundation.integration.core.service.impl;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.common.exception.NotFoundException;
@@ -33,11 +34,12 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     @Override
     public PageResult<DeviceModelBo> findPage(@NotNull DeviceModelQueryDto query, @NotNull PageParam pageParam) {
         DeviceModelQueryQo qo = mapper.queryDtoToQo(query);
-        PageInfo<DeviceModelEntity> pageInfo = PageHelper
-                .startPage(pageParam.getPageNum(), pageParam.getPageSize())
-                .doSelectPageInfo(() -> repository.findList(qo));
+        try (Page<DeviceModelEntity> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
+            PageInfo<DeviceModelEntity> pageInfo = page
+                    .doSelectPageInfo(() -> repository.findList(qo));
 
-        return mapper.pageEntityToBo(pageInfo);
+            return mapper.pageEntityToBo(pageInfo);
+        }
     }
 
     @Override

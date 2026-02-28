@@ -19,6 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -173,6 +175,12 @@ class AccountBizIntegrationTest {
     @DisplayName("按需账户详情应回填电表余额")
     void testGetAccount_QuantityAccount_ShouldFillMeterBalanceAmount() {
         Integer accountId = 3;
+        LocalDateTime lastOnlineTime = LocalDateTime.now().minusDays(2).minusMinutes(5);
+        jdbcTemplate.update(
+                "update energy_electric_meter set last_online_time = ? where id = ? and is_deleted = false",
+                Timestamp.valueOf(lastOnlineTime),
+                3
+        );
 
         AccountDetailVo detailVo = accountBiz.getAccount(accountId);
 
@@ -210,6 +218,7 @@ class AccountBizIntegrationTest {
         assertNotNull(meterVo.getMeterBalanceAmount());
         assertEquals(0, expectedMeterBalanceAmount.compareTo(meterVo.getMeterBalanceAmount()));
         assertNull(meterVo.getMeterBalanceAmountText());
+        assertEquals("2天", meterVo.getOfflineDurationText());
     }
 
     @Test

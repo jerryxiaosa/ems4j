@@ -125,12 +125,18 @@
 | 7 | 写入销户记录 | 保存 `energy_account_cancel_record`（销户类型、金额、备注、是否全销户等） | 抛业务异常，事务回滚 |
 | 8 | 创建线下销户订单 | 创建 `TerminationOrderCreationInfoDto`，支付渠道固定 `OFFLINE` | 抛业务异常，事务回滚 |
 | 9 | 全销户时软删除账户 | 调用 `repository.softDelete` 标记账户删除 | 抛业务异常，事务回滚 |
-| 10 | 返回销户结果 | 返回 `cancelNo`、清算方向（退款/补缴/跳过）和金额 | finally 中释放账户锁 |
+| 10 | 返回销户结果 | 返回 `cancelNo`、清算方向（退款/补缴/跳过）和金额；Web 对外额外补充无符号展示金额文本 | finally 中释放账户锁 |
 
 补充说明：
 
 - 清算方向规则：金额 `>0` 为退款，`<0` 为补缴，`=0` 为跳过清算。
 - 订单创建和销户记录均在同一事务内，保证业务数据一致性。
+- 内部业务金额口径保持不变：`CancelAccountResponseDto.amount`、销户记录 `cleanBalanceReal`、销户订单金额均保留符号，用于表达清算方向。
+- 对外接口口径：`POST /accounts/cancel`、`GET /accounts/cancel/page`、`GET /accounts/cancel/{cancelNo}` 在保留原有金额字段（兼容存量调用方）的同时，新增 `cleanBalanceAmountText` 作为前端展示金额。
+- 销户时间字段 `cancelTime` 的对外返回格式为 `yyyy-MM-dd HH:mm:ss`，例如 `2026-02-28 10:58:46`，不再返回 ISO 默认的 `2026-02-28T10:58:46`。
+- `cleanBalanceAmountText` 规则：取原金额绝对值、固定保留两位小数，例如 `100 -> "100.00"`、`-50 -> "50.00"`、`0 -> "0.00"`。
+- 前端展示约束：金额方向必须依赖 `cleanBalanceType` 判断；金额展示值统一使用 `cleanBalanceAmountText`，不要再根据 `amount` / `cleanBalanceReal` 的正负号自行推导文案。
+- `cleanBalanceAmountText` 由 Web 层格式化器 `AbsoluteMoneyScale2TextFormatter` 生成，属于展示字段，不参与业务计算。
 
 ### 5.3 账户分页查询流程（`findAccountPage`）
 

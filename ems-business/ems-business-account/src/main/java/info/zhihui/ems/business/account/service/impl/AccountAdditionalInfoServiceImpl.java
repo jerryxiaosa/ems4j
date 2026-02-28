@@ -377,6 +377,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
                 .setMeterNo(meterBo.getMeterNo())
                 .setSpaceId(meterBo.getSpaceId())
                 .setIsOnline(meterBo.getIsOnline())
+                .setLastOnlineTime(meterBo.getLastOnlineTime())
                 .setIsPrepay(meterBo.getIsPrepay());
         if (spaceBo != null) {
             candidateMeterDto.setSpaceName(spaceBo.getName());

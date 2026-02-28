@@ -52,6 +52,14 @@ public class ElectricMeterController {
         return ResultUtil.success(electricMeterBiz.getElectricMeter(id));
     }
 
+    @SaCheckPermission("devices:meters:detail")
+    @GetMapping("/{id}/latest-power-record")
+    @Operation(summary = "获取电表最近一次上报电量记录")
+    public RestResult<ElectricMeterLatestPowerRecordVo> getLatestPowerRecord(
+            @Parameter(description = "电表ID") @PathVariable Integer id) {
+        return ResultUtil.success(electricMeterBiz.getLatestPowerRecord(id));
+    }
+
     @SaCheckPermission("devices:meters:add")
     @PostMapping
     @Operation(summary = "新增电表")
@@ -117,7 +125,7 @@ public class ElectricMeterController {
 
     @SaCheckPermission("devices:meters:power")
     @PostMapping("/{id}/power")
-    @Operation(summary = "查询电表电量")
+    @Operation(summary = "查询电表实时电量")
     public RestResult<List<ElectricMeterPowerVo>> getMeterPower(@Parameter(description = "电表ID") @PathVariable Integer id,
                                                                 @Valid @RequestBody ElectricMeterPowerQueryVo queryVo) {
         return ResultUtil.success(electricMeterBiz.getMeterPower(id, queryVo));

@@ -6,6 +6,7 @@ import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.SkipResponseTranslate;
+import info.zhihui.ems.components.translate.formatter.AbsoluteMoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
@@ -158,12 +159,42 @@ class ResponseTranslateAdviceTest {
         assertEquals("12.30", data.getAmountText());
     }
 
+    @Test
+    @DisplayName("beforeBodyWrite应支持绝对值金额文本格式化")
+    void testBeforeBodyWrite_WithAbsoluteMoneyScale2TextFormatter_ShouldFormatAbsoluteValue() throws Exception {
+        ResponseTranslateAdvice advice = new ResponseTranslateAdvice(
+                providerOf(TranslateEngine.class, buildTranslateEngine()),
+                providerOf(TranslateResponseProperties.class, null)
+        );
+        MethodParameter returnType = new MethodParameter(TestController.class.getDeclaredMethod("queryAbsoluteAmount"), -1);
+
+        AbsoluteFormattedTestData data = new AbsoluteFormattedTestData();
+        data.setAmount(new BigDecimal("-12.3"));
+
+        RestResult<AbsoluteFormattedTestData> body = new RestResult<>();
+        body.setSuccess(true);
+        body.setData(data);
+
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/translate/test");
+        Object result = advice.beforeBodyWrite(
+                body,
+                returnType,
+                MediaType.APPLICATION_JSON,
+                MappingJackson2HttpMessageConverter.class,
+                new ServletServerHttpRequest(servletRequest),
+                new ServletServerHttpResponse(new MockHttpServletResponse())
+        );
+
+        assertSame(body, result);
+        assertEquals("12.30", data.getAmountText());
+    }
+
     private static TranslateEngine buildTranslateEngine() {
         return new TranslateEngine(
                 new TranslateMetadataCache(),
                 new EnumLabelResolver(),
                 Collections.emptyList(),
-                List.of(new MoneyScale2TextFormatter())
+                List.of(new MoneyScale2TextFormatter(), new AbsoluteMoneyScale2TextFormatter())
         );
     }
 
@@ -187,6 +218,10 @@ class ResponseTranslateAdviceTest {
         }
 
         RestResult<PageResult<FormattedTestData>> queryPage() {
+            return new RestResult<>();
+        }
+
+        RestResult<AbsoluteFormattedTestData> queryAbsoluteAmount() {
             return new RestResult<>();
         }
     }
@@ -214,6 +249,25 @@ class ResponseTranslateAdviceTest {
         private BigDecimal amount;
 
         @FormatText(source = "amount", formatter = MoneyScale2TextFormatter.class)
+        private String amountText;
+
+        BigDecimal getAmount() {
+            return amount;
+        }
+
+        void setAmount(BigDecimal amount) {
+            this.amount = amount;
+        }
+
+        String getAmountText() {
+            return amountText;
+        }
+    }
+
+    private static class AbsoluteFormattedTestData {
+        private BigDecimal amount;
+
+        @FormatText(source = "amount", formatter = AbsoluteMoneyScale2TextFormatter.class)
         private String amountText;
 
         BigDecimal getAmount() {

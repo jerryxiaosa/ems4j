@@ -20,6 +20,7 @@ import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
+import info.zhihui.ems.web.util.OfflineDurationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,6 +87,7 @@ public class AccountBiz {
         List<AccountMeterVo> meterVoList = accountWebMapper.toAccountMeterVoList(meterBos);
         fillAccountMeterSpaceInfo(meterVoList);
         fillAccountMeterBalanceAmount(accountBo, meterVoList, quantityBalanceBoList);
+        fillAccountMeterOfflineDurationText(meterVoList, meterBos);
         accountVo.setMeterList(meterVoList);
         accountVo.setOpenedMeterCount(meterBos == null ? 0 : meterBos.size());
 
@@ -346,6 +348,21 @@ public class AccountBiz {
                 continue;
             }
             meterVo.setMeterBalanceAmount(meterBalanceAmountMap.get(meterVo.getId()));
+        }
+    }
+
+    private void fillAccountMeterOfflineDurationText(List<AccountMeterVo> meterVoList, List<ElectricMeterBo> meterBoList) {
+        if (meterVoList == null || meterVoList.isEmpty() || meterBoList == null || meterBoList.isEmpty()) {
+            return;
+        }
+
+        for (int index = 0; index < meterVoList.size() && index < meterBoList.size(); index++) {
+            AccountMeterVo meterVo = meterVoList.get(index);
+            ElectricMeterBo meterBo = meterBoList.get(index);
+            if (meterVo == null || meterBo == null) {
+                continue;
+            }
+            meterVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
         }
     }
 

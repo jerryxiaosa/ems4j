@@ -1,5 +1,6 @@
 package info.zhihui.ems.web.account.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -52,6 +53,7 @@ public class CanceledMeterVo {
     private BigDecimal powerDeepLow;
 
     @Schema(description = "读表时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime showTime;
 
     @Schema(description = "历史总用量（用于重开户继承）")

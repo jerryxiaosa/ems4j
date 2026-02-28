@@ -184,6 +184,7 @@ CREATE TABLE energy_electric_meter
     meter_address     INTEGER              DEFAULT NULL,
     imei              VARCHAR(50)          DEFAULT NULL,
     is_online         BOOLEAN              DEFAULT NULL,
+    last_online_time  TIMESTAMP            DEFAULT NULL,
     is_cut_off        BOOLEAN     NOT NULL DEFAULT FALSE,
     remark            VARCHAR(500)         DEFAULT NULL,
     iot_id            VARCHAR(100)         DEFAULT NULL,

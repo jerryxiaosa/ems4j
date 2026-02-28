@@ -1,8 +1,7 @@
 package info.zhihui.ems.business.finance.service.record;
 
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import jakarta.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
 
 /**
  * 电表电量记录查询服务
@@ -12,10 +11,10 @@ import java.math.BigDecimal;
 public interface ElectricMeterPowerRecordService {
 
     /**
-     * 查询电表最新电量（无记录返回 null）
+     * 查询电表最近一次上报电量记录（无记录返回 null）
      *
      * @param meterId 电表ID
-     * @return 最新电量
+     * @return 最近一次上报电量记录
      */
-    BigDecimal findLatestPower(@NotNull Integer meterId);
+    ElectricMeterLatestPowerRecordDto findLatestRecord(@NotNull Integer meterId);
 }

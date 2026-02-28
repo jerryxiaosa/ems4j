@@ -2,6 +2,7 @@ package info.zhihui.ems.web.device.mapstruct;
 
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.*;
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import info.zhihui.ems.business.device.enums.ElectricSwitchStatusEnum;
 import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.common.enums.*;
@@ -63,6 +64,8 @@ public interface ElectricMeterWebMapper {
     @Mapping(target = "calculateType", expression = "java(calculateTypeEnumToInt(bo.getCalculateType()))")
     @Mapping(target = "warnType", expression = "java(mapWarnTypeEnumToString(bo.getWarnType()))")
     ElectricMeterDetailVo toElectricMeterDetailVo(ElectricMeterBo bo);
+
+    ElectricMeterLatestPowerRecordVo toElectricMeterLatestPowerRecordVo(ElectricMeterLatestPowerRecordDto dto);
 
     CanceledMeterVo toCanceledMeterVo(CanceledMeterDto dto);
 

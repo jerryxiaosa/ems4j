@@ -26,7 +26,7 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
     @Override
     public void syncOnlineStatus(T device, DeviceStatusSyncRequestDto request) {
         Boolean targetStatus = determineTargetStatus(device, request);
-        if (Objects.equals(getCurrentStatus(device), targetStatus)) {
+        if (!shouldPersist(device, targetStatus)) {
             return;
         }
         persistStatus(device, targetStatus);
@@ -65,6 +65,13 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
      * 获取当前状态。
      */
     protected abstract Boolean getCurrentStatus(T device);
+
+    /**
+     * 判断是否需要持久化状态。
+     */
+    protected boolean shouldPersist(T device, Boolean targetStatus) {
+        return Boolean.TRUE.equals(targetStatus) || !Objects.equals(getCurrentStatus(device), targetStatus);
+    }
 
     /**
      * 状态持久化。

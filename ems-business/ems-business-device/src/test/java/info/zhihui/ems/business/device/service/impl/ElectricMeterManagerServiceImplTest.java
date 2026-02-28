@@ -23,6 +23,7 @@ import info.zhihui.ems.business.device.service.impl.sync.ElectricMeterOnlineStat
 import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
 import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
@@ -2121,6 +2122,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity updatedEntity = captor.getValue();
         assertEquals(1, updatedEntity.getId());
         assertTrue(updatedEntity.getIsOnline());
+        assertNotNull(updatedEntity.getLastOnlineTime());
 
         // 验证不会调用 EnergyService
         verify(deviceModuleContext, never()).getService(any(), any());
@@ -2149,6 +2151,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity updatedEntity = captor.getValue();
         assertEquals(1, updatedEntity.getId());
         assertFalse(updatedEntity.getIsOnline());
+        assertNull(updatedEntity.getLastOnlineTime());
 
         // 验证不会调用 EnergyService
         verify(deviceModuleContext, never()).getService(any(), any());
@@ -2190,6 +2193,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity updatedEntity = entityCaptor.getValue();
         assertEquals(1, updatedEntity.getId());
         assertTrue(updatedEntity.getIsOnline());
+        assertNotNull(updatedEntity.getLastOnlineTime());
     }
 
     /**
@@ -2228,6 +2232,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity updatedEntity = entityCaptor.getValue();
         assertEquals(1, updatedEntity.getId());
         assertFalse(updatedEntity.getIsOnline()); // 使用 EnergyService 返回的状态
+        assertNull(updatedEntity.getLastOnlineTime());
     }
 
     /**
@@ -2261,6 +2266,32 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterEntity updatedEntity = entityCaptor.getValue();
         assertEquals(1, updatedEntity.getId());
         assertTrue(updatedEntity.getIsOnline());
+        assertNotNull(updatedEntity.getLastOnlineTime());
+    }
+
+    /**
+     * 测试同步电表在线状态 - 当前已在线仍刷新最近在线时间
+     */
+    @Test
+    void testSyncMeterOnlineStatus_CurrentOnlineAndTargetOnline_RefreshLastOnlineTime() {
+        ElectricMeterOnlineStatusDto dto = new ElectricMeterOnlineStatusDto()
+                .setMeterId(1)
+                .setOnlineStatus(true)
+                .setForce(true);
+        bo.setIsOnline(true);
+        bo.setLastOnlineTime(LocalDateTime.of(2025, 1, 1, 10, 0));
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
+
+        electricMeterService.syncMeterOnlineStatus(dto);
+
+        ArgumentCaptor<ElectricMeterEntity> captor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
+        verify(repository).updateById(captor.capture());
+        ElectricMeterEntity updatedEntity = captor.getValue();
+        assertEquals(1, updatedEntity.getId());
+        assertTrue(updatedEntity.getIsOnline());
+        assertNotNull(updatedEntity.getLastOnlineTime());
+        assertTrue(updatedEntity.getLastOnlineTime().isAfter(bo.getLastOnlineTime()));
     }
 
     /**
@@ -3949,7 +3980,8 @@ class ElectricMeterManagerServiceImplTest {
         when(deviceModuleContext.getService(eq(EnergyService.class), eq(300))).thenReturn(energyService);
         when(energyService.getMeterEnergy(any())).thenThrow(new RuntimeException("mock energy failure"));
         BigDecimal snapshotPower = new BigDecimal("150.50");
-        when(electricMeterPowerRecordService.findLatestPower(anyInt())).thenReturn(snapshotPower);
+        when(electricMeterPowerRecordService.findLatestRecord(anyInt()))
+                .thenReturn(new ElectricMeterLatestPowerRecordDto().setPower(snapshotPower));
 
         int expectedYear = LocalDateTime.now().getYear();
         assertDoesNotThrow(() -> electricMeterService.resetCurrentYearMeterStepRecord(resetDto));
@@ -3978,7 +4010,7 @@ class ElectricMeterManagerServiceImplTest {
         electricMeterService.resetCurrentYearMeterStepRecord(resetDto);
 
         verify(accountMeterStepRepository, never()).insert(any(MeterStepEntity.class));
-        verify(electricMeterPowerRecordService, never()).findLatestPower(any());
+        verify(electricMeterPowerRecordService, never()).findLatestRecord(any());
     }
 
     @Test
@@ -3996,7 +4028,7 @@ class ElectricMeterManagerServiceImplTest {
         electricMeterService.resetCurrentYearMeterStepRecord(resetDto);
 
         verify(accountMeterStepRepository, never()).insert(any(MeterStepEntity.class));
-        verify(electricMeterPowerRecordService, never()).findLatestPower(any());
+        verify(electricMeterPowerRecordService, never()).findLatestRecord(any());
     }
 
 }

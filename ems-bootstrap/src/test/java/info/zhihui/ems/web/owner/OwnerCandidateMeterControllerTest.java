@@ -44,6 +44,7 @@ class OwnerCandidateMeterControllerTest {
                         .setMeterName("候选表")
                         .setMeterNo("EM001")
                         .setMeterType("电表")
+                        .setOfflineDurationText("3天")
         ));
 
         mockMvc.perform(get("/owner-candidate-meters")
@@ -54,7 +55,8 @@ class OwnerCandidateMeterControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(1))
                 .andExpect(jsonPath("$.data[0].meterName").value("候选表"))
-                .andExpect(jsonPath("$.data[0].meterType").value("电表"));
+                .andExpect(jsonPath("$.data[0].meterType").value("电表"))
+                .andExpect(jsonPath("$.data[0].offlineDurationText").value("3天"));
 
         ArgumentCaptor<OwnerCandidateMeterQueryVo> captor = ArgumentCaptor.forClass(OwnerCandidateMeterQueryVo.class);
         verify(ownerCandidateMeterBiz).findCandidateMeterList(captor.capture());

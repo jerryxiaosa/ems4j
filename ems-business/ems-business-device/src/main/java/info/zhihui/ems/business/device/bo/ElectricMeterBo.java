@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * 电表业务对象
  */
@@ -78,6 +80,11 @@ public class ElectricMeterBo extends OperatorInfo {
      * 是否在线
      */
     private Boolean isOnline;
+
+    /**
+     * 最近一次确认在线时间
+     */
+    private LocalDateTime lastOnlineTime;
 
     /**
      * 是否断闸

@@ -27,6 +27,7 @@ import info.zhihui.ems.business.device.utils.DeviceUtil;
 import info.zhihui.ems.business.finance.bo.BalanceBo;
 import info.zhihui.ems.business.finance.dto.BalanceQueryDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterDetailDto;
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import info.zhihui.ems.business.finance.dto.ElectricMeterPowerRecordDto;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.business.finance.service.consume.MeterConsumeService;
@@ -843,7 +844,8 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (devicePower != null) {
             return devicePower;
         }
-        return electricMeterPowerRecordService.findLatestPower(meterId);
+        ElectricMeterLatestPowerRecordDto latestRecord = electricMeterPowerRecordService.findLatestRecord(meterId);
+        return latestRecord == null ? null : latestRecord.getPower();
     }
 
     private BigDecimal readMeterPowerFromDevice(Integer meterId) {
