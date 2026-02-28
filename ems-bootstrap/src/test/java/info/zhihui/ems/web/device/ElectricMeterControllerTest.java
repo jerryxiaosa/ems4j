@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +44,10 @@ class ElectricMeterControllerTest {
     @Test
     @DisplayName("分页查询电表")
     void testFindElectricMeterPage() throws Exception {
-        ElectricMeterVo vo = new ElectricMeterVo().setId(1).setMeterName("MeterA");
+        ElectricMeterVo vo = new ElectricMeterVo()
+                .setId(1)
+                .setMeterName("MeterA")
+                .setOfflineDurationText("2小时");
         PageResult<ElectricMeterVo> pageResult = new PageResult<ElectricMeterVo>()
                 .setList(List.of(vo))
                 .setPageNum(1)
@@ -56,7 +60,8 @@ class ElectricMeterControllerTest {
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list[0].meterName").value("MeterA"));
+                .andExpect(jsonPath("$.data.list[0].meterName").value("MeterA"))
+                .andExpect(jsonPath("$.data.list[0].offlineDurationText").value("2小时"));
     }
 
     @Test
@@ -92,6 +97,23 @@ class ElectricMeterControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].type").value(0));
+    }
+
+    @Test
+    @DisplayName("获取电表最近一次上报电量记录")
+    void testGetLatestPowerRecord() throws Exception {
+        ElectricMeterLatestPowerRecordVo latestPowerRecordVo = new ElectricMeterLatestPowerRecordVo()
+                .setRecordTime(LocalDateTime.of(2026, 2, 28, 10, 58, 46))
+                .setPower(new BigDecimal("1000.50"))
+                .setPowerHigher(new BigDecimal("200.10"));
+        when(electricMeterBiz.getLatestPowerRecord(1)).thenReturn(latestPowerRecordVo);
+
+        mockMvc.perform(get("/device/electric-meters/1/latest-power-record"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.recordTime").value("2026-02-28 10:58:46"))
+                .andExpect(jsonPath("$.data.power").value(1000.50))
+                .andExpect(jsonPath("$.data.powerHigher").value(200.10));
     }
 
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
+import info.zhihui.ems.components.translate.formatter.AbsoluteMoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
@@ -22,6 +23,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TranslateEngine.class,
         TranslateMetadataCache.class,
         EnumLabelResolver.class,
+        AbsoluteMoneyScale2TextFormatter.class,
         MoneyScale2TextFormatter.class
 })
 class AccountControllerTest {
@@ -133,7 +136,10 @@ class AccountControllerTest {
     @Test
     @DisplayName("分页查询销户记录")
     void testFindCancelRecordPage() throws Exception {
-        AccountCancelRecordVo recordVo = new AccountCancelRecordVo().setCancelNo("C001");
+        AccountCancelRecordVo recordVo = new AccountCancelRecordVo()
+                .setCancelNo("C001")
+                .setCleanBalanceReal(new BigDecimal("-80"))
+                .setCancelTime(LocalDateTime.of(2026, 2, 28, 10, 58, 46));
         PageResult<AccountCancelRecordVo> pageResult = new PageResult<AccountCancelRecordVo>()
                 .setList(List.of(recordVo))
                 .setPageNum(1)
@@ -143,18 +149,27 @@ class AccountControllerTest {
 
         mockMvc.perform(get("/accounts/cancel/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.list[0].cancelNo").value("C001"));
+                .andExpect(jsonPath("$.data.list[0].cancelNo").value("C001"))
+                .andExpect(jsonPath("$.data.list[0].cleanBalanceReal").value(-80))
+                .andExpect(jsonPath("$.data.list[0].cleanBalanceAmountText").value("80.00"))
+                .andExpect(jsonPath("$.data.list[0].cancelTime").value("2026-02-28 10:58:46"));
     }
 
     @Test
     @DisplayName("获取销户详情")
     void testGetCancelRecordDetail() throws Exception {
-        AccountCancelDetailVo detailVo = new AccountCancelDetailVo().setCancelNo("C002");
+        AccountCancelDetailVo detailVo = new AccountCancelDetailVo()
+                .setCancelNo("C002")
+                .setCleanBalanceReal(new BigDecimal("-50"))
+                .setCancelTime(LocalDateTime.of(2026, 2, 28, 10, 58, 46));
         when(accountBiz.getCancelRecordDetail("C002")).thenReturn(detailVo);
 
         mockMvc.perform(get("/accounts/cancel/C002"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.cancelNo").value("C002"));
+                .andExpect(jsonPath("$.data.cancelNo").value("C002"))
+                .andExpect(jsonPath("$.data.cleanBalanceReal").value(-50))
+                .andExpect(jsonPath("$.data.cleanBalanceAmountText").value("50.00"))
+                .andExpect(jsonPath("$.data.cancelTime").value("2026-02-28 10:58:46"));
     }
 
     @Test
@@ -181,7 +196,9 @@ class AccountControllerTest {
     @Test
     @DisplayName("销户")
     void testCancelAccount() throws Exception {
-        CancelAccountResponseVo responseVo = new CancelAccountResponseVo().setCancelNo("C003").setAmount(new BigDecimal("80"));
+        CancelAccountResponseVo responseVo = new CancelAccountResponseVo()
+                .setCancelNo("C003")
+                .setAmount(new BigDecimal("-80"));
         when(accountBiz.cancelAccount(any(CancelAccountVo.class))).thenReturn(responseVo);
 
         CancelAccountVo cancelVo = new CancelAccountVo()
@@ -192,7 +209,9 @@ class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cancelVo)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.cancelNo").value("C003"));
+                .andExpect(jsonPath("$.data.cancelNo").value("C003"))
+                .andExpect(jsonPath("$.data.amount").value(-80))
+                .andExpect(jsonPath("$.data.cleanBalanceAmountText").value("80.00"));
     }
 
     @Test

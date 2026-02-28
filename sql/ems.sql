@@ -277,6 +277,7 @@ CREATE TABLE `energy_electric_meter`
     `meter_address`     INT                                                                    DEFAULT NULL COMMENT '电表通讯地址',
     `imei`              VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci           DEFAULT NULL COMMENT '移动设备IMEI',
     `is_online`         BIT(1)                                                                 DEFAULT NULL COMMENT '是否在线：0不在线，1在线',
+    `last_online_time`  DATETIME                                                               DEFAULT NULL COMMENT '最近一次确认在线时间',
     `is_cut_off`        BIT(1)                                                        NOT NULL DEFAULT b'0' COMMENT '是否断电：0未断闸，1断闸',
     `remark`            VARCHAR(500) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '备注',
     `iot_id`            VARCHAR(100) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci         DEFAULT NULL COMMENT 'iot服务里的id',

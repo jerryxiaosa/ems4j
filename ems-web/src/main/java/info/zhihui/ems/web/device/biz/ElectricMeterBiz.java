@@ -5,20 +5,22 @@ import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterSwitchStatusDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterTimeDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterUpdateDto;
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
-import info.zhihui.ems.common.enums.WarnTypeEnum;
+import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
+import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
+import info.zhihui.ems.web.util.OfflineDurationUtil;
 import info.zhihui.ems.web.device.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -30,6 +32,7 @@ public class ElectricMeterBiz {
 
     private final ElectricMeterInfoService electricMeterInfoService;
     private final ElectricMeterManagerService electricMeterManagerService;
+    private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
     private final ElectricMeterWebMapper electricMeterWebMapper;
 
     /**
@@ -49,7 +52,9 @@ public class ElectricMeterBiz {
             queryDto = new ElectricMeterQueryDto();
         }
         PageResult<ElectricMeterBo> pageResult = electricMeterInfoService.findPage(queryDto, pageParam);
-        return electricMeterWebMapper.toElectricMeterVoPage(pageResult);
+        PageResult<ElectricMeterVo> result = electricMeterWebMapper.toElectricMeterVoPage(pageResult);
+        fillOfflineDurationText(result.getList(), pageResult.getList());
+        return result;
     }
 
     /**
@@ -62,7 +67,9 @@ public class ElectricMeterBiz {
         ElectricMeterQueryDto queryDto = electricMeterWebMapper.toElectricMeterQueryDto(queryVo);
 
         List<ElectricMeterBo> bos = electricMeterInfoService.findList(queryDto);
-        return electricMeterWebMapper.toElectricMeterVoList(bos);
+        List<ElectricMeterVo> meterVoList = electricMeterWebMapper.toElectricMeterVoList(bos);
+        fillOfflineDurationText(meterVoList, bos);
+        return meterVoList;
     }
 
     /**
@@ -72,7 +79,22 @@ public class ElectricMeterBiz {
      * @return 电表详情
      */
     public ElectricMeterDetailVo getElectricMeter(Integer id) {
-        return electricMeterWebMapper.toElectricMeterDetailVo(electricMeterInfoService.getDetail(id));
+        ElectricMeterBo meterBo = electricMeterInfoService.getDetail(id);
+        ElectricMeterDetailVo detailVo = electricMeterWebMapper.toElectricMeterDetailVo(meterBo);
+        detailVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
+        return detailVo;
+    }
+
+    /**
+     * 获取电表最近一次上报电量记录
+     *
+     * @param meterId 电表ID
+     * @return 最近一次上报电量记录，无记录时返回 null
+     */
+    public ElectricMeterLatestPowerRecordVo getLatestPowerRecord(Integer meterId) {
+        electricMeterInfoService.getDetail(meterId);
+        ElectricMeterLatestPowerRecordDto latestRecordDto = electricMeterPowerRecordService.findLatestRecord(meterId);
+        return latestRecordDto == null ? null : electricMeterWebMapper.toElectricMeterLatestPowerRecordVo(latestRecordDto);
     }
 
     /**
@@ -168,9 +190,24 @@ public class ElectricMeterBiz {
      */
     public List<ElectricMeterPowerVo> getMeterPower(Integer meterId, ElectricMeterPowerQueryVo queryVo) {
         List<Integer> typeCodes = queryVo == null ? Collections.emptyList() : queryVo.getTypes();
-        var types = electricMeterWebMapper.toElectricDegreeTypeEnumList(typeCodes);
+        List<ElectricPricePeriodEnum> types = electricMeterWebMapper.toElectricDegreeTypeEnumList(typeCodes);
         return electricMeterWebMapper.toElectricMeterPowerVoList(
                 electricMeterManagerService.getMeterPower(meterId, types));
+    }
+
+    private void fillOfflineDurationText(List<ElectricMeterVo> meterVoList, List<ElectricMeterBo> meterBoList) {
+        if (meterVoList == null || meterVoList.isEmpty() || meterBoList == null || meterBoList.isEmpty()) {
+            return;
+        }
+
+        for (int index = 0; index < meterVoList.size() && index < meterBoList.size(); index++) {
+            ElectricMeterVo meterVo = meterVoList.get(index);
+            ElectricMeterBo meterBo = meterBoList.get(index);
+            if (meterVo == null || meterBo == null) {
+                continue;
+            }
+            meterVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
+        }
     }
 
 }

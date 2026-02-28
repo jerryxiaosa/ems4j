@@ -52,6 +52,9 @@ public class ElectricMeterVo {
     @Schema(description = "是否在线")
     private Boolean isOnline;
 
+    @Schema(description = "离线时长")
+    private String offlineDurationText;
+
     @Schema(description = "是否断闸")
     private Boolean isCutOff;
 

@@ -1,5 +1,8 @@
 package info.zhihui.ems.web.account.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import info.zhihui.ems.components.translate.annotation.FormatText;
+import info.zhihui.ems.components.translate.formatter.AbsoluteMoneyScale2TextFormatter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -31,10 +34,15 @@ public class AccountCancelDetailVo {
     @Schema(description = "结算金额")
     private BigDecimal cleanBalanceReal;
 
+    @Schema(description = "结算金额展示值（绝对值，保留两位小数）")
+    @FormatText(source = "cleanBalanceReal", formatter = AbsoluteMoneyScale2TextFormatter.class)
+    private String cleanBalanceAmountText;
+
     @Schema(description = "操作人")
     private String operatorName;
 
     @Schema(description = "销户时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime cancelTime;
 
     @Schema(description = "备注")

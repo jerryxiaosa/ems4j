@@ -332,6 +332,49 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         // 注意：实际的在线状态可能需要通过IoT平台同步，这里主要验证方法调用成功
     }
 
+    @Test
+    void testSyncMeterOnlineStatus_ForceOnline_ShouldUpdateLastOnlineTime() {
+        ElectricMeterCreateDto addDto = createValidElectricMeterAddDto();
+        Integer meterId = electricMeterManagerService.add(addDto);
+        LocalDateTime executeBeforeTime = LocalDateTime.now().minusSeconds(1);
+
+        electricMeterManagerService.syncMeterOnlineStatus(new ElectricMeterOnlineStatusDto()
+                .setMeterId(meterId)
+                .setOnlineStatus(true)
+                .setForce(true));
+
+        ElectricMeterEntity updatedMeter = electricMeterRepository.selectById(meterId);
+        assertNotNull(updatedMeter);
+        assertTrue(Boolean.TRUE.equals(updatedMeter.getIsOnline()));
+        assertNotNull(updatedMeter.getLastOnlineTime());
+        assertTrue(!updatedMeter.getLastOnlineTime().isBefore(executeBeforeTime));
+    }
+
+    @Test
+    void testSyncMeterOnlineStatus_ForceOffline_ShouldKeepLastOnlineTime() {
+        ElectricMeterCreateDto addDto = createValidElectricMeterAddDto();
+        Integer meterId = electricMeterManagerService.add(addDto);
+
+        electricMeterManagerService.syncMeterOnlineStatus(new ElectricMeterOnlineStatusDto()
+                .setMeterId(meterId)
+                .setOnlineStatus(true)
+                .setForce(true));
+        ElectricMeterEntity onlineMeter = electricMeterRepository.selectById(meterId);
+        assertNotNull(onlineMeter);
+        assertNotNull(onlineMeter.getLastOnlineTime());
+        LocalDateTime lastOnlineTime = onlineMeter.getLastOnlineTime();
+
+        electricMeterManagerService.syncMeterOnlineStatus(new ElectricMeterOnlineStatusDto()
+                .setMeterId(meterId)
+                .setOnlineStatus(false)
+                .setForce(true));
+
+        ElectricMeterEntity offlineMeter = electricMeterRepository.selectById(meterId);
+        assertNotNull(offlineMeter);
+        assertFalse(Boolean.TRUE.equals(offlineMeter.getIsOnline()));
+        assertEquals(lastOnlineTime, offlineMeter.getLastOnlineTime());
+    }
+
     /**
      * 测试电表开户功能 - 成功场景
      * 验证：1. 能够成功为多个电表开户 2. 操作不抛出异常 3. 电表的账户ID正确设置
