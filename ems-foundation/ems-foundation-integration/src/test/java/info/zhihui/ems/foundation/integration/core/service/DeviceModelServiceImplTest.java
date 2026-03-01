@@ -177,6 +177,28 @@ class DeviceModelServiceImplTest {
     }
 
     @Test
+    void findList_withIds_shouldReturnBoList() {
+        // Given
+        DeviceModelQueryDto queryWithIdsDto = new DeviceModelQueryDto().setIds(List.of(1, 2));
+        DeviceModelQueryQo queryWithIdsQo = new DeviceModelQueryQo().setIds(List.of(1, 2));
+        when(mapper.queryDtoToQo(queryWithIdsDto)).thenReturn(queryWithIdsQo);
+        when(repository.findList(queryWithIdsQo)).thenReturn(entityList);
+        when(mapper.listEntityToBo(entityList)).thenReturn(boList);
+
+        // When
+        List<DeviceModelBo> result = deviceModelService.findList(queryWithIdsDto);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getId());
+
+        verify(mapper).queryDtoToQo(queryWithIdsDto);
+        verify(repository).findList(queryWithIdsQo);
+        verify(mapper).listEntityToBo(entityList);
+    }
+
+    @Test
     void findList_withEmptyResult_shouldReturnEmptyList() {
         // Given
         when(mapper.queryDtoToQo(queryDto)).thenReturn(queryQo);

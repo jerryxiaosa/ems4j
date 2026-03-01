@@ -8,6 +8,12 @@
       from device_model
       <where>
           is_deleted = 0
+          <if test="ids != null and ids.size() > 0">
+              and id in
+              <foreach item="item" collection="ids" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+          </if>
           <if test="typeIds != null and typeIds.size() > 0">
               and type_id in
               <foreach item="item" collection="typeIds" open="(" separator="," close=")">

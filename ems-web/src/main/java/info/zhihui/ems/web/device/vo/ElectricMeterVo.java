@@ -3,7 +3,9 @@ package info.zhihui.ems.web.device.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 电表列表展示对象
@@ -19,6 +21,12 @@ public class ElectricMeterVo {
     @Schema(description = "空间ID")
     private Integer spaceId;
 
+    @Schema(description = "所在位置")
+    private String spaceName;
+
+    @Schema(description = "所属区域名称列表")
+    private List<String> spaceParentNames;
+
     @Schema(description = "电表名称")
     private String meterName;
 
@@ -30,6 +38,9 @@ public class ElectricMeterVo {
 
     @Schema(description = "型号ID")
     private Integer modelId;
+
+    @Schema(description = "型号名称")
+    private String modelName;
 
     @Schema(description = "产品唯一标识")
     private String productCode;
