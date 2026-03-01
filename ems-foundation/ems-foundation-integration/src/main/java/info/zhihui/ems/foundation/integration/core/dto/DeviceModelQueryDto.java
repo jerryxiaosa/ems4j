@@ -9,6 +9,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class DeviceModelQueryDto {
 
+    private List<Integer> ids;
+
     private List<Integer> typeIds;
 
     private String typeKey;

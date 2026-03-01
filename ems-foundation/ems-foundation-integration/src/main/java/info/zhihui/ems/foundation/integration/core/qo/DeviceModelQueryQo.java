@@ -11,6 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class DeviceModelQueryQo {
+    private List<Integer> ids;
+
     private List<Integer> typeIds;
 
     private String typeKey;

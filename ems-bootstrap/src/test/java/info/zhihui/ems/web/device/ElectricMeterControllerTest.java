@@ -47,6 +47,9 @@ class ElectricMeterControllerTest {
         ElectricMeterVo vo = new ElectricMeterVo()
                 .setId(1)
                 .setMeterName("MeterA")
+                .setSpaceName("101房间")
+                .setSpaceParentNames(List.of("1号楼", "1层"))
+                .setModelName("DDSY-100")
                 .setOfflineDurationText("2小时");
         PageResult<ElectricMeterVo> pageResult = new PageResult<ElectricMeterVo>()
                 .setList(List.of(vo))
@@ -61,7 +64,30 @@ class ElectricMeterControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list[0].meterName").value("MeterA"))
+                .andExpect(jsonPath("$.data.list[0].spaceName").value("101房间"))
+                .andExpect(jsonPath("$.data.list[0].spaceParentNames[0]").value("1号楼"))
+                .andExpect(jsonPath("$.data.list[0].modelName").value("DDSY-100"))
                 .andExpect(jsonPath("$.data.list[0].offlineDurationText").value("2小时"));
+    }
+
+    @Test
+    @DisplayName("获取电表详情")
+    void testGetElectricMeter() throws Exception {
+        ElectricMeterDetailVo detailVo = new ElectricMeterDetailVo();
+        detailVo.setId(1);
+        detailVo.setMeterName("MeterA");
+        detailVo.setSpaceName("101房间");
+        detailVo.setSpaceParentNames(List.of("1号楼", "1层"));
+        detailVo.setModelName("DDSY-100");
+        when(electricMeterBiz.getElectricMeter(1)).thenReturn(detailVo);
+
+        mockMvc.perform(get("/device/electric-meters/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.spaceName").value("101房间"))
+                .andExpect(jsonPath("$.data.spaceParentNames[1]").value("1层"))
+                .andExpect(jsonPath("$.data.modelName").value("DDSY-100"));
     }
 
     @Test
