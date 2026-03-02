@@ -78,7 +78,7 @@ class MeterCorrectionServiceImplTest {
                 .setOwnerName("企业客户")
                 .setMeterId(300)
                 .setMeterName("测试电表A")
-                .setMeterNo("MTR-A")
+                .setDeviceNo("MTR-A")
                 .setCorrectionType(CorrectionTypeEnum.PAY)
                 .setAmount(new BigDecimal("12.349"))
                 .setReason("补扣差额");
@@ -127,7 +127,7 @@ class MeterCorrectionServiceImplTest {
                 .setOwnerName("用户A")
                 .setMeterId(2)
                 .setMeterName("电表A")
-                .setMeterNo("M001")
+                .setDeviceNo("M001")
                 .setSpaceId(100)
                 .setSpaceName("房间1")
                 .setConsumeAmount(new BigDecimal("5.00"))

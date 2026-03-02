@@ -58,7 +58,7 @@ public class PowerConsumeRecordDto {
     /**
      * 表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 房间名称

@@ -11,7 +11,7 @@
             meter_type,
             meter_id,
             meter_name,
-            meter_no,
+            device_no,
             space_id,
             space_name,
             account_id,

@@ -69,7 +69,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setMeterId(200)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表")
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setSpaceId(300);
 
         // 初始化订单创建信息DTO
@@ -189,7 +189,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setMeterId(201)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表2")
-                .setMeterNo("METER002")
+                .setDeviceNo("METER002")
                 .setSpaceId(301);
 
         EnergyOrderCreationInfoDto secondOrderInfo = new EnergyOrderCreationInfoDto();
@@ -234,7 +234,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setMeterId(200)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表")
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setSpaceId(300);
 
         EnergyOrderCreationInfoDto quantityOrderInfo = new EnergyOrderCreationInfoDto();
@@ -260,7 +260,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setMeterId(201)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表2")
-                .setMeterNo("METER002")
+                .setDeviceNo("METER002")
                 .setSpaceId(301);
 
         EnergyOrderCreationInfoDto monthlyOrderInfo = new EnergyOrderCreationInfoDto();

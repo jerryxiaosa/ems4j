@@ -16,36 +16,6 @@ import java.util.UUID;
 public class SerialNumberGeneratorUtil {
 
     /**
-     * 生成电表编号
-     * 编号规则：前缀(EM) + 日期(yyyyMMdd) + 序号(4位)
-     * 说明：序号仅保留ID后4位，假设单日生成量不超过9999，超过会产生重复风险。
-     *
-     * @param meterId 电表ID
-     * @return 电表编号
-     */
-    public static String genElectricMeterNo(Integer meterId) {
-        String date = SysDateUtil.toDateString(LocalDate.now()).replace("-", "");
-        String order = String.format("%04d", meterId);
-        String uniqueOrder = order.substring(order.length() - 4);
-        return SerialNumberConstant.ELECTRIC_METER_NO_PREFIX + date + uniqueOrder;
-    }
-
-    /**
-     * 生成网关编号
-     * 编号规则：前缀(GW) + 日期(yyyyMMdd) + 序号(4位)
-     * 说明：序号仅保留ID后4位，假设单日生成量不超过9999，超过会产生重复风险。
-     *
-     * @param gatewayId 网关ID
-     * @return 网关编号
-     */
-    public static String genGatewayNo(Integer gatewayId) {
-        String date = SysDateUtil.toDateString(LocalDate.now()).replace("-", "");
-        String order = String.format("%04d", gatewayId);
-        String uniqueOrder = order.substring(order.length() - 4);
-        return SerialNumberConstant.GATEWAY_NO_PREFIX + date + uniqueOrder;
-    }
-
-    /**
      * 生成表编号(yyyyMMdd) + 序号(4位)
      *
      * @param prefix 前缀

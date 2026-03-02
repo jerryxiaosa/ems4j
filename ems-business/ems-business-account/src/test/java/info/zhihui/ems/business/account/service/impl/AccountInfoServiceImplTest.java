@@ -172,7 +172,7 @@ class AccountInfoServiceImplTest {
                 .setOwnerName("测试企业");
 
         CanceledMeterDto meterDto = new CanceledMeterDto()
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setMeterName("测试电表");
 
         List<CanceledMeterDto> meterList = List.of(meterDto);
@@ -191,7 +191,7 @@ class AccountInfoServiceImplTest {
         Assertions.assertEquals("测试企业", result.getOwnerName());
         Assertions.assertNotNull(result.getMeterList());
         Assertions.assertEquals(1, result.getMeterList().size());
-        Assertions.assertEquals("METER001", result.getMeterList().get(0).getMeterNo());
+        Assertions.assertEquals("METER001", result.getMeterList().get(0).getDeviceNo());
 
         // 验证方法调用
         Mockito.verify(accountCancelRecordRepository).selectByCancelNo(cancelNo);

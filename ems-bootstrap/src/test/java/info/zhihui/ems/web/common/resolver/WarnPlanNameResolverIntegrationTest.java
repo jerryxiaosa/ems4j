@@ -1,9 +1,9 @@
-package info.zhihui.ems.web.account;
+package info.zhihui.ems.web.common.resolver;
 
 import info.zhihui.ems.business.plan.dto.WarnPlanSaveDto;
 import info.zhihui.ems.business.plan.service.WarnPlanService;
 import info.zhihui.ems.components.translate.engine.TranslateContext;
-import info.zhihui.ems.web.account.resolver.WarnPlanNameResolver;
+import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

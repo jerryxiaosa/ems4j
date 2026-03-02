@@ -1,7 +1,6 @@
 package info.zhihui.ems.business.device.service.impl;
 
 import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.IdUtil;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.bo.GatewayBo;
 import info.zhihui.ems.business.device.constant.DeviceConstant;
@@ -43,18 +42,13 @@ import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.exception.ParamException;
 import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.common.utils.JacksonUtil;
-import info.zhihui.ems.common.utils.SerialNumberGeneratorUtil;
 import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandCancelDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.BaseElectricDeviceDto;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.DailyEnergyPlanUpdateDto;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceAddDto;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceDegreeDto;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceUpdateDto;
+import info.zhihui.ems.foundation.integration.concrete.energy.dto.*;
 import info.zhihui.ems.foundation.integration.concrete.energy.service.EnergyService;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModelBo;
 import info.zhihui.ems.foundation.integration.core.service.DeviceModelService;
@@ -208,7 +202,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         // 记录当前状态与目标状态，始终执行操作以消除状态不一致
         ElectricSwitchStatusEnum currentStatus = getCurrentSwitchStatus(meter);
         log.info("设备{}当前状态：{}，目标状态：{}，开始执行开关闸命令",
-                meter.getMeterNo(), currentStatus.getInfo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo());
+                meter.getDeviceNo(), currentStatus.getInfo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo());
 
         // 更新电表状态
         updateMeterSwitchStatus(meter.getId(), electricMeterSwitchStatusDto.getSwitchStatus());
@@ -217,7 +211,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         performSwitchOperation(meter, electricMeterSwitchStatusDto.getSwitchStatus(), electricMeterSwitchStatusDto.getCommandSource());
 
         log.info("设备{}开关闸操作完成，目标状态：{}（原状态：{}）",
-                meter.getMeterNo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo(), currentStatus.getInfo());
+                meter.getDeviceNo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo(), currentStatus.getInfo());
     }
 
     /**
@@ -227,12 +221,12 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         ElectricMeterBo meter = electricMeterInfoService.getDetail(id);
         if (StringUtils.isBlank(meter.getIotId())) {
             throw new BusinessRuntimeException(
-                    String.format("设备%s异常，请联系管理员处理", meter.getMeterNo()));
+                    String.format("设备%s异常，请联系管理员处理", meter.getDeviceNo()));
         }
 
         if (!BooleanUtil.isTrue(meter.getIsOnline())) {
             throw new BusinessRuntimeException(
-                    String.format("设备%s处于离线状态，请重新选择", meter.getMeterNo()));
+                    String.format("设备%s处于离线状态，请重新选择", meter.getDeviceNo()));
         }
 
         return meter;
@@ -254,7 +248,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         String commandData = JacksonUtil.toJson(new BaseElectricDeviceDto()
                 .setDeviceId(meter.getIotId())
                 .setAreaId(meter.getOwnAreaId()));
-        log.info("执行设备{}，{}命令：{}", meter.getMeterNo(), switchStatus.getInfo(), commandData);
+        log.info("执行设备{}，{}命令：{}", meter.getDeviceNo(), switchStatus.getInfo(), commandData);
 
         MeterCommandDto ctCommandDto = new MeterCommandDto()
                 .setMeter(meter)
@@ -352,10 +346,10 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
         for (ElectricMeterBo meter : meterList) {
             if (!BooleanUtil.isTrue(meter.getIsPrepay())) {
-                throw new BusinessRuntimeException("只支持预付费电表" + ":" + meter.getMeterNo() + "不符合要求");
+                throw new BusinessRuntimeException("只支持预付费电表" + ":" + meter.getDeviceNo() + "不符合要求");
             }
             if (meter.getAccountId() == null) {
-                throw new BusinessRuntimeException(meter.getMeterNo() + "尚未开户，无法操作");
+                throw new BusinessRuntimeException(meter.getDeviceNo() + "尚未开户，无法操作");
             }
         }
     }
@@ -584,7 +578,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     private void validateMeterStatus(List<ElectricMeterBo> meterList) {
         for (ElectricMeterBo meterBo : meterList) {
             if (meterBo.getAccountId() != null) {
-                throw new BusinessRuntimeException(meterBo.getMeterNo() + "已开户，请勿重复开户");
+                throw new BusinessRuntimeException(meterBo.getDeviceNo() + "已开户，请勿重复开户");
             }
 
             if (!BooleanUtil.isTrue(meterBo.getIsPrepay())) {
@@ -795,7 +789,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     public void resetCurrentYearMeterStepRecord(@NotNull MeterStepResetDto resetDto) {
         ElectricMeterBo meter = electricMeterInfoService.getDetail(resetDto.getMeterId());
         if (meter.getAccountId() == null) {
-            log.warn("电表{}未绑定账户，无法执行跨年阶梯重建", meter.getMeterNo());
+            log.warn("电表{}未绑定账户，无法执行跨年阶梯重建", meter.getDeviceNo());
             return;
         }
 
@@ -808,14 +802,14 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
         int currentYear = LocalDateTime.now().getYear();
         if (latestStep != null && Objects.equals(latestStep.getCurrentYear(), currentYear)) {
-            log.debug("电表{}已存在{}年阶梯记录，跳过重建", meter.getMeterNo(), currentYear);
+            log.debug("电表{}已存在{}年阶梯记录，跳过重建", meter.getDeviceNo(), currentYear);
             return;
         }
 
         BigDecimal stepStartValue = determineStepStartValue(resetDto.getMeterId());
         if (stepStartValue == null) {
-            log.error("未获取到电表{}的阶梯起点电量", meter.getMeterNo());
-            throw new BusinessRuntimeException("未获取到电表" + meter.getMeterNo() + "的阶梯起点电量");
+            log.error("未获取到电表{}的阶梯起点电量", meter.getDeviceNo());
+            throw new BusinessRuntimeException("未获取到电表" + meter.getDeviceNo() + "的阶梯起点电量");
         }
 
         markPreviousMeterStepsAsHistory(meter.getAccountId(), resetDto.getMeterId());
@@ -829,7 +823,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setCurrentYear(currentYear)
                 .setIsLatest(Boolean.TRUE);
         meterStepRepository.insert(meterStepEntity);
-        log.info("已为电表{}重建{}年度阶梯起点 {}", meter.getMeterNo(), currentYear, stepStartValue);
+        log.info("已为电表{}重建{}年度阶梯起点 {}", meter.getDeviceNo(), currentYear, stepStartValue);
     }
 
     private void markPreviousMeterStepsAsHistory(Integer accountId, Integer meterId) {
@@ -917,7 +911,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         return new ElectricMeterDetailDto()
                 .setMeterId(meterId)
                 .setMeterName(meterDetail.getMeterName())
-                .setMeterNo(meterDetail.getMeterNo())
+                .setDeviceNo(meterDetail.getDeviceNo())
                 .setSpaceId(meterDetail.getSpaceId())
                 .setIsCalculate(meterDetail.getIsCalculate())
                 .setCalculateType(meterDetail.getCalculateType())
@@ -1071,23 +1065,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     }
 
     /**
-     * 解析网关设备编号
-     */
-    private String resolveGatewayDeviceNo(ElectricMeterBo meter) {
-        if (meter == null || meter.getGatewayId() == null) {
-            throw new BusinessRuntimeException("网关信息有误，请重新选择");
-        }
-        GatewayBo gateway = gatewayService.getDetail(meter.getGatewayId());
-        if (gateway == null) {
-            throw new BusinessRuntimeException("网关不存在，网关ID: " + meter.getGatewayId());
-        }
-        if (StringUtils.isBlank(gateway.getDeviceNo())) {
-            throw new BusinessRuntimeException("网关deviceNo不能为空");
-        }
-        return gateway.getDeviceNo();
-    }
-
-    /**
      * 创建设备添加DTO
      */
     private ElectricDeviceAddDto createDeviceAddDto(ElectricMeterEntity entity) {
@@ -1209,17 +1186,9 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
             entity.setProtectedModel(false);
         }
 
-        // 临时设置电表编号，后续用生成规则来更新
         // 新表假设默认是开闸的
-        // 新表可以补偿，默认没有补偿过
-        entity.setMeterNo(IdUtil.fastSimpleUUID())
-                .setIsCutOff(false);
+        entity.setIsCutOff(false);
         repository.insert(entity);
-
-        ElectricMeterEntity updateEntity = new ElectricMeterEntity()
-                .setId(entity.getId())
-                .setMeterNo(SerialNumberGeneratorUtil.genElectricMeterNo(entity.getId()));
-        repository.updateById(updateEntity);
     }
 
     /**
@@ -1432,12 +1401,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         boolean deviceNoChanged = StringUtils.isNotBlank(entity.getDeviceNo())
                 && !entity.getDeviceNo().equals(old.getDeviceNo());
         if (deviceNoChanged) {
-            if (DeviceUtil.isNbCommunicateModel(old.getCommunicateModel())) {
-                syncDeviceNoToIotPlatform(old, entity.getDeviceNo());
-            } else {
-                entity.setDeviceNo(buildGatewayChildDeviceNo(resolveGatewayDeviceNo(old),
-                        old.getPortNo(), old.getMeterAddress()));
-            }
+            syncDeviceNoToIotPlatform(old, entity.getDeviceNo());
         }
 
         // 设置更新信息
@@ -1620,7 +1584,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setAccountId(meterCancelDto.getAccountId())
                 .setMeterId(meterDto.getMeterId())
                 .setMeterName(meterDto.getMeterName())
-                .setMeterNo(meterDto.getMeterNo())
+                .setDeviceNo(meterDto.getDeviceNo())
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setSpaceId(meterDto.getSpaceId())
                 .setBalance(balance)

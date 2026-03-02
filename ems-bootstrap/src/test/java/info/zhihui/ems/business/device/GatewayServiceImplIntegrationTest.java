@@ -254,7 +254,7 @@ class GatewayServiceImplIntegrationTest {
         assertNotNull(gatewayId, "添加网关应成功");
 
         GatewayBo beforeUpdate = gatewayService.getDetail(gatewayId);
-        String originalGatewayNo = beforeUpdate.getGatewayNo();
+        String originalDeviceNo = beforeUpdate.getDeviceNo();
 
         // 准备更新数据
         GatewayUpdateDto updateDto = new GatewayUpdateDto();
@@ -278,7 +278,7 @@ class GatewayServiceImplIntegrationTest {
         assertEquals(updateDto.getGatewayName(), updatedGateway.getGatewayName(), "网关名称应已更新");
         assertEquals(updateDto.getConfigInfo(), updatedGateway.getConfigInfo(), "配置信息应已更新");
         assertEquals(updateDto.getRemark(), updatedGateway.getRemark(), "备注应已更新");
-        assertEquals(originalGatewayNo, updatedGateway.getGatewayNo(), "网关编号不应改变");
+        assertEquals(originalDeviceNo, updatedGateway.getDeviceNo(), "网关编号不应改变");
     }
 
     @Test

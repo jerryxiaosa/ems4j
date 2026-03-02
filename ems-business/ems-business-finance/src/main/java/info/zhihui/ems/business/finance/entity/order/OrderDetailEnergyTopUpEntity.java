@@ -56,7 +56,7 @@ public class OrderDetailEnergyTopUpEntity {
     /**
      * 电表编号，系统生成
      */
-    private String meterNo;
+    private String deviceNo;
     /**
      * 空间id
      */

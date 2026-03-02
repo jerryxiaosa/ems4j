@@ -1,4 +1,4 @@
-package info.zhihui.ems.web.account.resolver;
+package info.zhihui.ems.web.common.resolver;
 
 import info.zhihui.ems.business.plan.bo.WarnPlanBo;
 import info.zhihui.ems.business.plan.dto.WarnPlanQueryDto;
@@ -7,6 +7,7 @@ import info.zhihui.ems.components.translate.engine.TranslateContext;
 import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
 
     @Override
     public Map<Integer, String> resolveBatch(Set<Integer> keys, TranslateContext context) {
-        if (keys == null || keys.isEmpty()) {
+        if (CollectionUtils.isEmpty(keys)) {
             return Collections.emptyMap();
         }
 

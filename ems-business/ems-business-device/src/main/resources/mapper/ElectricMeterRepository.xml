@@ -15,9 +15,6 @@
                 , #{meterName}
                 , '%')
             </if>
-            <if test="meterNo != null and meterNo != ''">
-                and t.meter_no like concat('%', #{meterNo}, '%')
-            </if>
             <if test="accountIds != null and accountIds.size() > 0">
                 and t.account_id in
                 <foreach item="item" index="index" collection="accountIds" open="(" separator="," close=")">
@@ -61,7 +58,7 @@
                 and t.imei = #{imei}
             </if>
             <if test="searchKey != null and searchKey != ''">
-                and (t.meter_name like concat('%',#{searchKey},'%') or t.meter_no like concat('%',#{searchKey},'%'))
+                and (t.meter_name like concat('%',#{searchKey},'%') or t.device_no like concat('%',#{searchKey},'%'))
             </if>
             <if test="neId != null">
                 and t.id != #{neId}

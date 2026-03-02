@@ -105,7 +105,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         ElectricMeterBo firstMeter = result.getList().get(0);
         assertNotNull(firstMeter.getId(), "电表ID不应为null");
         assertNotNull(firstMeter.getIotId(), "物联网设备ID不应为null");
-        assertNotNull(firstMeter.getMeterNo(), "电表编号不应为null");
+        assertNotNull(firstMeter.getDeviceNo(), "电表编号不应为null");
     }
 
     @Test
@@ -123,7 +123,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         ElectricMeterBo firstMeter = result.get(0);
         assertNotNull(firstMeter.getId(), "电表ID不应为null");
         assertNotNull(firstMeter.getIotId(), "物联网设备ID不应为null");
-        assertNotNull(firstMeter.getMeterNo(), "电表编号不应为null");
+        assertNotNull(firstMeter.getDeviceNo(), "电表编号不应为null");
         assertNotNull(firstMeter.getAccountId(), "账户ID不应为null");
     }
 
@@ -140,7 +140,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         assertNotNull(result, "查询结果不应为null");
         assertEquals(testMeterId, result.getId(), "返回的电表ID应与查询ID一致");
         assertNotNull(result.getIotId(), "物联网设备ID不应为null");
-        assertNotNull(result.getMeterNo(), "电表编号不应为null");
+        assertNotNull(result.getDeviceNo(), "电表编号不应为null");
         assertNotNull(result.getAccountId(), "账户ID不应为null");
 
         // 验证电表的基本属性
@@ -160,7 +160,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
         ElectricMeterQueryDto q = new ElectricMeterQueryDto();
         q.setMeterId(1);
         q.setMeterName("EM");
-        q.setMeterNo("EM");
+        q.setDeviceNo("EM");
         q.setAccountIds(List.of(1));
         q.setIotId("1");
         q.setGatewayId(1);
@@ -202,7 +202,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             assertNotNull(firstMeter.getSpaceName(), "空间名称不应为null");
             assertNotNull(firstMeter.getSpaceParentNames(), "空间父级名称不应为null");
             assertNotNull(firstMeter.getMeterName(), "表名称不应为null");
-            assertNotNull(firstMeter.getMeterNo(), "表具号不应为null");
+            assertNotNull(firstMeter.getDeviceNo(), "表具号不应为null");
             assertNotNull(firstMeter.getMeterType(), "表类型不应为null");
             assertNotNull(firstMeter.getBalance(), "表余额不应为null");
 
@@ -214,7 +214,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             // 验证字符串字段不为空
             assertFalse(firstMeter.getSpaceName().trim().isEmpty(), "空间名称不应为空字符串");
             assertFalse(firstMeter.getMeterName().trim().isEmpty(), "表名称不应为空字符串");
-            assertFalse(firstMeter.getMeterNo().trim().isEmpty(), "表具号不应为空字符串");
+            assertFalse(firstMeter.getDeviceNo().trim().isEmpty(), "表具号不应为空字符串");
 
             // 验证枚举值的有效性
             MeterTypeEnum meterType = firstMeter.getMeterType();
@@ -256,7 +256,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
 
                 // 验证每条记录的基本字段
                 assertNotNull(meter.getMeterName(), String.format("第%d条记录的表名称不应为null", i + 1));
-                assertNotNull(meter.getMeterNo(), String.format("第%d条记录的表具号不应为null", i + 1));
+                assertNotNull(meter.getDeviceNo(), String.format("第%d条记录的表具号不应为null", i + 1));
                 assertNotNull(meter.getMeterType(), String.format("第%d条记录的表类型不应为null", i + 1));
                 assertNotNull(meter.getBalance(), String.format("第%d条记录的表余额不应为null", i + 1));
 
@@ -268,7 +268,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             // 验证不同记录的表具号应该不同（业务逻辑验证）
             for (int i = 0; i < result.size() - 1; i++) {
                 for (int j = i + 1; j < result.size(); j++) {
-                    assertNotEquals(result.get(i).getMeterNo(), result.get(j).getMeterNo(),
+                    assertNotEquals(result.get(i).getDeviceNo(), result.get(j).getDeviceNo(),
                         "同一销户编号下的不同设备表具号应该不同");
                 }
             }
@@ -316,7 +316,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             // 验证所有必需字段都已正确映射
             assertNotNull(meter.getSpaceName(), "空间名称字段映射失败");
             assertNotNull(meter.getMeterName(), "表名称字段映射失败");
-            assertNotNull(meter.getMeterNo(), "表具号字段映射失败");
+            assertNotNull(meter.getDeviceNo(), "表具号字段映射失败");
             assertNotNull(meter.getMeterType(), "表类型字段映射失败");
             assertNotNull(meter.getBalance(), "表余额字段映射失败");
 
@@ -328,7 +328,7 @@ class ElectricMeterInfoServiceImplIntegrationTest {
             // 验证字符串字段的有效性
             assertFalse(meter.getSpaceName().isEmpty(), "空间名称不应为空字符串");
             assertFalse(meter.getMeterName().isEmpty(), "表名称不应为空字符串");
-            assertFalse(meter.getMeterNo().isEmpty(), "表具号不应为空字符串");
+            assertFalse(meter.getDeviceNo().isEmpty(), "表具号不应为空字符串");
         }
     }
 }

@@ -166,7 +166,7 @@ class OrderServiceImplIntegrationTest {
         energyTopUpDto.setMeterId(3001);
         energyTopUpDto.setMeterType(MeterTypeEnum.ELECTRIC);
         energyTopUpDto.setMeterName("测试电表001");
-        energyTopUpDto.setMeterNo("EM001");
+        energyTopUpDto.setDeviceNo("EM001");
         energyTopUpDto.setSpaceId(4001);
         orderCreationInfo.setEnergyTopUpDto(energyTopUpDto);
 
@@ -214,7 +214,7 @@ class OrderServiceImplIntegrationTest {
         assertThat(topUpDetail.getOwnerId()).isEqualTo(2001);
         assertThat(topUpDetail.getMeterId()).isEqualTo(3001);
         assertThat(topUpDetail.getMeterName()).isEqualTo("测试电表001");
-        assertThat(topUpDetail.getMeterNo()).isEqualTo("EM001");
+        assertThat(topUpDetail.getDeviceNo()).isEqualTo("EM001");
         assertThat(topUpDetail.getSpaceId()).isEqualTo(4001);
         assertThat(topUpDetail.getCreateTime()).isNotNull();
         assertThat(topUpDetail.getCreateTime()).isEqualTo(savedOrder.getOrderCreateTime());
@@ -480,7 +480,7 @@ class OrderServiceImplIntegrationTest {
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterId(3001)
                 .setMeterName("测试电表001")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setSpaceId(4001)
                 .setSpaceName("测试空间")
                 .setSpaceParentIds("1,2,3")
@@ -537,7 +537,7 @@ class OrderServiceImplIntegrationTest {
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterId(3001)
                 .setMeterName("测试电表001")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setSpaceId(4001)
                 .setSpaceName("测试空间")
                 .setSpaceParentIds("1,2,3")
@@ -682,7 +682,7 @@ class OrderServiceImplIntegrationTest {
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterId(3001)
                 .setMeterName("测试电表001")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setSpaceId(4001)
                 .setSpaceName("测试空间")
                 .setSpaceParentIds("1,2,3")

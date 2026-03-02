@@ -358,7 +358,7 @@ class AccountInfoServiceImplIntegrationTest {
             if (firstMeter != null) {
                 assertNotNull(firstMeter.getSpaceName(), "设备空间名称不应为null");
                 assertNotNull(firstMeter.getMeterName(), "设备名称不应为null");
-                assertNotNull(firstMeter.getMeterNo(), "设备编号不应为null");
+                assertNotNull(firstMeter.getDeviceNo(), "设备编号不应为null");
                 assertNotNull(firstMeter.getMeterType(), "设备类型不应为null");
                 assertNotNull(firstMeter.getBalance(), "设备余额不应为null");
 
@@ -366,11 +366,11 @@ class AccountInfoServiceImplIntegrationTest {
                 assertTrue(firstMeter.getBalance().compareTo(BigDecimal.ZERO) >= 0, "设备余额应大于等于0");
 
                 // 验证字符串字段不为空
-                assertFalse(firstMeter.getMeterNo().trim().isEmpty(), "设备编号不应为空字符串");
+                assertFalse(firstMeter.getDeviceNo().trim().isEmpty(), "设备编号不应为空字符串");
                 assertFalse(firstMeter.getMeterName().trim().isEmpty(), "设备名称不应为空字符串");
                 assertFalse(firstMeter.getSpaceName().trim().isEmpty(), "设备空间名称不应为空字符串");
             }
-            // CanceledMeterDto 只包含 spaceName, spaceParentNames, meterName, meterNo, meterType, balance 字段
+            // CanceledMeterDto 只包含 spaceName, spaceParentNames, meterName, deviceNo, meterType, balance 字段
         }
     }
 

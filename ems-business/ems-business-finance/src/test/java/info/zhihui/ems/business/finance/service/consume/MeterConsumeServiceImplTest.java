@@ -109,7 +109,7 @@ class MeterConsumeServiceImplTest {
         meterDetailDto = new ElectricMeterDetailDto()
                 .setMeterId(1)
                 .setMeterName("测试电表")
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setIsPrepay(true)
                 .setCt(100)
                 .setIsCalculate(true)

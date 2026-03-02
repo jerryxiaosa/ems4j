@@ -34,7 +34,7 @@ public class CanceledMeterDto {
     /**
      * 表具号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 表类型

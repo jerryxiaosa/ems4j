@@ -10,10 +10,11 @@ import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,10 +35,11 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author jerryxiaosa
  */
-@Slf4j
 @SpringBootTest
 @ActiveProfiles("integrationtest")
 class BalanceServiceImplIntegrationTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BalanceServiceImplIntegrationTest.class);
 
     @Autowired
     private BalanceService balanceService;
@@ -464,7 +466,7 @@ class BalanceServiceImplIntegrationTest {
                     balanceService.topUp(concurrentTopUpDto);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
-                    log.error("并发充值失败", e);
+                    LOGGER.error("并发充值失败", e);
                 } finally {
                     latch.countDown();
                 }

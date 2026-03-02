@@ -63,7 +63,7 @@ public class CorrectMeterAmountDto {
     /**
      * 电表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 补正类型

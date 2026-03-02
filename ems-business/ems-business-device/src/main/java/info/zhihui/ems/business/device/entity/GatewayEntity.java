@@ -20,11 +20,6 @@ public class GatewayEntity extends AreaBaseEntity {
     private Integer spaceId;
 
     /**
-     * 编号
-     */
-    private String gatewayNo;
-
-    /**
      * 设备编号，设备上报标识
      */
     private String deviceNo;

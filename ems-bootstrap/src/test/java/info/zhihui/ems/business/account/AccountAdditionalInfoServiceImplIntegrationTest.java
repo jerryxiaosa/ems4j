@@ -94,10 +94,10 @@ class AccountAdditionalInfoServiceImplIntegrationTest {
                 ownerType, ownerId, unmatchedSpaceId
         );
 
-        insertMeter(9001, matchedSpaceId, "候选离线表", "EM-IT-9001", "DEV-IT-9001", false, true, null);
-        insertMeter(9002, matchedSpaceId, "已开户表", "EM-IT-9002", "DEV-IT-9002", true, true, 1);
-        insertMeter(9003, matchedSpaceId, "非预付费表", "EM-IT-9003", "DEV-IT-9003", true, false, null);
-        insertMeter(9004, unmatchedSpaceId, "其他空间候选表", "EM-IT-9004", "DEV-IT-9004", true, true, null);
+        insertMeter(9001, matchedSpaceId, "候选离线表", "DEV-IT-9001", false, true, null);
+        insertMeter(9002, matchedSpaceId, "已开户表", "DEV-IT-9002", true, true, 1);
+        insertMeter(9003, matchedSpaceId, "非预付费表", "DEV-IT-9003", true, false, null);
+        insertMeter(9004, unmatchedSpaceId, "其他空间候选表", "DEV-IT-9004", true, true, null);
 
         List<AccountCandidateMeterDto> result = accountAdditionalInfoService.findCandidateMeterList(
                 new OwnerCandidateMeterQueryDto()
@@ -112,7 +112,7 @@ class AccountAdditionalInfoServiceImplIntegrationTest {
         AccountCandidateMeterDto candidateMeterDto = result.get(0);
         assertEquals(9001, candidateMeterDto.getId());
         assertEquals("候选离线表", candidateMeterDto.getMeterName());
-        assertEquals("EM-IT-9001", candidateMeterDto.getMeterNo());
+        assertEquals("DEV-IT-9001", candidateMeterDto.getDeviceNo());
         assertEquals(matchedSpaceId, candidateMeterDto.getSpaceId());
         assertEquals("候选空间-A1", candidateMeterDto.getSpaceName());
         assertFalse(candidateMeterDto.getIsOnline());
@@ -125,20 +125,18 @@ class AccountAdditionalInfoServiceImplIntegrationTest {
     private void insertMeter(Integer id,
                              Integer spaceId,
                              String meterName,
-                             String meterNo,
                              String deviceNo,
                              Boolean isOnline,
                              Boolean isPrepay,
                              Integer accountId) {
         jdbcTemplate.update(
                 "insert into energy_electric_meter(" +
-                        "id, space_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, " +
+                        "id, space_id, meter_name, device_no, model_id, product_code, communicate_model, " +
                         "is_online, is_prepay, account_id, own_area_id" +
-                        ") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        ") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 id,
                 spaceId,
                 meterName,
-                meterNo,
                 deviceNo,
                 1,
                 "DDS102",

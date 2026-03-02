@@ -70,7 +70,7 @@ public class FinanceBiz {
         dto.setOwnerType(accountBo.getOwnerType());
 
         dto.setMeterName(electricMeterBo.getMeterName());
-        dto.setMeterNo(electricMeterBo.getMeterNo());
+        dto.setDeviceNo(electricMeterBo.getDeviceNo());
 
         dto.setCorrectionType(CodeEnum.fromCode(correctionMeterAmountVo.getCorrectionType(), CorrectionTypeEnum.class));
         dto.setCorrectionTime(LocalDateTime.now());

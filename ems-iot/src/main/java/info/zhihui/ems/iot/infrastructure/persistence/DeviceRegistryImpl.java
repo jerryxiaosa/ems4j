@@ -32,8 +32,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     public void update(Device device) {
         int affected = repository.updateById(toEntity(device));
         if (affected == 0) {
-            Integer deviceId = device == null ? null : device.getId();
-            throw new NotFoundException("设备记录不存在，id=" + deviceId);
+            throw new NotFoundException("设备记录不存在，id=" + device.getId());
         }
     }
 

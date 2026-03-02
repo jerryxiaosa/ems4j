@@ -27,7 +27,7 @@ public class ElectricMeterDetailDto {
      * 电表编号，系统生成
      */
     @NotNull(message = "电表编号不能为空")
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 空间id

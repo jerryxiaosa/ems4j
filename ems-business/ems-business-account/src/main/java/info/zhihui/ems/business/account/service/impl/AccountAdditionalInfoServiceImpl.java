@@ -374,7 +374,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
         AccountCandidateMeterDto candidateMeterDto = new AccountCandidateMeterDto()
                 .setId(meterBo.getId())
                 .setMeterName(meterBo.getMeterName())
-                .setMeterNo(meterBo.getMeterNo())
+                .setDeviceNo(meterBo.getDeviceNo())
                 .setSpaceId(meterBo.getSpaceId())
                 .setIsOnline(meterBo.getIsOnline())
                 .setLastOnlineTime(meterBo.getLastOnlineTime())

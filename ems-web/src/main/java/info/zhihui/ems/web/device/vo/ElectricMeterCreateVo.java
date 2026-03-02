@@ -27,6 +27,7 @@ public class ElectricMeterCreateVo {
     private String meterName;
 
     @Schema(description = "设备编号，设备上报标识")
+    @Size(max = 100)
     private String deviceNo;
 
     @Schema(description = "是否计量", requiredMode = Schema.RequiredMode.REQUIRED)

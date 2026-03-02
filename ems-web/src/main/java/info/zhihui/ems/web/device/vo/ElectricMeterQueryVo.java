@@ -19,7 +19,7 @@ public class ElectricMeterQueryVo {
     private String meterName;
 
     @Schema(description = "电表编号")
-    private String meterNo;
+    private String deviceNo;
 
     @Schema(description = "账户ID列表")
     private List<Integer> accountIds;

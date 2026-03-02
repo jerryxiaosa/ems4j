@@ -27,8 +27,8 @@ INSERT INTO energy_electric_price_plan (id, name, price_higher, price_high, pric
 VALUES (1, '默认电价方案', 1.2000, 1.0000, 0.8000, 0.6000, 0.4000, FALSE, FALSE, 1.2000, 2.0000, 0.8000, 0.6000, 0.4000, 1, 1, 1, 1,1,  '2025-01-02 03:04:05', FALSE);
 
 -- 插入测试网关数据
-INSERT INTO energy_gateway (id, space_id, gateway_name, gateway_no, device_no, model_id, product_code, communicate_model, sn, is_online, iot_id, create_time, is_deleted, own_area_id)
-VALUES (1, 100, '测试网关1', 'GW001', 'SN001', 200, '测试网关型号', 'TCP', 'SN001', TRUE, '1', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_gateway (id, space_id, gateway_name, device_no, model_id, product_code, communicate_model, sn, is_online, iot_id, create_time, is_deleted, own_area_id)
+VALUES (1, 100, '测试网关1', 'SN001', 200, '测试网关型号', 'TCP', 'SN001', TRUE, '1', '2025-01-02 03:04:05', FALSE, 1);
 
 -- 插入系统配置数据
 INSERT INTO sys_config (id, config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
@@ -60,27 +60,27 @@ INSERT INTO energy_owner_space_rel (id, owner_type, owner_id, space_id, create_u
 VALUES (2, 1, 1003, 103, 1, 'admin', '2025-01-02 03:04:05', 1, 'admin', '2025-01-02 03:04:05');
 
 -- 插入电表测试数据
-INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (1, 101, '1001', '1号楼电表', 'EM001', 'SN001:1:1', 1, 'DDS102', 'Modbus', 1, 1, 1, TRUE, FALSE, TRUE, 1, TRUE, FALSE, 1, 1, 'NONE', 1, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (2, 102, '1002', '2号楼电表',  'EM002', 'SN001:2:2', 2, 'DSSD331', 'DL/T645', 1, 2, 2, TRUE,  FALSE, TRUE, 2, TRUE, FALSE, 1, 1, 1, 2, 5, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (3, 103, '3号楼电表', 'EM003', 'SN001:3:3', 3, 'DTSD341', 'Modbus', 1, 3, 3, FALSE, TRUE, TRUE, 1, TRUE, TRUE, 1, 1, 'BALANCE_LOW', 3, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (4, 104, '办公楼电表', 'EM004', 'SN001:4:4', 1, 'DDS102', 'TCP', 1, 4, 4, TRUE, FALSE, TRUE, 3, FALSE, FALSE, 1, 1, 'NORMAL', 4, 10, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (5, 105, '车间电表A', 'EM005', 'SN001:5:5', 2, 'DSSD331', 'Modbus', 1, 5, 5, TRUE, FALSE, FALSE, 1, TRUE, FALSE, 1, 1, 'NORMAL', NULL, 20, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (6, 106, '车间电表B', 'EM006', 'SN001:6:6', 3, 'DTSD341', 'DL/T645', 1, 6, 6, FALSE, TRUE, TRUE, 2, FALSE, TRUE, 1, 1, 'OFFLINE', NULL,  1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
-INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, meter_no, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
-VALUES (7, 107, '1007', '宿舍电表', 'EM007', 'SN001:7:7', 1, 'DDS102', 'Modbus', 1, 7, 7, TRUE, FALSE, TRUE, 1, TRUE, FALSE, 1, 1, 'NORMAL', 1, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (1, 101, '1001', '1号楼电表', 'SN001:1:1', 1, 'DDS102', 'Modbus', 1, 1, 1, TRUE, FALSE, TRUE, 1, TRUE, FALSE, 1, 1, 'NONE', 1, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (2, 102, '1002', '2号楼电表', 'SN001:2:2', 2, 'DSSD331', 'DL/T645', 1, 2, 2, TRUE, FALSE, TRUE, 2, TRUE, FALSE, 1, 1, 'NORMAL', 2, 5, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (3, 103, '3号楼电表', 'SN001:3:3', 3, 'DTSD341', 'Modbus', 1, 3, 3, FALSE, TRUE, TRUE, 1, TRUE, TRUE, 1, 1, 'BALANCE_LOW', 3, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (4, 104, '办公楼电表', 'SN001:4:4', 1, 'DDS102', 'TCP', 1, 4, 4, TRUE, FALSE, TRUE, 3, FALSE, FALSE, 1, 1, 'NORMAL', 4, 10, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (5, 105, '车间电表A', 'SN001:5:5', 2, 'DSSD331', 'Modbus', 1, 5, 5, TRUE, FALSE, FALSE, 1, TRUE, FALSE, 1, 1, 'NORMAL', NULL, 20, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online, is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (6, 106, '车间电表B', 'SN001:6:6', 3, 'DTSD341', 'DL/T645', 1, 6, 6, FALSE, TRUE, TRUE, 2, FALSE, TRUE, 1, 1, 'OFFLINE', NULL, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
+INSERT INTO energy_electric_meter (id, space_id, iot_id, meter_name, device_no, model_id, product_code, communicate_model, gateway_id, port_no, meter_address, is_online,  is_cut_off, is_calculate, calculate_type, is_prepay, protected_model, price_plan_id, warn_plan_id, warn_type, account_id, ct, create_user, create_user_name, create_time, is_deleted, own_area_id)
+VALUES (7, 107, '1007', '宿舍电表', 'SN001:7:7', 1, 'DDS102', 'Modbus', 1, 7, 7, TRUE, FALSE, TRUE, 1, TRUE, FALSE, 1, 1, 'NORMAL', 1, 1, 1, 'admin', '2025-01-02 03:04:05', FALSE, 1);
 
 -- 添加测试用的电表电量记录数据
-INSERT INTO energy_electric_meter_power_record (id, meter_id, meter_name, meter_no, account_id, is_prepay, ct, power, power_higher, power_high, power_low, power_lower, power_deep_low, original_report_id, record_time, create_time, is_deleted) VALUES
-(1, 1, '1号楼电表', 'EM001', 1, TRUE, 1, 100.50, 10.0, 20.0, 30.0, 40.0, 0.50, 'REPORT001', '2025-01-02 10:00:00', '2025-01-02 10:00:00', FALSE),
-(2, 1, '1号楼电表', 'EM001', 1, TRUE, 1, 150.75, 15.0, 25.0, 35.0, 45.0, 0.75, 'REPORT002', '2025-01-02 11:00:00', '2025-01-02 11:00:00', FALSE),
-(3, 2, '2号楼电表', 'EM002', 2, TRUE, 5, 200.25, 20.0, 30.0, 40.0, 50.0, 0.25, 'REPORT003', '2025-01-02 10:30:00', '2025-01-02 10:30:00', FALSE),
-(4, 3, '3号楼电表', 'EM003', 3, TRUE, 1, 200.25, 20.0, 400.0, 40.0, 200.0, 0.25, 'REPORT004', '2025-01-02 10:30:00', '2025-01-02 10:30:00', FALSE);
+INSERT INTO energy_electric_meter_power_record (id, meter_id, meter_name, device_no, account_id, is_prepay, ct, power, power_higher, power_high, power_low, power_lower, power_deep_low, original_report_id, record_time, create_time, is_deleted) VALUES
+(1, 1, '1号楼电表', 'SN001:1:1', 1, TRUE, 1, 100.50, 10.0, 20.0, 30.0, 40.0, 0.50, 'REPORT001', '2025-01-02 10:00:00', '2025-01-02 10:00:00', FALSE),
+(2, 1, '1号楼电表', 'SN001:1:1', 1, TRUE, 1, 150.75, 15.0, 25.0, 35.0, 45.0, 0.75, 'REPORT002', '2025-01-02 11:00:00', '2025-01-02 11:00:00', FALSE),
+(3, 2, '2号楼电表', 'SN001:2:2', 2, TRUE, 5, 200.25, 20.0, 30.0, 40.0, 50.0, 0.25, 'REPORT003', '2025-01-02 10:30:00', '2025-01-02 10:30:00', FALSE),
+(4, 3, '3号楼电表', 'SN001:3:3', 3, TRUE, 1, 200.25, 20.0, 400.0, 40.0, 200.0, 0.25, 'REPORT004', '2025-01-02 10:30:00', '2025-01-02 10:30:00', FALSE);
 
 -- 添加测试用的电表电量关联信息数据
 INSERT INTO energy_electric_meter_power_relation (id, record_id, meter_id, is_calculate, calculate_type, calculate_type_name, space_id, space_name, space_parent_ids, space_parent_names, account_id, owner_id, owner_type, owner_name, record_time, create_time, is_deleted) VALUES
@@ -127,10 +127,10 @@ INSERT INTO energy_account_cancel_record (id, cancel_no, account_id, owner_id, o
 VALUES (3, 'CANCEL003', 3, 1003, 1, '测试企业2', 0, 1, TRUE, 0, 0.00, 0.00000000, '跳过结算销户', 1, 'admin', '2025-01-02 16:00:00', 1, 'admin', '2025-01-02 16:00:00', FALSE);
 
 -- 添加销表记录测试数据
-INSERT INTO energy_meter_cancel_record (id, cancel_no, account_id, meter_type, meter_id, meter_name, meter_no, space_id, space_name, space_parent_ids, space_parent_names, is_online, is_cut_off, balance, power, power_higher, power_high, power_low, power_lower, power_deep_low, show_time, create_user, create_user_name, create_time, update_user, update_user_name, update_time, is_deleted)
+INSERT INTO energy_meter_cancel_record (id, cancel_no, account_id, meter_type, meter_id, meter_name, device_no, space_id, space_name, space_parent_ids, space_parent_names, is_online, is_cut_off, balance, power, power_higher, power_high, power_low, power_lower, power_deep_low, show_time, create_user, create_user_name, create_time, update_user, update_user_name, update_time, is_deleted)
 VALUES (1, 'CANCEL001', 1, 1, 1, '1号楼电表', 'EM001', 101, '1号楼', '0,100', '根空间,园区', TRUE, FALSE, 1200.50, 1250.50, 800.25, 300.75, 100.50, 50.25, 0.00000000, '2025-01-02 14:00:00', 1, 'admin', '2025-01-02 14:00:00', 1, 'admin', '2025-01-02 14:00:00', FALSE);
 
-INSERT INTO energy_meter_cancel_record (id, cancel_no, account_id, meter_type, meter_id, meter_name, meter_no, space_id, space_name, space_parent_ids, space_parent_names, is_online, is_cut_off, balance, power, power_higher, power_high, power_low, power_lower, power_deep_low, show_time, create_user, create_user_name, create_time, update_user, update_user_name, update_time, is_deleted)
+INSERT INTO energy_meter_cancel_record (id, cancel_no, account_id, meter_type, meter_id, meter_name, device_no, space_id, space_name, space_parent_ids, space_parent_names, is_online, is_cut_off, balance, power, power_higher, power_high, power_low, power_lower, power_deep_low, show_time, create_user, create_user_name, create_time, update_user, update_user_name, update_time, is_deleted)
 VALUES (2, 'CANCEL002', 2, 1, 2, '2号楼电表', 'EM002', 102, '2号楼', '0,100', '根空间,园区', TRUE, FALSE, 800.25, 2800.75, 1500.50, 800.25, 400.75, 100.25, 0.00000000, '2025-01-02 15:00:00', 1, 'admin', '2025-01-02 15:00:00', 1, 'admin', '2025-01-02 15:00:00', FALSE);
 
 -- 添加空间测试数据

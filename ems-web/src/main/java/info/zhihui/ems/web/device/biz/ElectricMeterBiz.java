@@ -12,15 +12,12 @@ import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordS
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
-import info.zhihui.ems.foundation.integration.core.bo.DeviceModelBo;
-import info.zhihui.ems.foundation.integration.core.dto.DeviceModelQueryDto;
-import info.zhihui.ems.foundation.integration.core.service.DeviceModelService;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
-import info.zhihui.ems.web.util.OfflineDurationUtil;
+import info.zhihui.ems.web.common.util.OfflineDurationUtil;
 import info.zhihui.ems.web.device.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,7 +42,6 @@ public class ElectricMeterBiz {
     private final ElectricMeterManagerService electricMeterManagerService;
     private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
     private final SpaceService spaceService;
-    private final DeviceModelService deviceModelService;
     private final ElectricMeterWebMapper electricMeterWebMapper;
 
     /**
@@ -218,7 +214,6 @@ public class ElectricMeterBiz {
                 .filter(meterVo -> meterVo.getId() != null)
                 .collect(Collectors.toMap(ElectricMeterVo::getId, Function.identity(), (left, right) -> left));
         Map<Integer, SpaceBo> spaceBoMap = findSpaceBoMap(meterBoList);
-        Map<Integer, DeviceModelBo> deviceModelBoMap = findDeviceModelBoMap(meterBoList);
         for (ElectricMeterBo meterBo : meterBoList) {
             if (meterBo == null) {
                 continue;
@@ -229,7 +224,6 @@ public class ElectricMeterBiz {
             }
             meterVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
             fillSpaceInfo(meterVo, meterBo, spaceBoMap);
-            fillModelName(meterVo, meterBo, deviceModelBoMap);
         }
     }
 
@@ -246,20 +240,6 @@ public class ElectricMeterBiz {
                 .collect(Collectors.toMap(SpaceBo::getId, Function.identity(), (left, right) -> left));
     }
 
-    private Map<Integer, DeviceModelBo> findDeviceModelBoMap(List<ElectricMeterBo> meterBoList) {
-        List<Integer> modelIdList = meterBoList.stream()
-                .map(ElectricMeterBo::getModelId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        if (modelIdList.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        return deviceModelService.findList(new DeviceModelQueryDto().setIds(modelIdList)).stream()
-                .collect(Collectors.toMap(DeviceModelBo::getId, Function.identity(), (left, right) -> left));
-    }
-
     private void fillSpaceInfo(ElectricMeterVo meterVo, ElectricMeterBo meterBo, Map<Integer, SpaceBo> spaceBoMap) {
         if (meterBo.getSpaceId() == null || spaceBoMap.isEmpty()) {
             return;
@@ -270,17 +250,6 @@ public class ElectricMeterBiz {
         }
         meterVo.setSpaceName(spaceBo.getName());
         meterVo.setSpaceParentNames(spaceBo.getParentsNames());
-    }
-
-    private void fillModelName(ElectricMeterVo meterVo, ElectricMeterBo meterBo, Map<Integer, DeviceModelBo> deviceModelBoMap) {
-        if (meterBo.getModelId() == null || deviceModelBoMap.isEmpty()) {
-            return;
-        }
-        DeviceModelBo deviceModelBo = deviceModelBoMap.get(meterBo.getModelId());
-        if (deviceModelBo == null) {
-            return;
-        }
-        meterVo.setModelName(deviceModelBo.getModelName());
     }
 
 }

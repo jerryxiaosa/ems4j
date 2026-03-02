@@ -3,6 +3,7 @@ package info.zhihui.ems.components.translate.web.advice;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.vo.RestResult;
+import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.SkipResponseTranslate;
@@ -11,6 +12,7 @@ import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
+import info.zhihui.ems.components.translate.resolver.BatchLabelResolver;
 import info.zhihui.ems.components.translate.web.config.TranslateResponseProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -189,11 +192,49 @@ class ResponseTranslateAdviceTest {
         assertEquals("12.30", data.getAmountText());
     }
 
+    @Test
+    @DisplayName("beforeBodyWrite应支持分页数据中的枚举和业务名称翻译")
+    void testBeforeBodyWrite_PageResultWithBizLabelAndEnumLabel_ShouldTranslate() throws Exception {
+        ResponseTranslateAdvice advice = new ResponseTranslateAdvice(
+                providerOf(TranslateEngine.class, buildTranslateEngine()),
+                providerOf(TranslateResponseProperties.class, null)
+        );
+        MethodParameter returnType = new MethodParameter(TestController.class.getDeclaredMethod("queryMeterPage"), -1);
+
+        MeterViewData meterViewData = new MeterViewData();
+        meterViewData.setPricePlanId(11);
+        meterViewData.setWarnPlanId(22);
+        meterViewData.setWarnType("FIRST");
+        PageResult<MeterViewData> page = new PageResult<MeterViewData>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(meterViewData));
+        RestResult<PageResult<MeterViewData>> body = new RestResult<>();
+        body.setSuccess(true);
+        body.setData(page);
+
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/translate/test");
+        Object result = advice.beforeBodyWrite(
+                body,
+                returnType,
+                MediaType.APPLICATION_JSON,
+                MappingJackson2HttpMessageConverter.class,
+                new ServletServerHttpRequest(servletRequest),
+                new ServletServerHttpResponse(new MockHttpServletResponse())
+        );
+
+        assertSame(body, result);
+        assertEquals("居民电价", meterViewData.getPricePlanName());
+        assertEquals("标准预警", meterViewData.getWarnPlanName());
+        assertEquals("一级预警", meterViewData.getElectricWarnTypeName());
+    }
+
     private static TranslateEngine buildTranslateEngine() {
         return new TranslateEngine(
                 new TranslateMetadataCache(),
                 new EnumLabelResolver(),
-                Collections.emptyList(),
+                List.of(new TestElectricPricePlanNameResolver(), new TestWarnPlanNameResolver()),
                 List.of(new MoneyScale2TextFormatter(), new AbsoluteMoneyScale2TextFormatter())
         );
     }
@@ -222,6 +263,10 @@ class ResponseTranslateAdviceTest {
         }
 
         RestResult<AbsoluteFormattedTestData> queryAbsoluteAmount() {
+            return new RestResult<>();
+        }
+
+        RestResult<PageResult<MeterViewData>> queryMeterPage() {
             return new RestResult<>();
         }
     }
@@ -283,6 +328,79 @@ class ResponseTranslateAdviceTest {
         }
     }
 
+    private static class MeterViewData {
+        private Integer pricePlanId;
+        private Integer warnPlanId;
+        private String warnType;
+
+        @BizLabel(source = "pricePlanId", resolver = TestElectricPricePlanNameResolver.class)
+        private String pricePlanName;
+
+        @BizLabel(source = "warnPlanId", resolver = TestWarnPlanNameResolver.class)
+        private String warnPlanName;
+
+        @EnumLabel(source = "warnType", enumClass = TestWarnTypeEnum.class)
+        private String electricWarnTypeName;
+
+        Integer getPricePlanId() {
+            return pricePlanId;
+        }
+
+        void setPricePlanId(Integer pricePlanId) {
+            this.pricePlanId = pricePlanId;
+        }
+
+        Integer getWarnPlanId() {
+            return warnPlanId;
+        }
+
+        void setWarnPlanId(Integer warnPlanId) {
+            this.warnPlanId = warnPlanId;
+        }
+
+        String getWarnType() {
+            return warnType;
+        }
+
+        void setWarnType(String warnType) {
+            this.warnType = warnType;
+        }
+
+        String getPricePlanName() {
+            return pricePlanName;
+        }
+
+        String getWarnPlanName() {
+            return warnPlanName;
+        }
+
+        String getElectricWarnTypeName() {
+            return electricWarnTypeName;
+        }
+    }
+
+    private static class TestElectricPricePlanNameResolver implements BatchLabelResolver<Integer> {
+
+        @Override
+        public Map<Integer, String> resolveBatch(Set<Integer> keys, info.zhihui.ems.components.translate.engine.TranslateContext context) {
+            if (keys == null || keys.isEmpty()) {
+                return Collections.emptyMap();
+            }
+            return keys.contains(11) ? Collections.singletonMap(11, "居民电价") : Collections.emptyMap();
+        }
+    }
+
+    private static class TestWarnPlanNameResolver implements BatchLabelResolver<Integer> {
+
+        @Override
+        public Map<Integer, String> resolveBatch(Set<Integer> keys, info.zhihui.ems.components.translate.engine.TranslateContext context) {
+            if (keys == null || keys.isEmpty()) {
+                return Collections.emptyMap();
+            }
+            return keys.contains(22) ? Collections.singletonMap(22, "标准预警") : Collections.emptyMap();
+        }
+    }
+
     private enum TestStatusEnum implements CodeEnum<Integer> {
         DISABLED(0, "停用"),
         ENABLED(1, "启用");
@@ -297,6 +415,28 @@ class ResponseTranslateAdviceTest {
 
         @Override
         public Integer getCode() {
+            return code;
+        }
+
+        @Override
+        public String getInfo() {
+            return info;
+        }
+    }
+
+    private enum TestWarnTypeEnum implements CodeEnum<String> {
+        FIRST("FIRST", "一级预警");
+
+        private final String code;
+        private final String info;
+
+        TestWarnTypeEnum(String code, String info) {
+            this.code = code;
+            this.info = info;
+        }
+
+        @Override
+        public String getCode() {
             return code;
         }
 

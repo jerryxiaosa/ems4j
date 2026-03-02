@@ -26,7 +26,7 @@ public class CanceledMeterVo {
     private String meterName;
 
     @Schema(description = "表具号")
-    private String meterNo;
+    private String deviceNo;
 
     @Schema(description = "表类型编码，参考 meterType")
     private Integer meterType;

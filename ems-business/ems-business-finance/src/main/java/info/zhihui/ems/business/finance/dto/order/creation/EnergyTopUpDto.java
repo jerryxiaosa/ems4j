@@ -73,7 +73,7 @@ public class EnergyTopUpDto {
     /**
      * 表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 空间id

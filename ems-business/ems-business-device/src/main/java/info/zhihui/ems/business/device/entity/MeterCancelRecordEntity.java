@@ -48,7 +48,7 @@ public class MeterCancelRecordEntity extends BaseEntity {
     /**
      * 表号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 空间id

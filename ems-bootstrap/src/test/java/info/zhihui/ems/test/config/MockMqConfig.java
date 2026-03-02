@@ -6,7 +6,8 @@ import info.zhihui.ems.mq.api.service.MqService;
 import info.zhihui.ems.mq.api.service.TransactionMessageService;
 import info.zhihui.ems.mq.rabbitmq.repository.TransactionMessageRepository;
 import info.zhihui.ems.mq.rabbitmq.service.impl.TransactionMessageServiceImpl;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -37,8 +38,9 @@ public class MockMqConfig {
     /**
      * MQ 服务空实现，打印日志以便调试。
      */
-    @Slf4j
     static class NoOpMqService implements MqService {
+
+        private static final Logger LOGGER = LoggerFactory.getLogger(NoOpMqService.class);
 
         private final TransactionMessageService transactionMessageService;
 
@@ -48,17 +50,17 @@ public class MockMqConfig {
 
         @Override
         public void sendMessage(MqMessage mqMessage) {
-            log.debug("[mock-mq] sendMessage: {}", mqMessage);
+            LOGGER.debug("[mock-mq] sendMessage: {}", mqMessage);
         }
 
         @Override
         public void sendMessageAfterCommit(MqMessage mqMessage) {
-            log.debug("[mock-mq] sendMessageAfterCommit: {}", mqMessage);
+            LOGGER.debug("[mock-mq] sendMessageAfterCommit: {}", mqMessage);
         }
 
         @Override
         public void sendTransactionMessage(TransactionMessageDto transactionMessageDto) {
-            log.debug("[mock-mq] sendTransactionMessage: {}", transactionMessageDto);
+            LOGGER.debug("[mock-mq] sendTransactionMessage: {}", transactionMessageDto);
             transactionMessageService.add(transactionMessageDto);
         }
     }

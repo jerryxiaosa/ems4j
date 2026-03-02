@@ -7,6 +7,12 @@
         from energy_electric_price_plan t
         <where>
             t.is_deleted = 0
+            <if test="ids != null and ids.size() > 0">
+                and t.id in
+                <foreach item="item" collection="ids" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="name != null and name != ''">
                 and t.name like concat('%', #{name}, '%')
             </if>

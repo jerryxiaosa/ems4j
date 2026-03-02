@@ -27,7 +27,7 @@ public class MeterCorrectionRecordDto {
 
     private String meterName;
 
-    private String meterNo;
+    private String deviceNo;
 
     private BigDecimal consumeAmount;
 

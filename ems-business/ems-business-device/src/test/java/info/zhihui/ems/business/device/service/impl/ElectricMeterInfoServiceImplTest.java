@@ -83,7 +83,7 @@ class ElectricMeterInfoServiceImplTest {
                 .setId(1)
                 .setSpaceId(100)
                 .setMeterName("测试电表")
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setModelId(200)
                 .setGatewayId(300)
                 .setPortNo(1)
@@ -247,22 +247,22 @@ class ElectricMeterInfoServiceImplTest {
         
         MeterCancelRecordEntity entity1 = new MeterCancelRecordEntity()
                 .setCancelNo(cancelNo)
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setMeterName("测试电表1");
         
         MeterCancelRecordEntity entity2 = new MeterCancelRecordEntity()
                 .setCancelNo(cancelNo)
-                .setMeterNo("METER002")
+                .setDeviceNo("METER002")
                 .setMeterName("测试电表2");
         
         List<MeterCancelRecordEntity> entities = List.of(entity1, entity2);
         
         CanceledMeterDto dto1 = new CanceledMeterDto()
-                .setMeterNo("METER001")
+                .setDeviceNo("METER001")
                 .setMeterName("测试电表1");
         
         CanceledMeterDto dto2 = new CanceledMeterDto()
-                .setMeterNo("METER002")
+                .setDeviceNo("METER002")
                 .setMeterName("测试电表2");
         
         List<CanceledMeterDto> expectedDtos = List.of(dto1, dto2);
@@ -277,9 +277,9 @@ class ElectricMeterInfoServiceImplTest {
         // 验证结果
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals("METER001", result.get(0).getMeterNo());
+        assertEquals("METER001", result.get(0).getDeviceNo());
         assertEquals("测试电表1", result.get(0).getMeterName());
-        assertEquals("METER002", result.get(1).getMeterNo());
+        assertEquals("METER002", result.get(1).getDeviceNo());
         assertEquals("测试电表2", result.get(1).getMeterName());
 
         // 验证方法调用

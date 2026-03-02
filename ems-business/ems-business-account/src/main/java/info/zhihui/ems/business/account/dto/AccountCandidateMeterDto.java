@@ -26,7 +26,7 @@ public class AccountCandidateMeterDto {
     /**
      * 电表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 空间ID

@@ -90,7 +90,7 @@ class GatewayServiceImplTest {
         entity = new GatewayEntity();
         entity.setId(1)
                 .setSpaceId(100)
-                .setGatewayNo("GW202401010001")
+                .setDeviceNo("GW202401010001")
                 .setDeviceNo("SN123456")
                 .setGatewayName("测试网关")
                 .setModelId(200)
@@ -107,7 +107,7 @@ class GatewayServiceImplTest {
         bo = new GatewayBo()
                 .setId(1)
                 .setSpaceId(100)
-                .setGatewayNo("GW202401010001")
+                .setDeviceNo("GW202401010001")
                 .setDeviceNo("SN123456")
                 .setGatewayName("测试网关")
                 .setModelId(200)
@@ -442,7 +442,7 @@ class GatewayServiceImplTest {
     }
 
     @Test
-    void testDelete_GatewayNotFound() {
+    void testDelete_DeviceNotFound() {
         // Mock行为
         when(repository.selectById(999)).thenReturn(null);
 
@@ -540,7 +540,7 @@ class GatewayServiceImplTest {
         // 准备数据
         GatewayEntity oldEntity = new GatewayEntity();
         oldEntity.setId(1)
-                .setGatewayNo("GW202401010001")
+                .setDeviceNo("GW202401010001")
                 .setDeviceNo("SN123456")
                 .setIotId("12345")
                 .setOwnAreaId(1000);
@@ -593,7 +593,7 @@ class GatewayServiceImplTest {
     }
 
     @Test
-    void testUpdate_GatewayNotFound() {
+    void testUpdate_DeviceNotFound() {
         // 准备数据
         updateDto.setId(999); // 不存在的ID
 
@@ -750,7 +750,7 @@ class GatewayServiceImplTest {
 
         GatewayEntity oldEntity = new GatewayEntity();
         oldEntity.setId(1)
-                .setGatewayNo("GW202401010001")
+                .setDeviceNo("GW202401010001")
                 .setDeviceNo("SN123456")
                 .setIotId(null) // 没有iotId
                 .setOwnAreaId(1000);
@@ -791,7 +791,7 @@ class GatewayServiceImplTest {
         GatewayEntity oldEntity = new GatewayEntity()
                 .setId(1)
                 .setIotId("123")
-                .setGatewayNo("GW202401010001");
+                .setDeviceNo("GW202401010001");
         oldEntity.setOwnAreaId(1000);
 
         when(repository.selectById(1)).thenReturn(oldEntity);
@@ -817,7 +817,7 @@ class GatewayServiceImplTest {
         GatewayEntity oldEntity = new GatewayEntity()
                 .setId(1)
                 .setIotId("321")
-                .setGatewayNo("GW202401010001");
+                .setDeviceNo("GW202401010001");
         oldEntity.setOwnAreaId(1000);
 
         when(repository.selectById(1)).thenReturn(oldEntity);
@@ -843,7 +843,7 @@ class GatewayServiceImplTest {
     }
 
     @Test
-    void testSyncGatewayOnlineStatus_GatewayNotFound() {
+    void testSyncGatewayOnlineStatus_DeviceNotFound() {
         when(repository.selectById(1)).thenReturn(null);
 
         GatewayOnlineStatusDto dto = new GatewayOnlineStatusDto().setGatewayId(1);

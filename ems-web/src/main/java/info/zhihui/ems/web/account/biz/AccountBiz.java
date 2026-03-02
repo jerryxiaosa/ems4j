@@ -20,7 +20,7 @@ import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
 import info.zhihui.ems.foundation.space.service.SpaceService;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
-import info.zhihui.ems.web.util.OfflineDurationUtil;
+import info.zhihui.ems.web.common.util.OfflineDurationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
