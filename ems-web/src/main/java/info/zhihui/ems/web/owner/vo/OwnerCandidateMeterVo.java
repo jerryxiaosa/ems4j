@@ -21,7 +21,7 @@ public class OwnerCandidateMeterVo {
     private String meterName;
 
     @Schema(description = "电表编号")
-    private String meterNo;
+    private String deviceNo;
 
     @Schema(description = "表具类型")
     private String meterType;

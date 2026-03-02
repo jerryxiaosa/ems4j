@@ -8,7 +8,7 @@ import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
-import info.zhihui.ems.web.account.resolver.WarnPlanNameResolver;
+import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;

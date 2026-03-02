@@ -26,7 +26,7 @@ public class AccountMeterVo {
     private String meterName;
 
     @Schema(description = "电表编号")
-    private String meterNo;
+    private String deviceNo;
 
     @Schema(description = "空间ID")
     private Integer spaceId;

@@ -37,6 +37,48 @@ class DeviceModelBizTest {
     private DeviceModelWebMapper deviceModelWebMapper;
 
     @Test
+    @DisplayName("查询设备型号列表_应透传查询条件")
+    void testFindDeviceModelList_ShouldPassQuery() {
+        DeviceModelQueryVo queryVo = new DeviceModelQueryVo()
+                .setTypeIds(List.of(1, 2))
+                .setTypeKey("electricMeter")
+                .setManufacturerName("制造商A")
+                .setModelName("型号A")
+                .setProductCode("P-001");
+        DeviceModelQueryDto queryDto = new DeviceModelQueryDto()
+                .setTypeIds(List.of(1, 2))
+                .setTypeKey("electricMeter")
+                .setManufacturerName("制造商A")
+                .setModelName("型号A")
+                .setProductCode("P-001");
+        List<DeviceModelBo> deviceModelBoList = List.of(new DeviceModelBo().setId(1).setModelName("型号A"));
+        List<DeviceModelVo> expectedList = List.of(new DeviceModelVo().setId(1).setModelName("型号A"));
+        when(deviceModelWebMapper.toDeviceModelQueryDto(queryVo)).thenReturn(queryDto);
+        when(deviceModelService.findList(queryDto)).thenReturn(deviceModelBoList);
+        when(deviceModelWebMapper.toDeviceModelVoList(deviceModelBoList)).thenReturn(expectedList);
+
+        List<DeviceModelVo> result = deviceModelBiz.findDeviceModelList(queryVo);
+
+        assertThat(result).isSameAs(expectedList);
+        verify(deviceModelService).findList(queryDto);
+    }
+
+    @Test
+    @DisplayName("查询设备型号列表_查询条件为空_应创建默认查询对象")
+    void testFindDeviceModelList_WithNullQueryDto_ShouldCreateDefaultQueryDto() {
+        when(deviceModelWebMapper.toDeviceModelQueryDto(any())).thenReturn(null);
+        when(deviceModelService.findList(any())).thenReturn(Collections.emptyList());
+        when(deviceModelWebMapper.toDeviceModelVoList(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        List<DeviceModelVo> result = deviceModelBiz.findDeviceModelList(new DeviceModelQueryVo());
+
+        assertThat(result).isEmpty();
+        ArgumentCaptor<DeviceModelQueryDto> queryCaptor = ArgumentCaptor.forClass(DeviceModelQueryDto.class);
+        verify(deviceModelService).findList(queryCaptor.capture());
+        assertThat(queryCaptor.getValue()).isNotNull();
+    }
+
+    @Test
     @DisplayName("分页查询设备型号_应透传查询条件与分页参数")
     void testFindDeviceModelPage_ShouldPassQueryAndPageParam() {
         DeviceModelQueryVo queryVo = new DeviceModelQueryVo()

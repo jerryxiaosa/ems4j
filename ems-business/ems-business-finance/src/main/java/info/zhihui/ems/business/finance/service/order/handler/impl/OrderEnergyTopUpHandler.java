@@ -183,7 +183,7 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
                 .setMeterType(resolveEnumCode(detail.getMeterType()))
                 .setMeterId(detail.getMeterId())
                 .setMeterName(detail.getMeterName())
-                .setMeterNo(detail.getMeterNo())
+                .setDeviceNo(detail.getDeviceNo())
                 .setSpaceId(detail.getSpaceId())
                 .setCreateTime(orderEntity.getOrderCreateTime());
 

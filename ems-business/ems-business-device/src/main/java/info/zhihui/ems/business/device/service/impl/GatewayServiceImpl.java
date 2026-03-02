@@ -1,6 +1,5 @@
 package info.zhihui.ems.business.device.service.impl;
 
-import cn.hutool.core.util.IdUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -26,7 +25,6 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
-import info.zhihui.ems.common.utils.SerialNumberGeneratorUtil;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.BaseElectricDeviceDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceAddDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceUpdateDto;
@@ -129,13 +127,7 @@ public class GatewayServiceImpl implements GatewayService {
         GatewayEntity entity = mapper.createDtoToEntity(dto);
         buildGatewayEntity(entity);
 
-        // 临时设置网关编号，后续用生成规则来更新
-        entity.setGatewayNo(IdUtil.fastSimpleUUID());
-
         repository.insert(entity);
-
-        // 设置网关编号，只有新增时需要
-        setGatewayNo(entity);
 
         // 同步到IoT平台
         syncToIotPlatform(entity);
@@ -230,19 +222,6 @@ public class GatewayServiceImpl implements GatewayService {
             throw new BusinessRuntimeException("空间信息不存在，请重新选择");
         }
         entity.setOwnAreaId(space.getOwnAreaId());
-    }
-
-    /**
-     * 更新网关编号
-     */
-    private void setGatewayNo(GatewayEntity gatewayEntity) {
-        String gatewayNo = SerialNumberGeneratorUtil.genGatewayNo(gatewayEntity.getId());
-        gatewayEntity.setGatewayNo(gatewayNo);
-
-        GatewayEntity updateEntity = new GatewayEntity();
-        updateEntity.setId(gatewayEntity.getId());
-        updateEntity.setGatewayNo(gatewayNo);
-        repository.updateById(updateEntity);
     }
 
     /**

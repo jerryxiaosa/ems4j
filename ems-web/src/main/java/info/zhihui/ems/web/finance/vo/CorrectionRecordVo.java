@@ -26,7 +26,7 @@ public class CorrectionRecordVo {
 
     private String meterName;
 
-    private String meterNo;
+    private String deviceNo;
 
     private BigDecimal consumeAmount;
 

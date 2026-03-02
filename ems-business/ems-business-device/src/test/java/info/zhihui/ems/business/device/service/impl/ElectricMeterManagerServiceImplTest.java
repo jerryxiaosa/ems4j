@@ -170,7 +170,7 @@ class ElectricMeterManagerServiceImplTest {
         entity.setId(1)
                 .setSpaceId(100)
                 .setMeterName("测试电表")
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setDeviceNo("GW-DEVICE-001:1:1")
                 .setModelId(200)
                 .setProductCode("厂商型号")
@@ -190,7 +190,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(1)
                 .setSpaceId(100)
                 .setMeterName("测试电表")
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setDeviceNo("GW-DEVICE-001:1:1")
                 .setModelId(200)
                 .setGatewayId(300)
@@ -255,7 +255,7 @@ class ElectricMeterManagerServiceImplTest {
         // 验证结果
         assertNotNull(result);
         verify(repository).insert(entity);
-        verify(repository, times(2)).updateById(any(ElectricMeterEntity.class));
+        verify(repository).updateById(any(ElectricMeterEntity.class));
         ArgumentCaptor<ElectricDeviceAddDto> deviceAddCaptor = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(deviceAddCaptor.capture());
         ElectricDeviceAddDto capturedDto = deviceAddCaptor.getValue();
@@ -505,13 +505,13 @@ class ElectricMeterManagerServiceImplTest {
         List<Integer> ids = List.of(1, 2);
         ElectricMeterBo meter1 = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setIsPrepay(true)
                 .setAccountId(100)
                 .setIsOnline(true);
         ElectricMeterBo meter2 = new ElectricMeterBo()
                 .setId(2)
-                .setMeterNo("EM002")
+                .setDeviceNo("EM002")
                 .setIsPrepay(true)
                 .setAccountId(101)
                 .setIsOnline(true);
@@ -548,7 +548,7 @@ class ElectricMeterManagerServiceImplTest {
         List<Integer> ids = List.of(1);
         ElectricMeterBo meter = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setIsPrepay(true)
                 .setAccountId(100)
                 .setIsOnline(true);
@@ -585,7 +585,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 数据异常（查询到的电表数量与ID数量不匹配）
         List<Integer> ids = List.of(1, 2);
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setIsOnline(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setIsOnline(true)
         ); // 只返回一个电表，但请求了两个ID
 
         // Mock行为
@@ -606,7 +606,7 @@ class ElectricMeterManagerServiceImplTest {
         List<Integer> ids = List.of(1);
         ElectricMeterBo prepayMeter = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setIsPrepay(false) // 预付费电表
                 .setAccountId(100)
                 .setIsOnline(true);
@@ -625,13 +625,13 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testSetProtectModel_MeterNotOpened() {
+    void testSetProtectModel_DeviceNotOpened() {
         // 准备数据 - 电表尚未开户
         List<Integer> ids = List.of(1);
         // Mock行为
         ElectricMeterQueryDto queryDto = new ElectricMeterQueryDto().setInIds(ids);
         List<ElectricMeterBo> boList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setIsPrepay(true).setAccountId(null).setIsOnline(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setIsPrepay(true).setAccountId(null).setIsOnline(true)
         );
         when(electricMeterInfoService.findList(queryDto)).thenReturn(boList);
 
@@ -891,7 +891,7 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testAdd_GatewayNotFound() {
+    void testAdd_DeviceNotFound() {
         // 准备数据 - 网关不存在
         // Mock行为
         when(mapper.saveDtoToEntity(saveDto)).thenReturn(entity);
@@ -1039,7 +1039,7 @@ class ElectricMeterManagerServiceImplTest {
         // 验证结果 - NB模式下网关ID应该被设置为null
         assertNotNull(result);
         verify(repository).insert(entity);
-        verify(repository, times(2)).updateById(any(ElectricMeterEntity.class));
+        verify(repository).updateById(any(ElectricMeterEntity.class));
 
         ArgumentCaptor<ElectricDeviceAddDto> deviceCaptor = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(deviceCaptor.capture());
@@ -1054,7 +1054,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 电表当前为断闸状态，需要合闸
         ElectricMeterBo meterBo = new ElectricMeterBo();
         meterBo.setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setSpaceId(100)
                 .setIotId("12345")
                 .setIsOnline(true)
@@ -1091,7 +1091,7 @@ class ElectricMeterManagerServiceImplTest {
     void testSetSwitchStatusSingle_MissingIotId_ShouldThrow() {
         ElectricMeterBo meterBo = new ElectricMeterBo();
         meterBo.setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setSpaceId(100)
                 .setIotId(null)
                 .setIsOnline(true)
@@ -1117,7 +1117,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 电表当前为合闸状态，需要断闸
         ElectricMeterBo meterBo = new ElectricMeterBo();
         meterBo.setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setSpaceId(100)
                 .setIotId("12345")
                 .setIsOnline(true)
@@ -1152,7 +1152,7 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testSetSwitchStatusSingle_MeterNotFound() {
+    void testSetSwitchStatusSingle_DeviceNotFound() {
         // Mock行为 - 电表不存在
         when(electricMeterInfoService.getDetail(1)).thenThrow(new NotFoundException("电表数据不存在或已被删除"));
 
@@ -1175,7 +1175,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - IoT ID为空
         ElectricMeterBo meterWithoutIot = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setIotId(null) // IoT ID为空
                 .setIsOnline(true);
 
@@ -1201,7 +1201,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 电表离线
         ElectricMeterBo offlineMeter = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setIotId("12345")
                 .setIsOnline(false); // 离线状态
 
@@ -1227,7 +1227,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 电表已经是合闸状态，要求合闸
         ElectricMeterBo onlineMeter = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(false); // 已经是合闸状态
@@ -1263,7 +1263,7 @@ class ElectricMeterManagerServiceImplTest {
         // 准备数据 - 电表已经是断闸状态，要求断闸
         ElectricMeterBo onlineMeter = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setIotId("12345")
                 .setIsOnline(true)
                 .setIsCutOff(true); // 已经是断闸状态
@@ -1736,12 +1736,12 @@ class ElectricMeterManagerServiceImplTest {
         );
 
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(null).setIsPrepay(true).setIsOnline(true),
-                new ElectricMeterBo().setId(2).setMeterNo("EM002").setAccountId(null).setIsPrepay(true).setIsOnline(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(null).setIsPrepay(true).setIsOnline(true),
+                new ElectricMeterBo().setId(2).setDeviceNo("EM002").setAccountId(null).setIsPrepay(true).setIsOnline(true)
         );
         List<ElectricMeterBo> meterList2 = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(100).setIsPrepay(true).setIsOnline(true),
-                new ElectricMeterBo().setId(2).setMeterNo("EM002").setAccountId(100).setIsPrepay(true).setIsOnline(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(100).setIsPrepay(true).setIsOnline(true),
+                new ElectricMeterBo().setId(2).setDeviceNo("EM002").setAccountId(100).setIsPrepay(true).setIsOnline(true)
         );
         Integer accountId = 100;
         MeterOpenDto meterOpenDto = new MeterOpenDto()
@@ -1811,10 +1811,10 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testOpenMeterAccount_MeterNotFound() {
+    void testOpenMeterAccount_DeviceNotFound() {
         // 准备数据
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(null)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(null)
         );
         MeterOpenDto meterOpenDto = new MeterOpenDto()
                 .setMeterOpenDetail(List.of(
@@ -1842,7 +1842,7 @@ class ElectricMeterManagerServiceImplTest {
     void testOpenMeterAccount_MeterAlreadyOpened() {
         // 准备数据
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(999) // 已开户
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(999) // 已开户
         );
         MeterOpenDto meterOpenDto = new MeterOpenDto()
                 .setMeterOpenDetail(List.of(
@@ -1871,8 +1871,8 @@ class ElectricMeterManagerServiceImplTest {
     void testOpenMeterAccount_MultipleMetersAlreadyOpened() {
         // 准备数据
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(null).setIsOnline(true).setIsPrepay(true),
-                new ElectricMeterBo().setId(2).setMeterNo("EM002").setAccountId(999).setIsOnline(true).setIsPrepay(true)// 已开户
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(null).setIsOnline(true).setIsPrepay(true),
+                new ElectricMeterBo().setId(2).setDeviceNo("EM002").setAccountId(999).setIsOnline(true).setIsPrepay(true)// 已开户
         );
         MeterOpenDto meterOpenDto = new MeterOpenDto()
                 .setMeterOpenDetail(List.of(
@@ -1902,10 +1902,10 @@ class ElectricMeterManagerServiceImplTest {
     void testOpenMeterAccount_Single() {
         // 准备数据
         List<ElectricMeterBo> meterList = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(null).setIsOnline(true).setIsPrepay(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(null).setIsOnline(true).setIsPrepay(true)
         );
         List<ElectricMeterBo> meterList2 = List.of(
-                new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(100).setIsOnline(true).setIsPrepay(true)
+                new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(100).setIsOnline(true).setIsPrepay(true)
         );
         MeterOpenDto meterOpenDto = new MeterOpenDto()
                 .setMeterOpenDetail(List.of(
@@ -1984,7 +1984,7 @@ class ElectricMeterManagerServiceImplTest {
         // 验证结果
         assertNotNull(result);
         verify(repository).insert(entity);
-        verify(repository, times(2)).updateById(any(ElectricMeterEntity.class));
+        verify(repository).updateById(any(ElectricMeterEntity.class));
         ArgumentCaptor<ElectricDeviceAddDto> addDeviceCaptor = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(addDeviceCaptor.capture());
         ElectricDeviceAddDto capturedAddDevice = addDeviceCaptor.getValue();
@@ -2031,7 +2031,7 @@ class ElectricMeterManagerServiceImplTest {
         // 验证结果
         assertNotNull(result);
         verify(repository).insert(entity);
-        verify(repository, times(2)).updateById(any(ElectricMeterEntity.class));
+        verify(repository).updateById(any(ElectricMeterEntity.class));
         ArgumentCaptor<ElectricDeviceAddDto> addDeviceCaptor2 = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(addDeviceCaptor2.capture());
         ElectricDeviceAddDto capturedAddDevice2 = addDeviceCaptor2.getValue();
@@ -2298,7 +2298,7 @@ class ElectricMeterManagerServiceImplTest {
      * 测试同步电表在线状态 - 电表不存在
      */
     @Test
-    void testSyncMeterOnlineStatus_MeterNotFound() {
+    void testSyncMeterOnlineStatus_DeviceNotFound() {
         // Given
         ElectricMeterOnlineStatusDto dto = new ElectricMeterOnlineStatusDto()
                 .setMeterId(999)
@@ -2472,16 +2472,12 @@ class ElectricMeterManagerServiceImplTest {
 
         // 验证repository.updateById被调用，并校验实际参数
         ArgumentCaptor<ElectricMeterEntity> updateEntityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
-        verify(repository, times(2)).updateById(updateEntityCaptor.capture());
+        verify(repository).updateById(updateEntityCaptor.capture());
 
         List<ElectricMeterEntity> updateEntities = updateEntityCaptor.getAllValues();
-        // 第一次updateById是设置电表编号
-        ElectricMeterEntity firstUpdateEntity = updateEntities.get(0);
-        assertEquals(100, firstUpdateEntity.getId());
-        assertNotNull(firstUpdateEntity.getMeterNo());
 
-        // 第二次updateById是设置iotId
-        ElectricMeterEntity secondUpdateEntity = updateEntities.get(1);
+        // updateById是设置iotId
+        ElectricMeterEntity secondUpdateEntity = updateEntities.get(0);
         assertEquals(100, secondUpdateEntity.getId());
         assertEquals("12345", secondUpdateEntity.getIotId());
     }
@@ -2614,7 +2610,7 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testAdd_NonNbModeGatewayNotFound() {
+    void testAdd_NonNbModeDeviceNotFound() {
         ElectricMeterCreateDto dto = new ElectricMeterCreateDto()
                 .setSpaceId(1)
                 .setMeterName("测试电表")
@@ -2949,7 +2945,7 @@ class ElectricMeterManagerServiceImplTest {
     }
 
     @Test
-    void testGetMeterPower_MeterNotFound() {
+    void testGetMeterPower_DeviceNotFound() {
         // 准备数据
         Integer meterId = 999;
         ElectricPricePeriodEnum type = ElectricPricePeriodEnum.HIGH;
@@ -3002,7 +2998,7 @@ class ElectricMeterManagerServiceImplTest {
 
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(meterId)
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setOwnAreaId(1000)
                 .setIotId("12345");
 
@@ -3154,7 +3150,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setSpaceId(100)
                 .setOwnAreaId(1000)
                 .setIsOnline(true)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setProductCode("测试型号")
                 .setCt(1);
 
@@ -3224,7 +3220,7 @@ class ElectricMeterManagerServiceImplTest {
             if (detailDto == null) return false;
             if (!detailDto.getMeterId().equals(1)) return false;
             if (!detailDto.getMeterName().equals("测试电表1")) return false;
-            if (!detailDto.getMeterNo().equals("EM202401010001")) return false;
+            if (!detailDto.getDeviceNo().equals("EM202401010001")) return false;
             if (!detailDto.getSpaceId().equals(100)) return false;
             if (!detailDto.getCt().equals(1)) return false;
 
@@ -3243,7 +3239,7 @@ class ElectricMeterManagerServiceImplTest {
             if (!entity.getAccountId().equals(1)) return false;
             if (!entity.getMeterId().equals(1)) return false;
             if (!entity.getMeterName().equals("测试电表1")) return false;
-            if (!entity.getMeterNo().equals("EM202401010001")) return false;
+            if (!entity.getDeviceNo().equals("EM202401010001")) return false;
             if (!entity.getMeterType().equals(DeviceTypeEnum.ELECTRIC.getMeterTypeCode())) return false;
 
             // 验证空间信息
@@ -3297,7 +3293,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(1)
                 .setMeterName("测试电表1")
                 .setSpaceId(100)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setCt(1)
                 .setAccountId(100);
 
@@ -3356,7 +3352,7 @@ class ElectricMeterManagerServiceImplTest {
             if (detailDto == null) return false;
             if (!detailDto.getMeterId().equals(1)) return false;
             if (!detailDto.getMeterName().equals("测试电表1")) return false;
-            if (!detailDto.getMeterNo().equals("EM202401010001")) return false;
+            if (!detailDto.getDeviceNo().equals("EM202401010001")) return false;
             if (!detailDto.getSpaceId().equals(100)) return false;
             if (!detailDto.getCt().equals(1)) return false;
 
@@ -3371,7 +3367,7 @@ class ElectricMeterManagerServiceImplTest {
             if (!entity.getAccountId().equals(1)) return false;
             if (!entity.getMeterId().equals(1)) return false;
             if (!entity.getMeterName().equals("测试电表1")) return false;
-            if (!entity.getMeterNo().equals("EM202401010001")) return false;
+            if (!entity.getDeviceNo().equals("EM202401010001")) return false;
             if (!entity.getMeterType().equals(DeviceTypeEnum.ELECTRIC.getMeterTypeCode())) return false;
 
             // 验证空间信息
@@ -3424,7 +3420,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setMeterName("测试电表1")
                 .setSpaceId(null) // 无空间信息
                 .setIsOnline(true)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setCt(1)
                 .setAccountId(100)
                 .setOwnAreaId(1000);
@@ -3480,7 +3476,7 @@ class ElectricMeterManagerServiceImplTest {
             if (detailDto == null) return false;
             if (!detailDto.getMeterId().equals(1)) return false;
             if (!detailDto.getMeterName().equals("测试电表1")) return false;
-            if (!detailDto.getMeterNo().equals("EM202401010001")) return false;
+            if (!detailDto.getDeviceNo().equals("EM202401010001")) return false;
             if (detailDto.getSpaceId() != null) return false; // 无空间信息
             if (!detailDto.getCt().equals(1)) return false;
 
@@ -3498,7 +3494,7 @@ class ElectricMeterManagerServiceImplTest {
             if (!entity.getAccountId().equals(1)) return false;
             if (!entity.getMeterId().equals(1)) return false;
             if (!entity.getMeterName().equals("测试电表1")) return false;
-            if (!entity.getMeterNo().equals("EM202401010001")) return false;
+            if (!entity.getDeviceNo().equals("EM202401010001")) return false;
             if (!entity.getMeterType().equals(DeviceTypeEnum.ELECTRIC.getMeterTypeCode())) return false;
 
             // 验证空间信息（无空间信息的情况）
@@ -3549,7 +3545,7 @@ class ElectricMeterManagerServiceImplTest {
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(1)
                 .setMeterName("测试电表1")
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setCt(1)
                 .setAccountId(100);
 
@@ -3598,7 +3594,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(1)
                 .setMeterName("测试电表1")
                 .setSpaceId(100)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setCt(1)
                 .setAccountId(100);
 
@@ -3664,7 +3660,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(1)
                 .setMeterName("测试电表1")
                 .setSpaceId(100)
-                .setMeterNo("EM202401010001")
+                .setDeviceNo("EM202401010001")
                 .setCt(1)
                 .setAccountId(100);
 
@@ -3715,7 +3711,7 @@ class ElectricMeterManagerServiceImplTest {
                 .setId(2)
                 .setMeterName("测试电表2")
                 .setSpaceId(200)
-                .setMeterNo("EM202401010002")
+                .setDeviceNo("EM202401010002")
                 .setCt(1)
                 .setAccountId(200);
 
@@ -3789,9 +3785,9 @@ class ElectricMeterManagerServiceImplTest {
     void testSetMeterWarnPlan_GroupingByBalance_Success() {
         // Given
         List<Integer> meterIds = List.of(1, 2, 3);
-        ElectricMeterBo m1 = new ElectricMeterBo().setId(1).setMeterNo("EM001").setAccountId(100).setIsOnline(true).setIsPrepay(true);
-        ElectricMeterBo m2 = new ElectricMeterBo().setId(2).setMeterNo("EM002").setAccountId(100).setIsOnline(true).setIsPrepay(true);
-        ElectricMeterBo m3 = new ElectricMeterBo().setId(3).setMeterNo("EM003").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo m1 = new ElectricMeterBo().setId(1).setDeviceNo("EM001").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo m2 = new ElectricMeterBo().setId(2).setDeviceNo("EM002").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo m3 = new ElectricMeterBo().setId(3).setDeviceNo("EM003").setAccountId(100).setIsOnline(true).setIsPrepay(true);
         Map<Integer, ElectricMeterBo> idMap = Map.of(1, m1, 2, m2, 3, m3);
 
         when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenAnswer(invocation -> {
@@ -3846,7 +3842,7 @@ class ElectricMeterManagerServiceImplTest {
     @Test
     void testSetMeterWarnPlan_OnlyFirstLevel_ShouldNotThrow() {
         List<Integer> meterIds = List.of(21);
-        ElectricMeterBo meter = new ElectricMeterBo().setId(21).setMeterNo("EM021").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo meter = new ElectricMeterBo().setId(21).setDeviceNo("EM021").setAccountId(100).setIsOnline(true).setIsPrepay(true);
         when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(List.of(meter));
 
         when(warnPlanService.getDetail(1)).thenReturn(new WarnPlanBo()
@@ -3877,7 +3873,7 @@ class ElectricMeterManagerServiceImplTest {
     @Test
     void testSetMeterWarnPlan_OnlySecondLevel_ShouldNotThrow() {
         List<Integer> meterIds = List.of(22);
-        ElectricMeterBo meter = new ElectricMeterBo().setId(22).setMeterNo("EM022").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo meter = new ElectricMeterBo().setId(22).setDeviceNo("EM022").setAccountId(100).setIsOnline(true).setIsPrepay(true);
         when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(List.of(meter));
 
         when(warnPlanService.getDetail(1)).thenReturn(new WarnPlanBo()
@@ -3912,7 +3908,7 @@ class ElectricMeterManagerServiceImplTest {
     void testSetMeterWarnPlan_MissingBalance_DefaultToNone() {
         // Given
         List<Integer> meterIds = List.of(11);
-        ElectricMeterBo m1 = new ElectricMeterBo().setId(11).setMeterNo("EM011").setAccountId(100).setIsOnline(true).setIsPrepay(true);
+        ElectricMeterBo m1 = new ElectricMeterBo().setId(11).setDeviceNo("EM011").setAccountId(100).setIsOnline(true).setIsPrepay(true);
 
         Map<Integer, ElectricMeterBo> idMap = Map.of(11, m1);
         when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenAnswer(invocation -> {
@@ -3971,7 +3967,7 @@ class ElectricMeterManagerServiceImplTest {
         MeterStepResetDto resetDto = new MeterStepResetDto().setMeterId(1);
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(1)
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setAccountId(200)
                 .setOwnAreaId(300)
                 .setIotId("400");
@@ -4003,7 +3999,7 @@ class ElectricMeterManagerServiceImplTest {
         MeterStepResetDto resetDto = new MeterStepResetDto().setMeterId(2);
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(2)
-                .setMeterNo("EM002")
+                .setDeviceNo("EM002")
                 .setAccountId(null);
         when(electricMeterInfoService.getDetail(2)).thenReturn(meterBo);
 
@@ -4018,7 +4014,7 @@ class ElectricMeterManagerServiceImplTest {
         MeterStepResetDto resetDto = new MeterStepResetDto().setMeterId(3);
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(3)
-                .setMeterNo("EM003")
+                .setDeviceNo("EM003")
                 .setAccountId(999)
                 .setOwnAreaId(111);
         when(electricMeterInfoService.getDetail(3)).thenReturn(meterBo);

@@ -29,6 +29,7 @@ public class GatewayAddVo {
     private Integer modelId;
 
     @NotBlank
+    @Size(max = 100)
     @Schema(description = "设备编号，设备上报标识", requiredMode = Schema.RequiredMode.REQUIRED)
     private String deviceNo;
 

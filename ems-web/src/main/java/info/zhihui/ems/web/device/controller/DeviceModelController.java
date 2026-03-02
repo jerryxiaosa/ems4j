@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * 设备型号接口。
  */
@@ -30,6 +32,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeviceModelController {
 
     private final DeviceModelBiz deviceModelBiz;
+
+    @SaCheckPermission("devices:models:list")
+    @GetMapping
+    @Operation(summary = "查询设备型号列表")
+    public RestResult<List<DeviceModelVo>> findDeviceModelList(@Valid @ModelAttribute DeviceModelQueryVo queryVo) {
+        return ResultUtil.success(deviceModelBiz.findDeviceModelList(queryVo));
+    }
 
     @SaCheckPermission("devices:models:page")
     @GetMapping("/page")

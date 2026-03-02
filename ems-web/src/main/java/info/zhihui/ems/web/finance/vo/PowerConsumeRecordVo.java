@@ -36,7 +36,7 @@ public class PowerConsumeRecordVo {
     private String meterName;
 
     @Schema(description = "电表编号")
-    private String meterNo;
+    private String deviceNo;
 
     @Schema(description = "空间名称")
     private String spaceName;

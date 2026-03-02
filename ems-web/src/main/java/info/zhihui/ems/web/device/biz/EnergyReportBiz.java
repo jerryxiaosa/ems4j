@@ -74,7 +74,7 @@ public class EnergyReportBiz {
         return new ElectricMeterDetailDto()
                 .setMeterId(meterBo.getId())
                 .setMeterName(meterBo.getMeterName())
-                .setMeterNo(meterBo.getMeterNo())
+                .setDeviceNo(meterBo.getDeviceNo())
                 .setSpaceId(meterBo.getSpaceId())
                 .setIsCalculate(meterBo.getIsCalculate())
                 .setCalculateType(meterBo.getCalculateType())

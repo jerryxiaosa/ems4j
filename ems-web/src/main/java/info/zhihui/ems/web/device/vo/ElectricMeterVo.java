@@ -1,5 +1,11 @@
 package info.zhihui.ems.web.device.vo;
 
+import info.zhihui.ems.common.enums.WarnTypeEnum;
+import info.zhihui.ems.components.translate.annotation.BizLabel;
+import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.web.common.resolver.DeviceModelNameResolver;
+import info.zhihui.ems.web.common.resolver.ElectricPricePlanNameResolver;
+import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -30,9 +36,6 @@ public class ElectricMeterVo {
     @Schema(description = "电表名称")
     private String meterName;
 
-    @Schema(description = "电表编号")
-    private String meterNo;
-
     @Schema(description = "设备编号，设备上报标识")
     private String deviceNo;
 
@@ -40,6 +43,7 @@ public class ElectricMeterVo {
     private Integer modelId;
 
     @Schema(description = "型号名称")
+    @BizLabel(source = "modelId", resolver = DeviceModelNameResolver.class)
     private String modelName;
 
     @Schema(description = "产品唯一标识")
@@ -90,11 +94,23 @@ public class ElectricMeterVo {
     @Schema(description = "计费方案ID")
     private Integer pricePlanId;
 
+    @Schema(description = "计费方案名称")
+    @BizLabel(source = "pricePlanId", resolver = ElectricPricePlanNameResolver.class)
+    private String pricePlanName;
+
     @Schema(description = "预警方案ID")
     private Integer warnPlanId;
 
+    @Schema(description = "预警方案名称")
+    @BizLabel(source = "warnPlanId", resolver = WarnPlanNameResolver.class)
+    private String warnPlanName;
+
     @Schema(description = "预警类型，参考 warnType")
     private String warnType;
+
+    @Schema(description = "电费预警级别名称")
+    @EnumLabel(source = "warnType", enumClass = WarnTypeEnum.class)
+    private String electricWarnTypeName;
 
     @Schema(description = "账户ID")
     private Integer accountId;

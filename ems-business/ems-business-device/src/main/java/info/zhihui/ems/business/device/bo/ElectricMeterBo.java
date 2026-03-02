@@ -30,11 +30,6 @@ public class ElectricMeterBo extends OperatorInfo {
     private String meterName;
 
     /**
-     * 电表编号，系统生成
-     */
-    private String meterNo;
-
-    /**
      * 设备编号，设备上报标识
      */
     private String deviceNo;

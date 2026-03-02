@@ -1,6 +1,7 @@
 package info.zhihui.ems.test.config;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -20,8 +21,9 @@ import java.util.concurrent.TimeUnit;
  */
 @TestConfiguration
 @Profile("integrationtest")
-@Slf4j
 public class EmbeddedRedisTestConfig {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmbeddedRedisTestConfig.class);
 
     private static volatile RedisServer redisServer;
     private static volatile boolean shutdownHookRegistered;
@@ -30,7 +32,7 @@ public class EmbeddedRedisTestConfig {
     public RedisServer redisServer(Environment environment) throws IOException {
         synchronized (EmbeddedRedisTestConfig.class) {
             if (redisServer != null && redisServer.isActive()) {
-                log.info("复用已启动的嵌入式 Redis，监听端口：{}", redisServer.ports());
+                LOGGER.info("复用已启动的嵌入式 Redis，监听端口：{}", redisServer.ports());
                 return redisServer;
             }
 
@@ -45,14 +47,14 @@ public class EmbeddedRedisTestConfig {
                     .port(port)
                     .setting("databases " + databaseCount)
                     .setting("maxmemory 128M")
-                    .soutListener(line -> log.debug("[embedded-redis] {}", line))
-                    .serrListener(line -> log.error("[embedded-redis][stderr] {}", line));
+                    .soutListener(line -> LOGGER.debug("[embedded-redis] {}", line))
+                    .serrListener(line -> LOGGER.error("[embedded-redis][stderr] {}", line));
 
             RedisServer server = builder.build();
             try {
                 server.start();
                 waitUntilReady(host, port, Duration.ofSeconds(5));
-                log.info("嵌入式 Redis 启动完成，监听 {}:{}", host, port);
+                LOGGER.info("嵌入式 Redis 启动完成，监听 {}:{}", host, port);
             } catch (RuntimeException | IOException ex) {
                 try {
                     server.stop();
@@ -143,9 +145,9 @@ public class EmbeddedRedisTestConfig {
                 if (redisServer != null && redisServer.isActive()) {
                     try {
                         redisServer.stop();
-                        log.info("嵌入式 Redis 已在 JVM 退出时停止");
+                        LOGGER.info("嵌入式 Redis 已在 JVM 退出时停止");
                     } catch (Exception ex) {
-                        log.warn("停止嵌入式 Redis 失败: {}", ex.getMessage());
+                        LOGGER.warn("停止嵌入式 Redis 失败: {}", ex.getMessage());
                     }
                 }
             }

@@ -8,7 +8,7 @@
     <where>
       is_deleted = 0
       <if test="searchKey != null and searchKey != ''">
-        and (gateway_name like concat('%',#{searchKey},'%') or gateway_no like concat('%',#{searchKey},'%'))
+        and (gateway_name like concat('%',#{searchKey},'%') or device_no like concat('%',#{searchKey},'%'))
       </if>
       <if test="iotId != null and iotId != ''">
         and iot_id = #{iotId}

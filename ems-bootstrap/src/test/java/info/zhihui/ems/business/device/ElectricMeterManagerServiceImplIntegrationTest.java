@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -52,8 +54,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("integrationtest")
 @Transactional
 @Rollback
-@Slf4j
 class ElectricMeterManagerServiceImplIntegrationTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElectricMeterManagerServiceImplIntegrationTest.class);
 
     @Autowired
     private ElectricMeterManagerService electricMeterManagerService;
@@ -213,7 +216,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         assertEquals(dto.getModelId(), savedMeter.getModelId());
         assertEquals(dto.getIsPrepay(), savedMeter.getIsPrepay());
         assertEquals(dto.getCt(), savedMeter.getCt());
-        assertNotNull(savedMeter.getMeterNo()); // 系统生成的电表编号
+        assertNotNull(savedMeter.getDeviceNo()); // 系统生成的电表编号
     }
 
     /**
@@ -868,7 +871,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
         // 验证异常信息包含相关提示
         String message = exception.getMessage();
         assertNotNull(message);
-        log.info("离线电表未提供电量异常信息: {}", message);
+        LOGGER.info("离线电表未提供电量异常信息: {}", message);
     }
 
     /**
@@ -993,7 +996,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
                 .setMeterId(meterId)
                 .setAccountId(meterEntity.getAccountId())
                 .setMeterName(meterEntity.getMeterName())
-                .setMeterNo(meterEntity.getMeterNo())
+                .setDeviceNo(meterEntity.getDeviceNo())
                 .setIsPrepay(true)
                 .setPower(BigDecimal.valueOf(123.45))
                 .setRecordTime(LocalDateTime.now().minusMinutes(5))
@@ -1054,12 +1057,12 @@ class ElectricMeterManagerServiceImplIntegrationTest {
     }
 
     @Test
-    void testUpdateElectricMeter_ShouldKeepMeterNo() {
+    void testUpdateElectricMeter_ShouldKeepDeviceNo() {
         ElectricMeterCreateDto addDto = createValidElectricMeterAddDto();
         Integer meterId = electricMeterManagerService.add(addDto);
         ElectricMeterEntity before = electricMeterRepository.selectById(meterId);
         assertNotNull(before);
-        String originalMeterNo = before.getMeterNo();
+        String originalDeviceNo = before.getDeviceNo();
 
         ElectricMeterUpdateDto updateDto = new ElectricMeterUpdateDto()
                 .setId(meterId)
@@ -1076,7 +1079,7 @@ class ElectricMeterManagerServiceImplIntegrationTest {
 
         ElectricMeterEntity after = electricMeterRepository.selectById(meterId);
         assertNotNull(after);
-        assertEquals(originalMeterNo, after.getMeterNo());
+        assertEquals(originalDeviceNo, after.getDeviceNo());
 
         // 校验更新人信息
         assertEquals(1002, after.getUpdateUser());

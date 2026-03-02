@@ -105,7 +105,7 @@ schedule:
     enabled: true     # 开启调度切面
 
 # 对接真实设备：true；对接模拟数据：false
-useRealDevice: false
+useRealDevice: true
 
 sa-token:
   # token 名称（同时也是 cookie 名称）

@@ -18,9 +18,6 @@ public class GatewayVo {
     @Schema(description = "空间ID")
     private Integer spaceId;
 
-    @Schema(description = "网关编号")
-    private String gatewayNo;
-
     @Schema(description = "设备编号，设备上报标识")
     private String deviceNo;
 

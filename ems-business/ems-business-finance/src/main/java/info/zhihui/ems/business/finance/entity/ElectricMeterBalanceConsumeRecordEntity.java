@@ -62,7 +62,7 @@ public class ElectricMeterBalanceConsumeRecordEntity {
     /**
      * 电表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 归属者ID

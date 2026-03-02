@@ -42,7 +42,7 @@ class OwnerCandidateMeterControllerTest {
                 new OwnerCandidateMeterVo()
                         .setId(1)
                         .setMeterName("候选表")
-                        .setMeterNo("EM001")
+                        .setDeviceNo("EM001")
                         .setMeterType("电表")
                         .setOfflineDurationText("3天")
         ));

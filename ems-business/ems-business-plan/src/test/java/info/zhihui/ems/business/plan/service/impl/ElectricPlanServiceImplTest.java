@@ -91,6 +91,25 @@ class ElectricPlanServiceImplTest {
     }
 
     @Test
+    void testFindList_WithIds() {
+        ElectricPricePlanQueryDto query = new ElectricPricePlanQueryDto().setIds(List.of(1, 2));
+        ElectricPricePlanQo qo = new ElectricPricePlanQo().setIds(List.of(1, 2));
+        List<ElectricPricePlanEntity> entityList = List.of(new ElectricPricePlanEntity());
+        List<ElectricPricePlanBo> boList = List.of(new ElectricPricePlanBo());
+
+        when(mapper.queryDtoToQo(query)).thenReturn(qo);
+        when(repository.findList(qo)).thenReturn(entityList);
+        when(mapper.listEntityToBo(entityList)).thenReturn(boList);
+
+        List<ElectricPricePlanBo> result = service.findList(query);
+
+        assertEquals(boList, result);
+        verify(mapper).queryDtoToQo(query);
+        verify(repository).findList(qo);
+        verify(mapper).listEntityToBo(entityList);
+    }
+
+    @Test
     void testGetDetail_Success() {
         // 准备测试数据
         Integer id = 1;

@@ -101,7 +101,7 @@ class MeterConsumeServiceQueryTest {
             // 验证第一条记录
             PowerConsumeRecordDto firstRecord = result.getList().get(0);
             assertEquals("电表001", firstRecord.getMeterName());
-            assertEquals("M001", firstRecord.getMeterNo());
+            assertEquals("M001", firstRecord.getDeviceNo());
             assertEquals("房间001", firstRecord.getSpaceName());
             assertEquals(new BigDecimal("100.00"), firstRecord.getBeginBalance());
             assertEquals(new BigDecimal("10.50"), firstRecord.getConsumeAmount());
@@ -112,7 +112,7 @@ class MeterConsumeServiceQueryTest {
             // 验证第二条记录
             PowerConsumeRecordDto secondRecord = result.getList().get(1);
             assertEquals("电表002", secondRecord.getMeterName());
-            assertEquals("M002", secondRecord.getMeterNo());
+            assertEquals("M002", secondRecord.getDeviceNo());
             assertEquals("房间002", secondRecord.getSpaceName());
             assertEquals(new BigDecimal("200.00"), secondRecord.getBeginBalance());
             assertEquals(new BigDecimal("15.75"), secondRecord.getConsumeAmount());
@@ -226,7 +226,7 @@ class MeterConsumeServiceQueryTest {
                 .setAccountId(10)
                 .setMeterId(20)
                 .setMeterName("测试电表")
-                .setMeterNo("M001")
+                .setDeviceNo("M001")
                 .setSpaceName("A101")
                 .setConsumeAmount(new BigDecimal("8.66"))
                 .setConsumeAmountHigh(new BigDecimal("2.00"))
@@ -314,14 +314,14 @@ class MeterConsumeServiceQueryTest {
     /**
      * 创建模拟实体对象
      */
-    private ElectricMeterBalanceConsumeRecordEntity createMockEntity(Integer id, String meterName, String meterNo,
+    private ElectricMeterBalanceConsumeRecordEntity createMockEntity(Integer id, String meterName, String deviceNo,
                                                                      String spaceName, BigDecimal beginBalance,
                                                                      BigDecimal consumeAmount, BigDecimal endBalance,
                                                                      Integer electricAccountType, LocalDateTime consumeTime) {
         return new ElectricMeterBalanceConsumeRecordEntity()
                 .setId(id)
                 .setMeterName(meterName)
-                .setMeterNo(meterNo)
+                .setDeviceNo(deviceNo)
                 .setSpaceName(spaceName)
                 .setBeginBalance(beginBalance)
                 .setConsumeAmount(consumeAmount)

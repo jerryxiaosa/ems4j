@@ -1,4 +1,4 @@
-package info.zhihui.ems.web.util;
+package info.zhihui.ems.web.common.util;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

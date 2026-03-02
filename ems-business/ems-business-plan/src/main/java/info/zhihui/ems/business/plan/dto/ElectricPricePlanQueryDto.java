@@ -3,9 +3,13 @@ package info.zhihui.ems.business.plan.dto;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 public class ElectricPricePlanQueryDto {
+
+    private List<Integer> ids;
 
     private String name;
 

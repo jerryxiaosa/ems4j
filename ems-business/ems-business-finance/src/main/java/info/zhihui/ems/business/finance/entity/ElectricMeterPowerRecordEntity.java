@@ -31,7 +31,7 @@ public class ElectricMeterPowerRecordEntity {
     /**
      * 电表编号
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 账户ID

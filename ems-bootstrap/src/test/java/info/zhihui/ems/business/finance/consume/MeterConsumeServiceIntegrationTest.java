@@ -76,7 +76,7 @@ class MeterConsumeServiceIntegrationTest {
         meterDetailDto = new ElectricMeterDetailDto()
                 .setMeterId(1)
                 .setMeterName("1号楼电表")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setSpaceId(101)
                 .setIsCalculate(true)
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
@@ -153,12 +153,12 @@ class MeterConsumeServiceIntegrationTest {
             meterConsumeService.savePowerRecord(dto10);
         }, "meterName为null应抛出异常");
 
-        // 测试12: ElectricMeterDetailAndPowerDto.meterNo为null
+        // 测试12: ElectricMeterDetailAndPowerDto.deviceNo为null
         ElectricMeterPowerRecordDto dto11 = createValidTestDto();
-        dto11.getElectricMeterDetailDto().setMeterNo(null);
+        dto11.getElectricMeterDetailDto().setDeviceNo(null);
         assertThrows(ConstraintViolationException.class, () -> {
             meterConsumeService.savePowerRecord(dto11);
-        }, "meterNo为null应抛出异常");
+        }, "deviceNo为null应抛出异常");
 
         // 测试13: ElectricMeterDetailAndPowerDto.spaceId为null
         ElectricMeterPowerRecordDto dto12 = createValidTestDto();
@@ -428,7 +428,7 @@ class MeterConsumeServiceIntegrationTest {
         ElectricMeterDetailDto meterDetail = new ElectricMeterDetailDto()
                 .setMeterId(1)
                 .setMeterName("测试电表")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setSpaceId(101)
                 .setIsCalculate(true)
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
@@ -461,7 +461,7 @@ class MeterConsumeServiceIntegrationTest {
         ElectricMeterDetailDto meterDetail = new ElectricMeterDetailDto()
                 .setMeterId(meterId)
                 .setMeterName("测试电表_" + meterId)
-                .setMeterNo("EM" + String.format("%03d", meterId))
+                .setDeviceNo("EM" + String.format("%03d", meterId))
                 .setSpaceId(101)
                 .setIsCalculate(true)
                 .setCalculateType(CalculateTypeEnum.AIR_CONDITIONING)
@@ -538,7 +538,7 @@ class MeterConsumeServiceIntegrationTest {
         // 验证数据转换的正确性
         PowerConsumeRecordDto firstRecord = result.getList().get(0);
         assertNotNull(firstRecord.getMeterName(), "电表名称不应为null");
-        assertNotNull(firstRecord.getMeterNo(), "电表编号不应为null");
+        assertNotNull(firstRecord.getDeviceNo(), "电表编号不应为null");
         assertNotNull(firstRecord.getSpaceName(), "空间名称不应为null");
         assertNotNull(firstRecord.getBeginBalance(), "开始余额不应为null");
         assertNotNull(firstRecord.getConsumeAmount(), "消费金额不应为null");
@@ -548,7 +548,7 @@ class MeterConsumeServiceIntegrationTest {
 
         // 验证字符串字段不为空
         assertFalse(firstRecord.getMeterName().trim().isEmpty(), "电表名称不应为空字符串");
-        assertFalse(firstRecord.getMeterNo().trim().isEmpty(), "电表编号不应为空字符串");
+        assertFalse(firstRecord.getDeviceNo().trim().isEmpty(), "电表编号不应为空字符串");
         assertFalse(firstRecord.getSpaceName().trim().isEmpty(), "空间名称不应为空字符串");
 
         // 验证mergedMeasure字段的派生逻辑
@@ -755,7 +755,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
                 .setMeterId(101)
                 .setMeterName("明细测试电表")
-                .setMeterNo("EM-DETAIL-001")
+                .setDeviceNo("EM-DETAIL-001")
                 .setCreateTime(LocalDateTime.now())
                 .setIsDeleted(false);
         electricMeterBalanceConsumeRecordRepository.insert(nonElectricRecord);
@@ -798,7 +798,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
                 .setMeterId(101)
                 .setMeterName("1号楼电表")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setOwnerId(1001)
                 .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
                 .setOwnerName("张三")
@@ -838,7 +838,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.MERGED.getCode())
                 .setMeterId(102)
                 .setMeterName("2号楼电表")
-                .setMeterNo("EM002")
+                .setDeviceNo("EM002")
                 .setOwnerId(1002)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
                 .setOwnerName("测试企业")
@@ -878,7 +878,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
                 .setMeterId(103)
                 .setMeterName("3号楼智能电表")
-                .setMeterNo("EM003")
+                .setDeviceNo("EM003")
                 .setOwnerId(1003)
                 .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
                 .setOwnerName("李四")
@@ -969,7 +969,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setOwnerName("张三")
                 .setMeterId(101)
                 .setMeterName("明细测试电表")
-                .setMeterNo("EM-DETAIL-001")
+                .setDeviceNo("EM-DETAIL-001")
                 .setSpaceId(201)
                 .setSpaceName("测试房间")
                 .setPricePlanId(1)

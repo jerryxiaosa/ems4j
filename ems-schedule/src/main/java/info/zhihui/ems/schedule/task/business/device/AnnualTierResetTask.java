@@ -61,7 +61,7 @@ public class AnnualTierResetTask {
                                     .setMeterId(meter.getId()));
                 } catch (Exception ex) {
                     failed++;
-                    log.error("电表{}跨年阶梯重建失败", meter.getMeterNo(), ex);
+                    log.error("电表{}跨年阶梯重建失败", meter.getDeviceNo(), ex);
                 }
             }
 

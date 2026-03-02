@@ -78,7 +78,7 @@ class OrderCreateEnergyTopUpHandlerTest {
         businessDetail.setSpaceId(1);
         businessDetail.setMeterId(100);
         businessDetail.setMeterName("测试电表");
-        businessDetail.setMeterNo("METER001");
+        businessDetail.setDeviceNo("METER001");
 
         energyTopUpDto = new EnergyOrderCreationInfoDto();
         energyTopUpDto.setUserId(1);
@@ -178,7 +178,7 @@ class OrderCreateEnergyTopUpHandlerTest {
         // 电表相关信息校验
         assertEquals(100, capturedDetail.getMeterId(), "电表ID应该正确");
         assertEquals("测试电表", capturedDetail.getMeterName(), "电表名称应该正确");
-        assertEquals("METER001", capturedDetail.getMeterNo(), "电表编号应该正确");
+        assertEquals("METER001", capturedDetail.getDeviceNo(), "电表编号应该正确");
 
         // 空间相关信息校验
         assertEquals(1, capturedDetail.getSpaceId(), "空间ID应该正确");

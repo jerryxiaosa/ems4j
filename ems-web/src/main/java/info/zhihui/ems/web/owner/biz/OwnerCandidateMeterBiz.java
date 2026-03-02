@@ -9,7 +9,7 @@ import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.web.owner.vo.OwnerCandidateMeterQueryVo;
 import info.zhihui.ems.web.owner.vo.OwnerCandidateMeterVo;
-import info.zhihui.ems.web.util.OfflineDurationUtil;
+import info.zhihui.ems.web.common.util.OfflineDurationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -48,7 +48,7 @@ public class OwnerCandidateMeterBiz {
         return new OwnerCandidateMeterVo()
                 .setId(candidateMeterDto.getId())
                 .setMeterName(candidateMeterDto.getMeterName())
-                .setMeterNo(candidateMeterDto.getMeterNo())
+                .setDeviceNo(candidateMeterDto.getDeviceNo())
                 .setMeterType(MeterTypeEnum.ELECTRIC.getInfo())
                 .setSpaceId(candidateMeterDto.getSpaceId())
                 .setSpaceName(candidateMeterDto.getSpaceName())

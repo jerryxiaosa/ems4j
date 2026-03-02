@@ -70,7 +70,7 @@ class MeterCorrectionServiceIntegrationTest {
                 .setOwnerName("测试用户1")
                 .setMeterId(1)
                 .setMeterName("1号楼电表")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setReason("测试补扣")
                 .setCorrectionType(CorrectionTypeEnum.PAY)
                 .setAmount(new BigDecimal("10.00"));
@@ -166,7 +166,7 @@ class MeterCorrectionServiceIntegrationTest {
                 .setOwnerName("测试用户1")
                 .setMeterId(3)
                 .setMeterName("1号楼电表")
-                .setMeterNo("EM001")
+                .setDeviceNo("EM001")
                 .setCorrectionType(CorrectionTypeEnum.PAY)
                 .setAmount(new BigDecimal("6.66"))
                 .setReason("测试查询")

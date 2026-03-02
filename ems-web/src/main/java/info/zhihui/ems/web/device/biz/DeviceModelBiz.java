@@ -11,6 +11,8 @@ import info.zhihui.ems.web.device.vo.DeviceModelVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -42,5 +44,22 @@ public class DeviceModelBiz {
 
         PageResult<DeviceModelBo> pageResult = deviceModelService.findPage(queryDto, pageParam);
         return deviceModelWebMapper.toDeviceModelVoPage(pageResult);
+    }
+
+    /**
+     * 查询设备型号列表。
+     *
+     * @param queryVo 查询条件
+     * @return 设备型号列表
+     */
+    public List<DeviceModelVo> findDeviceModelList(DeviceModelQueryVo queryVo) {
+        DeviceModelQueryDto queryDto = deviceModelWebMapper.toDeviceModelQueryDto(queryVo);
+        if (queryDto == null) {
+            queryDto = new DeviceModelQueryDto();
+        }
+
+        List<DeviceModelBo> deviceModelBoList = deviceModelService.findList(queryDto);
+        List<DeviceModelVo> deviceModelVoList = deviceModelWebMapper.toDeviceModelVoList(deviceModelBoList);
+        return deviceModelVoList == null ? Collections.emptyList() : deviceModelVoList;
     }
 }

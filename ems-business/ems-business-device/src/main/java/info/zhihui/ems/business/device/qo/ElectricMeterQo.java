@@ -21,9 +21,9 @@ public class ElectricMeterQo {
     private String meterName;
 
     /**
-     * 电表编号，系统生成
+     * 设备编号，设备上报标识
      */
-    private String meterNo;
+    private String deviceNo;
 
     /**
      * 所属账户id列表
@@ -34,11 +34,6 @@ public class ElectricMeterQo {
      * iot服务里的id
      */
     private String iotId;
-
-    /**
-     * 设备编号，设备上报标识
-     */
-    private String deviceNo;
 
     /**
      * 区域id
@@ -107,7 +102,7 @@ public class ElectricMeterQo {
     private List<Integer> inIds;
 
     /**
-     * meterName、meter_no搜索关键字
+     * meterName、device_no搜索关键字
      */
     private String searchKey;
 
