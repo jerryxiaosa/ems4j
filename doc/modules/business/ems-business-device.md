@@ -14,6 +14,19 @@
 | 状态同步 | 设备在线状态同步、电量数据同步 |
 | 设备查询 | 分页查询、条件筛选、详情查询 |
 
+## 2.1 设备编号统一规则（当前版本）
+
+当前版本已将电表和网关的主编号统一为 `deviceNo`，不再保留独立的 `meterNo` / `gatewayNo` 字段。
+
+- 电表主表 `energy_electric_meter` 仅保留 `device_no`
+- 网关主表 `energy_gateway` 仅保留 `device_no`
+- 历史快照表（销表记录、电量记录、余额消费记录、充值订单明细）中的设备编号字段也统一为 `device_no`
+
+实现约束：
+
+- 电表、网关的查询条件、接口返回字段、业务日志与异常文案统一使用 `deviceNo`
+- 电表和网关不再生成独立的系统编号
+
 ## 3. 模块依赖关系
 
 ```
@@ -167,3 +180,60 @@
 - 详情页如果要展示“当前实时值”，调用 `/power`。
 - 详情页如果要展示“最近一次上报时间与读数快照”，调用 `/latest-power-record`。
 - 不要将“实时查询值”与“最近一次正式上报记录”混为同一业务语义。
+
+### 5.5 在线状态与离线时长口径
+
+电表主表当前同时维护：
+
+- `is_online`：最近一次同步的在线状态
+- `last_online_time`：最近一次确认该电表在线的时间
+
+同步规则：
+
+- 当同步结果为在线时，无论 `is_online` 是否变化，都会刷新 `last_online_time`
+- 当同步结果为离线时，仅更新 `is_online = false`，不刷新 `last_online_time`
+
+对外展示规则（Web 层统一格式化）：
+
+- `isOnline = true`：`offlineDurationText = null`
+- `isOnline = false && lastOnlineTime = null`：`offlineDurationText = null`
+- `isOnline = false && lastOnlineTime != null`
+  - 小于 1 小时：展示 `xx分钟`，不足 1 分钟按 `1分钟`
+  - 大于等于 1 小时且小于 1 天：展示 `xx小时`
+  - 大于等于 1 天：展示 `xx天`
+
+## 6. 对外接口补充
+
+### 6.1 设备品类树
+
+- 路径：`GET /device/device-types/tree`
+- 说明：返回整棵设备品类树，孤儿节点（`pid` 指向不存在父节点）会被忽略，不返回
+
+### 6.2 设备型号查询
+
+- 列表：`GET /device/device-models`
+- 分页：`GET /device/device-models/page`
+
+查询参数：
+
+- `typeIds`
+- `typeKey`
+- `manufacturerName`
+- `modelName`
+- `productCode`
+
+### 6.3 电表列表/详情展示字段
+
+电表列表与详情当前统一返回以下展示字段：
+
+- 空间展示：`spaceName`、`spaceParentNames`
+- 型号展示：`modelName`
+- 计费方案展示：`pricePlanName`
+- 预警方案展示：`warnPlanName`
+- 电费预警级别展示：`electricWarnTypeName`
+- 在线展示：`offlineDurationText`
+
+其中：
+
+- `modelName`、`pricePlanName`、`warnPlanName`、`electricWarnTypeName` 由 translate 组件自动翻译
+- `spaceName`、`spaceParentNames`、`offlineDurationText` 由 Web 层批量 enrich 组装

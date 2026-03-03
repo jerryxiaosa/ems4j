@@ -92,10 +92,4 @@ public class GatewayController {
         return ResultUtil.success();
     }
 
-    @SaCheckPermission("devices:gateways:communication")
-    @GetMapping("/communication-options")
-    @Operation(summary = "获取通信方式列表")
-    public RestResult<List<String>> findCommunicationOptions() {
-        return ResultUtil.success(gatewayBiz.findCommunicationOptions());
-    }
 }

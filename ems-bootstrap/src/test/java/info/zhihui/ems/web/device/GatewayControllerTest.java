@@ -6,6 +6,8 @@ import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.web.device.biz.GatewayBiz;
 import info.zhihui.ems.web.device.controller.GatewayController;
 import info.zhihui.ems.web.device.vo.GatewayAddVo;
+import info.zhihui.ems.web.device.vo.GatewayDetailVo;
+import info.zhihui.ems.web.device.vo.GatewayMeterVo;
 import info.zhihui.ems.web.device.vo.GatewayOnlineStatusVo;
 import info.zhihui.ems.web.device.vo.GatewayUpdateVo;
 import info.zhihui.ems.web.device.vo.GatewayVo;
@@ -48,7 +50,12 @@ class GatewayControllerTest {
     @Test
     @DisplayName("分页查询网关")
     void testFindGatewayPage() throws Exception {
-        GatewayVo vo = new GatewayVo().setId(1).setGatewayName("GatewayA");
+        GatewayVo vo = new GatewayVo()
+                .setId(1)
+                .setGatewayName("GatewayA")
+                .setSpaceName("101房间")
+                .setSpaceParentNames(List.of("1号楼", "1层"))
+                .setModelName("网关型号A");
         PageResult<GatewayVo> pageResult = new PageResult<GatewayVo>()
                 .setList(List.of(vo))
                 .setPageNum(1)
@@ -61,7 +68,41 @@ class GatewayControllerTest {
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list[0].gatewayName").value("GatewayA"));
+                .andExpect(jsonPath("$.data.list[0].gatewayName").value("GatewayA"))
+                .andExpect(jsonPath("$.data.list[0].spaceName").value("101房间"))
+                .andExpect(jsonPath("$.data.list[0].spaceParentNames[0]").value("1号楼"))
+                .andExpect(jsonPath("$.data.list[0].modelName").value("网关型号A"));
+    }
+
+    @Test
+    @DisplayName("获取网关详情")
+    void testGetGateway() throws Exception {
+        GatewayDetailVo detailVo = new GatewayDetailVo();
+        detailVo.setId(1);
+        detailVo.setGatewayName("GatewayA");
+        detailVo.setSpaceName("101房间");
+        detailVo.setSpaceParentNames(List.of("1号楼", "1层"));
+        detailVo.setModelName("网关型号A");
+        detailVo.setMeterList(List.of(new GatewayMeterVo()
+                .setId(100)
+                .setMeterName("电表A")
+                .setDeviceNo("DEVICE-001")
+                .setIsOnline(true)
+                .setPortNo(1)
+                .setMeterAddress(11)));
+        when(gatewayBiz.getGateway(1)).thenReturn(detailVo);
+
+        mockMvc.perform(get("/device/gateways/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.gatewayName").value("GatewayA"))
+                .andExpect(jsonPath("$.data.spaceName").value("101房间"))
+                .andExpect(jsonPath("$.data.spaceParentNames[1]").value("1层"))
+                .andExpect(jsonPath("$.data.modelName").value("网关型号A"))
+                .andExpect(jsonPath("$.data.meterList[0].meterName").value("电表A"))
+                .andExpect(jsonPath("$.data.meterList[0].deviceNo").value("DEVICE-001"))
+                .andExpect(jsonPath("$.data.meterList[0].portNo").value(1))
+                .andExpect(jsonPath("$.data.meterList[0].meterAddress").value(11));
     }
 
     @Test
@@ -118,16 +159,5 @@ class GatewayControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
 
         verify(gatewayBiz).syncOnlineStatus(any(GatewayOnlineStatusVo.class));
-    }
-
-    @Test
-    @DisplayName("获取通信方式")
-    void testFindCommunicationOptions() throws Exception {
-        when(gatewayBiz.findCommunicationOptions()).thenReturn(List.of("4G", "NB"));
-
-        mockMvc.perform(get("/device/gateways/communication-options"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0]").value("4G"));
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -53,13 +54,17 @@ class ElectricPricePlanControllerTest {
     void testFindElectricPricePlanList() throws Exception {
         ElectricPricePlanVo vo = new ElectricPricePlanVo()
                 .setId(1)
-                .setName("默认电价");
+                .setName("默认电价")
+                .setCreateTime(LocalDateTime.of(2026, 3, 3, 10, 20, 30))
+                .setUpdateTime(LocalDateTime.of(2026, 3, 3, 11, 5, 12));
         when(electricPricePlanBiz.findElectricPricePlanList(any())).thenReturn(List.of(vo));
 
         mockMvc.perform(get("/plan/electric-price-plans"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].name").value("默认电价"));
+                .andExpect(jsonPath("$.data[0].name").value("默认电价"))
+                .andExpect(jsonPath("$.data[0].createTime").value("2026-03-03 10:20:30"))
+                .andExpect(jsonPath("$.data[0].updateTime").value("2026-03-03 11:05:12"));
     }
 
     @Test

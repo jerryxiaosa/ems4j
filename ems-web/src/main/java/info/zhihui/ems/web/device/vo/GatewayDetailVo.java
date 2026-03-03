@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 /**
  * 网关详情
  */
@@ -13,4 +15,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Schema(name = "GatewayDetailVo", description = "网关详情信息")
 public class GatewayDetailVo extends GatewayVo {
+
+    @Schema(description = "接入该网关的电表列表")
+    private List<GatewayMeterVo> meterList;
 }

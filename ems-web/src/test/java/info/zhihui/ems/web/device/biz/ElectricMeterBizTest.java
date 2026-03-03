@@ -4,8 +4,8 @@ import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
 import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
-import info.zhihui.ems.foundation.space.bo.SpaceBo;
-import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
+import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
 import info.zhihui.ems.web.device.vo.ElectricMeterDetailVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterQueryVo;
@@ -40,7 +40,7 @@ class ElectricMeterBizTest {
     private ElectricMeterPowerRecordService electricMeterPowerRecordService;
 
     @Mock
-    private SpaceService spaceService;
+    private SpaceDisplaySupport spaceDisplaySupport;
 
     @Mock
     private ElectricMeterWebMapper electricMeterWebMapper;
@@ -57,14 +57,14 @@ class ElectricMeterBizTest {
         ElectricMeterVo electricMeterVo = new ElectricMeterVo()
                 .setId(1)
                 .setMeterName("电表A");
-        SpaceBo spaceBo = new SpaceBo()
+        SpaceDisplayDto spaceDisplayDto = new SpaceDisplayDto()
                 .setId(10)
                 .setName("101房间")
                 .setParentsNames(List.of("1号楼", "1层"));
         when(electricMeterWebMapper.toElectricMeterQueryDto(any(ElectricMeterQueryVo.class))).thenReturn(null);
         when(electricMeterInfoService.findList(any())).thenReturn(List.of(electricMeterBo));
         when(electricMeterWebMapper.toElectricMeterVoList(List.of(electricMeterBo))).thenReturn(List.of(electricMeterVo));
-        when(spaceService.findSpaceList(any())).thenReturn(List.of(spaceBo));
+        when(spaceDisplaySupport.findSpaceDisplayMap(any())).thenReturn(java.util.Map.of(10, spaceDisplayDto));
 
         List<ElectricMeterVo> result = electricMeterBiz.findElectricMeterList(new ElectricMeterQueryVo());
 
@@ -86,13 +86,13 @@ class ElectricMeterBizTest {
         ElectricMeterDetailVo detailVo = new ElectricMeterDetailVo();
         detailVo.setId(1);
         detailVo.setMeterName("电表A");
-        SpaceBo spaceBo = new SpaceBo()
+        SpaceDisplayDto spaceDisplayDto = new SpaceDisplayDto()
                 .setId(10)
                 .setName("101房间")
                 .setParentsNames(List.of("1号楼", "1层"));
         when(electricMeterInfoService.getDetail(1)).thenReturn(electricMeterBo);
         when(electricMeterWebMapper.toElectricMeterDetailVo(electricMeterBo)).thenReturn(detailVo);
-        when(spaceService.findSpaceList(any())).thenReturn(List.of(spaceBo));
+        when(spaceDisplaySupport.findSpaceDisplayMap(any())).thenReturn(java.util.Map.of(10, spaceDisplayDto));
 
         ElectricMeterDetailVo result = electricMeterBiz.getElectricMeter(1);
 

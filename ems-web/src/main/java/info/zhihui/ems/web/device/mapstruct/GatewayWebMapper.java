@@ -1,5 +1,6 @@
 package info.zhihui.ems.web.device.mapstruct;
 
+import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.bo.GatewayBo;
 import info.zhihui.ems.business.device.dto.GatewayOnlineStatusDto;
 import info.zhihui.ems.business.device.dto.GatewayCreateDto;
@@ -30,6 +31,10 @@ public interface GatewayWebMapper {
     List<GatewayVo> toGatewayVoList(List<GatewayBo> bos);
 
     GatewayDetailVo toGatewayDetailVo(GatewayBo bo);
+
+    GatewayMeterVo toGatewayMeterVo(ElectricMeterBo bo);
+
+    List<GatewayMeterVo> toGatewayMeterVoList(List<ElectricMeterBo> bos);
 
     GatewayOnlineStatusDto toGatewayOnlineStatusDto(GatewayOnlineStatusVo vo);
 

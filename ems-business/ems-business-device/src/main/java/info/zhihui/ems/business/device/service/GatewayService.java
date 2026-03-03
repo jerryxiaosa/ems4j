@@ -68,13 +68,6 @@ public interface GatewayService {
     void delete(@NotNull Integer id);
 
     /**
-     * 获取通信方式选项列表
-     *
-     * @return 通信方式选项列表
-     */
-    List<String> getCommunicationOption();
-
-    /**
      * 同步网关在线状态
      *
      * @param onlineStatusDto 网关在线状态

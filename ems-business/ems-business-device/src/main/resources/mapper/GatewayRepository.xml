@@ -7,6 +7,12 @@
     from energy_gateway t
     <where>
       is_deleted = 0
+      <if test="ids != null and ids.size() > 0">
+        and t.id in
+        <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
       <if test="searchKey != null and searchKey != ''">
         and (gateway_name like concat('%',#{searchKey},'%') or device_no like concat('%',#{searchKey},'%'))
       </if>
@@ -33,11 +39,5 @@
 
     </where>
     order by t.create_time desc
-  </select>
-
-  <select id="getCommunicationOption" resultType="java.lang.String">
-    select distinct communicate_model
-    from energy_gateway
-    where is_deleted = 0
   </select>
 </mapper>

@@ -495,47 +495,6 @@ class GatewayServiceImplTest {
     }
 
     @Test
-    void testGetCommunicationOption_Success() {
-        // 准备数据
-        List<String> expectedOptions = List.of("485", "NB", "WIFI");
-
-        // Mock行为
-        when(repository.getCommunicationOption()).thenReturn(expectedOptions);
-
-        // 执行测试
-        List<String> result = gatewayService.getCommunicationOption();
-
-        // 验证结果
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        assertEquals("485", result.get(0));
-        assertEquals("NB", result.get(1));
-        assertEquals("WIFI", result.get(2));
-
-        // 验证方法调用
-        verify(repository).getCommunicationOption();
-    }
-
-    @Test
-    void testGetCommunicationOption_EmptyList() {
-        // 准备数据 - 空列表
-        List<String> expectedOptions = List.of();
-
-        // Mock行为
-        when(repository.getCommunicationOption()).thenReturn(expectedOptions);
-
-        // 执行测试
-        List<String> result = gatewayService.getCommunicationOption();
-
-        // 验证结果
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        // 验证方法调用
-        verify(repository).getCommunicationOption();
-    }
-
-    @Test
     void testUpdate_Success() {
         // 准备数据
         GatewayEntity oldEntity = new GatewayEntity();
