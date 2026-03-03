@@ -15,9 +15,8 @@ import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
-import info.zhihui.ems.foundation.space.bo.SpaceBo;
-import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
-import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
+import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;
 import info.zhihui.ems.web.account.vo.*;
 import info.zhihui.ems.web.common.util.OfflineDurationUtil;
@@ -44,7 +43,7 @@ public class AccountBiz {
     private final AccountAdditionalInfoService accountAdditionalInfoService;
     private final AccountWebMapper accountWebMapper;
     private final ElectricMeterInfoService electricMeterInfoService;
-    private final SpaceService spaceService;
+    private final SpaceDisplaySupport spaceDisplaySupport;
     private final BalanceService balanceService;
 
     /**
@@ -300,26 +299,18 @@ public class AccountBiz {
                 .map(AccountMeterVo::getSpaceId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        if (spaceIdSet.isEmpty()) {
-            return;
-        }
-
-        List<SpaceBo> spaceBoList = spaceService.findSpaceList(new SpaceQueryDto().setIds(spaceIdSet));
-        Map<Integer, SpaceBo> spaceBoMap = spaceBoList.stream()
-                .filter(Objects::nonNull)
-                .filter(spaceBo -> spaceBo.getId() != null)
-                .collect(Collectors.toMap(SpaceBo::getId, spaceBo -> spaceBo, (left, right) -> left));
+        Map<Integer, SpaceDisplayDto> spaceDisplayMap = spaceDisplaySupport.findSpaceDisplayMap(spaceIdSet);
 
         for (AccountMeterVo meterVo : meterVoList) {
             if (meterVo == null || meterVo.getSpaceId() == null) {
                 continue;
             }
-            SpaceBo spaceBo = spaceBoMap.get(meterVo.getSpaceId());
-            if (spaceBo == null) {
+            SpaceDisplayDto spaceDisplayDto = spaceDisplayMap.get(meterVo.getSpaceId());
+            if (spaceDisplayDto == null) {
                 continue;
             }
-            meterVo.setSpaceName(spaceBo.getName());
-            meterVo.setSpaceParentNames(spaceBo.getParentsNames());
+            meterVo.setSpaceName(spaceDisplayDto.getName());
+            meterVo.setSpaceParentNames(spaceDisplayDto.getParentsNames());
         }
     }
 

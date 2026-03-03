@@ -1,19 +1,30 @@
 package info.zhihui.ems.web.device.biz;
 
+import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.bo.GatewayBo;
-import info.zhihui.ems.business.device.dto.GatewayQueryDto;
+import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.dto.GatewayCreateDto;
+import info.zhihui.ems.business.device.dto.GatewayQueryDto;
 import info.zhihui.ems.business.device.dto.GatewayUpdateDto;
+import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.GatewayService;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
+import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.device.mapstruct.GatewayWebMapper;
 import info.zhihui.ems.web.device.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 网关业务编排层
@@ -23,6 +34,8 @@ import java.util.Objects;
 public class GatewayBiz {
 
     private final GatewayService gatewayService;
+    private final ElectricMeterInfoService electricMeterInfoService;
+    private final SpaceDisplaySupport spaceDisplaySupport;
     private final GatewayWebMapper gatewayWebMapper;
 
     /**
@@ -42,7 +55,9 @@ public class GatewayBiz {
             queryDto = new GatewayQueryDto();
         }
         PageResult<GatewayBo> pageResult = gatewayService.findPage(queryDto, pageParam);
-        return gatewayWebMapper.toGatewayVoPage(pageResult);
+        PageResult<GatewayVo> result = gatewayWebMapper.toGatewayVoPage(pageResult);
+        fillSpaceInfo(result.getList(), pageResult.getList());
+        return result;
     }
 
     /**
@@ -55,7 +70,9 @@ public class GatewayBiz {
         GatewayQueryDto queryDto = gatewayWebMapper.toGatewayQueryDto(queryVo);
 
         List<GatewayBo> bos = gatewayService.findList(queryDto);
-        return gatewayWebMapper.toGatewayVoList(bos);
+        List<GatewayVo> gatewayVoList = gatewayWebMapper.toGatewayVoList(bos);
+        fillSpaceInfo(gatewayVoList, bos);
+        return gatewayVoList;
     }
 
     /**
@@ -65,7 +82,11 @@ public class GatewayBiz {
      * @return 网关详情
      */
     public GatewayDetailVo getGateway(Integer id) {
-        return gatewayWebMapper.toGatewayDetailVo(gatewayService.getDetail(id));
+        GatewayBo gatewayBo = gatewayService.getDetail(id);
+        GatewayDetailVo detailVo = gatewayWebMapper.toGatewayDetailVo(gatewayBo);
+        fillSpaceInfo(Collections.singletonList(detailVo), Collections.singletonList(gatewayBo));
+        fillGatewayMeterList(detailVo, id);
+        return detailVo;
     }
 
     /**
@@ -103,20 +124,60 @@ public class GatewayBiz {
     }
 
     /**
-     * 获取通信方式
-     *
-     * @return 通信方式列表
-     */
-    public List<String> findCommunicationOptions() {
-        return gatewayService.getCommunicationOption();
-    }
-
-    /**
      * 同步网关在线状态
      *
      * @param onlineStatusVo 同步参数
      */
     public void syncOnlineStatus(GatewayOnlineStatusVo onlineStatusVo) {
         gatewayService.syncGatewayOnlineStatus(gatewayWebMapper.toGatewayOnlineStatusDto(onlineStatusVo));
+    }
+
+    private void fillSpaceInfo(List<? extends GatewayVo> gatewayVoList, List<GatewayBo> gatewayBoList) {
+        if (gatewayVoList == null || gatewayVoList.isEmpty() || gatewayBoList == null || gatewayBoList.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, GatewayVo> gatewayVoMap = gatewayVoList.stream()
+                .filter(Objects::nonNull)
+                .filter(gatewayVo -> gatewayVo.getId() != null)
+                .collect(Collectors.toMap(GatewayVo::getId, Function.identity(), (left, right) -> left));
+        Map<Integer, SpaceDisplayDto> spaceDisplayMap = findSpaceDisplayMap(gatewayBoList);
+        for (GatewayBo gatewayBo : gatewayBoList) {
+            if (gatewayBo == null) {
+                continue;
+            }
+            GatewayVo gatewayVo = gatewayVoMap.get(gatewayBo.getId());
+            if (gatewayVo == null) {
+                continue;
+            }
+            fillGatewaySpaceInfo(gatewayVo, gatewayBo, spaceDisplayMap);
+        }
+    }
+
+    private Map<Integer, SpaceDisplayDto> findSpaceDisplayMap(List<GatewayBo> gatewayBoList) {
+        Set<Integer> spaceIdSet = gatewayBoList.stream()
+                .map(GatewayBo::getSpaceId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return spaceDisplaySupport.findSpaceDisplayMap(spaceIdSet);
+    }
+
+    private void fillGatewaySpaceInfo(GatewayVo gatewayVo,
+                                      GatewayBo gatewayBo,
+                                      Map<Integer, SpaceDisplayDto> spaceDisplayMap) {
+        if (gatewayBo.getSpaceId() == null || spaceDisplayMap.isEmpty()) {
+            return;
+        }
+        SpaceDisplayDto spaceDisplayDto = spaceDisplayMap.get(gatewayBo.getSpaceId());
+        if (spaceDisplayDto == null) {
+            return;
+        }
+        gatewayVo.setSpaceName(spaceDisplayDto.getName());
+        gatewayVo.setSpaceParentNames(spaceDisplayDto.getParentsNames());
+    }
+
+    private void fillGatewayMeterList(GatewayDetailVo detailVo, Integer gatewayId) {
+        List<ElectricMeterBo> meterBoList = electricMeterInfoService.findList(new ElectricMeterQueryDto().setGatewayId(gatewayId));
+        detailVo.setMeterList(gatewayWebMapper.toGatewayMeterVoList(meterBoList));
     }
 }

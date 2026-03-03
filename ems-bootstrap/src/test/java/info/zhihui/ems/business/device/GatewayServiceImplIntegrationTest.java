@@ -95,15 +95,6 @@ class GatewayServiceImplIntegrationTest {
             // 其他异常（如业务异常）是可以接受的，我们只关心参数校验
         }
 
-        // 测试10: getCommunicationOption方法 - 无参数方法不应抛出参数校验异常
-        try {
-            gatewayService.getCommunicationOption();
-        } catch (ConstraintViolationException e) {
-            throw new AssertionError("getCommunicationOption方法不应抛出ConstraintViolationException", e);
-        } catch (Exception e) {
-            // 其他异常（如业务异常）是可以接受的，我们只关心参数校验
-        }
-
         GatewayCreateDto addDtoConfig = new GatewayCreateDto();
         addDtoConfig.setSpaceId(1);
         addDtoConfig.setGatewayName("测试网关");
@@ -352,31 +343,4 @@ class GatewayServiceImplIntegrationTest {
         }, "删除不存在的网关ID应抛出异常");
     }
 
-    @Test
-    @DisplayName("getCommunicationOption方法集成测试 - 测试获取通信方式选项列表功能")
-    void testGetCommunicationOption_Success() {
-        // 执行测试
-        List<String> result = gatewayService.getCommunicationOption();
-
-        // 验证结果
-        assertNotNull(result, "通信方式选项列表不应为null");
-
-        // 如果有数据，验证数据的基本特征
-        if (!result.isEmpty()) {
-            // 验证每个选项都不为空
-            for (String option : result) {
-                assertNotNull(option, "通信方式选项不应为null");
-                assertFalse(option.trim().isEmpty(), "通信方式选项不应为空字符串");
-            }
-
-            // 验证选项的唯一性（不应有重复项）
-            long distinctCount = result.stream().distinct().count();
-            assertEquals(result.size(), distinctCount, "通信方式选项列表不应包含重复项");
-        }
-
-        // 验证返回的是不可变列表或至少是安全的列表
-        assertDoesNotThrow(() -> {
-            result.size(); // 基本操作应该正常
-        }, "获取通信方式选项列表大小不应抛出异常");
-    }
 }

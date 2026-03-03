@@ -12,6 +12,4 @@ public interface GatewayRepository extends BaseMapper<GatewayEntity> {
 
     List<GatewayEntity> findList(GatewayQo query);
 
-    List<String> getCommunicationOption();
-
 }

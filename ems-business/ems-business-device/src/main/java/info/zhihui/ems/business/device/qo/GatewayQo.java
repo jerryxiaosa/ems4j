@@ -10,6 +10,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class GatewayQo {
 
+    private List<Integer> ids;
+
     private String searchKey;
 
     private String eqSn;

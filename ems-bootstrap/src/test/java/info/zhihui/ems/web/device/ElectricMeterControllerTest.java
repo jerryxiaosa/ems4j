@@ -11,10 +11,13 @@ import info.zhihui.ems.components.translate.engine.TranslateEngine;
 import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
+import info.zhihui.ems.business.device.bo.GatewayBo;
+import info.zhihui.ems.business.device.service.GatewayService;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModelBo;
 import info.zhihui.ems.foundation.integration.core.service.DeviceModelService;
 import info.zhihui.ems.web.common.resolver.DeviceModelNameResolver;
 import info.zhihui.ems.web.common.resolver.ElectricPricePlanNameResolver;
+import info.zhihui.ems.web.common.resolver.GatewayNameResolver;
 import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import info.zhihui.ems.web.device.biz.ElectricMeterBiz;
 import info.zhihui.ems.web.device.controller.ElectricMeterController;
@@ -47,6 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TranslateMetadataCache.class,
         EnumLabelResolver.class,
         DeviceModelNameResolver.class,
+        GatewayNameResolver.class,
         WarnPlanNameResolver.class,
         ElectricPricePlanNameResolver.class
 })
@@ -73,6 +77,9 @@ class ElectricMeterControllerTest {
     @MockitoBean
     private DeviceModelService deviceModelService;
 
+    @MockitoBean
+    private GatewayService gatewayService;
+
     @Test
     @DisplayName("分页查询电表应自动翻译展示字段")
     void testFindElectricMeterPage_ShouldTranslateLabels() throws Exception {
@@ -82,6 +89,7 @@ class ElectricMeterControllerTest {
                 .setSpaceName("101房间")
                 .setSpaceParentNames(List.of("1号楼", "1层"))
                 .setModelId(33)
+                .setGatewayId(8)
                 .setPricePlanId(11)
                 .setWarnPlanId(22)
                 .setWarnType("FIRST")
@@ -93,6 +101,7 @@ class ElectricMeterControllerTest {
                 .setTotal(1L);
         when(electricMeterBiz.findElectricMeterPage(any(), eq(1), eq(10))).thenReturn(pageResult);
         when(deviceModelService.findList(any())).thenReturn(List.of(new DeviceModelBo().setId(33).setModelName("DDSY-100")));
+        when(gatewayService.findList(any())).thenReturn(List.of(new GatewayBo().setId(8).setGatewayName("网关A")));
         when(electricPricePlanService.findList(any())).thenReturn(List.of(new ElectricPricePlanBo().setId(11).setName("居民电价")));
         when(warnPlanService.findList(any())).thenReturn(List.of(new WarnPlanBo().setId(22).setName("标准预警")));
 
@@ -105,6 +114,7 @@ class ElectricMeterControllerTest {
                 .andExpect(jsonPath("$.data.list[0].spaceName").value("101房间"))
                 .andExpect(jsonPath("$.data.list[0].spaceParentNames[0]").value("1号楼"))
                 .andExpect(jsonPath("$.data.list[0].modelName").value("DDSY-100"))
+                .andExpect(jsonPath("$.data.list[0].gatewayName").value("网关A"))
                 .andExpect(jsonPath("$.data.list[0].pricePlanName").value("居民电价"))
                 .andExpect(jsonPath("$.data.list[0].warnPlanName").value("标准预警"))
                 .andExpect(jsonPath("$.data.list[0].electricWarnTypeName").value("一级预警"))
@@ -141,6 +151,7 @@ class ElectricMeterControllerTest {
         detailVo.setOwnAreaId(9);
         when(electricMeterBiz.getElectricMeter(1)).thenReturn(detailVo);
         when(deviceModelService.findList(any())).thenReturn(List.of(new DeviceModelBo().setId(33).setModelName("DDSY-100")));
+        when(gatewayService.findList(any())).thenReturn(List.of(new GatewayBo().setId(8).setGatewayName("网关A")));
         when(electricPricePlanService.findList(any())).thenReturn(List.of(new ElectricPricePlanBo().setId(11).setName("居民电价")));
         when(warnPlanService.findList(any())).thenReturn(List.of(new WarnPlanBo().setId(22).setName("标准预警")));
 
@@ -153,6 +164,7 @@ class ElectricMeterControllerTest {
                 .andExpect(jsonPath("$.data.spaceName").value("101房间"))
                 .andExpect(jsonPath("$.data.spaceParentNames[1]").value("1层"))
                 .andExpect(jsonPath("$.data.modelName").value("DDSY-100"))
+                .andExpect(jsonPath("$.data.gatewayName").value("网关A"))
                 .andExpect(jsonPath("$.data.gatewayId").value(8))
                 .andExpect(jsonPath("$.data.portNo").value(2))
                 .andExpect(jsonPath("$.data.meterAddress").value(12))

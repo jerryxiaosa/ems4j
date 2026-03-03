@@ -13,9 +13,8 @@ import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
-import info.zhihui.ems.foundation.space.bo.SpaceBo;
-import info.zhihui.ems.foundation.space.dto.SpaceQueryDto;
-import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
+import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
 import info.zhihui.ems.web.common.util.OfflineDurationUtil;
 import info.zhihui.ems.web.device.vo.*;
@@ -41,7 +40,7 @@ public class ElectricMeterBiz {
     private final ElectricMeterInfoService electricMeterInfoService;
     private final ElectricMeterManagerService electricMeterManagerService;
     private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
-    private final SpaceService spaceService;
+    private final SpaceDisplaySupport spaceDisplaySupport;
     private final ElectricMeterWebMapper electricMeterWebMapper;
 
     /**
@@ -213,7 +212,7 @@ public class ElectricMeterBiz {
                 .filter(Objects::nonNull)
                 .filter(meterVo -> meterVo.getId() != null)
                 .collect(Collectors.toMap(ElectricMeterVo::getId, Function.identity(), (left, right) -> left));
-        Map<Integer, SpaceBo> spaceBoMap = findSpaceBoMap(meterBoList);
+        Map<Integer, SpaceDisplayDto> spaceDisplayMap = findSpaceDisplayMap(meterBoList);
         for (ElectricMeterBo meterBo : meterBoList) {
             if (meterBo == null) {
                 continue;
@@ -223,33 +222,30 @@ public class ElectricMeterBiz {
                 continue;
             }
             meterVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
-            fillSpaceInfo(meterVo, meterBo, spaceBoMap);
+            fillSpaceInfo(meterVo, meterBo, spaceDisplayMap);
         }
     }
 
-    private Map<Integer, SpaceBo> findSpaceBoMap(List<ElectricMeterBo> meterBoList) {
+    private Map<Integer, SpaceDisplayDto> findSpaceDisplayMap(List<ElectricMeterBo> meterBoList) {
         Set<Integer> spaceIdSet = meterBoList.stream()
                 .map(ElectricMeterBo::getSpaceId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        if (spaceIdSet.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        return spaceService.findSpaceList(new SpaceQueryDto().setIds(spaceIdSet)).stream()
-                .collect(Collectors.toMap(SpaceBo::getId, Function.identity(), (left, right) -> left));
+        return spaceDisplaySupport.findSpaceDisplayMap(spaceIdSet);
     }
 
-    private void fillSpaceInfo(ElectricMeterVo meterVo, ElectricMeterBo meterBo, Map<Integer, SpaceBo> spaceBoMap) {
-        if (meterBo.getSpaceId() == null || spaceBoMap.isEmpty()) {
+    private void fillSpaceInfo(ElectricMeterVo meterVo,
+                               ElectricMeterBo meterBo,
+                               Map<Integer, SpaceDisplayDto> spaceDisplayMap) {
+        if (meterBo.getSpaceId() == null || spaceDisplayMap.isEmpty()) {
             return;
         }
-        SpaceBo spaceBo = spaceBoMap.get(meterBo.getSpaceId());
-        if (spaceBo == null) {
+        SpaceDisplayDto spaceDisplayDto = spaceDisplayMap.get(meterBo.getSpaceId());
+        if (spaceDisplayDto == null) {
             return;
         }
-        meterVo.setSpaceName(spaceBo.getName());
-        meterVo.setSpaceParentNames(spaceBo.getParentsNames());
+        meterVo.setSpaceName(spaceDisplayDto.getName());
+        meterVo.setSpaceParentNames(spaceDisplayDto.getParentsNames());
     }
 
 }

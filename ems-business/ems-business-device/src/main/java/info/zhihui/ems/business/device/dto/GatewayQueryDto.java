@@ -10,6 +10,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class GatewayQueryDto {
 
+    private List<Integer> ids;
+
     private String searchKey;
 
     private String sn;

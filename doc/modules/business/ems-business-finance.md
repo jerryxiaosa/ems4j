@@ -14,6 +14,18 @@
 | 账户消费 | 包月扣费、账户级消费记录 |
 | 补正管理 | 电量补正、金额补正 |
 
+## 2.1 设备编号字段口径（当前版本）
+
+财务模块涉及电表快照的记录表已统一使用 `deviceNo` 作为设备标识，不再保留 `meterNo` 字段概念。
+
+当前已统一到 `device_no` 的表包括：
+
+- `energy_electric_meter_power_record`
+- `energy_electric_meter_balance_consume_record`
+- `order_detail_energy_top_up`
+
+对应 DTO / Entity / VO 也统一使用 `deviceNo` 字段名，前端与下游模块不再依赖 `meterNo`。
+
 ## 3. 模块依赖关系
 
 ```
@@ -170,7 +182,21 @@
 - 余额事件采用 `sendMessageAfterCommit`，保证“库内成功后再发消息”。
 - 余额表通过 `active_balance_key`（`balanceRelationId_balanceType`）配合唯一索引，保证“未删除余额记录”唯一。
 
-### 5.4 余额软删除与唯一键策略（`energy_account_balance`）
+### 5.4 补正与消费相关接口字段口径
+
+当前版本中，所有与电表消费、补正、充值订单明细相关的对外字段统一为 `deviceNo`：
+
+- 补正记录
+- 电量消费记录
+- 电量消费详情
+- 能源充值订单明细
+
+说明：
+
+- 该变更与设备模块主数据字段保持一致，避免前端同时处理 `meterNo` 与 `deviceNo` 两套命名
+- 历史快照表虽然保留独立记录职责，但设备标识字段已统一为 `device_no`
+
+### 5.5 余额软删除与唯一键策略（`energy_account_balance`）
 
 | 项目 | 说明 |
 |------|------|

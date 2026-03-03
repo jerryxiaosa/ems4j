@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,13 +46,19 @@ class WarnPlanControllerTest {
     @Test
     @DisplayName("查询预警方案列表")
     void testFindWarnPlanList() throws Exception {
-        WarnPlanVo vo = new WarnPlanVo().setId(1).setName("默认预警");
+        WarnPlanVo vo = new WarnPlanVo()
+                .setId(1)
+                .setName("默认预警")
+                .setCreateTime(LocalDateTime.of(2026, 3, 3, 10, 20, 30))
+                .setUpdateTime(LocalDateTime.of(2026, 3, 3, 11, 5, 12));
         when(warnPlanBiz.findWarnPlanList(any())).thenReturn(List.of(vo));
 
         mockMvc.perform(get("/plan/warn-plans"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].name").value("默认预警"));
+                .andExpect(jsonPath("$.data[0].name").value("默认预警"))
+                .andExpect(jsonPath("$.data[0].createTime").value("2026-03-03 10:20:30"))
+                .andExpect(jsonPath("$.data[0].updateTime").value("2026-03-03 11:05:12"));
     }
 
     @Test

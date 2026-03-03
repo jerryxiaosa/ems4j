@@ -11,7 +11,7 @@
 | 开户 | 创建用电账户，绑定业主、电表、计费方案 |
 | 销户 | 账户注销，余额清算，解绑电表 |
 | 账户查询 | 分页查询、详情查询；分页支持 `ownerNameLike`（账户归属名称模糊搜索），返回 `openedMeterCount`（已开户电表数）、`totalOpenableMeterCount`（可开户电表总数）与展示字段（`ownerTypeName`、`electricAccountTypeName`），详情返回电表明细列表 |
-| 账户附加信息 | 统一提供候选电表查询、可开户电表总数统计、展示电费余额聚合（按计费类型口径） |
+| 账户附加信息 | 统一提供主体候选电表查询、可开户电表总数统计、展示电费余额聚合（按计费类型口径） |
 | 余额预警 | 低余额预警、欠费预警 |
 | 账户充值 | 通过订单模块进行充值 |
 
@@ -162,6 +162,11 @@
 | `countTotalOpenableMeterByAccountOwnerInfoList` | 按账户批量统计可开户电表总数 | 入参按 `accountId` 去重并默认返回 0；按 `owner_type + owner_id` 维度聚合租赁空间电表数 |
 | `findElectricBalanceAmountMap` | 按账户批量计算展示电费余额 | `QUANTITY` 取电表余额合计，`MONTHLY/MERGED` 取账户余额，未知类型返回 0 |
 
+补充说明：
+
+- 候选电表当前统一返回 `deviceNo`，不再返回 `meterNo`
+- 候选电表列表中的离线时长由 Web 层统一格式化为 `offlineDurationText`
+
 ## 6. 账户查询参数口径（`GET /accounts/page`）
 
 | 参数名 | 是否必填 | 说明 |
@@ -191,3 +196,59 @@
 
 - 不要在新的业务代码中固化 `PERSONAL -> UserService` 的长期依赖假设。
 - 涉及主体存在性校验、主体信息读取的逻辑，应收敛到 owner 维度的统一适配层，不要直接依赖 `UserService` 作为个人主体存在性校验入口（便于后续切换存储实现）。
+
+## 8. 主体通用接口（当前版本）
+
+当前版本已将“租赁、候选电表、主体账户状态”统一收口为 owner 维度 HTTP 接口，前端按 `ownerType + ownerId` 调用，不再区分组织路径与个人路径。
+
+### 8.1 主体租赁接口
+
+- `POST /owner-space-leases/rent`
+- `POST /owner-space-leases/unrent`
+
+请求参数：
+
+- `ownerType`
+- `ownerId`
+- `spaceIds`
+
+### 8.2 主体候选电表接口
+
+- `GET /owner-candidate-meters`
+
+查询参数：
+
+- `ownerType`
+- `ownerId`
+- `spaceNameLike`
+
+返回要点：
+
+- 只返回租赁空间内、预付费、未开户的电表
+- 离线电表会返回，不在候选列表阶段做“是否可立即开户”的最终判断
+- 电表标识统一为 `deviceNo`
+
+### 8.3 主体账户状态接口
+
+- `GET /owner-accounts/status`
+
+查询参数：
+
+- `ownerType`
+- `ownerId`
+
+返回字段：
+
+- `hasAccount`
+- `accountId`
+- `electricAccountType`
+- `electricPricePlanId`
+- `warnPlanId`
+- `monthlyPayAmount`
+- `monthlyPayAmountText`
+
+使用口径：
+
+- `hasAccount = false`：前端走开户流程
+- `hasAccount = true`：前端走“追加电表”流程
+- 该接口当前至少对 `ENTERPRISE` 做主体存在性校验，避免不存在主体被误判为“未开户”

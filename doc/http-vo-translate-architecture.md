@@ -6,6 +6,7 @@
 - 枚举：`ownerType -> ownerTypeName`
 - 业务主键：`warnPlanId -> warnPlanName`
 - 通用主键：`userId -> userName`
+- 本地格式化：`monthlyPayAmount -> monthlyPayAmountText`
 
 如果每个接口都在 `biz` 里手工转换，会有三个问题：
 - 重复代码多，维护成本高。
@@ -24,9 +25,10 @@
 
 职责：只描述规则，不做实际查询。
 
-建议提供两类注解：
+当前实现提供三类注解：
 - `@EnumLabel`：用于枚举转换。
 - `@BizLabel`：用于业务主键转换（如 `warnPlanId`、`userId`）。
+- `@FormatText`：用于单源字段的本地格式化（如金额格式化）。
 
 示例（VO）：
 
@@ -42,6 +44,11 @@ public class AccountVo {
 
     @BizLabel(source = "warnPlanId", resolver = WarnPlanNameResolver.class)
     private String warnPlanName;
+
+    private BigDecimal electricBalanceAmount;
+
+    @FormatText(source = "electricBalanceAmount", formatter = MoneyScale2TextFormatter.class)
+    private String electricBalanceAmountText;
 }
 ```
 
@@ -50,6 +57,10 @@ public class AccountVo {
 - `resolver/enumClass`：使用哪个解析器或枚举。
 - `fallback`：缺失时如何回填（`NULL`、`RAW_VALUE`、固定字符串）。
 - `whenNullSkip`：源字段为空时是否跳过。
+
+补充：
+- `@FormatText` 当前适合“单源字段 + 本地纯格式化”场景，不负责外部 IO。
+- 复杂动态展示值（例如依赖 `isOnline + lastOnlineTime + now` 的离线时长）仍建议放在 Web `biz` 层计算，不要强行塞进 translate 体系。
 
 
 ### 2.2 第 2 层：统一转换引擎（核心在 components-translate-core，HTTP 适配在 components-translate-web）
@@ -65,14 +76,17 @@ public class AccountVo {
 - 单对象：`RestResult<AccountVo>`
 - 列表：`RestResult<List<AccountVo>>`
 - 分页：`RestResult<PageResult<AccountVo>>`
+- 嵌套列表/对象：通过 `@TranslateChild` 显式声明递归子节点
 
 核心步骤：
-1. 读取 `RestResult.data`，拉平成对象集合。
+1. 读取 `RestResult.data`，构建对象图。
 2. 根据对象类型获取注解元数据（类级缓存，避免每次反射）。
-3. 按“解析器类型 + 源字段”聚合，收集去重后的 key 集合。
-4. 每个解析器仅调用一次 `resolveBatch(keys, context)`。
-5. 将结果映射回目标字段（如 `warnPlanName`）。
-6. 返回给 Controller，Controller 无感知。
+3. 仅递归处理显式声明了 `@TranslateChild` 的字段，避免全对象图无边界扫描。
+4. 按“解析器类型 + 源字段”聚合，收集去重后的 key 集合。
+5. 每个解析器仅调用一次 `resolveBatch(keys, context)`。
+6. 本地格式化字段走 `FieldTextFormatter`，不访问外部服务。
+7. 将结果映射回目标字段（如 `warnPlanName`、`electricBalanceAmountText`）。
+8. 返回给 Controller，Controller 无感知。
 
 这样列表 100 条数据只会触发一次批量查，而不是 100 次单查。
 
@@ -81,7 +95,7 @@ public class AccountVo {
 
 职责：提供“key -> label”的批量查询实现。
 
-统一接口建议：
+统一接口（当前实现）：
 
 ```java
 public interface BatchLabelResolver<K> {
@@ -93,7 +107,7 @@ public interface BatchLabelResolver<K> {
 - 必须是“批量”接口，不提供单查入口，避免误用。
 - 返回 `Map<K, String>`，缺失 key 不抛错，交给引擎按 `fallback` 处理。
 - `TranslateContext` 可带租户/权限/语言等上下文（后续扩展）。
-- 适配器可放在业务模块或 `ems-web` 编排层，按依赖边界选择；当前 `warnPlanId -> warnPlanName` 落在 `ems-web`。
+- 适配器可放在业务模块或 `ems-web` 编排层，按依赖边界选择；当前公共 resolver 统一收敛在 `ems-web/common/resolver`。
 
 
 ## 3. 统一引擎的关键设计点
@@ -114,12 +128,17 @@ public interface BatchLabelResolver<K> {
   - 适用于变更频率低的数据，如方案名、组织名、角色名。
   - 不适用于强实时且频繁变更的数据。
 
+当前实现补充：
+- `TranslateMetadataCache` 负责类级元数据缓存。
+- `TranslateEngine` 对 formatter 做了本地缓存与缺失缓存，避免重复扫描与重复告警。
+
 
 ### 3.3 失败与降级策略
 
 - 解析失败不影响主业务数据返回（只影响展示字段）。
 - 统一记录 warn 日志，便于排查。
 - 缺失 label 按注解策略处理（`null` 或原值字符串）。
+- `@FormatText` 的 formatter 仅做本地格式化；误配或格式化异常时按注解 fallback 降级。
 
 
 ### 3.4 与现有 MapStruct/Biz 的边界
@@ -127,6 +146,10 @@ public interface BatchLabelResolver<K> {
 - MapStruct 继续负责 VO/DTO/BO 的结构映射。
 - 引擎负责“展示字段补充”。
 - Biz 不再写分散的 `id -> name`、`code -> label` 转换逻辑。
+- Biz 仍负责复杂动态展示值，例如：
+  - `offlineDurationText`
+  - `spaceParentNames`
+  - 其他依赖当前时间或多个源字段的展示属性
 
 
 ## 4. 接入指南（新业务如何接入）
@@ -252,7 +275,7 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
 
 ## 7. 模块落位（组件化）
 
-### 7.1 模块职责拆分
+### 7.1 模块职责拆分（当前实现）
 
 - `ems-components-translate-core`：转换框架内核
   - 注解：`@EnumLabel`、`@BizLabel`
@@ -263,11 +286,12 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
   - `ResponseTranslateAdvice`（拦截 `RestResult`）
   - `TranslateWebAutoConfiguration` + `TranslateResponseProperties`（开关、白名单、排除路径）
 - 业务模块：业务适配器实现
-  - `ems-foundation-user`：`UserNameResolver`（`userId -> userName`）
-  - `ems-web`：`WarnPlanNameResolver`（`warnPlanId -> warnPlanName`）
+  - `ems-web/common/resolver`：`WarnPlanNameResolver`
+  - `ems-web/common/resolver`：`ElectricPricePlanNameResolver`
+  - `ems-web/common/resolver`：`DeviceModelNameResolver`
   - 其他模块按同样模式扩展
 
-### 7.2 建议包路径
+### 7.2 当前包路径
 
 - `ems-components/ems-components-translate-core`
   - `info.zhihui.ems.components.translate.annotation`
@@ -276,10 +300,9 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
 - `ems-components/ems-components-translate-web`
   - `info.zhihui.ems.components.translate.web.advice`
   - `info.zhihui.ems.components.translate.web.config`
-- `ems-foundation/ems-foundation-user`
-  - `info.zhihui.ems.foundation.user.translate.resolver`
 - `ems-web`
-  - `info.zhihui.ems.web.account.resolver`
+  - `info.zhihui.ems.web.common.resolver`
+  - `info.zhihui.ems.web.common.util`
 
 ### 7.3 依赖边界（必须遵守）
 
@@ -292,61 +315,63 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
 ### 7.4 Bean 组装方式
 
 - `TranslateEngine` 使用 Spring 注入 `List<BatchLabelResolver<?>>` 自动收集所有解析器实现。
+- `TranslateEngine` 使用 Spring 注入 `List<FieldTextFormatter>` 自动收集所有本地格式化器实现。
 - `ResponseTranslateAdvice` 只依赖 `TranslateEngine`，不感知具体业务解析器。
 - 新增一个业务 resolver 后，不需要改动 `bootstrap` 代码。
+- 新增一个 formatter 后，也不需要改动 `bootstrap` 代码。
+
+## 8. 当前已落地能力
+
+### 8.1 已落地的注解与能力
+
+- `@EnumLabel`
+- `@BizLabel`
+- `@FormatText`
+- `@TranslateChild`
+
+### 8.2 已落地的典型场景
+
+- `warnPlanId -> warnPlanName`
+- `pricePlanId -> pricePlanName`
+- `modelId -> modelName`
+- `monthlyPayAmount -> monthlyPayAmountText`
+- `electricBalanceAmount -> electricBalanceAmountText`
+- 嵌套列表递归翻译：`AccountDetailVo.meterList`
+
+### 8.3 当前不建议接入 translate 的场景
+
+以下场景当前仍建议留在 `biz` 层：
+
+- 依赖多个源字段的展示值
+- 依赖 `now()` 的动态展示值
+- 需要返回 `List<String>` 等复杂结构
+
+典型例子：
+
+- `offlineDurationText`
+- `spaceParentNames`
 
 
-## 8. 推进建议（分阶段）
+## 9. 接入规范（当前版本）
 
-### 阶段一（内核落地）
-- 在 `ems-components-translate-core` 建立注解、SPI、引擎、元数据缓存。
-- 在 `ems-components-translate-web` 建立 `ResponseTranslateAdvice`，仅接通枚举转换。
-- 完成单对象/列表/分页三类返回形态测试。
+建议按以下顺序接入新展示字段：
 
-### 阶段二（业务适配器接入）
-- `ems-foundation-user` 接入 `userId -> userName`。
-- `ems-web` 接入 `warnPlanId -> warnPlanName`。
-- `WarnPlanService.findList` 支持 `ids` 批量过滤并复用到 resolver。
+1. 确认是否属于“单源字段展示值”
+- 是：优先考虑 `@EnumLabel` / `@BizLabel` / `@FormatText`
+- 否：优先放在 `biz` 层
 
-### 阶段三（治理）
-- 增加接入规范文档与脚手架模板。
-- 增加转换耗时、命中率、失败率监控。
+2. 若是业务主键展示值
+- 优先补批量查询能力（如 `ids` 过滤）
+- 再实现 resolver
 
+3. 若是嵌套对象/列表
+- 在父 VO 字段上显式加 `@TranslateChild`
+- 不要依赖隐式递归
 
-## 9. 落地顺序（执行清单）
-
-建议按以下顺序实施，降低联调风险：
-
-1. 先落基础内核（`ems-components-translate-core`）
-- 新增注解：`@EnumLabel`、`@BizLabel`
-- 新增 SPI：`BatchLabelResolver`
-- 新增引擎：`TranslateEngine`、`TranslateMetadataCache`、`TranslateContext`
-- 先实现 `EnumLabelResolver`，打通最小可用链路
-
-2. 再落 HTTP 出口接入（`ems-components-translate-web` + `ems-bootstrap`）
-- 新增 `ResponseTranslateAdvice` 与自动配置
-- 增加配置开关（建议：`translate.response.enabled`）
-- 增加排除机制（路径白名单、方法注解跳过）
-- 仅对 `RestResult` 生效，避免误处理下载流等特殊响应
-
-3. 接入第一个真实业务（建议先 `userId -> userName`）
-- 在 VO 加注解字段（如 `createUserName`）
-- 在 `ems-foundation-user` 实现 `UserNameResolver`
-- 验证单对象、列表、分页均为一次批量查询
-
-4. 接入 `warnPlanId -> warnPlanName`
-- 在 `WarnPlanQueryDto/WarnPlanQo` 增加 `ids`，并更新 `WarnPlanRepository.xml` 查询条件
-- 在对应 VO 上加注解并实现 `WarnPlanNameResolver`（当前落位：`ems-web/account/resolver`）
-- 用 `WarnPlanService.findList(new WarnPlanQueryDto().setIds(...))` 完成批量名称查询
-
-5. 清理历史手工转换代码
-- 从 `biz`/`mapper` 中删除重复的 `id -> name` 逻辑
-- 保留旧字段，新增 `xxxName` 字段，确保接口兼容
-
-6. 最后补齐质量保障
-- 增加单元测试：引擎、resolver、失败降级
-- 增加集成测试：`RestResult<T>`、`RestResult<List<T>>`、`RestResult<PageResult<T>>`
-- 增加日志与指标：转换耗时、批量命中、异常计数
+4. 接入后补测试
+- resolver 测试
+- `ResponseTranslateAdvice` 链路测试
+- controller 或集成测试
 
 
 ## 10. 注意事项
@@ -355,6 +380,8 @@ public class WarnPlanNameResolver implements BatchLabelResolver<Integer> {
 - 对强权限隔离的数据，resolver 必须执行权限过滤。
 - 对高频变化数据，谨慎开启长时缓存。
 - 老接口迁移时保持向后兼容：先加 `xxxName`，不删原始字段。
+- resolver 命名应稳定、语义明确，统一放到 `ems-web/common/resolver`。
+- 工具型展示逻辑若未接入 translate，统一收敛到 `ems-web/common/util`，避免散落在各个 `biz`。
 
 
 ## 11. 与 `/system/enums` 的关系

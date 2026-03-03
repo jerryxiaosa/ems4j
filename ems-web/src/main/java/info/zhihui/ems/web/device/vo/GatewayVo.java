@@ -1,8 +1,12 @@
 package info.zhihui.ems.web.device.vo;
 
+import info.zhihui.ems.components.translate.annotation.BizLabel;
+import info.zhihui.ems.web.common.resolver.DeviceModelNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+
+import java.util.List;
 
 /**
  * 网关列表信息
@@ -18,6 +22,12 @@ public class GatewayVo {
     @Schema(description = "空间ID")
     private Integer spaceId;
 
+    @Schema(description = "所在位置")
+    private String spaceName;
+
+    @Schema(description = "所属区域名称列表")
+    private List<String> spaceParentNames;
+
     @Schema(description = "设备编号，设备上报标识")
     private String deviceNo;
 
@@ -26,6 +36,10 @@ public class GatewayVo {
 
     @Schema(description = "型号ID")
     private Integer modelId;
+
+    @Schema(description = "型号名称")
+    @BizLabel(source = "modelId", resolver = DeviceModelNameResolver.class)
+    private String modelName;
 
     @Schema(description = "产品唯一标识")
     private String productCode;

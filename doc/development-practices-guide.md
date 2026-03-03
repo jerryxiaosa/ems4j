@@ -48,13 +48,6 @@
 - MapStruct 是唯一的对象转换层：VO/DTO/BO/Entity 的转换集中维护，避免在 Controller/Service 中手写杂散转换。
 - 自定义转换统一在 Mapper 中提供（如 `codeToEnum`、`intToMeterTypeEnum`）。
 
-## 策略模式落地
-- 订单域：
-  - 创建：`OrderCreationHandler` 按入参类型选择实现。
-  - 第三方：`OrderThirdPartyHandler` 按 `paymentChannel` 选择实现。
-  - 完成：`OrderCompletionHandler` 按 `orderType` 选择实现并生成事务消息。
-- 扩展：新增类型仅需实现对应接口并注册到映射表，无需修改核心 `OrderServiceImpl` 逻辑。
-
 ## 并发与一致性
 - 订单完成使用锁模板保证幂等与并发安全；失败时记录并广播状态。
 - 设备注册/同步通过 `DeviceModuleContext` 解析服务，确保不同平台能力的隔离与一致。

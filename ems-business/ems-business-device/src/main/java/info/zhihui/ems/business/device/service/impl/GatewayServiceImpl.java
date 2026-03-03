@@ -292,16 +292,6 @@ public class GatewayServiceImpl implements GatewayService {
         repository.deleteById(id);
     }
 
-    /**
-     * 获取通信方式选项列表
-     *
-     * @return 通信方式选项列表
-     */
-    @Override
-    public List<String> getCommunicationOption() {
-        return repository.getCommunicationOption();
-    }
-
     @Override
     public void syncGatewayOnlineStatus(@Valid @NotNull GatewayOnlineStatusDto onlineStatusDto) {
         gatewayOnlineStatusSynchronizer.syncStatus(

@@ -5,6 +5,7 @@ import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.web.common.resolver.DeviceModelNameResolver;
 import info.zhihui.ems.web.common.resolver.ElectricPricePlanNameResolver;
+import info.zhihui.ems.web.common.resolver.GatewayNameResolver;
 import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -54,6 +55,10 @@ public class ElectricMeterVo {
 
     @Schema(description = "网关ID")
     private Integer gatewayId;
+
+    @Schema(description = "网关名称")
+    @BizLabel(source = "gatewayId", resolver = GatewayNameResolver.class)
+    private String gatewayName;
 
     @Schema(description = "串口号")
     private Integer portNo;
