@@ -56,7 +56,7 @@ class ConfigControllerTest {
                 .setTotal(1L);
         when(configBiz.findConfigPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/system/configs/page").param("pageNum", "1").param("pageSize", "10"))
+        mockMvc.perform(get("/v1/system/configs/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.total").value(1))
@@ -69,7 +69,7 @@ class ConfigControllerTest {
         ConfigVo vo = new ConfigVo().setId(2).setConfigKey("key2");
         when(configBiz.findConfigList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/system/configs"))
+        mockMvc.perform(get("/v1/system/configs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].configKey").value("key2"));
@@ -81,7 +81,7 @@ class ConfigControllerTest {
         ConfigVo vo = new ConfigVo().setId(3).setConfigKey("key3");
         when(configBiz.getConfig("key3")).thenReturn(vo);
 
-        mockMvc.perform(get("/system/configs/key3"))
+        mockMvc.perform(get("/v1/system/configs/key3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.configKey").value("key3"));
@@ -96,7 +96,7 @@ class ConfigControllerTest {
 
         doNothing().when(configBiz).updateConfig(any(ConfigUpdateVo.class));
 
-        mockMvc.perform(put("/system/configs")
+        mockMvc.perform(put("/v1/system/configs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())

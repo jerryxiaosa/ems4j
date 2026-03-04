@@ -42,7 +42,7 @@ class OwnerSpaceLeaseControllerTest {
                 .setOwnerId(1001)
                 .setSpaceIds(java.util.List.of(101, 102));
 
-        mockMvc.perform(post("/owner-space-leases/rent")
+        mockMvc.perform(post("/v1/owner-space-leases/rent")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rentVo)))
                 .andExpect(status().isOk())
@@ -59,7 +59,7 @@ class OwnerSpaceLeaseControllerTest {
                 .setOwnerId(1002)
                 .setSpaceIds(java.util.List.of(101));
 
-        mockMvc.perform(post("/owner-space-leases/unrent")
+        mockMvc.perform(post("/v1/owner-space-leases/unrent")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(unrentVo)))
                 .andExpect(status().isOk())

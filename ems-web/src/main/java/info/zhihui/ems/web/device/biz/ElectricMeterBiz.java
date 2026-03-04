@@ -90,6 +90,7 @@ public class ElectricMeterBiz {
         ElectricMeterBo meterBo = electricMeterInfoService.getDetail(id);
         ElectricMeterDetailVo detailVo = electricMeterWebMapper.toElectricMeterDetailVo(meterBo);
         fillDisplayInfo(Collections.singletonList(detailVo), Collections.singletonList(meterBo));
+        detailVo.setLatestPowerRecord(findLatestPowerRecordVo(id));
         return detailVo;
     }
 
@@ -101,8 +102,7 @@ public class ElectricMeterBiz {
      */
     public ElectricMeterLatestPowerRecordVo getLatestPowerRecord(Integer meterId) {
         electricMeterInfoService.getDetail(meterId);
-        ElectricMeterLatestPowerRecordDto latestRecordDto = electricMeterPowerRecordService.findLatestRecord(meterId);
-        return latestRecordDto == null ? null : electricMeterWebMapper.toElectricMeterLatestPowerRecordVo(latestRecordDto);
+        return findLatestPowerRecordVo(meterId);
     }
 
     /**
@@ -246,6 +246,11 @@ public class ElectricMeterBiz {
         }
         meterVo.setSpaceName(spaceDisplayDto.getName());
         meterVo.setSpaceParentNames(spaceDisplayDto.getParentsNames());
+    }
+
+    private ElectricMeterLatestPowerRecordVo findLatestPowerRecordVo(Integer meterId) {
+        ElectricMeterLatestPowerRecordDto latestRecordDto = electricMeterPowerRecordService.findLatestRecord(meterId);
+        return latestRecordDto == null ? null : electricMeterWebMapper.toElectricMeterLatestPowerRecordVo(latestRecordDto);
     }
 
 }

@@ -63,7 +63,7 @@ class GatewayControllerTest {
                 .setTotal(1L);
         when(gatewayBiz.findGatewayPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/device/gateways/page")
+        mockMvc.perform(get("/v1/device/gateways/page")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
@@ -92,7 +92,7 @@ class GatewayControllerTest {
                 .setMeterAddress(11)));
         when(gatewayBiz.getGateway(1)).thenReturn(detailVo);
 
-        mockMvc.perform(get("/device/gateways/1"))
+        mockMvc.perform(get("/v1/device/gateways/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.gatewayName").value("GatewayA"))
@@ -117,7 +117,7 @@ class GatewayControllerTest {
                 .setModelId(2)
                 .setDeviceNo("SN-001");
 
-        mockMvc.perform(post("/device/gateways")
+        mockMvc.perform(post("/v1/device/gateways")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(addVo)))
                 .andExpect(status().isOk())
@@ -135,7 +135,7 @@ class GatewayControllerTest {
                 .setModelId(2)
                 .setDeviceNo("SN-001");
 
-        mockMvc.perform(put("/device/gateways/1")
+        mockMvc.perform(put("/v1/device/gateways/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())
@@ -152,7 +152,7 @@ class GatewayControllerTest {
 
         doNothing().when(gatewayBiz).syncOnlineStatus(any(GatewayOnlineStatusVo.class));
 
-        mockMvc.perform(put("/device/gateways/online-status")
+        mockMvc.perform(put("/v1/device/gateways/online-status")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlineStatusVo)))
                 .andExpect(status().isOk())

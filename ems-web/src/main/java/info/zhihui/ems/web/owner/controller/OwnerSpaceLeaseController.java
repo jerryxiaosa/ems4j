@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.owner.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -18,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
  * 主体空间租赁接口
  */
 @RestController
-@RequestMapping("/owner-space-leases")
+@RequestMapping(ApiPathConstant.V1 + "/owner-space-leases")
 @Tag(name = "系统对象主体空间租赁接口")
 @Validated
 @RequiredArgsConstructor

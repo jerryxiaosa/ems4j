@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.user.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaIgnore;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -17,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping(ApiPathConstant.V1 + "/users")
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "用户登录接口")

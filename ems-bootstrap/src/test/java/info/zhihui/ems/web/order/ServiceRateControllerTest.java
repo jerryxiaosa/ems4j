@@ -42,7 +42,7 @@ class ServiceRateControllerTest {
     void testGetDefaultServiceRate() throws Exception {
         when(serviceRateBiz.getDefaultServiceRate()).thenReturn(BigDecimal.valueOf(0.05));
 
-        mockMvc.perform(get("/orders/service-rate/default"))
+        mockMvc.perform(get("/v1/orders/service-rate/default"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.defaultServiceRate").value(0.05));
@@ -55,7 +55,7 @@ class ServiceRateControllerTest {
 
         ServiceRateVo vo = new ServiceRateVo().setDefaultServiceRate(BigDecimal.valueOf(0.08));
 
-        mockMvc.perform(put("/orders/service-rate/default")
+        mockMvc.perform(put("/v1/orders/service-rate/default")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())

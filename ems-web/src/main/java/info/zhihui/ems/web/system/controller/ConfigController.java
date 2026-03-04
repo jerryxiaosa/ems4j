@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.system.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -22,7 +25,7 @@ import java.util.List;
  * 系统配置管理接口
  */
 @RestController
-@RequestMapping("/system/configs")
+@RequestMapping(ApiPathConstant.V1 + "/system/configs")
 @Tag(name = "系统配置接口")
 @Validated
 @RequiredArgsConstructor

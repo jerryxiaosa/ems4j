@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.owner.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -20,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 主体账户接口
  */
 @RestController
-@RequestMapping("/owner-accounts")
+@RequestMapping(ApiPathConstant.V1 + "/owner-accounts")
 @Tag(name = "系统对象主体账户接口")
 @Validated
 @RequiredArgsConstructor

@@ -45,7 +45,7 @@ class UserManageControllerTest {
         when(userManageBiz.findUserPage(any(UserQueryVo.class), eq(1), eq(10)))
                 .thenReturn(new PageResult<UserVo>().setPageNum(1).setPageSize(10).setTotal(1L).setList(List.of(userVo)));
 
-        mockMvc.perform(get("/users/page")
+        mockMvc.perform(get("/v1/users/page")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
@@ -59,7 +59,7 @@ class UserManageControllerTest {
         UserVo userVo = new UserVo().setId(1).setUserName("admin");
         when(userManageBiz.findUserList(any(UserQueryVo.class))).thenReturn(List.of(userVo));
 
-        mockMvc.perform(get("/users"))
+        mockMvc.perform(get("/v1/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].userName").value("admin"));
@@ -71,7 +71,7 @@ class UserManageControllerTest {
         UserVo userVo = new UserVo().setId(1).setUserName("admin");
         when(userManageBiz.getUser(1)).thenReturn(userVo);
 
-        mockMvc.perform(get("/users/1"))
+        mockMvc.perform(get("/v1/users/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userName").value("admin"));
@@ -90,7 +90,7 @@ class UserManageControllerTest {
         createVo.setUserGender(1);
         createVo.setOrganizationId(1);
 
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -105,7 +105,7 @@ class UserManageControllerTest {
         updateVo.setRealName("Updated");
         updateVo.setUserGender(2);
 
-        mockMvc.perform(put("/users/1")
+        mockMvc.perform(put("/v1/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())
@@ -115,7 +115,7 @@ class UserManageControllerTest {
     @Test
     @DisplayName("删除用户")
     void testDeleteUser() throws Exception {
-        mockMvc.perform(delete("/users/1"))
+        mockMvc.perform(delete("/v1/users/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -127,7 +127,7 @@ class UserManageControllerTest {
         passwordVo.setOldPassword("oldPass");
         passwordVo.setNewPassword("newPass123");
 
-        mockMvc.perform(put("/users/1/password")
+        mockMvc.perform(put("/v1/users/1/password")
                         .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(passwordVo)))
                 .andExpect(status().isOk())
@@ -140,7 +140,7 @@ class UserManageControllerTest {
         UserPasswordResetVo resetVo = new UserPasswordResetVo();
         resetVo.setNewPassword("newPass123");
 
-        mockMvc.perform(put("/users/1/password/reset")
+        mockMvc.perform(put("/v1/users/1/password/reset")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resetVo)))
                 .andExpect(status().isOk())
@@ -153,7 +153,7 @@ class UserManageControllerTest {
         UserPasswordResetVo resetVo = new UserPasswordResetVo();
         resetVo.setNewPassword("");
 
-        mockMvc.perform(put("/users/1/password/reset")
+        mockMvc.perform(put("/v1/users/1/password/reset")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(resetVo)))
                 .andExpect(status().isOk())

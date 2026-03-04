@@ -50,7 +50,7 @@ class SpaceControllerTest {
                 .setName("空间一");
         when(spaceBiz.findSpaceList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/spaces"))
+        mockMvc.perform(get("/v1/spaces"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(1));
@@ -72,7 +72,7 @@ class SpaceControllerTest {
 
         when(spaceBiz.findSpaceTree(any())).thenReturn(List.of(root));
 
-        mockMvc.perform(get("/spaces/tree"))
+        mockMvc.perform(get("/v1/spaces/tree"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].children[0].id").value(2));
@@ -84,7 +84,7 @@ class SpaceControllerTest {
         SpaceVo vo = new SpaceVo().setId(5).setName("空间详情");
         when(spaceBiz.getSpace(5)).thenReturn(vo);
 
-        mockMvc.perform(get("/spaces/5"))
+        mockMvc.perform(get("/v1/spaces/5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(5));
@@ -102,7 +102,7 @@ class SpaceControllerTest {
                 .setArea(new BigDecimal("100"))
                 .setSortIndex(1);
 
-        mockMvc.perform(post("/spaces")
+        mockMvc.perform(post("/v1/spaces")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -122,7 +122,7 @@ class SpaceControllerTest {
 
         doNothing().when(spaceBiz).updateSpace(eq(6), any(SpaceUpdateVo.class));
 
-        mockMvc.perform(put("/spaces/6")
+        mockMvc.perform(put("/v1/spaces/6")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())
@@ -134,7 +134,7 @@ class SpaceControllerTest {
     void testDeleteSpace() throws Exception {
         doNothing().when(spaceBiz).deleteSpace(6);
 
-        mockMvc.perform(delete("/spaces/6"))
+        mockMvc.perform(delete("/v1/spaces/6"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

@@ -13,4 +13,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Schema(name = "ElectricMeterDetailVo", description = "电表详情数据")
 public class ElectricMeterDetailVo extends ElectricMeterVo {
+
+    @Schema(description = "最近一次上报电量记录")
+    private ElectricMeterLatestPowerRecordVo latestPowerRecord;
 }

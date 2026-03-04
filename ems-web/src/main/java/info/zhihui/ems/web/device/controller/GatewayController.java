@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.device.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -29,7 +32,7 @@ import java.util.List;
  * 网关管理接口
  */
 @RestController
-@RequestMapping("/device/gateways")
+@RequestMapping(ApiPathConstant.V1 + "/device/gateways")
 @Tag(name = "网关管理接口")
 @Validated
 @RequiredArgsConstructor

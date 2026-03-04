@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.space.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -23,7 +26,7 @@ import java.util.List;
  * 空间管理控制器
  */
 @RestController
-@RequestMapping("/spaces")
+@RequestMapping(ApiPathConstant.V1 + "/spaces")
 @Tag(name = "空间管理接口")
 @Validated
 @RequiredArgsConstructor

@@ -50,7 +50,7 @@ class DeviceTypeControllerTest {
                 .setChildren(List.of(child));
         when(deviceTypeBiz.findDeviceTypeTree()).thenReturn(List.of(root));
 
-        mockMvc.perform(get("/device/device-types/tree"))
+        mockMvc.perform(get("/v1/device/device-types/tree"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(1))

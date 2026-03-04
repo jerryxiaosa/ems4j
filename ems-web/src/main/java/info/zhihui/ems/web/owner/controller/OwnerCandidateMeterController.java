@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.owner.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -22,7 +25,7 @@ import java.util.List;
  * 主体候选电表接口
  */
 @RestController
-@RequestMapping("/owner-candidate-meters")
+@RequestMapping(ApiPathConstant.V1 + "/owner-candidate-meters")
 @Tag(name = "系统对象主体候选电表接口")
 @Validated
 @RequiredArgsConstructor

@@ -25,7 +25,7 @@ public class IotEnergyReportPushProperties {
     /**
      * 能耗系统上报路径。
      */
-    private String path = "/device/energy-reports/standard";
+    private String path = "/v1/device/energy-reports/standard";
 
     /**
      * 上报来源标识。

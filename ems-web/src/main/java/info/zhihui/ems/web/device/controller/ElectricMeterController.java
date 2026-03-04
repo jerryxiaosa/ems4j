@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.device.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -20,7 +23,7 @@ import java.util.List;
  * 电表管理接口
  */
 @RestController
-@RequestMapping("/device/electric-meters")
+@RequestMapping(ApiPathConstant.V1 + "/device/electric-meters")
 @Tag(name = "电表管理接口")
 @Validated
 @RequiredArgsConstructor

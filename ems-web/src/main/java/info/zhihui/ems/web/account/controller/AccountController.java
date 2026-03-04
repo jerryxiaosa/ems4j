@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.account.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -21,7 +24,7 @@ import java.util.List;
  * 账户管理接口
  */
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping(ApiPathConstant.V1 + "/accounts")
 @Tag(name = "账户管理接口")
 @Validated
 @RequiredArgsConstructor

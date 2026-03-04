@@ -53,7 +53,7 @@ class EnergyReportControllerTest {
         saveVo.setDeepLowEnergy(new BigDecimal("12.35"));
         doNothing().when(energyReportBiz).addStandardReport(any(StandardEnergyReportSaveVo.class));
 
-        mockMvc.perform(post("/device/energy-reports/standard")
+        mockMvc.perform(post("/v1/device/energy-reports/standard")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())

@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.order.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -22,7 +25,7 @@ import java.math.BigDecimal;
  * 服务费率接口
  */
 @RestController
-@RequestMapping("/orders/service-rate")
+@RequestMapping(ApiPathConstant.V1 + "/orders/service-rate")
 @Tag(name = "服务费率接口")
 @Validated
 @RequiredArgsConstructor

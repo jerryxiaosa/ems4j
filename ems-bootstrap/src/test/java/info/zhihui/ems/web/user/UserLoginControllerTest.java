@@ -45,7 +45,7 @@ class UserLoginControllerTest {
         captcha.setImg("imgBase64");
         when(userLoginBiz.getCaptcha()).thenReturn(captcha);
 
-        mockMvc.perform(get("/users/captcha"))
+        mockMvc.perform(get("/v1/users/captcha"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.captchaKey").value("key123"));
@@ -53,7 +53,7 @@ class UserLoginControllerTest {
     @Test
     @DisplayName("登出成功")
     void testLogout() throws Exception {
-        mockMvc.perform(post("/users/logout"))
+        mockMvc.perform(post("/v1/users/logout"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -73,7 +73,7 @@ class UserLoginControllerTest {
         requestVo.setCaptchaKey("captcha");
         requestVo.setCaptchaValue("1234");
 
-        mockMvc.perform(post("/users/login")
+        mockMvc.perform(post("/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestVo)))
                 .andExpect(status().isOk())
@@ -87,7 +87,7 @@ class UserLoginControllerTest {
         UserMenuVo menuVo = new UserMenuVo().setId(1).setMenuName("系统管理").setPath("/xxx");
         when(userLoginBiz.findCurrentUserMenus(1)).thenReturn(List.of(menuVo));
 
-        mockMvc.perform(get("/users/current/menus")
+        mockMvc.perform(get("/v1/users/current/menus")
                         .param("source", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -100,7 +100,7 @@ class UserLoginControllerTest {
         UserVo userVo = new UserVo().setId(1).setUserName("admin");
         when(userLoginBiz.findCurrentUser()).thenReturn(userVo);
 
-        mockMvc.perform(get("/users/current")
+        mockMvc.perform(get("/v1/users/current")
                         .requestAttr("loginUserId", 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

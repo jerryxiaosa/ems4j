@@ -3,11 +3,13 @@ package info.zhihui.ems.web.device.biz;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
+import info.zhihui.ems.business.finance.dto.ElectricMeterLatestPowerRecordDto;
 import info.zhihui.ems.business.finance.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
 import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
 import info.zhihui.ems.web.device.vo.ElectricMeterDetailVo;
+import info.zhihui.ems.web.device.vo.ElectricMeterLatestPowerRecordVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterQueryVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterVo;
 import org.junit.jupiter.api.DisplayName;
@@ -83,6 +85,12 @@ class ElectricMeterBizTest {
                 .setMeterName("电表A")
                 .setIsOnline(Boolean.FALSE)
                 .setLastOnlineTime(LocalDateTime.now().minusDays(2));
+        ElectricMeterLatestPowerRecordDto latestPowerRecordDto = new ElectricMeterLatestPowerRecordDto()
+                .setRecordTime(LocalDateTime.of(2026, 3, 10, 12, 30, 15))
+                .setPower(new java.math.BigDecimal("123.45"));
+        ElectricMeterLatestPowerRecordVo latestPowerRecordVo = new ElectricMeterLatestPowerRecordVo()
+                .setRecordTime(LocalDateTime.of(2026, 3, 10, 12, 30, 15))
+                .setPower(new java.math.BigDecimal("123.45"));
         ElectricMeterDetailVo detailVo = new ElectricMeterDetailVo();
         detailVo.setId(1);
         detailVo.setMeterName("电表A");
@@ -92,6 +100,8 @@ class ElectricMeterBizTest {
                 .setParentsNames(List.of("1号楼", "1层"));
         when(electricMeterInfoService.getDetail(1)).thenReturn(electricMeterBo);
         when(electricMeterWebMapper.toElectricMeterDetailVo(electricMeterBo)).thenReturn(detailVo);
+        when(electricMeterPowerRecordService.findLatestRecord(1)).thenReturn(latestPowerRecordDto);
+        when(electricMeterWebMapper.toElectricMeterLatestPowerRecordVo(latestPowerRecordDto)).thenReturn(latestPowerRecordVo);
         when(spaceDisplaySupport.findSpaceDisplayMap(any())).thenReturn(java.util.Map.of(10, spaceDisplayDto));
 
         ElectricMeterDetailVo result = electricMeterBiz.getElectricMeter(1);
@@ -99,5 +109,8 @@ class ElectricMeterBizTest {
         assertThat(result.getSpaceName()).isEqualTo("101房间");
         assertThat(result.getSpaceParentNames()).containsExactly("1号楼", "1层");
         assertThat(result.getOfflineDurationText()).isEqualTo("2天");
+        assertThat(result.getLatestPowerRecord()).isNotNull();
+        assertThat(result.getLatestPowerRecord().getPower()).isEqualByComparingTo("123.45");
+        assertThat(result.getLatestPowerRecord().getRecordTime()).isEqualTo(LocalDateTime.of(2026, 3, 10, 12, 30, 15));
     }
 }
