@@ -59,7 +59,7 @@ class ElectricPricePlanControllerTest {
                 .setUpdateTime(LocalDateTime.of(2026, 3, 3, 11, 5, 12));
         when(electricPricePlanBiz.findElectricPricePlanList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/plan/electric-price-plans"))
+        mockMvc.perform(get("/v1/plan/electric-price-plans"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].name").value("默认电价"))
@@ -81,7 +81,7 @@ class ElectricPricePlanControllerTest {
                 .setPriceDeepLow(BigDecimal.valueOf(0.5))
                 .setIsCustomPrice(Boolean.TRUE);
 
-        mockMvc.perform(post("/plan/electric-price-plans")
+        mockMvc.perform(post("/v1/plan/electric-price-plans")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())
@@ -94,7 +94,7 @@ class ElectricPricePlanControllerTest {
     void testGetDefaultStepPrice() throws Exception {
         when(electricPricePlanBiz.getDefaultStepPrice()).thenReturn(List.of(new StepPriceVo().setStart(BigDecimal.ZERO)));
 
-        mockMvc.perform(get("/plan/electric-price-plans/default/step-price"))
+        mockMvc.perform(get("/v1/plan/electric-price-plans/default/step-price"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].start").value(0));
@@ -107,7 +107,7 @@ class ElectricPricePlanControllerTest {
 
         List<ElectricPriceTypeVo> priceVos = List.of(new ElectricPriceTypeVo().setType(1).setPrice(BigDecimal.ONE));
 
-        mockMvc.perform(put("/plan/electric-price-plans/default/price")
+        mockMvc.perform(put("/v1/plan/electric-price-plans/default/price")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(priceVos)))
                 .andExpect(status().isOk())
@@ -121,7 +121,7 @@ class ElectricPricePlanControllerTest {
 
         List<ElectricPriceTimeSettingVo> timeList = List.of(new ElectricPriceTimeSettingVo().setType(1).setStart(LocalTime.MIDNIGHT));
 
-        mockMvc.perform(put("/plan/electric-price-plans/default/time")
+        mockMvc.perform(put("/v1/plan/electric-price-plans/default/time")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(timeList)))
                 .andExpect(status().isOk())
@@ -133,7 +133,7 @@ class ElectricPricePlanControllerTest {
     void testUpdateDefaultElectricPrice_InvalidType_ShouldFail() throws Exception {
         List<ElectricPriceTypeVo> priceVos = List.of(new ElectricPriceTypeVo().setType(0).setPrice(BigDecimal.ONE));
 
-        mockMvc.perform(put("/plan/electric-price-plans/default/price")
+        mockMvc.perform(put("/v1/plan/electric-price-plans/default/price")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(priceVos)))
                 .andExpect(status().isOk())
@@ -148,7 +148,7 @@ class ElectricPricePlanControllerTest {
     void testUpdateDefaultElectricTime_NullType_ShouldFail() throws Exception {
         List<ElectricPriceTimeSettingVo> timeList = List.of(new ElectricPriceTimeSettingVo().setType(null).setStart(LocalTime.MIDNIGHT));
 
-        mockMvc.perform(put("/plan/electric-price-plans/default/time")
+        mockMvc.perform(put("/v1/plan/electric-price-plans/default/time")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(timeList)))
                 .andExpect(status().isOk())

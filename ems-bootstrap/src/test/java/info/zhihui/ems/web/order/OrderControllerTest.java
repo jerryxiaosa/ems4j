@@ -55,7 +55,7 @@ class OrderControllerTest {
                 .setList(List.of(orderVo));
         when(orderBiz.findOrdersPage(any(), any(), any())).thenReturn(pageResult);
 
-        mockMvc.perform(get("/orders"))
+        mockMvc.perform(get("/v1/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list[0].orderSn").value("ORDER123"));
@@ -71,7 +71,7 @@ class OrderControllerTest {
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
                 "\"accountId\":10,\"balanceType\":\"ELECTRIC_METER\",\"ownerType\":\"ENTERPRISE\",\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":\"QUANTITY\"}}";
 
-        mockMvc.perform(post("/orders/energy-top-up")
+        mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -89,7 +89,7 @@ class OrderControllerTest {
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"李四\",\"thirdPartyUserId\":\"tp-2\",\"orderAmount\":200,\"terminationInfo\":{" +
                 "\"cancelNo\":\"C-001\",\"accountId\":11,\"ownerId\":21,\"ownerType\":\"ENTERPRISE\",\"ownerName\":\"张三\",\"settlementAmount\":200,\"electricAccountType\":\"QUANTITY\",\"electricMeterAmount\":2,\"fullCancel\":true,\"meterIdList\":[1,2]}}";
 
-        mockMvc.perform(post("/orders/termination")
+        mockMvc.perform(post("/v1/orders/termination")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -104,7 +104,7 @@ class OrderControllerTest {
         detailVo.setOrderSn("ORDER456");
         when(orderBiz.getOrderDetail("ORDER456")).thenReturn(detailVo);
 
-        mockMvc.perform(get("/orders/ORDER456"))
+        mockMvc.perform(get("/v1/orders/ORDER456"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orderSn").value("ORDER456"));
@@ -115,7 +115,7 @@ class OrderControllerTest {
     void testCloseOrder() throws Exception {
         doNothing().when(orderBiz).closeOrder("ORDER789");
 
-        mockMvc.perform(post("/orders/ORDER789/close"))
+        mockMvc.perform(post("/v1/orders/ORDER789/close"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -125,7 +125,7 @@ class OrderControllerTest {
     void testAnswerWeiXinPayNotify() throws Exception {
         doNothing().when(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
 
-        mockMvc.perform(post("/orders/weixin/pay-notify")
+        mockMvc.perform(post("/v1/orders/weixin/pay-notify")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isOk())
@@ -139,7 +139,7 @@ class OrderControllerTest {
     void testAnswerWeiXinPayNotify_WhenException() throws Exception {
         doThrow(new RuntimeException("mock error")).when(orderBiz).answerWeiXinPayNotify(any(HttpServletRequest.class));
 
-        mockMvc.perform(post("/orders/weixin/pay-notify")
+        mockMvc.perform(post("/v1/orders/weixin/pay-notify")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isInternalServerError());

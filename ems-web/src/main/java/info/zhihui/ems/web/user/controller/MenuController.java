@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.user.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -20,7 +23,7 @@ import java.util.List;
  * 菜单管理控制器
  */
 @RestController
-@RequestMapping("/menus")
+@RequestMapping(ApiPathConstant.V1 + "/menus")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "菜单管理接口")

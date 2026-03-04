@@ -54,7 +54,7 @@ class MenuControllerTest {
 
         when(menuBiz.findTree(any(MenuQueryVo.class))).thenReturn(List.of(root));
 
-        mockMvc.perform(get("/menus")
+        mockMvc.perform(get("/v1/menus")
                         .param("menuNameLike", "系统"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -81,7 +81,7 @@ class MenuControllerTest {
 
         when(menuBiz.getDetail(eq(1))).thenReturn(menuVo);
 
-        mockMvc.perform(get("/menus/1"))
+        mockMvc.perform(get("/v1/menus/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -117,7 +117,7 @@ class MenuControllerTest {
                 .setHidden(false)
                 .setPermissionCodes(List.of("test:view", "test:manage"));
 
-        mockMvc.perform(post("/menus")
+        mockMvc.perform(post("/v1/menus")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -140,7 +140,7 @@ class MenuControllerTest {
                 .setHidden(true)
                 .setPermissionCodes(List.of("updated:view"));
 
-        mockMvc.perform(put("/menus/1")
+        mockMvc.perform(put("/v1/menus/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())
@@ -150,7 +150,7 @@ class MenuControllerTest {
     @Test
     @DisplayName("删除菜单")
     void testDelete() throws Exception {
-        mockMvc.perform(delete("/menus/1"))
+        mockMvc.perform(delete("/v1/menus/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

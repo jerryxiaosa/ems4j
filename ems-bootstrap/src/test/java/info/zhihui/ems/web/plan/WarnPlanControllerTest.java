@@ -53,7 +53,7 @@ class WarnPlanControllerTest {
                 .setUpdateTime(LocalDateTime.of(2026, 3, 3, 11, 5, 12));
         when(warnPlanBiz.findWarnPlanList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/plan/warn-plans"))
+        mockMvc.perform(get("/v1/plan/warn-plans"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].name").value("默认预警"))
@@ -71,7 +71,7 @@ class WarnPlanControllerTest {
                 .setFirstLevel(BigDecimal.valueOf(20))
                 .setSecondLevel(BigDecimal.valueOf(10));
 
-        mockMvc.perform(post("/plan/warn-plans")
+        mockMvc.perform(post("/v1/plan/warn-plans")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())
@@ -88,7 +88,7 @@ class WarnPlanControllerTest {
                 .setName("方案B")
                 .setAutoClose(Boolean.TRUE);
 
-        mockMvc.perform(put("/plan/warn-plans/1")
+        mockMvc.perform(put("/v1/plan/warn-plans/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())
@@ -100,7 +100,7 @@ class WarnPlanControllerTest {
     void testDeleteWarnPlan() throws Exception {
         doNothing().when(warnPlanBiz).deleteWarnPlan(1);
 
-        mockMvc.perform(delete("/plan/warn-plans/1"))
+        mockMvc.perform(delete("/v1/plan/warn-plans/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

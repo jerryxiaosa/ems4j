@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.user.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -20,7 +23,7 @@ import java.util.List;
  * 角色管理控制器
  */
 @RestController
-@RequestMapping("/roles")
+@RequestMapping(ApiPathConstant.V1 + "/roles")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "角色管理接口")

@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.device.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaIgnore;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -19,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 电量上报接口
  */
 @RestController
-@RequestMapping("/device/energy-reports")
+@RequestMapping(ApiPathConstant.V1 + "/device/energy-reports")
 @Tag(name = "电量上报接口")
 @Validated
 @RequiredArgsConstructor

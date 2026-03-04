@@ -56,7 +56,7 @@ class FinanceConsumeControllerTest {
                         .setPayAmount(new BigDecimal("50"))));
         when(financeBiz.findAccountConsumePage(any(AccountConsumeQueryVo.class), eq(1), eq(10))).thenReturn(page);
 
-        mockMvc.perform(get("/finance/account-consumes")
+        mockMvc.perform(get("/v1/finance/account-consumes")
                         .param("accountId", "1")
                         .param("consumeTimeStart", LocalDateTime.now().minusDays(1).toString())
                         .param("consumeTimeEnd", LocalDateTime.now().toString())
@@ -77,7 +77,7 @@ class FinanceConsumeControllerTest {
                         .setConsumeAmount(new BigDecimal("80"))));
         when(financeBiz.findPowerConsumePage(any(PowerConsumeQueryVo.class), eq(1), eq(5))).thenReturn(page);
 
-        mockMvc.perform(get("/finance/meter-consumes")
+        mockMvc.perform(get("/v1/finance/meter-consumes")
                         .param("meterName", "1号")
                         .param("beginTime", LocalDateTime.now().minusDays(2).toString())
                         .param("endTime", LocalDateTime.now().toString())
@@ -100,7 +100,7 @@ class FinanceConsumeControllerTest {
                 .setConsumePower(new BigDecimal("100.00"));
         when(financeBiz.getPowerConsumeDetail(1001)).thenReturn(detailVo);
 
-        mockMvc.perform(get("/finance/meter-consumes/{id}", 1001))
+        mockMvc.perform(get("/v1/finance/meter-consumes/{id}", 1001))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1001))
@@ -118,7 +118,7 @@ class FinanceConsumeControllerTest {
                         .setConsumeAmount(new BigDecimal("10"))));
         when(financeBiz.findCorrectionRecordPage(any(CorrectionRecordQueryVo.class), eq(1), eq(5))).thenReturn(page);
 
-        mockMvc.perform(get("/finance/meter-corrections")
+        mockMvc.perform(get("/v1/finance/meter-corrections")
                         .param("accountId", "1")
                         .param("beginTime", LocalDateTime.now().minusDays(3).toString())
                         .param("endTime", LocalDateTime.now().toString())
@@ -140,7 +140,7 @@ class FinanceConsumeControllerTest {
                 .setReason("补扣测试");
         doNothing().when(financeBiz).correctByAmount(any(CorrectionMeterAmountVo.class));
 
-        mockMvc.perform(post("/finance/meter-corrections")
+        mockMvc.perform(post("/v1/finance/meter-corrections")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())

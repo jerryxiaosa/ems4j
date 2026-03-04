@@ -62,7 +62,7 @@ class OrganizationControllerTest {
 
         when(organizationBiz.findOrganizationPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/organizations/page").param("pageNum", "1").param("pageSize", "10"))
+        mockMvc.perform(get("/v1/organizations/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.total").value(1))
@@ -77,7 +77,7 @@ class OrganizationControllerTest {
                 .setOrganizationName("测试组织");
         when(organizationBiz.findOrganizationList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/organizations"))
+        mockMvc.perform(get("/v1/organizations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].organizationName").value("测试组织"));
@@ -94,7 +94,7 @@ class OrganizationControllerTest {
                 .setManagerPhone("13800000000");
         when(organizationBiz.findOrganizationOptionList(any())).thenReturn(List.of(vo));
 
-        mockMvc.perform(get("/organizations/options").param("organizationNameLike", "组织"))
+        mockMvc.perform(get("/v1/organizations/options").param("organizationNameLike", "组织"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(1))
@@ -109,7 +109,7 @@ class OrganizationControllerTest {
     void testFindOrganizationOptionList_CustomLimit() throws Exception {
         when(organizationBiz.findOrganizationOptionList(any())).thenReturn(List.of());
 
-        mockMvc.perform(get("/organizations/options")
+        mockMvc.perform(get("/v1/organizations/options")
                         .param("organizationNameLike", "测试")
                         .param("limit", "5"))
                 .andExpect(status().isOk())
@@ -126,7 +126,7 @@ class OrganizationControllerTest {
                 .setOrganizationType(1);
         when(organizationBiz.getOrganization(2)).thenReturn(vo);
 
-        mockMvc.perform(get("/organizations/2"))
+        mockMvc.perform(get("/v1/organizations/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(2))
@@ -148,7 +148,7 @@ class OrganizationControllerTest {
                 .setOwnAreaId(123)
                 .setRemark("备注");
 
-        mockMvc.perform(post("/organizations")
+        mockMvc.perform(post("/v1/organizations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -166,7 +166,7 @@ class OrganizationControllerTest {
 
         doNothing().when(organizationBiz).updateOrganization(eq(5), any(OrganizationUpdateVo.class));
 
-        mockMvc.perform(put("/organizations/5")
+        mockMvc.perform(put("/v1/organizations/5")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())
@@ -178,7 +178,7 @@ class OrganizationControllerTest {
     void testDeleteOrganization() throws Exception {
         doNothing().when(organizationBiz).deleteOrganization(10);
 
-        mockMvc.perform(delete("/organizations/10"))
+        mockMvc.perform(delete("/v1/organizations/10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

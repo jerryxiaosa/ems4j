@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.system.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaIgnore;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -21,7 +24,7 @@ import java.util.Map;
  * 系统枚举查询接口：扫描所有实现 CodeEnum 的枚举并返回两级结构。
  */
 @RestController
-@RequestMapping("/system")
+@RequestMapping(ApiPathConstant.V1 + "/system")
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "系统枚举接口")

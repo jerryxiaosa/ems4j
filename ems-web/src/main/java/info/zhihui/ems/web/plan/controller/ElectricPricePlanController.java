@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.plan.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -34,7 +37,7 @@ import java.util.List;
  * 电价方案接口
  */
 @RestController
-@RequestMapping("/plan/electric-price-plans")
+@RequestMapping(ApiPathConstant.V1 + "/plan/electric-price-plans")
 @Tag(name = "电价方案管理接口")
 @Validated
 @RequiredArgsConstructor

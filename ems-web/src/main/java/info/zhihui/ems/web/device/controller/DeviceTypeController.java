@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.device.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
@@ -18,7 +21,7 @@ import java.util.List;
  * 设备品类接口。
  */
 @RestController
-@RequestMapping("/device/device-types")
+@RequestMapping(ApiPathConstant.V1 + "/device/device-types")
 @Tag(name = "设备品类接口")
 @RequiredArgsConstructor
 public class DeviceTypeController {

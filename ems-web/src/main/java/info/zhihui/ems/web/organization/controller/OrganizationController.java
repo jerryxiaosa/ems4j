@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.organization.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -25,7 +28,7 @@ import java.util.List;
  * 组织管理控制器
  */
 @RestController
-@RequestMapping("/organizations")
+@RequestMapping(ApiPathConstant.V1 + "/organizations")
 @Tag(name = "组织管理接口")
 @Validated
 @RequiredArgsConstructor

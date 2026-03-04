@@ -47,7 +47,7 @@ class OwnerCandidateMeterControllerTest {
                         .setOfflineDurationText("3天")
         ));
 
-        mockMvc.perform(get("/owner-candidate-meters")
+        mockMvc.perform(get("/v1/owner-candidate-meters")
                         .param("ownerType", "0")
                         .param("ownerId", "1001")
                         .param("spaceNameLike", "一层"))

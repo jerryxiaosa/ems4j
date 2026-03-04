@@ -72,7 +72,7 @@ class AccountControllerTest {
                 .setTotal(1L);
         when(accountBiz.findAccountPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/accounts/page").param("pageNum", "1").param("pageSize", "10"))
+        mockMvc.perform(get("/v1/accounts/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list[0].ownerName").value("企业A"))
@@ -95,7 +95,7 @@ class AccountControllerTest {
                 .setTotal(1L);
         when(accountBiz.findAccountPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/accounts/page").param("pageNum", "1").param("pageSize", "10"))
+        mockMvc.perform(get("/v1/accounts/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list[0].electricBalanceAmount").value(0.0))
@@ -119,7 +119,7 @@ class AccountControllerTest {
                 .setMeterList(List.of(meterVo));
         when(accountBiz.getAccount(10)).thenReturn(vo);
 
-        mockMvc.perform(get("/accounts/10"))
+        mockMvc.perform(get("/v1/accounts/10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(10))
@@ -147,7 +147,7 @@ class AccountControllerTest {
                 .setTotal(1L);
         when(accountBiz.findCancelRecordPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/accounts/cancel/page").param("pageNum", "1").param("pageSize", "10"))
+        mockMvc.perform(get("/v1/accounts/cancel/page").param("pageNum", "1").param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.list[0].cancelNo").value("C001"))
                 .andExpect(jsonPath("$.data.list[0].cleanBalanceReal").value(-80))
@@ -164,7 +164,7 @@ class AccountControllerTest {
                 .setCancelTime(LocalDateTime.of(2026, 2, 28, 10, 58, 46));
         when(accountBiz.getCancelRecordDetail("C002")).thenReturn(detailVo);
 
-        mockMvc.perform(get("/accounts/cancel/C002"))
+        mockMvc.perform(get("/v1/accounts/cancel/C002"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.cancelNo").value("C002"))
                 .andExpect(jsonPath("$.data.cleanBalanceReal").value(-50))
@@ -185,7 +185,7 @@ class AccountControllerTest {
                 .setMonthlyPayAmount(new BigDecimal("100"))
                 .setElectricMeterList(List.of(new MeterOpenDetailVo().setMeterId(10)));
 
-        mockMvc.perform(post("/accounts/open")
+        mockMvc.perform(post("/v1/accounts/open")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())
@@ -205,7 +205,7 @@ class AccountControllerTest {
                 .setAccountId(5)
                 .setMeterList(List.of(new MeterCancelDetailVo().setMeterId(10)));
 
-        mockMvc.perform(post("/accounts/cancel")
+        mockMvc.perform(post("/v1/accounts/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cancelVo)))
                 .andExpect(status().isOk())
@@ -220,7 +220,7 @@ class AccountControllerTest {
         AccountMetersOpenVo vo = new AccountMetersOpenVo()
                 .setElectricMeterList(List.of(new MeterOpenDetailVo().setMeterId(10)));
 
-        mockMvc.perform(post("/accounts/{id}/meters/open", 1)
+        mockMvc.perform(post("/v1/accounts/{id}/meters/open", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())
@@ -235,7 +235,7 @@ class AccountControllerTest {
                 .setContactName("张三")
                 .setContactPhone("13800138000");
 
-        mockMvc.perform(put("/accounts/{id}", 1)
+        mockMvc.perform(put("/v1/accounts/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vo)))
                 .andExpect(status().isOk())

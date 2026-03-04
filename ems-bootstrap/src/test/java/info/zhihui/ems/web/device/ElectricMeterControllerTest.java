@@ -105,7 +105,7 @@ class ElectricMeterControllerTest {
         when(electricPricePlanService.findList(any())).thenReturn(List.of(new ElectricPricePlanBo().setId(11).setName("居民电价")));
         when(warnPlanService.findList(any())).thenReturn(List.of(new WarnPlanBo().setId(22).setName("标准预警")));
 
-        mockMvc.perform(get("/device/electric-meters/page")
+        mockMvc.perform(get("/v1/device/electric-meters/page")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
@@ -149,13 +149,17 @@ class ElectricMeterControllerTest {
         detailVo.setAccountId(5);
         detailVo.setCt(30);
         detailVo.setOwnAreaId(9);
+        detailVo.setLatestPowerRecord(new ElectricMeterLatestPowerRecordVo()
+                .setRecordTime(LocalDateTime.of(2026, 3, 10, 12, 30, 15))
+                .setPower(new BigDecimal("123.45"))
+                .setPowerHigher(new BigDecimal("20.10")));
         when(electricMeterBiz.getElectricMeter(1)).thenReturn(detailVo);
         when(deviceModelService.findList(any())).thenReturn(List.of(new DeviceModelBo().setId(33).setModelName("DDSY-100")));
         when(gatewayService.findList(any())).thenReturn(List.of(new GatewayBo().setId(8).setGatewayName("网关A")));
         when(electricPricePlanService.findList(any())).thenReturn(List.of(new ElectricPricePlanBo().setId(11).setName("居民电价")));
         when(warnPlanService.findList(any())).thenReturn(List.of(new WarnPlanBo().setId(22).setName("标准预警")));
 
-        mockMvc.perform(get("/device/electric-meters/1"))
+        mockMvc.perform(get("/v1/device/electric-meters/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -182,7 +186,10 @@ class ElectricMeterControllerTest {
                 .andExpect(jsonPath("$.data.electricWarnTypeName").value("一级预警"))
                 .andExpect(jsonPath("$.data.accountId").value(5))
                 .andExpect(jsonPath("$.data.ct").value(30))
-                .andExpect(jsonPath("$.data.ownAreaId").value(9));
+                .andExpect(jsonPath("$.data.ownAreaId").value(9))
+                .andExpect(jsonPath("$.data.latestPowerRecord.recordTime").value("2026-03-10 12:30:15"))
+                .andExpect(jsonPath("$.data.latestPowerRecord.power").value(123.45))
+                .andExpect(jsonPath("$.data.latestPowerRecord.powerHigher").value(20.10));
     }
 
     @Test
@@ -196,7 +203,7 @@ class ElectricMeterControllerTest {
                 .setIsPrepay(Boolean.TRUE)
                 .setModelId(2);
 
-        mockMvc.perform(post("/device/electric-meters")
+        mockMvc.perform(post("/v1/device/electric-meters")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -212,7 +219,7 @@ class ElectricMeterControllerTest {
 
         ElectricMeterPowerQueryVo queryVo = new ElectricMeterPowerQueryVo().setTypes(List.of(0));
 
-        mockMvc.perform(post("/device/electric-meters/1/power")
+        mockMvc.perform(post("/v1/device/electric-meters/1/power")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(queryVo)))
                 .andExpect(status().isOk())
@@ -229,7 +236,7 @@ class ElectricMeterControllerTest {
                 .setPowerHigher(new BigDecimal("200.10"));
         when(electricMeterBiz.getLatestPowerRecord(1)).thenReturn(latestPowerRecordVo);
 
-        mockMvc.perform(get("/device/electric-meters/1/latest-power-record"))
+        mockMvc.perform(get("/v1/device/electric-meters/1/latest-power-record"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.recordTime").value("2026-02-28 10:58:46"))

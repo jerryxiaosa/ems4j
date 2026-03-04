@@ -45,7 +45,7 @@ class RoleControllerTest {
         when(roleBiz.findRolePage(any(RoleQueryVo.class), eq(1), eq(10)))
                 .thenReturn(new PageResult<RoleVo>().setPageNum(1).setPageSize(10).setTotal(1L).setList(List.of(roleVo)));
 
-        mockMvc.perform(get("/roles/page")
+        mockMvc.perform(get("/v1/roles/page")
                         .param("pageNum", "1")
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
@@ -60,7 +60,7 @@ class RoleControllerTest {
         RoleVo roleVo = new RoleVo().setId(1).setRoleName("管理员").setRoleKey("admin");
         when(roleBiz.findRoleList(any(RoleQueryVo.class))).thenReturn(List.of(roleVo));
 
-        mockMvc.perform(get("/roles"))
+        mockMvc.perform(get("/v1/roles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].roleName").value("管理员"));
@@ -72,7 +72,7 @@ class RoleControllerTest {
         RoleDetailVo roleDetailVo = new RoleDetailVo().setId(1).setRoleName("管理员").setRoleKey("admin");
         when(roleBiz.getRoleDetail(1)).thenReturn(roleDetailVo);
 
-        mockMvc.perform(get("/roles/1"))
+        mockMvc.perform(get("/v1/roles/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.roleName").value("管理员"));
@@ -91,7 +91,7 @@ class RoleControllerTest {
         createVo.setIsSystem(false);
         createVo.setIsDisabled(false);
 
-        mockMvc.perform(post("/roles")
+        mockMvc.perform(post("/v1/roles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createVo)))
                 .andExpect(status().isOk())
@@ -107,7 +107,7 @@ class RoleControllerTest {
         updateVo.setRoleName("更新后的角色");
         updateVo.setRemark("更新后的备注");
 
-        mockMvc.perform(put("/roles/1")
+        mockMvc.perform(put("/v1/roles/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateVo)))
                 .andExpect(status().isOk())
@@ -120,7 +120,7 @@ class RoleControllerTest {
         RoleMenuSaveVo saveVo = new RoleMenuSaveVo();
         saveVo.setMenuIds(List.of(1, 2, 3));
 
-        mockMvc.perform(put("/roles/1/menus")
+        mockMvc.perform(put("/v1/roles/1/menus")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(saveVo)))
                 .andExpect(status().isOk())
@@ -130,7 +130,7 @@ class RoleControllerTest {
     @Test
     @DisplayName("删除角色")
     void testDeleteRole() throws Exception {
-        mockMvc.perform(delete("/roles/1"))
+        mockMvc.perform(delete("/v1/roles/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

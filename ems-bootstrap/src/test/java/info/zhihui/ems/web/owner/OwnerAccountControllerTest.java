@@ -49,7 +49,7 @@ class OwnerAccountControllerTest {
                 .setMonthlyPayAmount(new BigDecimal("66.60"))
                 .setMonthlyPayAmountText("66.60"));
 
-        mockMvc.perform(get("/owner-accounts/status")
+        mockMvc.perform(get("/v1/owner-accounts/status")
                         .param("ownerType", "0")
                         .param("ownerId", "1001"))
                 .andExpect(status().isOk())

@@ -51,7 +51,7 @@ class DeviceModelControllerTest {
                 .setModelProperty(Map.of("baudRate", 9600)));
         when(deviceModelBiz.findDeviceModelList(any())).thenReturn(deviceModelVoList);
 
-        mockMvc.perform(get("/device/device-models")
+        mockMvc.perform(get("/v1/device/device-models")
                         .param("typeIds", "10", "20")
                         .param("manufacturerName", "制造商A")
                         .param("modelName", "型号A"))
@@ -89,7 +89,7 @@ class DeviceModelControllerTest {
                 .setList(List.of(deviceModelVo));
         when(deviceModelBiz.findDeviceModelPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/device/device-models/page")
+        mockMvc.perform(get("/v1/device/device-models/page")
                         .param("typeIds", "10", "20")
                         .param("manufacturerName", "制造商A")
                         .param("modelName", "型号A")
@@ -121,7 +121,7 @@ class DeviceModelControllerTest {
                 .setList(List.of());
         when(deviceModelBiz.findDeviceModelPage(any(), eq(1), eq(10))).thenReturn(pageResult);
 
-        mockMvc.perform(get("/device/device-models/page"))
+        mockMvc.perform(get("/v1/device/device-models/page"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 

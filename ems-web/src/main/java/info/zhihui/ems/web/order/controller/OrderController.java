@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.order.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
 import info.zhihui.ems.common.paging.PageResult;
@@ -25,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
  * 订单管理接口
  */
 @RestController
-@RequestMapping("/orders")
+@RequestMapping(ApiPathConstant.V1 + "/orders")
 @Tag(name = "订单管理接口")
 @Validated
 @RequiredArgsConstructor

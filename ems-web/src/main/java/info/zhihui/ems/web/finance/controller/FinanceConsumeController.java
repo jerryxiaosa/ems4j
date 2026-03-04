@@ -1,5 +1,8 @@
+
 package info.zhihui.ems.web.finance.controller;
 
+
+import info.zhihui.ems.web.common.constant.ApiPathConstant;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.common.utils.ResultUtil;
@@ -19,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * 财务消费相关接口
  */
 @RestController
-@RequestMapping("/finance")
+@RequestMapping(ApiPathConstant.V1 + "/finance")
 @Tag(name = "财务消费接口")
 @Validated
 @RequiredArgsConstructor
