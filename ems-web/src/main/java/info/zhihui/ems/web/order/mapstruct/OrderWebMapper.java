@@ -11,6 +11,7 @@ import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
@@ -24,6 +25,8 @@ import info.zhihui.ems.web.order.vo.OrderVo;
 import info.zhihui.ems.web.order.vo.TerminationOrderCreateVo;
 import info.zhihui.ems.web.order.vo.TerminationSettlementVo;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.Collections;
@@ -37,6 +40,7 @@ public interface OrderWebMapper {
 
     OrderQueryDto toOrderQueryDto(OrderQueryVo queryVo);
 
+    @Mapping(target = "ownerType", source = "ownerType", qualifiedByName = "ownerTypeToCode")
     OrderVo toOrderVo(OrderBo bo);
 
     List<OrderVo> toOrderVoList(List<OrderBo> bos);
@@ -53,8 +57,10 @@ public interface OrderWebMapper {
                 .setList(list == null ? Collections.emptyList() : list);
     }
 
+    @Mapping(target = "ownerType", source = "ownerType", qualifiedByName = "ownerTypeToCode")
     OrderDetailVo toOrderDetailVo(OrderBo bo);
 
+    @Mapping(target = "energyTopUpDto", source = "energyTopUp")
     EnergyOrderCreationInfoDto toEnergyOrderCreationInfoDto(EnergyOrderCreateVo createVo);
 
     EnergyTopUpDto toEnergyTopUpDto(EnergyTopUpDetailVo detailVo);
@@ -89,6 +95,10 @@ public interface OrderWebMapper {
         return balanceType == null ? null : BalanceTypeEnum.valueOf(balanceType);
     }
 
+    default BalanceTypeEnum mapBalanceType(Integer balanceTypeCode) {
+        return CodeEnum.fromCode(balanceTypeCode, BalanceTypeEnum.class);
+    }
+
     default String mapBalanceType(BalanceTypeEnum balanceType) {
         return balanceType == null ? null : balanceType.name();
     }
@@ -97,12 +107,25 @@ public interface OrderWebMapper {
         return ownerType == null ? null : OwnerTypeEnum.valueOf(ownerType);
     }
 
+    default OwnerTypeEnum mapOwnerType(Integer ownerTypeCode) {
+        return CodeEnum.fromCode(ownerTypeCode, OwnerTypeEnum.class);
+    }
+
     default String mapOwnerType(OwnerTypeEnum ownerType) {
         return ownerType == null ? null : ownerType.name();
     }
 
+    @Named("ownerTypeToCode")
+    default Integer ownerTypeToCode(OwnerTypeEnum ownerType) {
+        return ownerType == null ? null : ownerType.getCode();
+    }
+
     default ElectricAccountTypeEnum mapElectricAccountType(String accountType) {
         return accountType == null ? null : ElectricAccountTypeEnum.valueOf(accountType);
+    }
+
+    default ElectricAccountTypeEnum mapElectricAccountType(Integer accountTypeCode) {
+        return CodeEnum.fromCode(accountTypeCode, ElectricAccountTypeEnum.class);
     }
 
     default String mapElectricAccountType(ElectricAccountTypeEnum accountType) {
@@ -111,6 +134,10 @@ public interface OrderWebMapper {
 
     default MeterTypeEnum mapMeterType(String meterType) {
         return meterType == null ? null : MeterTypeEnum.valueOf(meterType);
+    }
+
+    default MeterTypeEnum mapMeterType(Integer meterTypeCode) {
+        return CodeEnum.fromCode(meterTypeCode, MeterTypeEnum.class);
     }
 
     default String mapMeterType(MeterTypeEnum meterType) {

@@ -49,11 +49,6 @@
             <artifactId>ems-common</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-finance</artifactId>
-        </dependency>
-
     </dependencies>
 
 </project>

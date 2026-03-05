@@ -39,6 +39,22 @@ public class OrderEntity {
      */
     private String thirdPartyUserId;
     /**
+     * 账户id
+     */
+    private Integer accountId;
+    /**
+     * 账户归属者id
+     */
+    private Integer ownerId;
+    /**
+     * 账户类型，0企业1个人
+     */
+    private Integer ownerType;
+    /**
+     * 企业/个人名称
+     */
+    private String ownerName;
+    /**
      * 订单分类
      */
     private Integer orderType;

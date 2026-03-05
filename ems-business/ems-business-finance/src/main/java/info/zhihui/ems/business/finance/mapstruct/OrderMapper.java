@@ -7,6 +7,7 @@ import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,6 +19,7 @@ public interface OrderMapper {
     @Mapping(target = "orderType", qualifiedByName = "toOrderType")
     @Mapping(target = "orderStatus", qualifiedByName = "toOrderStatus")
     @Mapping(target = "paymentChannel", qualifiedByName = "toPaymentChannel")
+    @Mapping(target = "ownerType", qualifiedByName = "toOwnerType")
     OrderBo toBo(OrderEntity entity);
 
     PageResult<OrderBo> pageEntityToBo(PageInfo<OrderEntity> pageInfo);
@@ -52,5 +54,10 @@ public interface OrderMapper {
             return null;
         }
 
+    }
+
+    @Named("toOwnerType")
+    default OwnerTypeEnum toOwnerType(Integer code) {
+        return CodeEnum.fromCode(code, OwnerTypeEnum.class);
     }
 }

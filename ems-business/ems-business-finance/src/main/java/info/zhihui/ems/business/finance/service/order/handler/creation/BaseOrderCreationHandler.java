@@ -4,6 +4,7 @@ import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.dto.order.ServiceFeeDto;
 import info.zhihui.ems.business.finance.dto.order.ServiceFeeRequestDto;
 import info.zhihui.ems.business.finance.dto.order.creation.OrderCreationInfoDto;
+import info.zhihui.ems.business.finance.dto.order.creation.OrderOwnerSnapshotDto;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
@@ -78,6 +79,17 @@ public abstract class BaseOrderCreationHandler implements OrderCreationHandler {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
                 .setOrderCreateTime(currentTime)
                 .setOrderPayStopTime(currentTime.plusMinutes(PAYMENT_TIMEOUT_MINUTES));
+    }
+
+    protected void fillOwnerSnapshot(OrderEntity orderEntity,
+                                     OrderOwnerSnapshotDto ownerSnapshot) {
+        if (orderEntity == null || ownerSnapshot == null) {
+            return;
+        }
+        orderEntity.setAccountId(ownerSnapshot.getAccountId())
+                .setOwnerId(ownerSnapshot.getOwnerId())
+                .setOwnerType(ownerSnapshot.getOwnerType() == null ? null : ownerSnapshot.getOwnerType().getCode())
+                .setOwnerName(ownerSnapshot.getOwnerName());
     }
 
 }

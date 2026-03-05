@@ -6,6 +6,7 @@ import info.zhihui.ems.business.finance.dto.order.ServiceFeeRequestDto;
 import info.zhihui.ems.business.finance.dto.order.creation.EnergyOrderCreationInfoDto;
 import info.zhihui.ems.business.finance.dto.order.creation.EnergyTopUpDto;
 import info.zhihui.ems.business.finance.dto.order.creation.OrderCreationInfoDto;
+import info.zhihui.ems.business.finance.dto.order.creation.OrderOwnerSnapshotDto;
 import info.zhihui.ems.business.finance.entity.order.OrderDetailEnergyTopUpEntity;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
@@ -103,6 +104,11 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
                 .setOrderOriginalAmount(energyOrderCreationInfoDto.getOrderAmount())
                 .setOrderType(this.getOrderType()));
         OrderEntity orderEntity = buildOrderEntity(energyOrderCreationInfoDto, serviceFeeInfo);
+        fillOwnerSnapshot(orderEntity, new OrderOwnerSnapshotDto()
+                .setAccountId(detail.getAccountId())
+                .setOwnerId(detail.getOwnerId())
+                .setOwnerType(detail.getOwnerType())
+                .setOwnerName(detail.getOwnerName()));
 
         if (orderRepository.insert(orderEntity) != 1) {
             throw new BusinessRuntimeException("保存订单失败");

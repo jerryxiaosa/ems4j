@@ -28,6 +28,9 @@ public class AccountMeterVo {
     @Schema(description = "电表编号")
     private String deviceNo;
 
+    @Schema(description = "表类型编码，参考 meterType")
+    private Integer meterType;
+
     @Schema(description = "空间ID")
     private Integer spaceId;
 

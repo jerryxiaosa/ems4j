@@ -150,6 +150,10 @@ class OrderCreateEnergyTopUpHandlerTest {
         assertEquals(1, capturedOrder.getUserId(), "用户ID应该正确");
         assertEquals("testuser", capturedOrder.getUserRealName(), "用户真实姓名应该正确");
         assertEquals("13800138000", capturedOrder.getUserPhone(), "用户手机号应该正确");
+        assertEquals(1, capturedOrder.getAccountId(), "账户ID应该正确");
+        assertEquals(1, capturedOrder.getOwnerId(), "账户归属者ID应该正确");
+        assertEquals(OwnerTypeEnum.ENTERPRISE.getCode(), capturedOrder.getOwnerType(), "账户归属者类型应该正确");
+        assertEquals("测试用户", capturedOrder.getOwnerName(), "账户归属者名称应该正确");
         assertEquals(OrderTypeEnum.ENERGY_TOP_UP.getCode(), capturedOrder.getOrderType(), "订单类型应该正确");
         assertEquals(new BigDecimal("100.00"), capturedOrder.getOrderAmount(), "订单金额应该正确");
 
@@ -231,6 +235,10 @@ class OrderCreateEnergyTopUpHandlerTest {
         assertEquals(OwnerTypeEnum.ENTERPRISE.getCode(), capturedDetail.getOwnerType(), "应该是企业类型用户");
         assertEquals(1, capturedDetail.getOwnerId(), "企业ID应该正确");
         assertEquals("测试用户", capturedDetail.getOwnerName(), "企业名称应该正确");
+        assertEquals(1, capturedOrder.getAccountId(), "订单主表账户ID应该正确");
+        assertEquals(1, capturedOrder.getOwnerId(), "订单主表账户归属者ID应该正确");
+        assertEquals(OwnerTypeEnum.ENTERPRISE.getCode(), capturedOrder.getOwnerType(), "订单主表账户归属者类型应该正确");
+        assertEquals("测试用户", capturedOrder.getOwnerName(), "订单主表账户归属者名称应该正确");
         assertNotNull(capturedDetail.getCreateTime(), "订单详情创建时间不应为null");
         assertEquals(capturedOrder.getOrderCreateTime(), capturedDetail.getCreateTime(), "订单详情创建时间应该与订单创建时间一致");
 

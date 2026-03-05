@@ -13,6 +13,7 @@ import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
@@ -22,6 +23,7 @@ import info.zhihui.ems.web.account.vo.*;
 import info.zhihui.ems.web.common.util.OfflineDurationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -58,7 +60,7 @@ public class AccountBiz {
         PageResult<AccountBo> accountBoPage = accountInfoService.findPage(queryDto, pageParam);
         PageResult<AccountVo> pageResult = accountWebMapper.toAccountVoPage(accountBoPage);
         List<AccountVo> accountVoList = pageResult.getList();
-        if (accountVoList == null || accountVoList.isEmpty()) {
+        if (CollectionUtils.isEmpty(accountVoList)) {
             return pageResult;
         }
         List<AccountBo> accountBoList = accountBoPage.getList();
@@ -74,6 +76,22 @@ public class AccountBiz {
     }
 
     /**
+     * 查询账户下拉列表（默认取第一页）
+     */
+    public List<AccountOptionVo> findAccountOptionList(AccountOptionQueryVo queryVo) {
+        AccountQueryDto queryDto = accountWebMapper.toAccountQueryDto(queryVo);
+        PageParam pageParam = new PageParam()
+                .setPageNum(1)
+                .setPageSize(queryVo.getLimit());
+        PageResult<AccountBo> pageResult = accountInfoService.findPage(queryDto, pageParam);
+        List<AccountBo> accountBoList = pageResult == null ? null : pageResult.getList();
+        if (accountBoList == null || accountBoList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return accountWebMapper.toAccountOptionVoList(accountBoList);
+    }
+
+    /**
      * 根据ID获取账户详情
      */
     public AccountDetailVo getAccount(Integer id) {
@@ -84,6 +102,7 @@ public class AccountBiz {
 
         List<ElectricMeterBo> meterBos = electricMeterInfoService.findList(new ElectricMeterQueryDto().setAccountIds(List.of(id)));
         List<AccountMeterVo> meterVoList = accountWebMapper.toAccountMeterVoList(meterBos);
+        fillAccountMeterType(meterVoList);
         fillAccountMeterSpaceInfo(meterVoList);
         fillAccountMeterBalanceAmount(accountBo, meterVoList, quantityBalanceBoList);
         fillAccountMeterOfflineDurationText(meterVoList, meterBos);
@@ -355,6 +374,18 @@ public class AccountBiz {
             }
             meterVo.setOfflineDurationText(OfflineDurationUtil.format(meterBo.getIsOnline(), meterBo.getLastOnlineTime()));
         }
+    }
+
+    /**
+     * 填充账户详情中的表具类型（当前账户详情仅返回电表，固定为电表类型）。
+     */
+    private void fillAccountMeterType(List<AccountMeterVo> meterVoList) {
+        if (CollectionUtils.isEmpty(meterVoList)) {
+            return;
+        }
+        meterVoList.stream()
+                .filter(Objects::nonNull)
+                .forEach(meterVo -> meterVo.setMeterType(MeterTypeEnum.ELECTRIC.getCode()));
     }
 
     /**

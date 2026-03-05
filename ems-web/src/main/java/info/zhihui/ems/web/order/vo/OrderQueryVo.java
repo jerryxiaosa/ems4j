@@ -16,12 +16,12 @@ public class OrderQueryVo {
     @Schema(description = "订单状态标识，参考 orderStatus")
     private String orderStatus;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    @Schema(description = "订单创建开始时间，格式yyyy-MM-dd'T'HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "订单创建开始时间，格式yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createStartTime;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    @Schema(description = "订单创建结束时间，格式yyyy-MM-dd'T'HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "订单创建结束时间，格式yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createEndTime;
 
     @Schema(description = "支付渠道标识，参考 paymentChannel")
