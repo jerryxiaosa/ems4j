@@ -8,6 +8,7 @@ import info.zhihui.ems.components.translate.formatter.AbsoluteMoneyScale2TextFor
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
 import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.web.account.biz.AccountBiz;
 import info.zhihui.ems.web.account.controller.AccountController;
 import info.zhihui.ems.web.account.vo.*;
@@ -81,6 +82,29 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("查询账户下拉列表默认limit为20")
+    void testFindAccountOptionList_DefaultLimit20() throws Exception {
+        AccountOptionVo optionVo = new AccountOptionVo()
+                .setId(1)
+                .setOwnerType(0)
+                .setOwnerId(100)
+                .setOwnerName("企业A")
+                .setContactName("张三")
+                .setContactPhone("13800138000");
+        when(accountBiz.findAccountOptionList(any(AccountOptionQueryVo.class))).thenReturn(List.of(optionVo));
+
+        mockMvc.perform(get("/v1/accounts/options"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].ownerName").value("企业A"));
+
+        ArgumentCaptor<AccountOptionQueryVo> queryVoArgumentCaptor = ArgumentCaptor.forClass(AccountOptionQueryVo.class);
+        verify(accountBiz).findAccountOptionList(queryVoArgumentCaptor.capture());
+        assertEquals(20, queryVoArgumentCaptor.getValue().getLimit());
+    }
+
+    @Test
     @DisplayName("分页查询账户列表应返回降级后的0余额")
     void testFindAccountPage_WithZeroElectricBalanceAmount() throws Exception {
         AccountVo vo = new AccountVo()
@@ -108,6 +132,7 @@ class AccountControllerTest {
         AccountMeterVo meterVo = new AccountMeterVo()
                 .setId(1001)
                 .setMeterName("1号楼电表")
+                .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setWarnType("NONE")
                 .setMeterBalanceAmount(new BigDecimal("345.60"));
         AccountDetailVo vo = new AccountDetailVo()
@@ -128,6 +153,7 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.data.openedMeterCount").value(2))
                 .andExpect(jsonPath("$.data.totalOpenableMeterCount").value(6))
                 .andExpect(jsonPath("$.data.meterList[0].id").value(1001))
+                .andExpect(jsonPath("$.data.meterList[0].meterType").value(MeterTypeEnum.ELECTRIC.getCode()))
                 .andExpect(jsonPath("$.data.meterList[0].warnTypeName").value("无预警"))
                 .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmount").value(345.60))
                 .andExpect(jsonPath("$.data.meterList[0].meterBalanceAmountText").value("345.60"));

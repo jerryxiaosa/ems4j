@@ -3,6 +3,7 @@ package info.zhihui.ems.business.finance.bo;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -35,6 +36,22 @@ public class OrderBo {
      * 第三方用户id
      */
     private String thirdPartyUserId;
+    /**
+     * 账户id
+     */
+    private Integer accountId;
+    /**
+     * 账户归属者id
+     */
+    private Integer ownerId;
+    /**
+     * 账户类型
+     */
+    private OwnerTypeEnum ownerType;
+    /**
+     * 企业/个人名称
+     */
+    private String ownerName;
     /**
      * 订单分类
      */

@@ -74,6 +74,10 @@ class OrderTerminationHandlerTest {
         verify(orderDetailTerminationRepository, times(1)).insert(detailCaptor.capture());
 
         OrderEntity savedOrder = orderCaptor.getValue();
+        assertEquals(1, savedOrder.getAccountId());
+        assertEquals(10, savedOrder.getOwnerId());
+        assertEquals(OwnerTypeEnum.ENTERPRISE.getCode(), savedOrder.getOwnerType());
+        assertEquals("测试企业", savedOrder.getOwnerName());
         assertEquals(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT.getCode(), savedOrder.getOrderType());
         assertEquals(0, BigDecimal.ZERO.compareTo(savedOrder.getServiceAmount()));
         assertEquals(OrderStatusEnum.NOT_PAY.name(), savedOrder.getOrderStatus());

@@ -4,6 +4,7 @@ import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.account.biz.AccountBiz;
 import info.zhihui.ems.web.account.vo.AccountDetailVo;
@@ -154,6 +155,7 @@ class AccountBizIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(meter1);
+        assertEquals(MeterTypeEnum.ELECTRIC.getCode(), meter1.getMeterType());
         assertEquals(Integer.valueOf(1), meter1.getCt());
         assertEquals("NONE", meter1.getWarnType());
         assertNull(meter1.getWarnTypeName());
@@ -167,6 +169,7 @@ class AccountBizIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(meter7);
+        assertEquals(MeterTypeEnum.ELECTRIC.getCode(), meter7.getMeterType());
         assertNull(meter7.getSpaceName());
         assertNull(meter7.getMeterBalanceAmount());
     }
@@ -202,6 +205,7 @@ class AccountBizIntegrationTest {
         AccountMeterVo meterVo = detailVo.getMeterList().get(0);
         assertNotNull(meterVo);
         assertEquals(Integer.valueOf(3), meterVo.getId());
+        assertEquals(MeterTypeEnum.ELECTRIC.getCode(), meterVo.getMeterType());
         assertEquals(Integer.valueOf(1), meterVo.getCt());
         assertEquals("测试空间3", meterVo.getSpaceName());
         assertNotNull(meterVo.getSpaceParentNames());

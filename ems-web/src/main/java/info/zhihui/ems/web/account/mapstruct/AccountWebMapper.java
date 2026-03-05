@@ -32,6 +32,9 @@ public interface AccountWebMapper {
     @Mapping(target = "electricAccountType", expression = "java(mapElectricType(queryVo.getElectricAccountType()))")
     AccountQueryDto toAccountQueryDto(AccountQueryVo queryVo);
 
+    @Mapping(target = "ownerType", expression = "java(mapOwnerType(queryVo.getOwnerType()))")
+    AccountQueryDto toAccountQueryDto(AccountOptionQueryVo queryVo);
+
     @Mapping(target = "cleanBalanceType", expression = "java(mapCleanBalanceType(queryVo.getCleanBalanceType()))")
     AccountCancelQueryDto toAccountCancelQueryDto(AccountCancelQueryVo queryVo);
 
@@ -41,6 +44,11 @@ public interface AccountWebMapper {
     AccountVo toAccountVo(AccountBo bo);
 
     List<AccountVo> toAccountVoList(List<AccountBo> bos);
+
+    @Mapping(target = "ownerType", expression = "java(mapOwnerTypeCode(bo.getOwnerType()))")
+    AccountOptionVo toAccountOptionVo(AccountBo bo);
+
+    List<AccountOptionVo> toAccountOptionVoList(List<AccountBo> bos);
 
     @Mapping(target = "ownerType", expression = "java(mapOwnerTypeCode(bo.getOwnerType()))")
     @Mapping(target = "electricAccountType", expression = "java(mapElectricTypeCode(bo.getElectricAccountType()))")

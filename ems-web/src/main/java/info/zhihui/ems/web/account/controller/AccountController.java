@@ -43,6 +43,14 @@ public class AccountController {
         return ResultUtil.success(page);
     }
 
+    @SaCheckPermission("accounts:accounts:page")
+    @GetMapping("/options")
+    @Operation(summary = "查询账户下拉列表")
+    public RestResult<List<AccountOptionVo>> findAccountOptionList(@NotNull @Valid @ModelAttribute AccountOptionQueryVo queryVo) {
+        List<AccountOptionVo> list = accountBiz.findAccountOptionList(queryVo);
+        return ResultUtil.success(list);
+    }
+
     @SaCheckPermission("accounts:accounts:detail")
     @GetMapping("/{id}")
     @Operation(summary = "获取账户详情")

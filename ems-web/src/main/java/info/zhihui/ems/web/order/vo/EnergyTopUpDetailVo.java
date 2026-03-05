@@ -18,13 +18,13 @@ public class EnergyTopUpDetailVo {
     @Schema(description = "账户ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer accountId;
 
-    @NotBlank
-    @Schema(description = "账户余额类型标识，参考 balanceType", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String balanceType;
+    @NotNull
+    @Schema(description = "账户余额类型编码，参考 balanceType", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer balanceType;
 
-    @NotBlank
-    @Schema(description = "账户归属者类型，参考 ownerType", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String ownerType;
+    @NotNull
+    @Schema(description = "账户归属者类型编码，参考 ownerType", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer ownerType;
 
     @NotNull
     @Schema(description = "账户归属者ID", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -34,15 +34,15 @@ public class EnergyTopUpDetailVo {
     @Schema(description = "账户归属者名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String ownerName;
 
-    @NotBlank
-    @Schema(description = "电费账户类型标识，参考 electricAccountType", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String electricAccountType;
+    @NotNull
+    @Schema(description = "电费账户类型编码，参考 electricAccountType", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer electricAccountType;
 
     @Schema(description = "电表ID")
     private Integer meterId;
 
-    @Schema(description = "电表类型标识，参考 meterType")
-    private String meterType;
+    @Schema(description = "电表类型编码，参考 meterType")
+    private Integer meterType;
 
     @Schema(description = "电表名称")
     private String meterName;

@@ -5,6 +5,7 @@ import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.dto.order.ServiceFeeDto;
 import info.zhihui.ems.business.finance.dto.order.ServiceFeeRequestDto;
 import info.zhihui.ems.business.finance.dto.order.creation.OrderCreationInfoDto;
+import info.zhihui.ems.business.finance.dto.order.creation.OrderOwnerSnapshotDto;
 import info.zhihui.ems.business.finance.dto.order.creation.TerminationOrderCreationInfoDto;
 import info.zhihui.ems.business.finance.dto.order.creation.TerminationSettlementDto;
 import info.zhihui.ems.business.finance.entity.order.OrderDetailTerminationEntity;
@@ -110,6 +111,11 @@ public class OrderTerminationHandler extends BaseOrderCreationHandler implements
 
         ServiceFeeDto serviceFeeInfo = getServiceFee(new ServiceFeeRequestDto().setOrderOriginalAmount(orderAmount));
         OrderEntity orderEntity = buildOrderEntity(terminationInfoDto, serviceFeeInfo);
+        fillOwnerSnapshot(orderEntity, new OrderOwnerSnapshotDto()
+                .setAccountId(settlementDto.getAccountId())
+                .setOwnerId(settlementDto.getOwnerId())
+                .setOwnerType(settlementDto.getOwnerType())
+                .setOwnerName(settlementDto.getOwnerName()));
         if (orderRepository.insert(orderEntity) != 1) {
             throw new BusinessRuntimeException("保存订单失败");
         }

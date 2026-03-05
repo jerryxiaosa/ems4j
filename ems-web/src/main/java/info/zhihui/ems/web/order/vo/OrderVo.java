@@ -1,5 +1,7 @@
 package info.zhihui.ems.web.order.vo;
 
+import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
+import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -30,8 +32,24 @@ public class OrderVo {
     @Schema(description = "第三方用户ID")
     private String thirdPartyUserId;
 
+    @Schema(description = "账户ID")
+    private Integer accountId;
+
+    @Schema(description = "账户归属者ID")
+    private Integer ownerId;
+
+    @Schema(description = "账户归属者类型编码，参考 ownerType")
+    private Integer ownerType;
+
+    @Schema(description = "账户归属者名称")
+    private String ownerName;
+
     @Schema(description = "订单类型编码，参考 orderType")
     private Integer orderType;
+
+    @Schema(description = "订单类型名称")
+    @EnumLabel(source = "orderType", enumClass = OrderTypeEnum.class)
+    private String orderTypeName;
 
     @Schema(description = "订单金额")
     private BigDecimal orderAmount;
