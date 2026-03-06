@@ -1,6 +1,7 @@
 package info.zhihui.ems.web.order.vo;
 
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
+import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -31,6 +32,15 @@ public class OrderVo {
 
     @Schema(description = "第三方用户ID")
     private String thirdPartyUserId;
+
+    @Schema(description = "第三方订单号")
+    private String thirdPartySn;
+
+    @Schema(description = "电表名称")
+    private String meterName;
+
+    @Schema(description = "电表编号")
+    private String deviceNo;
 
     @Schema(description = "账户ID")
     private Integer accountId;
@@ -66,8 +76,12 @@ public class OrderVo {
     @Schema(description = "用户实际支付金额")
     private BigDecimal userPayAmount;
 
-    @Schema(description = "支付渠道标识，参考 paymentChannel")
+    @Schema(description = "支付渠道编码，参考 paymentChannel")
     private String paymentChannel;
+
+    @Schema(description = "支付渠道名称")
+    @EnumLabel(source = "paymentChannel", enumClass = PaymentChannelEnum.class)
+    private String paymentChannelName;
 
     @Schema(description = "订单状态标识，参考 orderStatus")
     private String orderStatus;
@@ -86,4 +100,10 @@ public class OrderVo {
 
     @Schema(description = "票据号")
     private String ticketNo;
+
+    @Schema(description = "处理前余额")
+    private BigDecimal beginBalance;
+
+    @Schema(description = "处理后余额")
+    private BigDecimal endBalance;
 }

@@ -1,13 +1,9 @@
 package info.zhihui.ems.mq.rabbitmq.listener.order.success;
 
-import info.zhihui.ems.business.device.dto.ElectricMeterSwitchStatusDto;
-import info.zhihui.ems.business.device.enums.ElectricSwitchStatusEnum;
-import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
 import info.zhihui.ems.business.finance.dto.BalanceDto;
 import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
 import info.zhihui.ems.mq.api.message.order.status.EnergyTopUpSuccessMessage;
 import info.zhihui.ems.mq.api.service.TransactionMessageService;
@@ -33,9 +29,9 @@ import org.springframework.validation.annotation.Validated;
 public class EnergyTopUpListener {
 
     private final BalanceService balanceService;
-    private final ElectricMeterManagerService electricMeterManagerService;
     private final TransactionMessageService transactionMessageService;
 
+    // 不需要加事务，订单已保证不能重复充值
     @RabbitListener(queues = QueueConstant.QUEUE_ORDER_SUCCESS_ENERGY_TOP_UP)
     public void handle(@Valid @NotNull EnergyTopUpSuccessMessage message) {
         log.info("接收到能源充值成功消息，订单号: {}, 充值类型: {}, 充值金额: {}",
@@ -106,7 +102,6 @@ public class EnergyTopUpListener {
 
     /**
      * 处理电表充值
-     * 包括断闸检查和开闸操作
      *
      * @param message 充值成功消息
      */
@@ -124,13 +119,5 @@ public class EnergyTopUpListener {
 
         balanceService.topUp(topUpDto);
         log.info("电表充值完成，订单号: {}, 电表ID: {}", message.getOrderSn(), message.getMeterId());
-
-        // 无须查询电表状态，接口内部已处理
-        electricMeterManagerService.setSwitchStatus(new ElectricMeterSwitchStatusDto()
-                .setId(message.getMeterId())
-                .setSwitchStatus(ElectricSwitchStatusEnum.ON)
-                .setCommandSource(CommandSourceEnum.SYSTEM)
-        );
-
     }
 }

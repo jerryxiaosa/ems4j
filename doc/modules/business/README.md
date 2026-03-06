@@ -98,7 +98,8 @@
 | account | AccountManagerService | 开户、销户、账户管理 |
 | account | AccountInfoService | 账户信息查询 |
 | account | AccountAdditionalInfoService | 账户附加读信息（候选电表、可开户总数、电费余额） |
-| account | AccountBalanceAlertService | 余额预警 |
+| account | AccountBalanceChangeService | 账户余额变化后的预警处理（MONTHLY/MERGED） |
+| account | MeterBalanceChangeService | 电表余额变化后的预警处理 |
 | finance | BalanceService | 余额管理 |
 | finance | OrderService | 订单管理 |
 | finance | MeterConsumeService | 电量消费计算 |

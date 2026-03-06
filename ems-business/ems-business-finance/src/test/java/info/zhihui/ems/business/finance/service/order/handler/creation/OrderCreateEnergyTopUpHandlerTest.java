@@ -265,4 +265,32 @@ class OrderCreateEnergyTopUpHandlerTest {
         verify(orderRepository).insert(any(OrderEntity.class));
         verify(orderDetailEnergyTopUpRepository, never()).insert(any(OrderDetailEnergyTopUpEntity.class));
     }
+
+    @Test
+    void testHandle_WhenOrderAmountIsNotPositive_ShouldThrowExceptionAndNotPersist() {
+        // Given
+        energyTopUpDto.setOrderAmount(BigDecimal.ZERO);
+
+        // When
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> handler.createOrder(energyTopUpDto));
+
+        // Then
+        assertEquals("充值金额必须大于0", exception.getMessage());
+        verify(orderRepository, never()).insert(any(OrderEntity.class));
+        verify(orderDetailEnergyTopUpRepository, never()).insert(any(OrderDetailEnergyTopUpEntity.class));
+    }
+
+    @Test
+    void testHandle_WhenOrderAmountIsNegative_ShouldThrowExceptionAndNotPersist() {
+        // Given
+        energyTopUpDto.setOrderAmount(new BigDecimal("-0.01"));
+
+        // When
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> handler.createOrder(energyTopUpDto));
+
+        // Then
+        assertEquals("充值金额必须大于0", exception.getMessage());
+        verify(orderRepository, never()).insert(any(OrderEntity.class));
+        verify(orderDetailEnergyTopUpRepository, never()).insert(any(OrderDetailEnergyTopUpEntity.class));
+    }
 }

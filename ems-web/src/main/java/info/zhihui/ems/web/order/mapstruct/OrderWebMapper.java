@@ -1,6 +1,7 @@
 package info.zhihui.ems.web.order.mapstruct;
 
 import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.dto.order.creation.EnergyOrderCreationInfoDto;
@@ -41,11 +42,11 @@ public interface OrderWebMapper {
     OrderQueryDto toOrderQueryDto(OrderQueryVo queryVo);
 
     @Mapping(target = "ownerType", source = "ownerType", qualifiedByName = "ownerTypeToCode")
-    OrderVo toOrderVo(OrderBo bo);
+    OrderVo toOrderVo(OrderListDto dto);
 
-    List<OrderVo> toOrderVoList(List<OrderBo> bos);
+    List<OrderVo> toOrderVoList(List<OrderListDto> dtoList);
 
-    default PageResult<OrderVo> toOrderVoPage(PageResult<OrderBo> pageResult) {
+    default PageResult<OrderVo> toOrderVoPage(PageResult<OrderListDto> pageResult) {
         if (pageResult == null) {
             return new PageResult<OrderVo>().setPageNum(0).setPageSize(0).setTotal(0L).setList(Collections.emptyList());
         }
@@ -80,15 +81,19 @@ public interface OrderWebMapper {
     }
 
     default PaymentChannelEnum mapPaymentChannel(String channel) {
-        return channel == null ? null : PaymentChannelEnum.valueOf(channel);
+        return CodeEnum.fromCode(channel, PaymentChannelEnum.class);
     }
 
     default String mapPaymentChannel(PaymentChannelEnum channel) {
-        return channel == null ? null : channel.name();
+        return channel == null ? null : channel.getCode();
     }
 
     default Integer mapOrderType(OrderTypeEnum orderType) {
         return orderType == null ? null : orderType.getCode();
+    }
+
+    default OrderTypeEnum mapOrderType(Integer orderTypeCode) {
+        return CodeEnum.fromCode(orderTypeCode, OrderTypeEnum.class);
     }
 
     default BalanceTypeEnum mapBalanceType(String balanceType) {

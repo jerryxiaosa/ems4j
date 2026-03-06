@@ -1,6 +1,6 @@
 package info.zhihui.ems.business.finance.service.order.core;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
@@ -20,5 +20,5 @@ public interface OrderQueryService {
      * @param pageParam 分页参数
      * @return 订单业务对象分页结果
      */
-    PageResult<OrderBo> findOrdersPage(@NotNull OrderQueryDto dto, @NotNull PageParam pageParam);
+    PageResult<OrderListDto> findOrdersPage(@NotNull OrderQueryDto dto, @NotNull PageParam pageParam);
 }

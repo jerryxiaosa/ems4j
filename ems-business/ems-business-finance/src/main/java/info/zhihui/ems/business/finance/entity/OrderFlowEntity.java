@@ -42,6 +42,16 @@ public class OrderFlowEntity {
     private BigDecimal amount;
 
     /**
+     * 处理前余额
+     */
+    private BigDecimal beginBalance;
+
+    /**
+     * 处理后余额
+     */
+    private BigDecimal endBalance;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

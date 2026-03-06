@@ -1,14 +1,17 @@
 package info.zhihui.ems.business.finance.service.order.core;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
-import info.zhihui.ems.business.finance.entity.order.OrderEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
+import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.mapstruct.OrderMapper;
+import info.zhihui.ems.business.finance.qo.OrderListItemQo;
 import info.zhihui.ems.business.finance.qo.OrderQueryQo;
+import info.zhihui.ems.business.finance.repository.order.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.finance.repository.order.OrderRepository;
 import info.zhihui.ems.business.finance.service.order.core.impl.OrderQueryServiceImpl;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +48,18 @@ class OrderQueryServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
 
+    @Mock
+    private OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository;
+
     @InjectMocks
     private OrderQueryServiceImpl orderQueryService;
 
     private OrderQueryDto queryDto;
     private PageParam pageParam;
-    private OrderEntity orderEntity1;
-    private OrderEntity orderEntity2;
-    private OrderBo orderBo1;
-    private OrderBo orderBo2;
+    private OrderListItemQo orderItemQo1;
+    private OrderListItemQo orderItemQo2;
+    private OrderListDto orderBo1;
+    private OrderListDto orderBo2;
 
     @BeforeEach
     void setUp() {
@@ -61,31 +67,34 @@ class OrderQueryServiceImplTest {
         LocalDateTime sevenDaysAgo = now.minusDays(7);
 
         queryDto = new OrderQueryDto()
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
                 .setOrderStatus(OrderStatusEnum.NOT_PAY)
+                .setOrderSnLike(" ORDER ")
+                .setThirdPartySnLike(" TP ")
+                .setEnterpriseNameLike(" ACME CORP ")
                 .setCreateStartTime(sevenDaysAgo)
                 .setCreateEndTime(now)
-                .setPaymentChannel(PaymentChannelEnum.WX_MINI)
-                .setUserId(123);
+                .setPaymentChannel(PaymentChannelEnum.WX_MINI);
         pageParam = new PageParam()
                 .setPageNum(1)
                 .setPageSize(10);
 
-        orderEntity1 = new OrderEntity();
-        orderEntity1.setOrderSn("ORDER001");
-        orderEntity1.setOrderStatus(OrderStatusEnum.NOT_PAY.name());
-        orderEntity1.setOrderCreateTime(now.minusDays(3));
+        orderItemQo1 = new OrderListItemQo();
+        orderItemQo1.setOrderSn("ORDER001");
+        orderItemQo1.setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        orderItemQo1.setOrderCreateTime(now.minusDays(3));
 
-        orderEntity2 = new OrderEntity();
-        orderEntity2.setOrderSn("ORDER002");
-        orderEntity2.setOrderStatus(OrderStatusEnum.NOT_PAY.name());
-        orderEntity2.setOrderCreateTime(now.minusDays(5));
+        orderItemQo2 = new OrderListItemQo();
+        orderItemQo2.setOrderSn("ORDER002");
+        orderItemQo2.setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        orderItemQo2.setOrderCreateTime(now.minusDays(5));
 
-        orderBo1 = new OrderBo();
+        orderBo1 = new OrderListDto();
         orderBo1.setOrderSn("ORDER001");
         orderBo1.setOrderStatus(OrderStatusEnum.NOT_PAY);
         orderBo1.setOrderCreateTime(now.minusDays(3));
 
-        orderBo2 = new OrderBo();
+        orderBo2 = new OrderListDto();
         orderBo2.setOrderSn("ORDER002");
         orderBo2.setOrderStatus(OrderStatusEnum.NOT_PAY);
         orderBo2.setOrderCreateTime(now.minusDays(5));
@@ -93,16 +102,16 @@ class OrderQueryServiceImplTest {
 
     @Test
     void testFindOrdersPage_Success() {
-        List<OrderEntity> orderEntities = Arrays.asList(orderEntity1, orderEntity2);
-        PageResult<OrderBo> pageResult = new PageResult<OrderBo>()
+        List<OrderListItemQo> orderItemQos = Arrays.asList(orderItemQo1, orderItemQo2);
+        PageResult<OrderListDto> pageResult = new PageResult<OrderListDto>()
                 .setPageNum(1)
                 .setPageSize(10)
                 .setTotal(2L)
                 .setList(List.of(orderBo1, orderBo2));
-        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(orderEntities);
-        when(orderMapper.pageEntityToBo(any())).thenReturn(pageResult);
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(orderItemQos);
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(pageResult);
 
-        PageResult<OrderBo> result = orderQueryService.findOrdersPage(queryDto, pageParam);
+        PageResult<OrderListDto> result = orderQueryService.findOrdersPage(queryDto, pageParam);
 
         assertNotNull(result);
         assertEquals(1, result.getPageNum());
@@ -111,12 +120,16 @@ class OrderQueryServiceImplTest {
         assertNotNull(result.getList());
         assertEquals(2, result.getList().size());
         verify(orderRepository).findList(argThat(qo ->
-                OrderStatusEnum.NOT_PAY.name().equals(qo.getOrderStatus())
+                OrderTypeEnum.ENERGY_TOP_UP.getCode().equals(qo.getOrderType())
+                        && OrderStatusEnum.NOT_PAY.name().equals(qo.getOrderStatus())
+                        && "ORDER".equals(qo.getOrderSnLike())
+                        && "TP".equals(qo.getThirdPartySnLike())
+                        && "ACME CORP".equals(qo.getEnterpriseNameLike())
+                        && OwnerTypeEnum.ENTERPRISE.getCode().equals(qo.getOwnerType())
                         && PaymentChannelEnum.WX_MINI.name().equals(qo.getPaymentChannel())
-                        && Integer.valueOf(123).equals(qo.getUserId())
                         && queryDto.getCreateStartTime().equals(qo.getCreateStartTime())
                         && queryDto.getCreateEndTime().equals(qo.getCreateEndTime())));
-        verify(orderMapper).pageEntityToBo(any());
+        verify(orderMapper).pageOrderListItemQoToOrderListDto(any());
     }
 
     @Test
@@ -128,19 +141,19 @@ class OrderQueryServiceImplTest {
 
         assertEquals("Database error", exception.getMessage());
         verify(orderRepository).findList(any(OrderQueryQo.class));
-        verify(orderMapper, never()).pageEntityToBo(any());
+        verify(orderMapper, never()).pageOrderListItemQoToOrderListDto(any());
     }
 
     @Test
     void testFindOrdersPage_PageMapperException() {
-        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderEntity1));
-        when(orderMapper.pageEntityToBo(any())).thenThrow(new RuntimeException("Mapping error"));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderItemQo1));
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenThrow(new RuntimeException("Mapping error"));
 
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> orderQueryService.findOrdersPage(queryDto, pageParam));
 
         assertEquals("Mapping error", exception.getMessage());
         verify(orderRepository).findList(any(OrderQueryQo.class));
-        verify(orderMapper).pageEntityToBo(any());
+        verify(orderMapper).pageOrderListItemQoToOrderListDto(any());
     }
 }

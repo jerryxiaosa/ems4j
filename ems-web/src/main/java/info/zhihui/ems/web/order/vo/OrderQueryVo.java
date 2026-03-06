@@ -13,8 +13,20 @@ import java.time.LocalDateTime;
 @Schema(name = "OrderQueryVo", description = "订单查询条件")
 public class OrderQueryVo {
 
+    @Schema(description = "订单类型编码，参考 orderType")
+    private Integer orderType;
+
     @Schema(description = "订单状态标识，参考 orderStatus")
     private String orderStatus;
+
+    @Schema(description = "订单号模糊搜索")
+    private String orderSnLike;
+
+    @Schema(description = "第三方订单号模糊搜索")
+    private String thirdPartySnLike;
+
+    @Schema(description = "企业名称模糊搜索")
+    private String enterpriseNameLike;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Schema(description = "订单创建开始时间，格式yyyy-MM-dd HH:mm:ss")
@@ -26,7 +38,4 @@ public class OrderQueryVo {
 
     @Schema(description = "支付渠道标识，参考 paymentChannel")
     private String paymentChannel;
-
-    @Schema(description = "用户ID")
-    private Integer userId;
 }

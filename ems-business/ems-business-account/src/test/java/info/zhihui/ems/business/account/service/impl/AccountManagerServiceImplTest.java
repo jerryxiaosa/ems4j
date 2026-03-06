@@ -32,6 +32,7 @@ import info.zhihui.ems.business.plan.service.WarnPlanService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
+import info.zhihui.ems.common.enums.WarnTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.components.lock.core.LockTemplate;
@@ -143,6 +144,7 @@ class AccountManagerServiceImplTest {
                 .setOwnerId(1)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                 .setMonthlyPayAmount(BigDecimal.valueOf(100))
+                .setWarnPlanId(7)
                 .setElectricMeterList(List.of(new MeterOpenDetailDto()
                         .setMeterId(1)
                         ));
@@ -158,12 +160,14 @@ class AccountManagerServiceImplTest {
 
         // Mock meter operations
         doNothing().when(electricMeterManagerService).openMeterAccount(any());
+        when(warnPlanService.getDetail(7)).thenReturn(new WarnPlanBo());
 
         AccountEntity savedEntity = new AccountEntity().setId(1);
         AccountBo savedAccountBo = new AccountBo()
                 .setId(1)
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
-                .setMonthlyPayAmount(BigDecimal.valueOf(100));
+                .setMonthlyPayAmount(BigDecimal.valueOf(100))
+                .setWarnPlanId(7);
 
         when(mapper.openAccountDtoToEntity(any())).thenReturn(savedEntity);
         when(infoMapper.entityToBo(any())).thenReturn(savedAccountBo);
@@ -178,12 +182,16 @@ class AccountManagerServiceImplTest {
         verify(lock).tryLock();
         verify(lock).unlock();
         verify(accountInfoService).findList(any());
-        verify(repository).insert(any(AccountEntity.class));
+        ArgumentCaptor<AccountEntity> insertCaptor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).insert(insertCaptor.capture());
+        AccountEntity insertEntity = insertCaptor.getValue();
+        assertThat(insertEntity.getWarnPlanId()).isEqualTo(7);
         verify(accountConsumeService).monthlyConsume(any());
         verify(electricMeterManagerService).openMeterAccount(any());
         assertThat(accountId).isEqualTo(1);
         verify(organizationService).getDetail(1);
-        verifyNoInteractions(electricPricePlanService, warnPlanService);
+        verify(warnPlanService).getDetail(7);
+        verifyNoInteractions(electricPricePlanService);
     }
 
     @Test
@@ -232,13 +240,57 @@ class AccountManagerServiceImplTest {
         verify(lock).tryLock();
         verify(lock).unlock();
         verify(accountInfoService).findList(any());
-        verify(repository).insert(any(AccountEntity.class));
+        ArgumentCaptor<AccountEntity> insertCaptor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).insert(insertCaptor.capture());
+        AccountEntity insertEntity = insertCaptor.getValue();
+        assertThat(insertEntity.getElectricWarnType()).isNull();
         verify(accountConsumeService, never()).monthlyConsume(any());
         verify(electricMeterManagerService).openMeterAccount(any());
         assertThat(accountId).isEqualTo(1);
         verify(organizationService).getDetail(1);
         verify(electricPricePlanService).getDetail(1);
         verify(warnPlanService).getDetail(1);
+    }
+
+    @Test
+    void testUpdateAccount_Success_MonthlyWarnPlanOnly() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountBo accountBo = new AccountBo()
+                .setId(15)
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setMonthlyPayAmount(new BigDecimal("100"))
+                .setWarnPlanId(6)
+                .setElectricWarnType(WarnTypeEnum.SECOND);
+        when(accountInfoService.getById(15)).thenReturn(accountBo);
+        when(warnPlanService.getDetail(9)).thenReturn(new WarnPlanBo()
+                .setFirstLevel(new BigDecimal("200"))
+                .setSecondLevel(new BigDecimal("50")));
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(
+                new BalanceBo().setBalance(new BigDecimal("500"))
+        );
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(15)
+                .setWarnPlanId(9);
+
+        accountManagerService.updateAccount(dto);
+
+        ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).updateById(captor.capture());
+        AccountEntity entity = captor.getValue();
+        assertThat(entity.getId()).isEqualTo(15);
+        assertThat(entity.getWarnPlanId()).isEqualTo(9);
+        assertThat(entity.getElectricWarnType()).isEqualTo(WarnTypeEnum.NONE.getCode());
+        verify(warnPlanService).getDetail(9);
+        ArgumentCaptor<BalanceQueryDto> monthlyBalanceQueryCaptor = ArgumentCaptor.forClass(BalanceQueryDto.class);
+        verify(balanceService).getByQuery(monthlyBalanceQueryCaptor.capture());
+        BalanceQueryDto monthlyBalanceQueryDto = monthlyBalanceQueryCaptor.getValue();
+        assertThat(monthlyBalanceQueryDto.getBalanceRelationId()).isEqualTo(15);
+        assertThat(monthlyBalanceQueryDto.getBalanceType()).isEqualTo(BalanceTypeEnum.ACCOUNT);
+        verifyNoInteractions(electricPricePlanService, electricMeterManagerService);
     }
 
     @Test
@@ -441,6 +493,10 @@ class AccountManagerServiceImplTest {
         when(accountInfoService.getById(2)).thenReturn(accountBo);
         when(electricPricePlanService.getDetail(5)).thenReturn(new ElectricPricePlanDetailBo());
         when(warnPlanService.getDetail(9)).thenReturn(new WarnPlanBo());
+        when(electricMeterInfoService.findList(any(ElectricMeterQueryDto.class))).thenReturn(List.of(
+                new ElectricMeterBo().setId(11),
+                new ElectricMeterBo().setId(12)
+        ));
 
         AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
                 .setAccountId(2)
@@ -454,6 +510,12 @@ class AccountManagerServiceImplTest {
         AccountEntity entity = captor.getValue();
         assertThat(entity.getElectricPricePlanId()).isEqualTo(5);
         assertThat(entity.getWarnPlanId()).isEqualTo(9);
+        verify(electricMeterManagerService).setMeterPricePlan(eq(List.of(11, 12)), eq(5));
+        verify(electricMeterManagerService).setMeterWarnPlan(argThat(warnPlanDto ->
+                warnPlanDto != null
+                        && List.of(11, 12).equals(warnPlanDto.getMeterIds())
+                        && Integer.valueOf(9).equals(warnPlanDto.getWarnPlanId())
+        ));
     }
 
     @Test
@@ -480,6 +542,46 @@ class AccountManagerServiceImplTest {
         AccountEntity entity = captor.getValue();
         assertThat(entity.getElectricPricePlanId()).isEqualTo(8);
         verify(warnPlanService, never()).getDetail(anyInt());
+    }
+
+    @Test
+    void testUpdateAccount_Success_MergedWarnPlanOnly_ShouldRefreshWarnType() {
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        doNothing().when(lock).unlock();
+
+        AccountBo accountBo = new AccountBo()
+                .setId(16)
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED)
+                .setWarnPlanId(3)
+                .setElectricWarnType(WarnTypeEnum.FIRST);
+        when(accountInfoService.getById(16)).thenReturn(accountBo);
+        when(warnPlanService.getDetail(8)).thenReturn(new WarnPlanBo()
+                .setFirstLevel(new BigDecimal("100"))
+                .setSecondLevel(new BigDecimal("40")));
+        when(balanceService.getByQuery(any(BalanceQueryDto.class))).thenReturn(
+                new BalanceBo().setBalance(new BigDecimal("30"))
+        );
+
+        AccountConfigUpdateDto dto = new AccountConfigUpdateDto()
+                .setAccountId(16)
+                .setWarnPlanId(8);
+
+        accountManagerService.updateAccount(dto);
+
+        ArgumentCaptor<AccountEntity> captor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(repository).updateById(captor.capture());
+        AccountEntity entity = captor.getValue();
+        assertThat(entity.getId()).isEqualTo(16);
+        assertThat(entity.getWarnPlanId()).isEqualTo(8);
+        assertThat(entity.getElectricWarnType()).isEqualTo(WarnTypeEnum.SECOND.getCode());
+        verify(warnPlanService).getDetail(8);
+        ArgumentCaptor<BalanceQueryDto> mergedBalanceQueryCaptor = ArgumentCaptor.forClass(BalanceQueryDto.class);
+        verify(balanceService).getByQuery(mergedBalanceQueryCaptor.capture());
+        BalanceQueryDto mergedBalanceQueryDto = mergedBalanceQueryCaptor.getValue();
+        assertThat(mergedBalanceQueryDto.getBalanceRelationId()).isEqualTo(16);
+        assertThat(mergedBalanceQueryDto.getBalanceType()).isEqualTo(BalanceTypeEnum.ACCOUNT);
+        verifyNoInteractions(electricPricePlanService, electricMeterManagerService);
     }
 
     @Test

@@ -8,6 +8,7 @@ import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.annotation.TranslateChild;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
+import info.zhihui.ems.web.common.resolver.ElectricPricePlanNameResolver;
 import info.zhihui.ems.web.common.resolver.WarnPlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -55,6 +56,13 @@ public class AccountDetailVo {
 
     @Schema(description = "包月费用")
     private BigDecimal monthlyPayAmount;
+
+    @Schema(description = "电价方案ID")
+    private Integer electricPricePlanId;
+
+    @Schema(description = "电价方案名称")
+    @BizLabel(source = "electricPricePlanId", resolver = ElectricPricePlanNameResolver.class)
+    private String electricPricePlanName;
 
     @Schema(description = "电费余额")
     private BigDecimal electricBalanceAmount;

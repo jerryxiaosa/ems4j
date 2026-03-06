@@ -25,8 +25,10 @@ import info.zhihui.ems.business.finance.service.balance.BalanceService;
 import info.zhihui.ems.business.finance.service.consume.AccountConsumeService;
 import info.zhihui.ems.business.finance.service.order.core.OrderService;
 import info.zhihui.ems.business.finance.utils.MoneyUtil;
+import info.zhihui.ems.business.plan.bo.WarnPlanBo;
 import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
 import info.zhihui.ems.business.plan.service.WarnPlanService;
+import info.zhihui.ems.business.plan.util.WarnTypeCalculator;
 import info.zhihui.ems.common.constant.SerialNumberConstant;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
@@ -235,8 +237,14 @@ public class AccountManagerServiceImpl implements AccountManagerService {
         ElectricAccountTypeEnum accountType = openAccountDto.getElectricAccountType();
         // 包月
         if (ElectricAccountTypeEnum.MONTHLY.equals(accountType)) {
+            if (openAccountDto.getElectricPricePlanId() != null) {
+                throw new BusinessRuntimeException("包月计费不支持设置电价方案");
+            }
             if (openAccountDto.getMonthlyPayAmount() == null) {
                 throw new BusinessRuntimeException("包月计费月租费不能为空");
+            }
+            if (openAccountDto.getWarnPlanId() != null) {
+                Objects.requireNonNull(warnPlanService.getDetail(openAccountDto.getWarnPlanId()));
             }
             // 保留两位小数
             openAccountDto.setMonthlyPayAmount(MoneyUtil.scaleToCent(openAccountDto.getMonthlyPayAmount()));
@@ -259,16 +267,19 @@ public class AccountManagerServiceImpl implements AccountManagerService {
         AccountEntity entity = mapper.openAccountDtoToEntity(openAccountDto);
 
         if (ElectricAccountTypeEnum.MONTHLY.equals(openAccountDto.getElectricAccountType())) {
-            // 包月没有电价方案和预警方案
+            // 包月没有电价方案
             entity.setElectricPricePlanId(null);
-            entity.setWarnPlanId(null);
+            entity.setWarnPlanId(openAccountDto.getWarnPlanId());
         } else {
             // 非包月没有月租费
             entity.setMonthlyPayAmount(null);
         }
 
-        // 重置警告等级
-        entity.setElectricWarnType(WarnTypeEnum.NONE.getCode());
+        if (ElectricAccountTypeEnum.QUANTITY.equals(openAccountDto.getElectricAccountType())) {
+            entity.setElectricWarnType(null);
+        } else {
+            entity.setElectricWarnType(WarnTypeEnum.NONE.getCode());
+        }
         entity.setCreateTime(LocalDateTime.now());
 
         repository.insert(entity);
@@ -413,20 +424,33 @@ public class AccountManagerServiceImpl implements AccountManagerService {
         Integer warnPlanId = dto.getWarnPlanId();
         BigDecimal monthlyPayAmount = dto.getMonthlyPayAmount();
 
-        if (electricPricePlanId != null || warnPlanId != null) {
-            throw new BusinessRuntimeException("包月账户不支持设置电价方案或预警方案");
+        if (electricPricePlanId != null) {
+            throw new BusinessRuntimeException("包月账户不支持设置电价方案");
         }
-        if (monthlyPayAmount == null) {
-            throw new BusinessRuntimeException("请填写包月账户月租费");
+        if (warnPlanId == null && monthlyPayAmount == null) {
+            throw new BusinessRuntimeException("请至少更新预警方案或月租费");
         }
 
-        BigDecimal normalizedMonthlyPay = MoneyUtil.scaleToCent(monthlyPayAmount);
-        BigDecimal currentMonthlyPay = accountBo.getMonthlyPayAmount();
-        if (currentMonthlyPay == null || normalizedMonthlyPay.compareTo(currentMonthlyPay) != 0) {
-            updateEntity.setMonthlyPayAmount(normalizedMonthlyPay);
-            return true;
+        boolean needUpdate = false;
+
+        Integer currentWarnPlanId = accountBo.getWarnPlanId();
+        if (warnPlanId != null && !Objects.equals(warnPlanId, currentWarnPlanId)) {
+            WarnPlanBo warnPlanBo = warnPlanService.getDetail(warnPlanId);
+            updateEntity.setWarnPlanId(warnPlanId);
+            refreshAccountWarnTypeOnWarnPlanChanged(accountBo, warnPlanBo, updateEntity);
+            needUpdate = true;
         }
-        return false;
+
+        if (monthlyPayAmount != null) {
+            BigDecimal normalizedMonthlyPay = MoneyUtil.scaleToCent(monthlyPayAmount);
+            BigDecimal currentMonthlyPay = accountBo.getMonthlyPayAmount();
+            if (currentMonthlyPay == null || normalizedMonthlyPay.compareTo(currentMonthlyPay) != 0) {
+                updateEntity.setMonthlyPayAmount(normalizedMonthlyPay);
+                needUpdate = true;
+            }
+        }
+
+        return needUpdate;
     }
 
     private boolean applyNotMonthlyUpdate(AccountBo accountBo,
@@ -453,12 +477,35 @@ public class AccountManagerServiceImpl implements AccountManagerService {
             needUpdate = true;
         }
         if (warnPlanId != null && !Objects.equals(warnPlanId, currentWarnPlanId)) {
-            warnPlanService.getDetail(warnPlanId);
+            WarnPlanBo warnPlanBo = warnPlanService.getDetail(warnPlanId);
             updateEntity.setWarnPlanId(warnPlanId);
+            refreshAccountWarnTypeOnWarnPlanChanged(accountBo, warnPlanBo, updateEntity);
             needUpdate = true;
         }
 
         return needUpdate;
+    }
+
+    private void refreshAccountWarnTypeOnWarnPlanChanged(AccountBo accountBo,
+                                                         WarnPlanBo warnPlanBo,
+                                                         AccountEntity updateEntity) {
+        if (ElectricAccountTypeEnum.QUANTITY.equals(accountBo.getElectricAccountType())) {
+            return;
+        }
+
+        WarnTypeEnum currentWarnType = accountBo.getElectricWarnType();
+        WarnTypeEnum latestWarnType = calculateAccountWarnType(accountBo.getId(), warnPlanBo);
+        if (currentWarnType == null || latestWarnType != currentWarnType) {
+            updateEntity.setElectricWarnType(latestWarnType.getCode());
+        }
+    }
+
+    private WarnTypeEnum calculateAccountWarnType(Integer accountId, WarnPlanBo warnPlanBo) {
+        BalanceBo balanceBo = balanceService.getByQuery(new BalanceQueryDto()
+                .setBalanceRelationId(accountId)
+                .setBalanceType(BalanceTypeEnum.ACCOUNT));
+        BigDecimal balance = balanceBo == null ? null : balanceBo.getBalance();
+        return WarnTypeCalculator.compute(balance, warnPlanBo);
     }
 
     /**
