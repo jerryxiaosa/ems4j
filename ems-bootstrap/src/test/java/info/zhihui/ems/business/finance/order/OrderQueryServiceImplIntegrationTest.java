@@ -1,15 +1,24 @@
 package info.zhihui.ems.business.finance.order;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
+import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
+import info.zhihui.ems.business.finance.entity.order.OrderDetailEnergyTopUpEntity;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
+import info.zhihui.ems.business.finance.entity.order.OrderThirdPartyPrepayEntity;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
+import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
+import info.zhihui.ems.business.finance.repository.order.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.finance.repository.order.OrderRepository;
+import info.zhihui.ems.business.finance.repository.order.OrderThirdPartyPrepayRepository;
 import info.zhihui.ems.business.finance.service.order.core.OrderQueryService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,10 +50,22 @@ class OrderQueryServiceImplIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private OrderThirdPartyPrepayRepository orderThirdPartyPrepayRepository;
+
+    @Autowired
+    private OrderFlowRepository orderFlowRepository;
+
+    @Autowired
+    private OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository;
+
     @BeforeEach
     void setUp() {
         // 清理测试数据
         orderRepository.delete(null);
+        orderThirdPartyPrepayRepository.delete(null);
+        orderFlowRepository.delete(null);
+        orderDetailEnergyTopUpRepository.delete(null);
     }
 
     @Test
@@ -73,14 +94,14 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果
         assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(OrderBo::getOrderSn)
+        assertThat(result).extracting(OrderListDto::getOrderSn)
                 .containsExactlyInAnyOrder("IT-QUERY-001", "IT-QUERY-002");
         assertThat(result).allMatch(order -> order.getOrderStatus() == OrderStatusEnum.NOT_PAY);
     }
@@ -103,8 +124,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果
         assertThat(pageResult).isNotNull();
@@ -133,8 +154,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.SUCCESS);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果
         assertThat(pageResult).isNotNull();
@@ -162,8 +183,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY)
                 .setPaymentChannel(PaymentChannelEnum.OFFLINE);
 
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         assertThat(pageResult).isNotNull();
         assertThat(result).hasSize(1);
@@ -172,30 +193,221 @@ class OrderQueryServiceImplIntegrationTest {
     }
 
     @Test
-    void findOrdersPage_ShouldFilterByUserId_WhenUserIdProvided() {
+    void findOrdersPage_ShouldFilterByOrderType_WhenOrderTypeProvided() {
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
 
-        OrderEntity user1001Order = buildOrderEntity("IT-QUERY-USER-1001", threeDaysAgo)
+        OrderEntity energyTopUpOrder = buildOrderEntity("IT-QUERY-TYPE-ENERGY", threeDaysAgo)
                 .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
-                .setUserId(1001);
-        OrderEntity user2002Order = buildOrderEntity("IT-QUERY-USER-2002", threeDaysAgo)
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP.getCode());
+        OrderEntity terminationOrder = buildOrderEntity("IT-QUERY-TYPE-TERM", threeDaysAgo)
                 .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
-                .setUserId(2002);
+                .setOrderType(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT.getCode());
 
-        orderRepository.insert(user1001Order);
-        orderRepository.insert(user2002Order);
+        orderRepository.insert(energyTopUpOrder);
+        orderRepository.insert(terminationOrder);
 
         OrderQueryDto queryDto = new OrderQueryDto()
                 .setOrderStatus(OrderStatusEnum.NOT_PAY)
-                .setUserId(2002);
+                .setOrderType(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT);
 
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         assertThat(pageResult).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-USER-2002");
-        assertThat(result.get(0).getUserId()).isEqualTo(2002);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-TYPE-TERM");
+        assertThat(result.get(0).getOrderType()).isEqualTo(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT);
+    }
+
+    @Test
+    void findOrdersPage_ShouldFilterByOrderSnLike_WhenOrderSnLikeProvided() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        OrderEntity matchedOrder = buildOrderEntity("IT-QUERY-LIKE-ABC-001", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity unmatchedOrder = buildOrderEntity("IT-QUERY-LIKE-XYZ-002", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+
+        orderRepository.insert(matchedOrder);
+        orderRepository.insert(unmatchedOrder);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY)
+                .setOrderSnLike("ABC");
+
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-LIKE-ABC-001");
+    }
+
+    @Test
+    void findOrdersPage_ShouldFilterByThirdPartySnLike_WhenThirdPartySnLikeProvided() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        OrderEntity matchedOrder = buildOrderEntity("IT-QUERY-THIRD-SN-01", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+        OrderEntity unmatchedOrder = buildOrderEntity("IT-QUERY-THIRD-SN-02", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name());
+
+        orderRepository.insert(matchedOrder);
+        orderRepository.insert(unmatchedOrder);
+
+        orderThirdPartyPrepayRepository.insert(new OrderThirdPartyPrepayEntity()
+                .setOrderSn("IT-QUERY-THIRD-SN-01")
+                .setPrepayId("prepay-matched")
+                .setThirdPartyUserId("tp-user-1")
+                .setThirdPartySn("wx-abc-001")
+                .setPrepayAt(LocalDateTime.now())
+                .setIsDeleted(Boolean.FALSE));
+        orderThirdPartyPrepayRepository.insert(new OrderThirdPartyPrepayEntity()
+                .setOrderSn("IT-QUERY-THIRD-SN-02")
+                .setPrepayId("prepay-unmatched")
+                .setThirdPartyUserId("tp-user-2")
+                .setThirdPartySn("wx-xyz-002")
+                .setPrepayAt(LocalDateTime.now())
+                .setIsDeleted(Boolean.FALSE));
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.NOT_PAY)
+                .setThirdPartySnLike("abc");
+
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-THIRD-SN-01");
+        assertThat(result.get(0).getThirdPartySn()).isEqualTo("wx-abc-001");
+    }
+
+    @Test
+    void findOrdersPage_ShouldReturnProcessBalanceFields_WhenOrderFlowExists() {
+        LocalDateTime now = LocalDateTime.now();
+
+        OrderEntity orderEntity = buildOrderEntity("IT-QUERY-BALANCE-FLOW", now.minusHours(1))
+                .setOrderStatus(OrderStatusEnum.SUCCESS.name());
+        orderRepository.insert(orderEntity);
+
+        orderFlowRepository.insert(new OrderFlowEntity()
+                .setConsumeId("IT-QUERY-BALANCE-FLOW")
+                .setBalanceRelationId(1)
+                .setBalanceType(0)
+                .setAccountId(1)
+                .setAmount(new BigDecimal("100.00"))
+                .setBeginBalance(new BigDecimal("500.00"))
+                .setEndBalance(new BigDecimal("600.00"))
+                .setCreateTime(now));
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.SUCCESS);
+
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOrderSn()).isEqualTo("IT-QUERY-BALANCE-FLOW");
+        assertThat(result.get(0).getBeginBalance()).isEqualByComparingTo("500.00");
+        assertThat(result.get(0).getEndBalance()).isEqualByComparingTo("600.00");
+    }
+
+    @Test
+    void findOrdersPage_ShouldReturnMeterInfoOnlyForElectricMeterTopUp() {
+        LocalDateTime now = LocalDateTime.now();
+
+        OrderEntity electricMeterOrder = buildOrderEntity("IT-QUERY-METER-ELE", now.minusMinutes(2))
+                .setOrderStatus(OrderStatusEnum.SUCCESS.name());
+        OrderEntity accountOrder = buildOrderEntity("IT-QUERY-METER-ACC", now.minusMinutes(1))
+                .setOrderStatus(OrderStatusEnum.SUCCESS.name());
+        orderRepository.insert(electricMeterOrder);
+        orderRepository.insert(accountOrder);
+
+        orderDetailEnergyTopUpRepository.insert(new OrderDetailEnergyTopUpEntity()
+                .setOrderSn("IT-QUERY-METER-ELE")
+                .setAccountId(1001)
+                .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
+                .setMeterId(2001)
+                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
+                .setMeterName("A区1号电表")
+                .setDeviceNo("DNO-001")
+                .setCreateTime(now));
+        orderDetailEnergyTopUpRepository.insert(new OrderDetailEnergyTopUpEntity()
+                .setOrderSn("IT-QUERY-METER-ACC")
+                .setAccountId(1001)
+                .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
+                .setMeterId(2002)
+                .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
+                .setMeterName("不应返回")
+                .setDeviceNo("DNO-999")
+                .setCreateTime(now));
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setOrderStatus(OrderStatusEnum.SUCCESS)
+                .setOrderSnLike("IT-QUERY-METER");
+
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(2);
+        OrderListDto electricMeterOrderResult = result.stream()
+                .filter(item -> "IT-QUERY-METER-ELE".equals(item.getOrderSn()))
+                .findFirst()
+                .orElseThrow();
+        OrderListDto accountOrderResult = result.stream()
+                .filter(item -> "IT-QUERY-METER-ACC".equals(item.getOrderSn()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(electricMeterOrderResult.getMeterName()).isEqualTo("A区1号电表");
+        assertThat(electricMeterOrderResult.getDeviceNo()).isEqualTo("DNO-001");
+        assertThat(accountOrderResult.getMeterName()).isNull();
+        assertThat(accountOrderResult.getDeviceNo()).isNull();
+    }
+
+    @Test
+    void findOrdersPage_ShouldFilterByEnterpriseNameLike_AndExcludePersonalOrders() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        OrderEntity enterpriseMatchedOrder = buildOrderEntity("IT-QUERY-ENT-MATCH", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
+                .setOwnerName("华星科技有限公司");
+        OrderEntity enterpriseUnmatchedOrder = buildOrderEntity("IT-QUERY-ENT-UNMATCH", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
+                .setOwnerName("晨光物流有限公司");
+        OrderEntity personalSameNameOrder = buildOrderEntity("IT-QUERY-PERSONAL-SAME", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
+                .setOwnerName("华星科技有限公司");
+        OrderEntity personalSimilarNameOrder = buildOrderEntity("IT-QUERY-PERSONAL-SIMILAR", threeDaysAgo)
+                .setOrderStatus(OrderStatusEnum.NOT_PAY.name())
+                .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
+                .setOwnerName("华星科技");
+
+        orderRepository.insert(enterpriseMatchedOrder);
+        orderRepository.insert(enterpriseUnmatchedOrder);
+        orderRepository.insert(personalSameNameOrder);
+        orderRepository.insert(personalSimilarNameOrder);
+
+        OrderQueryDto queryDto = new OrderQueryDto()
+                .setEnterpriseNameLike("华星科技");
+
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
+
+        assertThat(pageResult).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(OrderListDto::getOrderSn)
+                .containsExactly("IT-QUERY-ENT-MATCH");
+        assertThat(result).allMatch(order -> order.getOwnerType() == OwnerTypeEnum.ENTERPRISE);
+        assertThat(result).extracting(OrderListDto::getOrderSn)
+                .doesNotContain("IT-QUERY-PERSONAL-SAME", "IT-QUERY-PERSONAL-SIMILAR");
     }
 
     @Test
@@ -224,14 +436,14 @@ class OrderQueryServiceImplIntegrationTest {
                 .setCreateEndTime(now);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果
         assertThat(pageResult).isNotNull();
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(OrderBo::getOrderSn)
+        assertThat(result).extracting(OrderListDto::getOrderSn)
                 .containsExactlyInAnyOrder("IT-QUERY-RECENT", "IT-QUERY-MEDIUM");
     }
 
@@ -259,8 +471,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果 - 应该按创建时间降序排列
         assertThat(pageResult).isNotNull();
@@ -291,8 +503,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(10));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证结果 - 应该只返回未删除的订单
         assertThat(pageResult).isNotNull();
@@ -320,7 +532,7 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询 - 每页2条，查第1页
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(2));
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(1).setPageSize(2));
 
         // 验证分页元数据
         assertThat(pageResult).isNotNull();
@@ -349,8 +561,8 @@ class OrderQueryServiceImplIntegrationTest {
                 .setOrderStatus(OrderStatusEnum.NOT_PAY);
 
         // 执行查询 - 每页2条，查第2页，应只剩最早一条
-        PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(2).setPageSize(2));
-        List<OrderBo> result = pageResult.getList();
+        PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, new PageParam().setPageNum(2).setPageSize(2));
+        List<OrderListDto> result = pageResult.getList();
 
         // 验证第2页数据
         assertThat(pageResult).isNotNull();

@@ -83,6 +83,8 @@ CREATE TABLE energy_account_order_flow
     balance_relation_id INTEGER        NOT NULL,
     balance_type        SMALLINT       NOT NULL,
     amount              DECIMAL(20, 8) NOT NULL,
+    begin_balance       DECIMAL(20, 8) DEFAULT NULL COMMENT '处理前余额',
+    end_balance         DECIMAL(20, 8) DEFAULT NULL COMMENT '处理后余额',
     create_time         TIMESTAMP      NOT NULL,
     PRIMARY KEY (id)
 );

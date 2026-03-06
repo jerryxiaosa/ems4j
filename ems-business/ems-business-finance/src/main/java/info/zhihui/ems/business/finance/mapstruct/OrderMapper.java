@@ -2,7 +2,9 @@ package info.zhihui.ems.business.finance.mapstruct;
 
 import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.entity.order.OrderEntity;
+import info.zhihui.ems.business.finance.qo.OrderListItemQo;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
@@ -22,7 +24,13 @@ public interface OrderMapper {
     @Mapping(target = "ownerType", qualifiedByName = "toOwnerType")
     OrderBo toBo(OrderEntity entity);
 
-    PageResult<OrderBo> pageEntityToBo(PageInfo<OrderEntity> pageInfo);
+    @Mapping(target = "orderType", qualifiedByName = "toOrderType")
+    @Mapping(target = "orderStatus", qualifiedByName = "toOrderStatus")
+    @Mapping(target = "paymentChannel", qualifiedByName = "toPaymentChannel")
+    @Mapping(target = "ownerType", qualifiedByName = "toOwnerType")
+    OrderListDto toOrderListDto(OrderListItemQo qo);
+
+    PageResult<OrderListDto> pageOrderListItemQoToOrderListDto(PageInfo<OrderListItemQo> pageInfo);
 
     @Named("toOrderType")
     default OrderTypeEnum toOrderType(Integer code) {

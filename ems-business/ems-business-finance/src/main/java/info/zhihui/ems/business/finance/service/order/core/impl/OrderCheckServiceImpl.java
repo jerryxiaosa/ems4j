@@ -1,6 +1,6 @@
 package info.zhihui.ems.business.finance.service.order.core.impl;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.service.order.core.OrderCheckService;
@@ -57,8 +57,8 @@ public class OrderCheckServiceImpl implements OrderCheckService {
 
         while (true) {
             PageParam pageParam = new PageParam().setPageNum(1).setPageSize(PAGE_SIZE);
-            PageResult<OrderBo> pageResult = orderQueryService.findOrdersPage(queryDto, pageParam);
-            List<OrderBo> pendingOrders = pageResult == null ? List.of() : pageResult.getList();
+            PageResult<OrderListDto> pageResult = orderQueryService.findOrdersPage(queryDto, pageParam);
+            List<OrderListDto> pendingOrders = pageResult == null ? List.of() : pageResult.getList();
 
             if (CollectionUtils.isEmpty(pendingOrders)) {
                 if (round == 1) {
@@ -71,7 +71,7 @@ public class OrderCheckServiceImpl implements OrderCheckService {
             int roundSuccessCount = 0;
             log.info("第{}轮查询到{}条待支付订单，开始处理", round, pendingOrders.size());
 
-            for (OrderBo order : pendingOrders) {
+            for (OrderListDto order : pendingOrders) {
                 try {
                     log.info("开始处理订单：{}", order.getOrderSn());
                     if (!StringUtils.hasLength(order.getOrderSn())) {

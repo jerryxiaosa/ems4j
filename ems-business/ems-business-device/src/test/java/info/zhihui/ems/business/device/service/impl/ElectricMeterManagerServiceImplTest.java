@@ -1294,6 +1294,35 @@ class ElectricMeterManagerServiceImplTest {
         assertTrue(updatedEntity.getIsCutOff()); // 目标断闸
     }
 
+    @Test
+    void testSetSwitchStatusSingle_CommandExecuteFailed_ShouldNotUpdateStatus() {
+        ElectricMeterBo meterBo = new ElectricMeterBo();
+        meterBo.setId(1)
+                .setDeviceNo("EM202401010001")
+                .setSpaceId(100)
+                .setIotId("12345")
+                .setIsOnline(true)
+                .setIsCutOff(false)
+                .setOwnAreaId(1000);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
+        doThrow(new BusinessRuntimeException("设备命令正在处理中，请稍后重试"))
+                .when(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.USER));
+
+        ElectricMeterSwitchStatusDto switchStatusDto = new ElectricMeterSwitchStatusDto()
+                .setId(1)
+                .setSwitchStatus(ElectricSwitchStatusEnum.OFF)
+                .setCommandSource(CommandSourceEnum.USER);
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterService.setSwitchStatus(switchStatusDto));
+        assertEquals("设备命令正在处理中，请稍后重试", exception.getMessage());
+
+        verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.USER));
+        verify(repository, never()).updateById(any(ElectricMeterEntity.class));
+    }
+
 
     @Test
     void testUpdate_CheckUpdateInfo_ModifyPrepayForOpenedAccount() {

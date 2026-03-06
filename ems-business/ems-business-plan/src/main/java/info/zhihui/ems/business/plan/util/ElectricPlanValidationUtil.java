@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.plan.utils;
+package info.zhihui.ems.business.plan.util;
 
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;

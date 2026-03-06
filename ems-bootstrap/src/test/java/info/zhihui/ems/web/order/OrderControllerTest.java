@@ -48,7 +48,13 @@ class OrderControllerTest {
     void testFindOrders() throws Exception {
         OrderVo orderVo = new OrderVo()
                 .setOrderSn("ORDER123")
-                .setOrderAmount(BigDecimal.TEN);
+                .setOrderAmount(BigDecimal.TEN)
+                .setPaymentChannel("WX_MINI")
+                .setPaymentChannelName("微信小程序")
+                .setMeterName("1号电表")
+                .setDeviceNo("D-1001")
+                .setBeginBalance(new BigDecimal("500.00"))
+                .setEndBalance(new BigDecimal("510.00"));
         PageResult<OrderVo> pageResult = new PageResult<OrderVo>()
                 .setPageNum(1)
                 .setPageSize(10)
@@ -59,7 +65,13 @@ class OrderControllerTest {
         mockMvc.perform(get("/v1/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list[0].orderSn").value("ORDER123"));
+                .andExpect(jsonPath("$.data.list[0].orderSn").value("ORDER123"))
+                .andExpect(jsonPath("$.data.list[0].meterName").value("1号电表"))
+                .andExpect(jsonPath("$.data.list[0].deviceNo").value("D-1001"))
+                .andExpect(jsonPath("$.data.list[0].paymentChannel").value("WX_MINI"))
+                .andExpect(jsonPath("$.data.list[0].paymentChannelName").value("微信小程序"))
+                .andExpect(jsonPath("$.data.list[0].beginBalance").value(500.00))
+                .andExpect(jsonPath("$.data.list[0].endBalance").value(510.00));
     }
 
     @Test
@@ -78,6 +90,23 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orderSn").value("SN123"));
+    }
+
+    @Test
+    @DisplayName("创建能耗充值订单-订单金额小于等于0时返回参数错误")
+    void testCreateEnergyTopUpOrder_WhenOrderAmountLessThanOrEqualZero() throws Exception {
+        String body = "{" +
+                "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":0,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+
+        mockMvc.perform(post("/v1/orders/energy-top-up")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(-102001));
+
+        verify(orderBiz, never()).createEnergyTopUpOrder(any());
     }
 
     @Test

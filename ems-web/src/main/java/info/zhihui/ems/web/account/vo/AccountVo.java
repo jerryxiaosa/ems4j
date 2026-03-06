@@ -3,9 +3,11 @@ package info.zhihui.ems.web.account.vo;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.enums.WarnTypeEnum;
+import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.components.translate.formatter.MoneyScale2TextFormatter;
+import info.zhihui.ems.web.common.resolver.ElectricPricePlanNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -48,6 +50,13 @@ public class AccountVo {
     @Schema(description = "电费计费类型名称")
     @EnumLabel(source = "electricAccountType", enumClass = ElectricAccountTypeEnum.class)
     private String electricAccountTypeName;
+
+    @Schema(description = "电价方案ID")
+    private Integer electricPricePlanId;
+
+    @Schema(description = "电价方案名称")
+    @BizLabel(source = "electricPricePlanId", resolver = ElectricPricePlanNameResolver.class)
+    private String electricPricePlanName;
 
     @Schema(description = "电费余额（按需=电表余额合计；包月/合并=账户余额）")
     private BigDecimal electricBalanceAmount;

@@ -18,7 +18,7 @@ import info.zhihui.ems.business.plan.mapper.ElectricPlanMapper;
 import info.zhihui.ems.business.plan.qo.ElectricPricePlanQo;
 import info.zhihui.ems.business.plan.repository.ElectricPricePlanRepository;
 import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
-import info.zhihui.ems.business.plan.utils.ElectricPlanValidationUtil;
+import info.zhihui.ems.business.plan.util.ElectricPlanValidationUtil;
 import info.zhihui.ems.foundation.system.bo.ConfigBo;
 import info.zhihui.ems.foundation.system.constant.SystemConfigConstant;
 import info.zhihui.ems.foundation.system.dto.ConfigUpdateDto;

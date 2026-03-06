@@ -95,13 +95,17 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
         }
 
         EnergyTopUpDto detail = energyOrderCreationInfoDto.getEnergyTopUpDto();
+        BigDecimal orderAmount = energyOrderCreationInfoDto.getOrderAmount();
+        if (orderAmount == null || orderAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessRuntimeException("充值金额必须大于0");
+        }
         if (BalanceTypeEnum.ELECTRIC_METER.equals(detail.getBalanceType()) && detail.getMeterId() == null) {
             throw new BusinessRuntimeException("电表充值时电表ID不能为空");
         }
 
         // 创建订单实体
         ServiceFeeDto serviceFeeInfo = getServiceFee(new ServiceFeeRequestDto()
-                .setOrderOriginalAmount(energyOrderCreationInfoDto.getOrderAmount())
+                .setOrderOriginalAmount(orderAmount)
                 .setOrderType(this.getOrderType()));
         OrderEntity orderEntity = buildOrderEntity(energyOrderCreationInfoDto, serviceFeeInfo);
         fillOwnerSnapshot(orderEntity, new OrderOwnerSnapshotDto()

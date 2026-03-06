@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
@@ -102,6 +103,9 @@ public class BalanceServiceImpl implements BalanceService {
             log.error("账户充值异常，未更新账户余额，参数：{}", topUpDto);
             throw new BusinessRuntimeException("账户余额结算异常，请重试");
         }
+
+        BalanceBo latestBalance = queryLatestBalanceAfterProcess(topUpDto);
+        saveOrderFlowBalanceSnapshot(topUpDto, latestBalance.getBalance());
 
         publishBalanceChangedEvent(topUpDto);
     }
@@ -236,8 +240,31 @@ public class BalanceServiceImpl implements BalanceService {
         return balanceBoList.get(0);
     }
 
+    private BalanceBo queryLatestBalanceAfterProcess(BalanceDto topUpDto) {
+        BalanceBo latestBalance = findFirstByQuery(new BalanceListQueryDto()
+                .setBalanceType(topUpDto.getBalanceType())
+                .setBalanceRelationIds(List.of(topUpDto.getBalanceRelationId()))
+        );
+        if (latestBalance == null || latestBalance.getBalance() == null) {
+            log.error("账户充值异常，未查询到更新后的余额，参数：{}", topUpDto);
+            throw new BusinessRuntimeException("账户余额结算异常，请重试");
+        }
+        return latestBalance;
+    }
+
+    private void saveOrderFlowBalanceSnapshot(BalanceDto topUpDto, BigDecimal endBalance) {
+        BigDecimal beginBalance = endBalance.subtract(topUpDto.getAmount());
+        Integer updateRow = orderFlowRepository.updateBalanceSnapshotByConsumeId(
+                topUpDto.getOrderNo(), beginBalance, endBalance);
+        if (updateRow == null || updateRow != 1) {
+            log.error("账户充值异常，未更新流水余额快照，参数：{}, beginBalance={}, endBalance={}",
+                    topUpDto, beginBalance, endBalance);
+            throw new BusinessRuntimeException("账户余额结算异常，请重试");
+        }
+    }
+
     private List<Integer> normalizeIdList(List<Integer> idList) {
-        if (idList == null || idList.isEmpty()) {
+        if (CollectionUtils.isEmpty(idList)) {
             return Collections.emptyList();
         }
         return idList.stream()

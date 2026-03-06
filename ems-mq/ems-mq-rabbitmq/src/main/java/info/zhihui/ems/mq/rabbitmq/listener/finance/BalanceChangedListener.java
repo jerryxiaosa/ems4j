@@ -1,6 +1,8 @@
 package info.zhihui.ems.mq.rabbitmq.listener.finance;
 
-import info.zhihui.ems.business.account.service.AccountBalanceAlertService;
+import info.zhihui.ems.business.account.service.AccountBalanceChangeService;
+import info.zhihui.ems.business.account.service.MeterBalanceChangeService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.mq.api.message.finance.BalanceChangedMessage;
 import info.zhihui.ems.mq.rabbitmq.constant.QueueConstant;
 import jakarta.validation.Valid;
@@ -22,12 +24,21 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class BalanceChangedListener {
 
-    private final AccountBalanceAlertService accountBalanceAlertService;
+    private final AccountBalanceChangeService accountBalanceChangeService;
+    private final MeterBalanceChangeService meterBalanceChangeService;
 
     @RabbitListener(queues = QueueConstant.QUEUE_FINANCE_BALANCE_CHANGED)
     public void handle(@Valid @NotNull BalanceChangedMessage message) {
         log.info("接收到余额变动消息，balanceType={}, relationId={}, accountId={}",
                 message.getBalanceType(), message.getBalanceRelationId(), message.getAccountId());
-        accountBalanceAlertService.handleBalanceChange(message);
+        if (BalanceTypeEnum.ACCOUNT.equals(message.getBalanceType())) {
+            accountBalanceChangeService.handleBalanceChange(message);
+            return;
+        }
+        if (BalanceTypeEnum.ELECTRIC_METER.equals(message.getBalanceType())) {
+            meterBalanceChangeService.handleBalanceChange(message);
+            return;
+        }
+        log.warn("未支持的余额类型，message={}", message);
     }
 }

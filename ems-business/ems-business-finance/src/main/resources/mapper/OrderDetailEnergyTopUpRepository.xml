@@ -8,6 +8,14 @@
         WHERE order_sn = #{orderSn}
         LIMIT 1
     </select>
+
+    <select id="findByOrderSnList" resultType="info.zhihui.ems.business.finance.entity.order.OrderDetailEnergyTopUpEntity">
+        SELECT *
+        FROM order_detail_energy_top_up
+        WHERE order_sn IN
+        <foreach collection="orderSnList" item="orderSn" open="(" separator="," close=")">
+            #{orderSn}
+        </foreach>
+    </select>
     
 </mapper>
-

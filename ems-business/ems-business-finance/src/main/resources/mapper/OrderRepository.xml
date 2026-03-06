@@ -16,13 +16,36 @@
         where order_sn = #{orderSn} limit 1;
     </update>
 
-    <select id="findList" resultType="info.zhihui.ems.business.finance.entity.order.OrderEntity">
-        SELECT *
+    <select id="findList" resultType="info.zhihui.ems.business.finance.qo.OrderListItemQo">
+        SELECT t.*,
+               f.begin_balance AS beginBalance,
+               f.end_balance AS endBalance,
+               p.third_party_sn AS thirdPartySn
         FROM purchase_order t
+        LEFT JOIN energy_account_order_flow f
+               ON f.consume_id = t.order_sn
+        LEFT JOIN order_third_party_prepay p
+               ON p.order_sn = t.order_sn
+              AND p.is_deleted = 0
         <where>
             t.is_deleted = 0
+            <if test="qo.orderType != null">
+                AND t.order_type = #{qo.orderType}
+            </if>
             <if test="qo.orderStatus != null">
                 AND t.order_status = #{qo.orderStatus}
+            </if>
+            <if test="qo.orderSnLike != null and qo.orderSnLike != ''">
+                AND t.order_sn LIKE CONCAT('%', #{qo.orderSnLike}, '%')
+            </if>
+            <if test="qo.thirdPartySnLike != null and qo.thirdPartySnLike != ''">
+                AND p.third_party_sn LIKE CONCAT('%', #{qo.thirdPartySnLike}, '%')
+            </if>
+            <if test="qo.enterpriseNameLike != null and qo.enterpriseNameLike != ''">
+                AND t.owner_name LIKE CONCAT('%', #{qo.enterpriseNameLike}, '%')
+            </if>
+            <if test="qo.ownerType != null">
+                AND t.owner_type = #{qo.ownerType}
             </if>
             <if test="qo.createStartTime != null">
                 AND t.order_create_time &gt;= #{qo.createStartTime}
@@ -32,9 +55,6 @@
             </if>
             <if test="qo.paymentChannel != null">
                 AND t.payment_channel = #{qo.paymentChannel}
-            </if>
-            <if test="qo.userId != null">
-                AND t.user_id = #{qo.userId}
             </if>
         </where>
         ORDER BY t.order_create_time DESC

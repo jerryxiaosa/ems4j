@@ -150,6 +150,8 @@ CREATE TABLE `energy_account_order_flow`
     `balance_type`        SMALLINT                                                      NOT NULL COMMENT '余额类型：1账户余额，2电表余额，3水表余额',
     `account_id`          INT                                                           NOT NULL COMMENT '能耗账户id',
     `amount`              DECIMAL(20, 8)                                                NOT NULL COMMENT '流水金额',
+    `begin_balance`       DECIMAL(20, 8)                                                         DEFAULT NULL COMMENT '处理前余额',
+    `end_balance`         DECIMAL(20, 8)                                                         DEFAULT NULL COMMENT '处理后余额',
     `create_time`         DATETIME                                                      NOT NULL COMMENT '创建时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_consume_id` (`consume_id`),

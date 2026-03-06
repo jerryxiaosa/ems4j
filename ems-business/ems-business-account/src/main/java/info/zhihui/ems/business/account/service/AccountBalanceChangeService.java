@@ -5,16 +5,16 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * 余额预警服务
+ * 账户余额变化服务
  *
  * @author jerryxiaosa
  */
-public interface AccountBalanceAlertService {
+public interface AccountBalanceChangeService {
 
     /**
-     * 处理余额变更事件
+     * 处理账户余额变化事件
      *
-     * @param message 余额变更消息
+     * @param message 余额变化消息
      */
     void handleBalanceChange(@NotNull @Valid BalanceChangedMessage message);
 }

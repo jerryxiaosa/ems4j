@@ -163,6 +163,7 @@
 
 - 订单锁键为 `LOCK:ORDER:{orderSn}`，保证同一订单状态流转串行。
 - 订单状态由数据库更新结果强校验（更新行数必须为 1）。
+- 充值订单支付成功后，当前版本仅完成订单与余额链路，不再在该阶段直接触发电表自动开闸；自动开/关闸策略后续独立演进。
 
 ### 5.3 余额变动流程（`BalanceServiceImpl.topUp/deduct`）
 
@@ -182,7 +183,21 @@
 - 余额事件采用 `sendMessageAfterCommit`，保证“库内成功后再发消息”。
 - 余额表通过 `active_balance_key`（`balanceRelationId_balanceType`）配合唯一索引，保证“未删除余额记录”唯一。
 
-### 5.4 补正与消费相关接口字段口径
+### 5.4 余额变动事件分发口径（`BalanceChangedListener`）
+
+`BALANCE_CHANGED` 事件由监听器按余额类型分发处理，不同服务职责明确拆分。
+
+| 分发目标 | 处理范围 | 关键规则 | 失败处理 |
+|------|------|------|------|
+| `AccountBalanceChangeService` | `balanceType=ACCOUNT` | 仅对 `MONTHLY/MERGED` 生效；`QUANTITY` 直接跳过，不做账户侧余额后置处理 | 记录告警并跳过，不影响主流程 |
+| `MeterBalanceChangeService` | `balanceType=ELECTRIC_METER` | 仅处理电表余额变动相关逻辑 | 记录告警并跳过，不影响主流程 |
+
+补充说明：
+
+- 监听链路当前不负责“充值成功即自动开闸”；自动开/关闸策略后续再按独立规则接入。
+- `warnPlan` 缺失场景统一按“告警并跳过”处理，不抛出异常中断流程。
+
+### 5.5 补正与消费相关接口字段口径
 
 当前版本中，所有与电表消费、补正、充值订单明细相关的对外字段统一为 `deviceNo`：
 
@@ -196,7 +211,7 @@
 - 该变更与设备模块主数据字段保持一致，避免前端同时处理 `meterNo` 与 `deviceNo` 两套命名
 - 历史快照表虽然保留独立记录职责，但设备标识字段已统一为 `device_no`
 
-### 5.5 余额软删除与唯一键策略（`energy_account_balance`）
+### 5.6 余额软删除与唯一键策略（`energy_account_balance`）
 
 | 项目 | 说明 |
 |------|------|

@@ -35,7 +35,8 @@ import info.zhihui.ems.business.plan.bo.WarnPlanBo;
 import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.business.plan.service.ElectricPricePlanService;
 import info.zhihui.ems.business.plan.service.WarnPlanService;
-import info.zhihui.ems.business.plan.utils.ElectricPlanValidationUtil;
+import info.zhihui.ems.business.plan.util.WarnTypeCalculator;
+import info.zhihui.ems.business.plan.util.ElectricPlanValidationUtil;
 import info.zhihui.ems.common.enums.*;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
@@ -204,11 +205,11 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         log.info("设备{}当前状态：{}，目标状态：{}，开始执行开关闸命令",
                 meter.getDeviceNo(), currentStatus.getInfo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo());
 
-        // 更新电表状态
-        updateMeterSwitchStatus(meter.getId(), electricMeterSwitchStatusDto.getSwitchStatus());
-
         // 执行开关闸操作
         performSwitchOperation(meter, electricMeterSwitchStatusDto.getSwitchStatus(), electricMeterSwitchStatusDto.getCommandSource());
+
+        // 命令执行成功后再更新本地开关状态
+        updateMeterSwitchStatus(meter.getId(), electricMeterSwitchStatusDto.getSwitchStatus());
 
         log.info("设备{}开关闸操作完成，目标状态：{}（原状态：{}）",
                 meter.getDeviceNo(), electricMeterSwitchStatusDto.getSwitchStatus().getInfo(), currentStatus.getInfo());
@@ -694,7 +695,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 // 缺失余额记录视为 NONE
             }
 
-            WarnTypeEnum type = computeWarnType(balance, firstLevel, secondLevel);
+            WarnTypeEnum type = WarnTypeCalculator.compute(balance, firstLevel, secondLevel);
             groups.get(type).add(meterId);
         }
 
@@ -703,24 +704,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 groups.get(WarnTypeEnum.FIRST).size(),
                 groups.get(WarnTypeEnum.SECOND).size());
         return groups;
-    }
-
-    /**
-     * 计算单表预警等级
-     */
-    private WarnTypeEnum computeWarnType(BigDecimal balance,
-                                         BigDecimal firstLevel,
-                                         BigDecimal secondLevel) {
-        if (balance == null) {
-            return WarnTypeEnum.NONE;
-        }
-        if (secondLevel != null && balance.compareTo(secondLevel) <= 0) {
-            return WarnTypeEnum.SECOND;
-        }
-        if (firstLevel != null && balance.compareTo(firstLevel) <= 0) {
-            return WarnTypeEnum.FIRST;
-        }
-        return WarnTypeEnum.NONE;
     }
 
     /**

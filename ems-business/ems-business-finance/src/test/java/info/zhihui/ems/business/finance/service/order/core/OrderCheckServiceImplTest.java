@@ -1,6 +1,6 @@
 package info.zhihui.ems.business.finance.service.order.core;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
+import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.service.order.core.impl.OrderCheckServiceImpl;
@@ -40,25 +40,25 @@ class OrderCheckServiceImplTest {
     @InjectMocks
     private OrderCheckServiceImpl orderCheckService;
 
-    private OrderBo orderBo1;
-    private OrderBo orderBo2;
-    private OrderBo orderBo3;
+    private OrderListDto orderBo1;
+    private OrderListDto orderBo2;
+    private OrderListDto orderBo3;
 
     @BeforeEach
     void setUp() {
         LocalDateTime now = LocalDateTime.now();
 
-        orderBo1 = new OrderBo();
+        orderBo1 = new OrderListDto();
         orderBo1.setOrderSn("ORDER001");
         orderBo1.setOrderStatus(OrderStatusEnum.NOT_PAY);
         orderBo1.setOrderCreateTime(now.minusDays(3));
 
-        orderBo2 = new OrderBo();
+        orderBo2 = new OrderListDto();
         orderBo2.setOrderSn("ORDER002");
         orderBo2.setOrderStatus(OrderStatusEnum.NOT_PAY);
         orderBo2.setOrderCreateTime(now.minusDays(5));
 
-        orderBo3 = new OrderBo();
+        orderBo3 = new OrderListDto();
         orderBo3.setOrderSn("ORDER003");
         orderBo3.setOrderStatus(OrderStatusEnum.NOT_PAY);
         orderBo3.setOrderCreateTime(now.minusDays(1));
@@ -67,7 +67,7 @@ class OrderCheckServiceImplTest {
     @Test
     void testCompletePendingOrdersInLast7Days_Success() {
         // Given
-        List<OrderBo> pendingOrders = Arrays.asList(orderBo1, orderBo2, orderBo3);
+        List<OrderListDto> pendingOrders = Arrays.asList(orderBo1, orderBo2, orderBo3);
         when(orderQueryService.findOrdersPage(any(OrderQueryDto.class), any(PageParam.class))).thenReturn(mockPageResult(pendingOrders));
 
         // When
@@ -109,7 +109,7 @@ class OrderCheckServiceImplTest {
     @Test
     void testCompletePendingOrdersInLast7Days_PartialFailure() {
         // Given
-        List<OrderBo> pendingOrders = Arrays.asList(orderBo1, orderBo2, orderBo3);
+        List<OrderListDto> pendingOrders = Arrays.asList(orderBo1, orderBo2, orderBo3);
         when(orderQueryService.findOrdersPage(any(OrderQueryDto.class), any(PageParam.class))).thenReturn(mockPageResult(pendingOrders));
 
         // 模拟第二个订单完成失败
@@ -130,7 +130,7 @@ class OrderCheckServiceImplTest {
     @Test
     void testCompletePendingOrdersInLast7Days_AllOrdersFailure() {
         // Given
-        List<OrderBo> pendingOrders = Arrays.asList(orderBo1, orderBo2);
+        List<OrderListDto> pendingOrders = Arrays.asList(orderBo1, orderBo2);
         when(orderQueryService.findOrdersPage(any(OrderQueryDto.class), any(PageParam.class))).thenReturn(mockPageResult(pendingOrders));
 
         // 模拟所有订单完成都失败
@@ -198,11 +198,11 @@ class OrderCheckServiceImplTest {
     @Test
     void testCompletePendingOrdersInLast7Days_OrderWithNullOrderSn() {
         // Given
-        OrderBo orderWithNullSn = new OrderBo();
+        OrderListDto orderWithNullSn = new OrderListDto();
         orderWithNullSn.setOrderSn(null);
         orderWithNullSn.setOrderStatus(OrderStatusEnum.NOT_PAY);
 
-        List<OrderBo> pendingOrders = Arrays.asList(orderBo1, orderWithNullSn, orderBo2);
+        List<OrderListDto> pendingOrders = Arrays.asList(orderBo1, orderWithNullSn, orderBo2);
         when(orderQueryService.findOrdersPage(any(OrderQueryDto.class), any(PageParam.class))).thenReturn(mockPageResult(pendingOrders));
 
         // When
@@ -218,11 +218,11 @@ class OrderCheckServiceImplTest {
     @Test
     void testCompletePendingOrdersInLast7Days_OrderWithEmptyOrderSn() {
         // Given
-        OrderBo orderWithEmptySn = new OrderBo();
+        OrderListDto orderWithEmptySn = new OrderListDto();
         orderWithEmptySn.setOrderSn("");
         orderWithEmptySn.setOrderStatus(OrderStatusEnum.NOT_PAY);
 
-        List<OrderBo> pendingOrders = Arrays.asList(orderBo1, orderWithEmptySn, orderBo2);
+        List<OrderListDto> pendingOrders = Arrays.asList(orderBo1, orderWithEmptySn, orderBo2);
         when(orderQueryService.findOrdersPage(any(OrderQueryDto.class), any(PageParam.class))).thenReturn(mockPageResult(pendingOrders));
 
         // When
@@ -237,8 +237,8 @@ class OrderCheckServiceImplTest {
 
     @Test
     void testCompletePendingOrdersInLast7Days_PaginationLoop() {
-        List<OrderBo> firstPageOrders = IntStream.range(0, 200)
-                .mapToObj(index -> new OrderBo()
+        List<OrderListDto> firstPageOrders = IntStream.range(0, 200)
+                .mapToObj(index -> new OrderListDto()
                         .setOrderSn("ORDER_" + index)
                         .setOrderStatus(OrderStatusEnum.NOT_PAY)
                         .setOrderCreateTime(LocalDateTime.now().minusHours(1)))
@@ -254,7 +254,7 @@ class OrderCheckServiceImplTest {
         verify(orderService, times(200)).complete(any(String.class));
     }
 
-    private PageResult<OrderBo> mockPageResult(List<OrderBo> orders) {
-        return new PageResult<OrderBo>().setList(orders);
+    private PageResult<OrderListDto> mockPageResult(List<OrderListDto> orders) {
+        return new PageResult<OrderListDto>().setList(orders);
     }
 }

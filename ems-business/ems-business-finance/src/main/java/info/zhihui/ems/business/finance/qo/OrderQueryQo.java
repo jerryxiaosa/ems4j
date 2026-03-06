@@ -15,9 +15,34 @@ import java.time.LocalDateTime;
 public class OrderQueryQo {
 
     /**
+     * 订单类型
+     */
+    private Integer orderType;
+
+    /**
      * 订单状态
      */
     private String orderStatus;
+
+    /**
+     * 订单号模糊搜索
+     */
+    private String orderSnLike;
+
+    /**
+     * 第三方订单号模糊搜索
+     */
+    private String thirdPartySnLike;
+
+    /**
+     * 企业名称模糊搜索
+     */
+    private String enterpriseNameLike;
+
+    /**
+     * 主体类型
+     */
+    private Integer ownerType;
 
     /**
      * 订单创建开始时间
@@ -33,9 +58,4 @@ public class OrderQueryQo {
      * 支付渠道
      */
     private String paymentChannel;
-
-    /**
-     * 用户ID
-     */
-    private Integer userId;
 }

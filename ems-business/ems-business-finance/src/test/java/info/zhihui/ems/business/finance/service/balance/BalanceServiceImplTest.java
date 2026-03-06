@@ -103,8 +103,17 @@ class BalanceServiceImplTest {
     void testTopUp_Normal() {
         // Given
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
+        when(orderFlowRepository.updateBalanceSnapshotByConsumeId(anyString(), any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
-        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(balanceEntity));
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(
+                new BalanceEntity()
+                        .setId(1)
+                        .setBalanceRelationId(1)
+                        .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
+                        .setAccountId(1)
+                        .setBalance(new BigDecimal("600.00"))
+        ));
 
         // When
         assertDoesNotThrow(() -> balanceService.topUp(topUpDto));
@@ -112,6 +121,8 @@ class BalanceServiceImplTest {
         // Then
         verify(orderFlowRepository).insert(any(OrderFlowEntity.class));
         verify(balanceRepository).balanceTopUp(any(BalanceQo.class));
+        verify(orderFlowRepository).updateBalanceSnapshotByConsumeId("ORDER123456",
+                new BigDecimal("500.00"), new BigDecimal("600.00"));
         verify(mqService).sendMessageAfterCommit(any(MqMessage.class));
     }
 
@@ -171,6 +182,56 @@ class BalanceServiceImplTest {
 
         verify(orderFlowRepository).insert(any(OrderFlowEntity.class));
         verify(balanceRepository).balanceTopUp(any(BalanceQo.class));
+        verify(mqService, never()).sendMessageAfterCommit(any());
+    }
+
+    /**
+     * 测试流水快照更新失败异常
+     */
+    @Test
+    @DisplayName("测试流水快照更新失败异常")
+    void testTopUp_OrderFlowSnapshotUpdateFailed() {
+        // Given
+        when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
+        when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of(
+                new BalanceEntity()
+                        .setId(1)
+                        .setBalanceRelationId(1)
+                        .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
+                        .setAccountId(1)
+                        .setBalance(new BigDecimal("600.00"))
+        ));
+        when(orderFlowRepository.updateBalanceSnapshotByConsumeId(anyString(), any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(0);
+
+        // When & Then
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> balanceService.topUp(topUpDto));
+        assertEquals("账户余额结算异常，请重试", exception.getMessage());
+
+        verify(orderFlowRepository).updateBalanceSnapshotByConsumeId("ORDER123456",
+                new BigDecimal("500.00"), new BigDecimal("600.00"));
+        verify(mqService, never()).sendMessageAfterCommit(any());
+    }
+
+    /**
+     * 测试更新后余额不存在异常
+     */
+    @Test
+    @DisplayName("测试更新后余额不存在异常")
+    void testTopUp_LatestBalanceMissing() {
+        // Given
+        when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
+        when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
+        when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class))).thenReturn(List.of());
+
+        // When & Then
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> balanceService.topUp(topUpDto));
+        assertEquals("账户余额结算异常，请重试", exception.getMessage());
+
+        verify(orderFlowRepository, never()).updateBalanceSnapshotByConsumeId(anyString(), any(BigDecimal.class), any(BigDecimal.class));
         verify(mqService, never()).sendMessageAfterCommit(any());
     }
 
@@ -485,9 +546,11 @@ class BalanceServiceImplTest {
     void testDeduct_Normal() {
         // Given
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
+        when(orderFlowRepository.updateBalanceSnapshotByConsumeId(anyString(), any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
         when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class)))
-                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("12.00"))));
+                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("450.00"))));
 
         // When
         assertDoesNotThrow(() -> balanceService.deduct(deductDto));
@@ -506,6 +569,8 @@ class BalanceServiceImplTest {
                 qo.getAccountId().equals(deductDto.getAccountId()) &&
                 qo.getAmount().equals(deductDto.getAmount().negate()) // 验证金额被转换为负数
         ));
+        verify(orderFlowRepository).updateBalanceSnapshotByConsumeId("DEDUCT123456",
+                new BigDecimal("500.00"), new BigDecimal("450.00"));
     }
 
     /**
@@ -580,9 +645,11 @@ class BalanceServiceImplTest {
                 .setAccountId(1);
 
         when(orderFlowRepository.insert(any(OrderFlowEntity.class))).thenReturn(1);
+        when(orderFlowRepository.updateBalanceSnapshotByConsumeId(anyString(), any(BigDecimal.class), any(BigDecimal.class)))
+                .thenReturn(1);
         when(balanceRepository.balanceTopUp(any(BalanceQo.class))).thenReturn(1);
         when(balanceRepository.findListByQuery(any(BalanceListQueryQo.class)))
-                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("12.00"))));
+                .thenReturn(List.of(new BalanceEntity().setBalance(new BigDecimal("70.00"))));
 
         // When
         assertDoesNotThrow(() -> balanceService.deduct(electricMeterDeductDto));
@@ -601,5 +668,7 @@ class BalanceServiceImplTest {
                 qo.getAccountId().equals(electricMeterDeductDto.getAccountId()) &&
                 qo.getAmount().equals(electricMeterDeductDto.getAmount().negate())
         ));
+        verify(orderFlowRepository).updateBalanceSnapshotByConsumeId("DEDUCT_METER123",
+                new BigDecimal("100.00"), new BigDecimal("70.00"));
     }
 }
