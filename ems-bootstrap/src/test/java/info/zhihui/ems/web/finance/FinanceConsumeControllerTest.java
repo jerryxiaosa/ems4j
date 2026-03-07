@@ -57,7 +57,7 @@ class FinanceConsumeControllerTest {
         when(financeBiz.findAccountConsumePage(any(AccountConsumeQueryVo.class), eq(1), eq(10))).thenReturn(page);
 
         mockMvc.perform(get("/v1/finance/account-consumes")
-                        .param("accountId", "1")
+                        .param("accountNameLike", "张三")
                         .param("consumeTimeStart", LocalDateTime.now().minusDays(1).toString())
                         .param("consumeTimeEnd", LocalDateTime.now().toString())
                         .param("pageNum", "1")
@@ -78,7 +78,8 @@ class FinanceConsumeControllerTest {
         when(financeBiz.findPowerConsumePage(any(PowerConsumeQueryVo.class), eq(1), eq(5))).thenReturn(page);
 
         mockMvc.perform(get("/v1/finance/meter-consumes")
-                        .param("meterName", "1号")
+                        .param("searchKey", "1号")
+                        .param("spaceNameLike", "1号楼")
                         .param("beginTime", LocalDateTime.now().minusDays(2).toString())
                         .param("endTime", LocalDateTime.now().toString())
                         .param("pageNum", "1")

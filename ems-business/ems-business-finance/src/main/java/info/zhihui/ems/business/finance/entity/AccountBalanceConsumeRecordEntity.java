@@ -53,6 +53,16 @@ public class AccountBalanceConsumeRecordEntity {
     private String ownerName;
 
     /**
+     * 联系人
+     */
+    private String contactName;
+
+    /**
+     * 联系方式
+     */
+    private String contactPhone;
+
+    /**
      * 包月支付金额
      */
     private BigDecimal payAmount;

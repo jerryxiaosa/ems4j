@@ -156,4 +156,46 @@ class OrderQueryServiceImplTest {
         verify(orderRepository).findList(any(OrderQueryQo.class));
         verify(orderMapper).pageOrderListItemQoToOrderListDto(any());
     }
+
+    @Test
+    void testFindOrdersPage_WhenNoEnergyTopUpOrder_ShouldNotQueryTopUpDetail() {
+        OrderListDto settlementOrder = new OrderListDto()
+                .setOrderSn("ORDER003")
+                .setOrderType(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT);
+        PageResult<OrderListDto> pageResult = new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(settlementOrder));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderItemQo1));
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(pageResult);
+
+        orderQueryService.findOrdersPage(queryDto, pageParam);
+
+        verify(orderDetailEnergyTopUpRepository, never()).findByOrderSnList(any());
+    }
+
+    @Test
+    void testFindOrdersPage_WhenMixedOrderType_ShouldOnlyQueryEnergyTopUpOrderSn() {
+        OrderListDto topUpOrder = new OrderListDto()
+                .setOrderSn("ORDER001")
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP);
+        OrderListDto settlementOrder = new OrderListDto()
+                .setOrderSn("ORDER002")
+                .setOrderType(OrderTypeEnum.ACCOUNT_TERMINATION_SETTLEMENT);
+        PageResult<OrderListDto> pageResult = new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(2L)
+                .setList(List.of(topUpOrder, settlementOrder));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderItemQo1, orderItemQo2));
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(pageResult);
+
+        orderQueryService.findOrdersPage(queryDto, pageParam);
+
+        verify(orderDetailEnergyTopUpRepository).findByOrderSnList(argThat((List<String> orderSnList) ->
+                orderSnList != null
+                        && orderSnList.size() == 1
+                        && orderSnList.contains("ORDER001")));
+    }
 }

@@ -3,7 +3,6 @@ package info.zhihui.ems.business.finance.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.checkerframework.checker.units.qual.N;
 
 import java.time.LocalDateTime;
 
@@ -17,14 +16,14 @@ import java.time.LocalDateTime;
 public class PowerConsumeQueryDto {
 
     /**
-     * 表名称模糊匹配（可选）
+     * 搜索关键词（电表名称/设备编号模糊匹配，可选）
      */
-    private String meterName;
+    private String searchKey;
 
     /**
-     * 房间/空间名称模糊匹配（可选，直接匹配 space_name 字段）
+     * 空间名称模糊匹配（可选）
      */
-    private String spaceName;
+    private String spaceNameLike;
 
     /**
      * 消费时间范围开始时间（可选）

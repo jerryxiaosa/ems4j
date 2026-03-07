@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 public class ElectricPowerConsumeRecordQo {
 
     /**
-     * 表名称模糊匹配（可选）
+     * 搜索关键词（电表名称/设备编号模糊匹配，可选）
      */
-    private String meterNameLike;
+    private String searchKey;
 
     /**
-     * 房间/空间名称模糊匹配（可选）
+     * 空间名称模糊匹配（可选）
      */
     private String spaceNameLike;
 

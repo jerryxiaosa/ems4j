@@ -4,28 +4,17 @@
 
     <select id="selectByQo" resultType="info.zhihui.ems.business.finance.entity.AccountBalanceConsumeRecordEntity">
         SELECT
-            id,
-            consume_no,
-            account_id,
-            owner_name,
-            begin_balance,
-            pay_amount,
-            end_balance,
-            consume_time,
-            create_time
+            *
         FROM energy_account_balance_consume_record
         WHERE is_deleted = 0
-        <if test="accountId != null">
-            AND account_id = #{accountId}
+        <if test="accountNameLike != null and accountNameLike != ''">
+            AND owner_name LIKE CONCAT('%', #{accountNameLike}, '%')
         </if>
         <if test="consumeTimeStart != null">
             AND consume_time &gt;= #{consumeTimeStart}
         </if>
         <if test="consumeTimeEnd != null">
             AND consume_time &lt;= #{consumeTimeEnd}
-        </if>
-        <if test="consumeNoLike != null and consumeNoLike != ''">
-            AND consume_no LIKE CONCAT('%', #{consumeNoLike}, '%')
         </if>
         ORDER BY consume_time DESC, id DESC
     </select>

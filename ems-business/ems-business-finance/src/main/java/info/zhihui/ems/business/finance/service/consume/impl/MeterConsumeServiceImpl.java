@@ -30,6 +30,7 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.utils.QueryValueUtil;
 import info.zhihui.ems.common.utils.SerialNumberGeneratorUtil;
 import info.zhihui.ems.components.lock.core.LockTemplate;
 import info.zhihui.ems.foundation.organization.bo.OrganizationBo;
@@ -786,8 +787,8 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
         // 构建查询对象
         ElectricPowerConsumeRecordQo qo = new ElectricPowerConsumeRecordQo()
                 .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
-                .setMeterNameLike(queryDto.getMeterName())
-                .setSpaceNameLike(queryDto.getSpaceName())
+                .setSearchKey(QueryValueUtil.normalizeLikeValue(queryDto.getSearchKey()))
+                .setSpaceNameLike(QueryValueUtil.normalizeLikeValue(queryDto.getSpaceNameLike()))
                 .setBeginTime(queryDto.getBeginTime())
                 .setEndTime(queryDto.getEndTime());
 
@@ -932,7 +933,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
         ElectricPowerConsumeRecordQo qo = new ElectricPowerConsumeRecordQo()
                 .setAccountId(queryDto.getAccountId())
                 .setMeterId(queryDto.getMeterId())
-                .setMeterNameLike(queryDto.getMeterName())
+                .setSearchKey(QueryValueUtil.normalizeLikeValue(queryDto.getMeterName()))
                 .setBeginTime(queryDto.getBeginTime())
                 .setEndTime(queryDto.getEndTime())
                 .setConsumeType(ConsumeTypeEnum.CORRECTION.getCode());
@@ -969,7 +970,8 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                 .setBeginBalance(entity.getBeginBalance())
                 .setConsumeAmount(entity.getConsumeAmount())
                 .setEndBalance(entity.getEndBalance())
-                .setMergedMeasure(ElectricAccountTypeEnum.MERGED.getCode().equals(entity.getElectricAccountType()))
+                .setElectricAccountType(entity.getElectricAccountType())
+                .setMeterType(entity.getMeterType())
                 .setConsumeTime(entity.getMeterConsumeTime());
     }
 

@@ -57,6 +57,8 @@ class AccountConsumeServiceIntegrationTest {
                 .setOwnerId(1001)
                 .setOwnerType(OwnerTypeEnum.PERSONAL)
                 .setOwnerName("测试用户")
+                .setContactName("联系人-测试用户")
+                .setContactPhone("13900000000")
                 .setMonthlyPayAmount(new BigDecimal("50.00"))
                 .setConsumeTime(LocalDateTime.now());
     }
@@ -85,6 +87,8 @@ class AccountConsumeServiceIntegrationTest {
         assertNotNull(newRecord);
         assertEquals(monthlyConsumeDto.getMonthlyPayAmount(),
                 newRecord.getPayAmount().setScale(2, RoundingMode.FLOOR));
+        assertEquals(monthlyConsumeDto.getContactName(), newRecord.getContactName());
+        assertEquals(monthlyConsumeDto.getContactPhone(), newRecord.getContactPhone());
     }
 
     @Test
@@ -204,6 +208,15 @@ class AccountConsumeServiceIntegrationTest {
         assertNotNull(result);
         assertEquals(3L, result.getTotal());
         assertFalse(result.getList().isEmpty());
+        AccountConsumeRecordDto record = result.getList().stream()
+                .filter(item -> "AM_001".equals(item.getConsumeNo()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("张三", record.getOwnerName());
+        assertEquals(OwnerTypeEnum.PERSONAL.getCode(), record.getOwnerType());
+        assertEquals(ConsumeTypeEnum.MONTHLY.getCode(), record.getConsumeType());
+        assertEquals("张三联系人", record.getContactName());
+        assertEquals("13800000001", record.getContactPhone());
     }
 
     @Test
@@ -211,8 +224,7 @@ class AccountConsumeServiceIntegrationTest {
     void testFindMonthlyConsumePage_EmptyResult() {
         prepareTestDataForMonthlyConsumePage();
         AccountConsumeQueryDto queryDto = new AccountConsumeQueryDto()
-                .setAccountId(999)
-                .setConsumeNo("NOT_EXIST");
+                .setAccountNameLike("不存在账户");
         PageResult<AccountConsumeRecordDto> result = accountConsumeService.findAccountConsumePage(
                 queryDto,
                 new PageParam().setPageNum(1).setPageSize(10));
@@ -228,13 +240,10 @@ class AccountConsumeServiceIntegrationTest {
         prepareTestDataForMonthlyConsumePage();
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
-        PageResult<AccountConsumeRecordDto> accountIdResult =
-                accountConsumeService.findAccountConsumePage(new AccountConsumeQueryDto().setAccountId(1), pageParam);
-        assertEquals(2L, accountIdResult.getTotal());
-
-        PageResult<AccountConsumeRecordDto> consumeNoResult =
-                accountConsumeService.findAccountConsumePage(new AccountConsumeQueryDto().setConsumeNo("AM_002"), pageParam);
-        assertEquals(1L, consumeNoResult.getTotal());
+        PageResult<AccountConsumeRecordDto> accountNameResult =
+                accountConsumeService.findAccountConsumePage(new AccountConsumeQueryDto().setAccountNameLike("  测试  "), pageParam);
+        assertEquals(1L, accountNameResult.getTotal());
+        assertEquals("测试企业", accountNameResult.getList().get(0).getOwnerName());
 
         AccountConsumeQueryDto timeQuery = new AccountConsumeQueryDto()
                 .setConsumeTimeStart(LocalDateTime.of(2024, 1, 15, 0, 0))
@@ -272,6 +281,8 @@ class AccountConsumeServiceIntegrationTest {
                 .setOwnerId(1001)
                 .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
                 .setOwnerName("张三")
+                .setContactName("张三联系人")
+                .setContactPhone("13800000001")
                 .setPayAmount(new BigDecimal("50.00"))
                 .setBeginBalance(new BigDecimal("100.00"))
                 .setEndBalance(new BigDecimal("50.00"))
@@ -286,6 +297,8 @@ class AccountConsumeServiceIntegrationTest {
                 .setOwnerId(1002)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
                 .setOwnerName("测试企业")
+                .setContactName("企业联系人")
+                .setContactPhone("13800000002")
                 .setPayAmount(new BigDecimal("60.00"))
                 .setBeginBalance(new BigDecimal("150.00"))
                 .setEndBalance(new BigDecimal("90.00"))
@@ -300,6 +313,8 @@ class AccountConsumeServiceIntegrationTest {
                 .setOwnerId(1003)
                 .setOwnerType(OwnerTypeEnum.PERSONAL.getCode())
                 .setOwnerName("李四")
+                .setContactName(null)
+                .setContactPhone(null)
                 .setPayAmount(new BigDecimal("70.00"))
                 .setBeginBalance(new BigDecimal("200.00"))
                 .setEndBalance(new BigDecimal("130.00"))

@@ -2,6 +2,7 @@ package info.zhihui.ems.web.finance.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,11 +16,12 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class PowerConsumeQueryVo {
 
-    @Schema(description = "电表名称（模糊）")
-    private String meterName;
+    @Schema(description = "搜索关键词（匹配电表名称/设备编号）")
+    private String searchKey;
 
-    @Schema(description = "空间名称（模糊）")
-    private String spaceName;
+    @Schema(description = "空间名称（模糊匹配）")
+    @Size(max = 100, message = "空间名称长度不能超过100")
+    private String spaceNameLike;
 
     @Schema(description = "开始时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

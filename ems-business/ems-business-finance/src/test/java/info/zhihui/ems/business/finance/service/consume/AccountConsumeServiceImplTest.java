@@ -54,6 +54,8 @@ class AccountConsumeServiceImplTest {
                 .setOwnerId(1)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                 .setOwnerName("测试企业")
+                .setContactName("联系人A")
+                .setContactPhone("13800000000")
                 .setMonthlyPayAmount(BigDecimal.valueOf(500))
                 .setConsumeTime(LocalDateTime.now());
 
@@ -86,6 +88,8 @@ class AccountConsumeServiceImplTest {
                         && record.getOwnerId().equals(1)
                         && OwnerTypeEnum.ENTERPRISE.getCode().equals(record.getOwnerType())
                         && "测试企业".equals(record.getOwnerName())
+                        && "联系人A".equals(record.getContactName())
+                        && "13800000000".equals(record.getContactPhone())
                         && record.getPayAmount().compareTo(BigDecimal.valueOf(500)) == 0
                         && record.getBeginBalance().compareTo(BigDecimal.valueOf(1500)) == 0
                         && record.getEndBalance().compareTo(BigDecimal.valueOf(1000)) == 0));

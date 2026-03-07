@@ -19,6 +19,7 @@ import info.zhihui.ems.business.finance.repository.ElectricMeterPowerRelationRep
 import info.zhihui.ems.business.finance.service.consume.MeterConsumeService;
 import info.zhihui.ems.common.enums.CalculateTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
@@ -544,25 +545,26 @@ class MeterConsumeServiceIntegrationTest {
         assertNotNull(firstRecord.getConsumeAmount(), "消费金额不应为null");
         assertNotNull(firstRecord.getEndBalance(), "结束余额不应为null");
         assertNotNull(firstRecord.getConsumeTime(), "消费时间不应为null");
-        assertNotNull(firstRecord.getMergedMeasure(), "合并计量标识不应为null");
+        assertNotNull(firstRecord.getElectricAccountType(), "电费计费类型不应为null");
+        assertNotNull(firstRecord.getMeterType(), "表类型不应为null");
 
         // 验证字符串字段不为空
         assertFalse(firstRecord.getMeterName().trim().isEmpty(), "电表名称不应为空字符串");
         assertFalse(firstRecord.getDeviceNo().trim().isEmpty(), "电表编号不应为空字符串");
         assertFalse(firstRecord.getSpaceName().trim().isEmpty(), "空间名称不应为空字符串");
 
-        // 验证mergedMeasure字段的派生逻辑
+        // 验证electricAccountType字段
         boolean foundQuantityType = false;
         boolean foundMergedType = false;
         for (PowerConsumeRecordDto record : result.getList()) {
-            if (!record.getMergedMeasure()) {
+            if (ElectricAccountTypeEnum.QUANTITY.getCode().equals(record.getElectricAccountType())) {
                 foundQuantityType = true;
-            } else {
+            } else if (ElectricAccountTypeEnum.MERGED.getCode().equals(record.getElectricAccountType())) {
                 foundMergedType = true;
             }
         }
-        assertTrue(foundQuantityType, "应该找到QUANTITY类型的记录（mergedMeasure=false）");
-        assertTrue(foundMergedType, "应该找到MERGED类型的记录（mergedMeasure=true）");
+        assertTrue(foundQuantityType, "应该找到QUANTITY类型的记录");
+        assertTrue(foundMergedType, "应该找到MERGED类型的记录");
     }
 
     @Test
@@ -575,8 +577,8 @@ class MeterConsumeServiceIntegrationTest {
         PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
-                .setMeterName("不存在的电表名称")
-                .setSpaceName("不存在的空间名称");
+                .setSearchKey("不存在的电表名称")
+                .setSpaceNameLike("不存在的空间");
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
         // 执行测试
@@ -597,11 +599,11 @@ class MeterConsumeServiceIntegrationTest {
         // 准备测试数据
         prepareTestDataForPowerConsumePage();
 
-        // 测试1: 按电表名称模糊查询
+        // 测试1: 按关键词（电表名称）模糊查询
         PowerConsumeQueryDto queryDto1 = new PowerConsumeQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
-                .setMeterName("1号楼");
+                .setSearchKey("1号楼");
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
         PageResult<PowerConsumeRecordDto> result1 = meterConsumeService.findPowerConsumePage(queryDto1, pageParam);
@@ -609,23 +611,33 @@ class MeterConsumeServiceIntegrationTest {
         assertEquals(1L, result1.getTotal(), "按电表名称查询应返回1条记录");
         assertEquals("1号楼电表", result1.getList().get(0).getMeterName(), "应该查询到正确的电表");
 
-        // 测试2: 按空间名称模糊查询
+        // 测试2: 按关键词（设备编号）模糊查询
         PowerConsumeQueryDto queryDto2 = new PowerConsumeQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
-                .setSpaceName("办公室");
+                .setSearchKey("EM002");
         PageResult<PowerConsumeRecordDto> result2 = meterConsumeService.findPowerConsumePage(queryDto2, pageParam);
         assertNotNull(result2, "查询结果不应为null");
-        assertEquals(1L, result2.getTotal(), "按空间名称查询应返回1条记录");
-        assertEquals("2号楼办公室", result2.getList().get(0).getSpaceName(), "应该查询到正确的空间");
+        assertEquals(1L, result2.getTotal(), "按设备编号查询应返回1条记录");
+        assertEquals("2号楼电表", result2.getList().get(0).getMeterName(), "应该查询到正确的电表");
 
-        // 测试3: 按时间范围查询
+        // 测试3: 按空间名称模糊查询
         PowerConsumeQueryDto queryDto3 = new PowerConsumeQueryDto()
-                .setBeginTime(LocalDateTime.now().minusYears(2))
-                .setEndTime(LocalDateTime.now().plusYears(1));
+                .setBeginTime(LocalDateTime.now().minusYears(1))
+                .setEndTime(LocalDateTime.now().plusYears(1))
+                .setSpaceNameLike("办公室");
         PageResult<PowerConsumeRecordDto> result3 = meterConsumeService.findPowerConsumePage(queryDto3, pageParam);
         assertNotNull(result3, "查询结果不应为null");
-        assertEquals(3L, result3.getTotal(), "按时间范围查询应返回2条记录");
+        assertEquals(1L, result3.getTotal(), "按空间名称查询应返回1条记录");
+        assertEquals("2号楼办公室", result3.getList().get(0).getSpaceName(), "应该查询到正确的空间");
+
+        // 测试4: 按时间范围查询
+        PowerConsumeQueryDto queryDto4 = new PowerConsumeQueryDto()
+                .setBeginTime(LocalDateTime.now().minusYears(2))
+                .setEndTime(LocalDateTime.now().plusYears(1));
+        PageResult<PowerConsumeRecordDto> result4 = meterConsumeService.findPowerConsumePage(queryDto4, pageParam);
+        assertNotNull(result4, "查询结果不应为null");
+        assertEquals(3L, result4.getTotal(), "按时间范围查询应返回3条记录");
 
     }
 
@@ -677,7 +689,7 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - mergedMeasure字段派生逻辑验证")
+    @DisplayName("findPowerConsumePage方法集成测试 - electricAccountType字段验证")
     void testFindPowerConsumePage_MergedMeasureLogic() {
         // 准备测试数据
         prepareTestDataForPowerConsumePage();
@@ -690,17 +702,16 @@ class MeterConsumeServiceIntegrationTest {
 
         PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
 
-        // 验证mergedMeasure字段的派生逻辑
+        // 验证electricAccountType字段
         for (PowerConsumeRecordDto record : result.getList()) {
             if ("1号楼电表".equals(record.getMeterName()) || "3号楼智能电表".equals(record.getMeterName())) {
-                // QUANTITY类型应该是非合并计量
-                assertFalse(record.getMergedMeasure(),
-                    "QUANTITY类型的电表(" + record.getMeterName() + ")应该是非合并计量(mergedMeasure=false)");
+                assertEquals(ElectricAccountTypeEnum.QUANTITY.getCode(), record.getElectricAccountType(),
+                    "QUANTITY类型的电表(" + record.getMeterName() + ")计费类型应为QUANTITY");
             } else if ("2号楼电表".equals(record.getMeterName())) {
-                // MERGED类型应该是合并计量
-                assertTrue(record.getMergedMeasure(),
-                    "MERGED类型的电表(" + record.getMeterName() + ")应该是合并计量(mergedMeasure=true)");
+                assertEquals(ElectricAccountTypeEnum.MERGED.getCode(), record.getElectricAccountType(),
+                    "MERGED类型的电表(" + record.getMeterName() + ")计费类型应为MERGED");
             }
+            assertEquals(MeterTypeEnum.ELECTRIC.getCode(), record.getMeterType(), "电量消费记录的表类型应为电表");
         }
     }
 

@@ -167,7 +167,9 @@ class AccountManagerServiceImplTest {
                 .setId(1)
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
                 .setMonthlyPayAmount(BigDecimal.valueOf(100))
-                .setWarnPlanId(7);
+                .setWarnPlanId(7)
+                .setContactName("开户联系人")
+                .setContactPhone("13600000000");
 
         when(mapper.openAccountDtoToEntity(any())).thenReturn(savedEntity);
         when(infoMapper.entityToBo(any())).thenReturn(savedAccountBo);
@@ -186,7 +188,9 @@ class AccountManagerServiceImplTest {
         verify(repository).insert(insertCaptor.capture());
         AccountEntity insertEntity = insertCaptor.getValue();
         assertThat(insertEntity.getWarnPlanId()).isEqualTo(7);
-        verify(accountConsumeService).monthlyConsume(any());
+        verify(accountConsumeService).monthlyConsume(argThat(monthlyConsumeDto ->
+                "开户联系人".equals(monthlyConsumeDto.getContactName())
+                        && "13600000000".equals(monthlyConsumeDto.getContactPhone())));
         verify(electricMeterManagerService).openMeterAccount(any());
         assertThat(accountId).isEqualTo(1);
         verify(organizationService).getDetail(1);

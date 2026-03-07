@@ -32,8 +32,9 @@
             is_deleted
         FROM energy_electric_meter_balance_consume_record
         WHERE is_deleted = 0
-        <if test="meterNameLike != null and meterNameLike != ''">
-            AND meter_name LIKE CONCAT('%', #{meterNameLike}, '%')
+        <if test="searchKey != null and searchKey != ''">
+            AND (meter_name LIKE CONCAT('%', #{searchKey}, '%')
+                OR device_no LIKE CONCAT('%', #{searchKey}, '%'))
         </if>
         <if test="spaceNameLike != null and spaceNameLike != ''">
             AND space_name LIKE CONCAT('%', #{spaceNameLike}, '%')

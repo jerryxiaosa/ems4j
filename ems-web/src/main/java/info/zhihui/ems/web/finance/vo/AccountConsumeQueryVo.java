@@ -1,6 +1,7 @@
 package info.zhihui.ems.web.finance.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,8 +15,9 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class AccountConsumeQueryVo {
 
-    @Schema(description = "账户ID")
-    private Integer accountId;
+    @Schema(description = "账户名称（模糊搜索）")
+    @Size(max = 50, message = "账户名称长度不能超过50")
+    private String accountNameLike;
 
     @Schema(description = "消费开始时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -24,7 +26,4 @@ public class AccountConsumeQueryVo {
     @Schema(description = "消费结束时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime consumeTimeEnd;
-
-    @Schema(description = "消费编号（模糊查询）")
-    private String consumeNo;
 }

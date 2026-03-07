@@ -110,6 +110,41 @@ class MeterBalanceChangeServiceImplTest {
     }
 
     @Test
+    void testHandleBalanceChange_WhenWarnLevelUpdateThrows_ShouldStillHandleSwitchStatus() {
+        ElectricMeterBo meterBo = new ElectricMeterBo()
+                .setId(18)
+                .setAccountId(108)
+                .setWarnPlanId(20)
+                .setWarnType(WarnTypeEnum.NONE)
+                .setIsOnline(Boolean.TRUE)
+                .setIsCutOff(Boolean.FALSE)
+                .setProtectedModel(Boolean.FALSE);
+        when(electricMeterInfoService.getDetail(18)).thenReturn(meterBo);
+        when(warnPlanService.getDetail(20)).thenReturn(new WarnPlanBo()
+                .setFirstLevel(new BigDecimal("100"))
+                .setSecondLevel(new BigDecimal("30")));
+        when(accountInfoService.getById(108)).thenReturn(new AccountBo()
+                .setId(108)
+                .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY));
+        doThrow(new RuntimeException("warn failed"))
+                .when(electricMeterManagerService).setMeterWarnLevel(eq(List.of(18)), eq(WarnTypeEnum.SECOND));
+
+        BalanceChangedMessage message = new BalanceChangedMessage()
+                .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
+                .setBalanceRelationId(18)
+                .setAccountId(108)
+                .setNewBalance(new BigDecimal("-1"));
+
+        assertDoesNotThrow(() -> meterBalanceChangeService.handleBalanceChange(message));
+
+        verify(electricMeterManagerService).setSwitchStatus(argThat((ElectricMeterSwitchStatusDto dto) ->
+                dto != null
+                        && Integer.valueOf(18).equals(dto.getId())
+                        && ElectricSwitchStatusEnum.OFF.equals(dto.getSwitchStatus())
+                        && CommandSourceEnum.SYSTEM.equals(dto.getCommandSource())));
+    }
+
+    @Test
     void testHandleBalanceChange_WhenQuantityAndBalanceLessOrEqualZero_ShouldAutoSwitchOff() {
         ElectricMeterBo meterBo = new ElectricMeterBo()
                 .setId(10)

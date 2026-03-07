@@ -6,6 +6,7 @@ import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.finance.dto.order.OrderListDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.entity.order.OrderDetailEnergyTopUpEntity;
+import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.mapstruct.OrderMapper;
 import info.zhihui.ems.business.finance.qo.OrderListItemQo;
 import info.zhihui.ems.business.finance.qo.OrderQueryQo;
@@ -16,6 +17,7 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.utils.QueryValueUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +71,8 @@ public class OrderQueryServiceImpl implements OrderQueryService {
             return;
         }
         List<String> orderSnList = pageResult.getList().stream()
+                .filter(Objects::nonNull)
+                .filter(item -> OrderTypeEnum.ENERGY_TOP_UP.equals(item.getOrderType()))
                 .map(OrderListDto::getOrderSn)
                 .filter(StringUtils::hasText)
                 .distinct()
@@ -107,24 +111,16 @@ public class OrderQueryServiceImpl implements OrderQueryService {
     }
 
     private OrderQueryQo buildOrderQueryQo(OrderQueryDto dto) {
-        String enterpriseNameLike = normalizeLikeValue(dto.getEnterpriseNameLike());
+        String enterpriseNameLike = QueryValueUtil.normalizeLikeValue(dto.getEnterpriseNameLike());
         return new OrderQueryQo()
                 .setOrderType(dto.getOrderType() == null ? null : dto.getOrderType().getCode())
                 .setOrderStatus(dto.getOrderStatus() == null ? null : dto.getOrderStatus().name())
-                .setOrderSnLike(normalizeLikeValue(dto.getOrderSnLike()))
-                .setThirdPartySnLike(normalizeLikeValue(dto.getThirdPartySnLike()))
+                .setOrderSnLike(QueryValueUtil.normalizeLikeValue(dto.getOrderSnLike()))
+                .setThirdPartySnLike(QueryValueUtil.normalizeLikeValue(dto.getThirdPartySnLike()))
                 .setEnterpriseNameLike(enterpriseNameLike)
                 .setOwnerType(enterpriseNameLike == null ? null : OwnerTypeEnum.ENTERPRISE.getCode())
                 .setCreateStartTime(dto.getCreateStartTime())
                 .setCreateEndTime(dto.getCreateEndTime())
                 .setPaymentChannel(dto.getPaymentChannel() == null ? null : dto.getPaymentChannel().name());
-    }
-
-    private String normalizeLikeValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmedValue = value.trim();
-        return trimmedValue.isEmpty() ? null : trimmedValue;
     }
 }

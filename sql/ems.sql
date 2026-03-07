@@ -451,7 +451,8 @@ CREATE TABLE `energy_electric_meter_balance_consume_record`
     KEY `idx_meter_consume_record_id` (`meter_consume_record_id`),
     KEY `idx_create_time` (`create_time`),
     KEY `idx_meter_id` (`meter_id`),
-    KEY `idx_account_id` (`account_id`)
+    KEY `idx_account_id` (`account_id`),
+    KEY `idx_space_id` (`space_id`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = UTF8MB4
@@ -467,6 +468,8 @@ CREATE TABLE `energy_account_balance_consume_record`
     `owner_id`      INT                                                           DEFAULT NULL COMMENT '账户归属者id',
     `owner_type`    SMALLINT                                                      DEFAULT NULL COMMENT '账户类型，0企业1个人',
     `owner_name`    VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '企业/个人名称',
+    `contact_name`  VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '联系人',
+    `contact_phone` VARCHAR(40) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci  DEFAULT NULL COMMENT '联系方式',
     `pay_amount`    DECIMAL(20, 8)                                               NOT NULL COMMENT '支付金额',
     `begin_balance` DECIMAL(20, 8)                                               NOT NULL COMMENT '起始余额',
     `end_balance`   DECIMAL(20, 8)                                               NOT NULL COMMENT '截止余额',

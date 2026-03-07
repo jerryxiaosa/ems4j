@@ -63,8 +63,16 @@ public class MeterBalanceChangeServiceImpl implements MeterBalanceChangeService 
             return;
         }
 
-        handleMeterWarnTypeChange(message, meterBo);
-        handleMeterSwitchStatusChange(message, meterBo);
+        try {
+            handleMeterWarnTypeChange(message, meterBo);
+        } catch (Exception ex) {
+            log.error("电表{}预警处理失败，继续执行开关闸逻辑", meterBo.getId(), ex);
+        }
+        try {
+            handleMeterSwitchStatusChange(message, meterBo);
+        } catch (Exception ex) {
+            log.error("电表{}开关闸处理失败", meterBo.getId(), ex);
+        }
     }
 
     private void handleMeterWarnTypeChange(BalanceChangedMessage message, ElectricMeterBo meterBo) {
