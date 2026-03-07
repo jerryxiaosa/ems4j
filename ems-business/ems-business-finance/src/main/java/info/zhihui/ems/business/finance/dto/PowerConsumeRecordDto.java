@@ -81,9 +81,14 @@ public class PowerConsumeRecordDto {
     private BigDecimal endBalance;
 
     /**
-     * 是否合并计量（派生字段：electric_account_type == ElectricAccountTypeEnum.MERGED.code）
+     * 电费计费类型
      */
-    private Boolean mergedMeasure;
+    private Integer electricAccountType;
+
+    /**
+     * 表类型
+     */
+    private Integer meterType;
 
     /**
      * 消费时间

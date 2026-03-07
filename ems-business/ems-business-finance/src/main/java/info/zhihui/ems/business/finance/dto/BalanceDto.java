@@ -38,7 +38,7 @@ public class BalanceDto {
     /**
      * 充值金额
      */
-    @DecimalMin(value = "0.0", message = "充值金额必须大于0")
+    @DecimalMin(value = "0.0", message = "金额必须大于0")
     private BigDecimal amount;
 
 }

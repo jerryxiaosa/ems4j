@@ -18,6 +18,7 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.common.utils.QueryValueUtil;
 import info.zhihui.ems.common.utils.SerialNumberGeneratorUtil;
 import info.zhihui.ems.components.lock.core.LockTemplate;
 import jakarta.validation.Valid;
@@ -84,6 +85,8 @@ public class AccountConsumeServiceImpl implements AccountConsumeService {
                     .setOwnerId(monthlyConsumeDto.getOwnerId())
                     .setOwnerType(monthlyConsumeDto.getOwnerType().getCode())
                     .setOwnerName(monthlyConsumeDto.getOwnerName())
+                    .setContactName(monthlyConsumeDto.getContactName())
+                    .setContactPhone(monthlyConsumeDto.getContactPhone())
                     .setPayAmount(monthlyConsumeDto.getMonthlyPayAmount())
                     .setBeginBalance(endBalance.add(monthlyConsumeDto.getMonthlyPayAmount()))
                     .setEndBalance(endBalance)
@@ -122,10 +125,9 @@ public class AccountConsumeServiceImpl implements AccountConsumeService {
     public PageResult<AccountConsumeRecordDto> findAccountConsumePage(@NotNull AccountConsumeQueryDto queryDto,
                                                                       @NotNull PageParam pageParam) {
         AccountConsumeRecordQo qo = new AccountConsumeRecordQo()
-                .setAccountId(queryDto.getAccountId())
+                .setAccountNameLike(QueryValueUtil.normalizeLikeValue(queryDto.getAccountNameLike()))
                 .setConsumeTimeStart(queryDto.getConsumeTimeStart())
-                .setConsumeTimeEnd(queryDto.getConsumeTimeEnd())
-                .setConsumeNoLike(queryDto.getConsumeNo());
+                .setConsumeTimeEnd(queryDto.getConsumeTimeEnd());
 
         try (Page<AccountBalanceConsumeRecordEntity> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
             PageInfo<AccountBalanceConsumeRecordEntity> pageInfo = page.doSelectPageInfo(() -> accountBalanceConsumeRecordRepository.selectByQo(qo));
@@ -145,6 +147,11 @@ public class AccountConsumeServiceImpl implements AccountConsumeService {
         return new AccountConsumeRecordDto()
                 .setId(entity.getId())
                 .setAccountId(entity.getAccountId())
+                .setOwnerName(entity.getOwnerName())
+                .setOwnerType(entity.getOwnerType())
+                .setConsumeType(ConsumeTypeEnum.MONTHLY.getCode())
+                .setContactName(entity.getContactName())
+                .setContactPhone(entity.getContactPhone())
                 .setConsumeNo(entity.getConsumeNo())
                 .setPayAmount(entity.getPayAmount())
                 .setBeginBalance(entity.getBeginBalance())

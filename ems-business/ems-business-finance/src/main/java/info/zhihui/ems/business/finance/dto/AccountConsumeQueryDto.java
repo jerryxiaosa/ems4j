@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 public class AccountConsumeQueryDto {
 
     /**
-     * 账户ID（必填）
+     * 账户名称（模糊搜索，可选）
      */
-    private Integer accountId;
+    private String accountNameLike;
 
     /**
      * 消费开始时间（可选）
@@ -28,10 +28,4 @@ public class AccountConsumeQueryDto {
      * 消费结束时间（可选）
      */
     private LocalDateTime consumeTimeEnd;
-
-    /**
-     * 消费编号（可选，支持模糊查询）
-     */
-    private String consumeNo;
-
 }

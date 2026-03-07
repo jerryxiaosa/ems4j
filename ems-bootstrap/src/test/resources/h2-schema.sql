@@ -549,6 +549,7 @@ CREATE INDEX idx_meter_consume_record_id ON energy_electric_meter_balance_consum
 CREATE INDEX idx_create_time_balance ON energy_electric_meter_balance_consume_record (create_time);
 CREATE INDEX idx_meter_id_balance ON energy_electric_meter_balance_consume_record (meter_id);
 CREATE INDEX idx_account_id_balance ON energy_electric_meter_balance_consume_record (account_id);
+CREATE INDEX idx_space_id_balance ON energy_electric_meter_balance_consume_record (space_id);
 
 -- 系统配置表
 DROP TABLE IF EXISTS sys_config;
@@ -602,6 +603,8 @@ CREATE TABLE energy_account_balance_consume_record
     owner_id      INTEGER              DEFAULT NULL COMMENT '所有者ID',
     owner_type    INTEGER              DEFAULT NULL COMMENT '所有者类型',
     owner_name    VARCHAR(50)          DEFAULT NULL COMMENT '所有者名称',
+    contact_name  VARCHAR(50)          DEFAULT NULL COMMENT '联系人',
+    contact_phone VARCHAR(40)          DEFAULT NULL COMMENT '联系方式',
     pay_amount    DECIMAL(20, 8)       DEFAULT NULL COMMENT '支付金额',
     begin_balance DECIMAL(20, 8)       DEFAULT NULL COMMENT '期初余额',
     end_balance   DECIMAL(20, 8)       DEFAULT NULL COMMENT '期末余额',

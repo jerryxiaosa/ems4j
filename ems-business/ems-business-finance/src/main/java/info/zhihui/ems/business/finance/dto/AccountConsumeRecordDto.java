@@ -26,6 +26,31 @@ public class AccountConsumeRecordDto {
     private Integer accountId;
 
     /**
+     * 归属主体名称
+     */
+    private String ownerName;
+
+    /**
+     * 归属主体类型
+     */
+    private Integer ownerType;
+
+    /**
+     * 消费类型
+     */
+    private Integer consumeType;
+
+    /**
+     * 联系人姓名
+     */
+    private String contactName;
+
+    /**
+     * 联系人手机号
+     */
+    private String contactPhone;
+
+    /**
      * 消费编号
      */
     private String consumeNo;

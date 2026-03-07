@@ -40,6 +40,16 @@ public class MonthlyConsumeDto {
     private String ownerName;
 
     /**
+     * 联系人
+     */
+    private String contactName;
+
+    /**
+     * 联系方式
+     */
+    private String contactPhone;
+
+    /**
      * 包月费用
      */
     @NotNull(message = "包月费用不能为空")

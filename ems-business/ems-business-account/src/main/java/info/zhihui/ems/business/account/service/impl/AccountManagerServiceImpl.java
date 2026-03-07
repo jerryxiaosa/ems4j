@@ -294,6 +294,8 @@ public class AccountManagerServiceImpl implements AccountManagerService {
                     .setOwnerId(accountBo.getOwnerId())
                     .setOwnerName(accountBo.getOwnerName())
                     .setOwnerType(accountBo.getOwnerType())
+                    .setContactName(accountBo.getContactName())
+                    .setContactPhone(accountBo.getContactPhone())
                     .setMonthlyPayAmount(accountBo.getMonthlyPayAmount())
                     .setConsumeTime(LocalDateTime.now());
             accountConsumeService.monthlyConsume(monthlyConsumeDto);

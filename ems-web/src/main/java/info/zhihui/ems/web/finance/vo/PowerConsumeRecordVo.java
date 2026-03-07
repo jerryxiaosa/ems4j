@@ -1,5 +1,8 @@
 package info.zhihui.ems.web.finance.vo;
 
+import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
+import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -50,8 +53,19 @@ public class PowerConsumeRecordVo {
     @Schema(description = "结束余额")
     private BigDecimal endBalance;
 
-    @Schema(description = "是否合并计量")
-    private Boolean mergedMeasure;
+    @Schema(description = "电费计费类型编码")
+    private Integer electricAccountType;
+
+    @Schema(description = "电费计费类型说明")
+    @EnumLabel(source = "electricAccountType", enumClass = ElectricAccountTypeEnum.class)
+    private String electricAccountTypeText;
+
+    @Schema(description = "表类型编码")
+    private Integer meterType;
+
+    @Schema(description = "表类型说明")
+    @EnumLabel(source = "meterType", enumClass = MeterTypeEnum.class)
+    private String meterTypeName;
 
     @Schema(description = "消费时间")
     private LocalDateTime consumeTime;

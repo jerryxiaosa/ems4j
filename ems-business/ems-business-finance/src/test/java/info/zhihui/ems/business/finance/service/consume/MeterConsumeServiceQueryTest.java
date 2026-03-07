@@ -13,6 +13,7 @@ import info.zhihui.ems.business.finance.repository.ElectricMeterBalanceConsumeRe
 import info.zhihui.ems.business.finance.repository.ElectricMeterPowerConsumeRecordRepository;
 import info.zhihui.ems.business.finance.service.consume.impl.MeterConsumeServiceImpl;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
@@ -69,8 +70,8 @@ class MeterConsumeServiceQueryTest {
     void testQueryPowerConsumes_WithAllConditions() {
         // Given
         PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
-                .setMeterName("电表")
-                .setSpaceName("房间")
+                .setSearchKey("电表")
+                .setSpaceNameLike("房间")
                 .setBeginTime(LocalDateTime.of(2024, 1, 1, 0, 0))
                 .setEndTime(LocalDateTime.of(2024, 1, 31, 23, 59));
 
@@ -106,7 +107,8 @@ class MeterConsumeServiceQueryTest {
             assertEquals(new BigDecimal("100.00"), firstRecord.getBeginBalance());
             assertEquals(new BigDecimal("10.50"), firstRecord.getConsumeAmount());
             assertEquals(new BigDecimal("89.50"), firstRecord.getEndBalance());
-            assertFalse(firstRecord.getMergedMeasure()); // QUANTITY类型，非合并计量
+            assertEquals(ElectricAccountTypeEnum.QUANTITY.getCode(), firstRecord.getElectricAccountType());
+            assertEquals(MeterTypeEnum.ELECTRIC.getCode(), firstRecord.getMeterType());
             assertEquals(LocalDateTime.of(2024, 1, 15, 10, 30), firstRecord.getConsumeTime());
 
             // 验证第二条记录
@@ -117,7 +119,8 @@ class MeterConsumeServiceQueryTest {
             assertEquals(new BigDecimal("200.00"), secondRecord.getBeginBalance());
             assertEquals(new BigDecimal("15.75"), secondRecord.getConsumeAmount());
             assertEquals(new BigDecimal("184.25"), secondRecord.getEndBalance());
-            assertTrue(secondRecord.getMergedMeasure()); // MERGED类型，合并计量
+            assertEquals(ElectricAccountTypeEnum.MERGED.getCode(), secondRecord.getElectricAccountType());
+            assertEquals(MeterTypeEnum.ELECTRIC.getCode(), secondRecord.getMeterType());
             assertEquals(LocalDateTime.of(2024, 1, 14, 14, 20), secondRecord.getConsumeTime());
         }
     }
@@ -156,7 +159,7 @@ class MeterConsumeServiceQueryTest {
     void testQueryPowerConsumes_EmptyResult() {
         // Given
         PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
-                .setMeterName("不存在的电表");
+                .setSearchKey("不存在的电表");
         PageParam pageParam = new PageParam()
                 .setPageNum(1)
                 .setPageSize(10);
@@ -187,7 +190,7 @@ class MeterConsumeServiceQueryTest {
     void testQueryPowerConsumes_OnlyMeterNameCondition() {
         // Given
         PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
-                .setMeterName("电表001");
+                .setSearchKey("电表001");
         PageParam pageParam = new PageParam()
                 .setPageNum(1)
                 .setPageSize(10);
@@ -327,6 +330,7 @@ class MeterConsumeServiceQueryTest {
                 .setConsumeAmount(consumeAmount)
                 .setEndBalance(endBalance)
                 .setElectricAccountType(electricAccountType)
+                .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterConsumeTime(consumeTime);
     }
 
