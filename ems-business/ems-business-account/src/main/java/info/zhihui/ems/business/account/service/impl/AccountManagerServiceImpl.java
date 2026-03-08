@@ -739,13 +739,14 @@ public class AccountManagerServiceImpl implements AccountManagerService {
     }
 
     private void createOfflineCancelOrder(String cancelNo, AccountBo accountBo, BalanceCalculationResultDto balanceResult, CancelAccountDto cancelAccountDto, boolean fullCancel) {
+        BigDecimal systemOrderAmount = toSystemOrderAmount(balanceResult.getRealBalance());
         TerminationSettlementDto terminationSettlementDto = new TerminationSettlementDto()
                 .setCancelNo(cancelNo)
                 .setAccountId(accountBo.getId())
                 .setOwnerId(accountBo.getOwnerId())
                 .setOwnerType(accountBo.getOwnerType())
                 .setOwnerName(accountBo.getOwnerName())
-                .setSettlementAmount(balanceResult.getRealBalance())
+                .setSettlementAmount(systemOrderAmount)
                 .setFullCancel(fullCancel)
                 .setElectricAccountType(accountBo.getElectricAccountType())
                 .setElectricMeterAmount(cancelAccountDto.getMeterList().size())
@@ -758,9 +759,16 @@ public class AccountManagerServiceImpl implements AccountManagerService {
                 .setUserPhone(requestContext.getUserPhone())
                 .setUserRealName(requestContext.getUserRealName())
                 .setThirdPartyUserId(requestContext.getUserId().toString())
-                .setOrderAmount(balanceResult.getRealBalance())
+                .setOrderAmount(systemOrderAmount)
                 .setPaymentChannel(PaymentChannelEnum.OFFLINE);
         orderService.createOrder(orderCreationInfoDto);
+    }
+
+    /**
+     * 将销户结算金额转换为订单系统视角金额：收入为正、支出为负。
+     */
+    private BigDecimal toSystemOrderAmount(BigDecimal settlementAmount) {
+        return settlementAmount.negate();
     }
 
 }

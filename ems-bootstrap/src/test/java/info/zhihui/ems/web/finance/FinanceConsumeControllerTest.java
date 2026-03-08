@@ -98,7 +98,8 @@ class FinanceConsumeControllerTest {
                 .setConsumeNo("CONSUME_001")
                 .setMeterName("1号楼电表")
                 .setConsumeAmount(new BigDecimal("50.50"))
-                .setConsumePower(new BigDecimal("100.00"));
+                .setConsumePower(new BigDecimal("100.00"))
+                .setCreateTime(LocalDateTime.now());
         when(financeBiz.getPowerConsumeDetail(1001)).thenReturn(detailVo);
 
         mockMvc.perform(get("/v1/finance/meter-consumes/{id}", 1001))
@@ -106,7 +107,8 @@ class FinanceConsumeControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1001))
                 .andExpect(jsonPath("$.data.consumeNo").value("CONSUME_001"))
-                .andExpect(jsonPath("$.data.meterName").value("1号楼电表"));
+                .andExpect(jsonPath("$.data.meterName").value("1号楼电表"))
+                .andExpect(jsonPath("$.data.createTime").exists());
     }
 
     @Test

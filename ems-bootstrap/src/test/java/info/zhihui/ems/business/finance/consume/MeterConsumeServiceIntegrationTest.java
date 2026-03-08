@@ -739,6 +739,7 @@ class MeterConsumeServiceIntegrationTest {
         assertEquals(0, detailDto.getEndPower().compareTo(new BigDecimal("105.00")));
         assertEquals(0, detailDto.getEndBalance().compareTo(new BigDecimal("191.25")));
         assertNotNull(detailDto.getConsumeTime());
+        assertNotNull(detailDto.getCreateTime());
     }
 
     @Test

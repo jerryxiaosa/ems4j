@@ -57,7 +57,7 @@ public class OrderBo {
      */
     private OrderTypeEnum orderType;
     /**
-     * 订单金额，订单的实际价值
+     * 订单金额（系统资金方向：收入为正，支出为负）
      */
     private BigDecimal orderAmount;
     /**

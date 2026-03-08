@@ -1038,9 +1038,9 @@ class AccountManagerServiceImplTest {
         TerminationOrderCreationInfoDto orderDto = orderCaptor.getValue();
 
         assertThat(orderDto.getPaymentChannel()).isEqualTo(PaymentChannelEnum.OFFLINE);
-        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("100");
+        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("-100");
         assertThat(orderDto.getTerminationInfo().getCancelNo()).isNotBlank();
-        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("100");
+        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("-100");
         assertThat(orderDto.getTerminationInfo().getCloseReason()).isEqualTo(cancelAccountDto.getRemark());
         assertThat(orderDto.getTerminationInfo().getAccountId()).isEqualTo(1);
         assertThat(orderDto.getTerminationInfo().getOwnerId()).isEqualTo(1);
@@ -1121,9 +1121,9 @@ class AccountManagerServiceImplTest {
         TerminationOrderCreationInfoDto orderDto = orderCaptor.getValue();
 
         assertThat(orderDto.getPaymentChannel()).isEqualTo(PaymentChannelEnum.OFFLINE);
-        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("-50");
+        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("50");
         assertThat(orderDto.getTerminationInfo().getCancelNo()).isNotBlank();
-        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("-50");
+        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("50");
         assertThat(orderDto.getTerminationInfo().getCloseReason()).isEqualTo(cancelAccountDto.getRemark());
         assertThat(orderDto.getTerminationInfo().getAccountId()).isEqualTo(1);
         assertThat(orderDto.getTerminationInfo().getOwnerId()).isEqualTo(1);
@@ -1318,9 +1318,9 @@ class AccountManagerServiceImplTest {
         TerminationOrderCreationInfoDto orderDto = orderCaptor.getValue();
 
         assertThat(orderDto.getPaymentChannel()).isEqualTo(PaymentChannelEnum.OFFLINE);
-        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("100");
+        assertThat(orderDto.getOrderAmount()).isEqualByComparingTo("-100");
         assertThat(orderDto.getTerminationInfo().getCancelNo()).isNotBlank();
-        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("100");
+        assertThat(orderDto.getTerminationInfo().getSettlementAmount()).isEqualByComparingTo("-100");
         assertThat(orderDto.getTerminationInfo().getCloseReason()).isEqualTo(cancelAccountDto.getRemark());
         assertThat(orderDto.getTerminationInfo().getAccountId()).isEqualTo(1);
         assertThat(orderDto.getTerminationInfo().getOwnerId()).isEqualTo(1);

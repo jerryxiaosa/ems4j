@@ -14,7 +14,6 @@ import info.zhihui.ems.web.order.vo.OrderCreationResponseVo;
 import info.zhihui.ems.web.order.vo.OrderDetailVo;
 import info.zhihui.ems.web.order.vo.OrderQueryVo;
 import info.zhihui.ems.web.order.vo.OrderVo;
-import info.zhihui.ems.web.order.vo.TerminationOrderCreateVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,13 +50,6 @@ public class OrderController {
     @Operation(summary = "创建能耗充值订单")
     public RestResult<OrderCreationResponseVo> createEnergyTopUpOrder(@Valid @RequestBody EnergyOrderCreateVo createVo) {
         return ResultUtil.success(orderBiz.createEnergyTopUpOrder(createVo));
-    }
-
-    @SaCheckPermission("orders:orders:add-termination")
-    @PostMapping("/termination")
-    @Operation(summary = "创建销户结算订单")
-    public RestResult<OrderCreationResponseVo> createTerminationOrder(@Valid @RequestBody TerminationOrderCreateVo createVo) {
-        return ResultUtil.success(orderBiz.createTerminationOrder(createVo));
     }
 
     @SaCheckPermission("orders:orders:detail")

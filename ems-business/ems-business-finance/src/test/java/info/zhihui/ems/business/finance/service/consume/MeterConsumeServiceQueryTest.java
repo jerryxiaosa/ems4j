@@ -249,6 +249,7 @@ class MeterConsumeServiceQueryTest {
                 .setConsumePowerLow(new BigDecimal("7.30"))
                 .setBeginRecordTime(LocalDateTime.of(2026, 2, 10, 12, 0))
                 .setEndRecordTime(LocalDateTime.of(2026, 2, 10, 12, 30))
+                .setCreateTime(LocalDateTime.of(2026, 2, 10, 12, 31))
                 .setIsDeleted(false);
         when(electricMeterPowerConsumeRecordRepository.selectById(meterConsumeRecordId)).thenReturn(powerRecord);
 
@@ -261,6 +262,7 @@ class MeterConsumeServiceQueryTest {
         assertEquals(new BigDecimal("10.50"), detailDto.getConsumePower());
         assertEquals(new BigDecimal("8.66"), detailDto.getConsumeAmount());
         assertEquals(LocalDateTime.of(2026, 2, 10, 12, 30), detailDto.getConsumeTime());
+        assertEquals(LocalDateTime.of(2026, 2, 10, 12, 31), detailDto.getCreateTime());
     }
 
     @Test

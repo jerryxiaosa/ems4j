@@ -1042,7 +1042,8 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                 .setConsumePowerDeepLow(powerConsumeRecord.getConsumePowerDeepLow())
                 .setBeginRecordTime(powerConsumeRecord.getBeginRecordTime())
                 .setEndRecordTime(powerConsumeRecord.getEndRecordTime())
-                .setConsumeTime(balanceConsumeRecord.getMeterConsumeTime());
+                .setConsumeTime(balanceConsumeRecord.getMeterConsumeTime())
+                .setCreateTime(powerConsumeRecord.getCreateTime());
     }
 
 }
