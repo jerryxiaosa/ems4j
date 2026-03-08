@@ -208,23 +208,24 @@ mvn -pl ems-business/ems-business-device -am test
 
 ## 模块说明
 
-| 模块 | 职责 |
-|------|------|
-| `ems-bootstrap` | 应用启动入口（Spring Boot） |
-| `ems-web` | HTTP 接口层 |
-| `ems-business-device` | 电表、网关、设备档案管理 |
-| `ems-business-account` | 开户、销户、余额、充值 |
-| `ems-business-finance` | 账单生成、财务流水、对账 |
-| `ems-business-plan` | 计费方案、费率、尖峰平谷时段 |
-| `ems-foundation-user` | 用户认证、权限、角色 |
-| `ems-foundation-organization` | 多租户、组织架构 |
-| `ems-foundation-space` | 空间/区域管理 |
-| `ems-foundation-system` | 系统配置 |
-| `ems-foundation-integration` | 第三方平台对接 |
-| `ems-components-*` | 通用组件（数据源/锁/上下文） |
-| `ems-mq-*` | 消息基础设施 API（ems-mq-api）与业务消息应用层实现（ems-mq-rabbitmq） |
-| `ems-iot` | Netty 设备接入、协议解析 |
-| `ems-schedule` | 定时任务 |
+| 模块                            | 职责                                               |
+|-------------------------------|--------------------------------------------------|
+| `ems-bootstrap`               | 应用启动入口（Spring Boot）                              |
+| `ems-web`                     | HTTP 接口层                                         |
+| `ems-business-device`         | 电表、网关、设备档案管理                                     |
+| `ems-business-account`        | 开户、销户、余额、充值                                      |
+| `ems-business-finance`        | 账单生成、财务流水、对账                                     |
+| `ems-business-plan`           | 计费方案、费率、尖峰平谷时段                                   |
+| `ems-foundation-user`         | 用户认证、权限、角色                                       |
+| `ems-foundation-organization` | 多租户、组织架构                                         |
+| `ems-foundation-space`        | 空间/区域管理                                          |
+| `ems-foundation-system`       | 系统配置                                             |
+| `ems-foundation-integration`  | 第三方平台对接                                          |
+| `ems-components-*`            | 通用组件（数据源/锁/上下文）                                  |
+| `ems-mq-*`                    | 消息基础设施 API（ems-mq-api）与业务消息应用层实现（ems-mq-rabbitmq） |
+| `ems-iot`                     | Netty 设备接入、协议解析                                  |
+| `ems-schedule`                | 定时任务                                             |
+| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | 前端web页面 - Coming Soon                           |
 
 说明：
 - ems-mq-api 提供消息契约与基础服务接口（基础设施层）。
@@ -273,4 +274,6 @@ mvn -pl ems-business/ems-business-device -am test
 
 ## 联系方式
 
-- 邮箱：jerryxiaoff@163.com
+- 添加我的微信，请注名“ems4j”：
+  
+  <img src="resource/images/wechat.png" alt="微信二维码" width="220" />
