@@ -26,6 +26,45 @@ If this project helps you, please consider giving it a Star ⭐️ as support—
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
 
+## System Screenshots
+
+> Screenshot assets directory: `resource/images`
+
+### Account Management
+
+| Page | Screenshot |
+|------|------------|
+| Account List | ![Account List](resource/images/account-list.png) |
+| Account Detail | ![Account Detail](resource/images/account-detail.png) |
+| Account Settlement | ![Account Settlement](resource/images/clear-account.png) |
+
+### Device Management
+
+| Page | Screenshot |
+|------|------------|
+| Meter List | ![Meter List](resource/images/meter-list.png) |
+| Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
+| Gateway List | ![Gateway List](resource/images/gateway-list.png) |
+| Gateway Detail | ![Gateway Detail](resource/images/gateway-detail.png) |
+| Device Category | ![Device Category](resource/images/device-type.png) |
+
+### Warnings & Orders
+
+| Page | Screenshot |
+|------|------------|
+| Warning Plan List | ![Warning Plan List](resource/images/warn-list.png) |
+| Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
+| Order List | ![Order List](resource/images/order-list.png) |
+| Order Creation | ![Order Creation](resource/images/order-create.png) |
+
+### Pricing Configuration
+
+| Page | Screenshot |
+|------|------------|
+| Price Plan List | ![Price Plan List](resource/images/electric-plan.png) |
+| Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
+| TOU Period | ![TOU Period](resource/images/period.png) |
+
 ## Prepaid Mode Description
 
 The system supports three billing types: pay-as-you-go, consolidated, and monthly. In pay-as-you-go and consolidated modes, balance is deducted based on actual usage. In pay-as-you-go mode, each water/electric meter is settled independently. In consolidated mode, the balance is recharged on one water/electric meter and other meters use that balance. Monthly is settled at a fixed amount per cycle.
@@ -187,6 +226,7 @@ Notes:
 | `ems-mq-*` | Messaging infrastructure API (ems-mq-api) and business messaging app layer (ems-mq-rabbitmq) |
 | `ems-iot` | Netty device access, protocol parsing |
 | `ems-schedule` | Scheduled jobs |
+| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Frontend web application - Coming Soon! |
 
 Notes:
 - ems-mq-api provides message contracts and base messaging services (infrastructure layer).
@@ -235,4 +275,6 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
 ## Contact
 
-- Email: jerryxiaoff@163.com
+- WeChat:
+  
+  <img src="resource/images/wechat.png" alt="WeChat QR Code" width="220" />
