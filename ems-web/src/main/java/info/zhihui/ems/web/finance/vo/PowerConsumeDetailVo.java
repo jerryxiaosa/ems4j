@@ -157,4 +157,7 @@ public class PowerConsumeDetailVo {
 
     @Schema(description = "消费时间")
     private LocalDateTime consumeTime;
+
+    @Schema(description = "系统处理时间")
+    private LocalDateTime createTime;
 }

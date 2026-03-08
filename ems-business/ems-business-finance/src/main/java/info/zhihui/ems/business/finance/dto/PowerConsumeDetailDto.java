@@ -254,4 +254,9 @@ public class PowerConsumeDetailDto {
      * 消费时间
      */
     private LocalDateTime consumeTime;
+
+    /**
+     * 系统处理时间
+     */
+    private LocalDateTime createTime;
 }

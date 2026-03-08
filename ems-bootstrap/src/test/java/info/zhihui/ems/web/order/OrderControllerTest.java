@@ -144,24 +144,6 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("创建销户结算订单")
-    void testCreateTerminationOrder() throws Exception {
-        OrderCreationResponseVo responseVo = new OrderCreationResponseVo().setOrderSn("SN456");
-        when(orderBiz.createTerminationOrder(any())).thenReturn(responseVo);
-
-        String body = "{" +
-                "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"李四\",\"thirdPartyUserId\":\"tp-2\",\"orderAmount\":200,\"terminationInfo\":{" +
-                "\"cancelNo\":\"C-001\",\"accountId\":11,\"ownerId\":21,\"ownerType\":\"ENTERPRISE\",\"ownerName\":\"张三\",\"settlementAmount\":200,\"electricAccountType\":\"QUANTITY\",\"electricMeterAmount\":2,\"fullCancel\":true,\"meterIdList\":[1,2]}}";
-
-        mockMvc.perform(post("/v1/orders/termination")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.orderSn").value("SN456"));
-    }
-
-    @Test
     @DisplayName("获取订单详情")
     void testGetOrderDetail() throws Exception {
         OrderDetailVo detailVo = new OrderDetailVo();

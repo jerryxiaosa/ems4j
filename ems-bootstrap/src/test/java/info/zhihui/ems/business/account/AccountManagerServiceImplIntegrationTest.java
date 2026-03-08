@@ -384,13 +384,13 @@ public class AccountManagerServiceImplIntegrationTest {
                 new LambdaQueryWrapper<OrderDetailTerminationEntity>()
                         .eq(OrderDetailTerminationEntity::getCancelNo, response.getCancelNo()));
         assertNotNull(orderDetail, "应生成结算订单详情");
-        assertOrderDetail(orderDetail, response.getCancelNo(), cancelAccountDto, account, response.getAmount());
+        assertOrderDetail(orderDetail, response.getCancelNo(), cancelAccountDto, account, response.getAmount().negate());
 
         OrderEntity orderEntity = orderRepository.selectOne(
                 new LambdaQueryWrapper<OrderEntity>()
                         .eq(OrderEntity::getOrderSn, orderDetail.getOrderSn()));
         assertNotNull(orderEntity, "应生成结算订单");
-        assertOrderEntity(orderEntity, orderDetail.getOrderSn(), response.getAmount());
+        assertOrderEntity(orderEntity, orderDetail.getOrderSn(), response.getAmount().negate());
     }
 
     /**
@@ -452,13 +452,13 @@ public class AccountManagerServiceImplIntegrationTest {
                 new LambdaQueryWrapper<OrderDetailTerminationEntity>()
                         .eq(OrderDetailTerminationEntity::getCancelNo, response.getCancelNo()));
         assertNotNull(orderDetail, "应生成结算订单详情");
-        assertOrderDetail(orderDetail, response.getCancelNo(), cancelAccountDto, account, response.getAmount());
+        assertOrderDetail(orderDetail, response.getCancelNo(), cancelAccountDto, account, response.getAmount().negate());
 
         OrderEntity orderEntity = orderRepository.selectOne(
                 new LambdaQueryWrapper<OrderEntity>()
                         .eq(OrderEntity::getOrderSn, orderDetail.getOrderSn()));
         assertNotNull(orderEntity, "应生成结算订单");
-        assertOrderEntity(orderEntity, orderDetail.getOrderSn(), response.getAmount());
+        assertOrderEntity(orderEntity, orderDetail.getOrderSn(), response.getAmount().negate());
     }
 
     /**
@@ -789,7 +789,7 @@ public class AccountManagerServiceImplIntegrationTest {
         assertEquals(new BigDecimal("435.00").negate(), response.getAmount());
 
         // 查询账户信息
-        // 校验订单记录（补缴金额为负数）
+        // 校验订单记录（订单金额为系统视角，补缴为正数）
         OrderDetailTerminationEntity payOrderDetail = orderDetailTerminationRepository.selectOne(
                 new LambdaQueryWrapper<OrderDetailTerminationEntity>()
                         .eq(OrderDetailTerminationEntity::getCancelNo, response.getCancelNo()));
@@ -797,7 +797,7 @@ public class AccountManagerServiceImplIntegrationTest {
         assertNotNull(payOrderDetail.getOrderSn());
         assertEquals(response.getCancelNo(), payOrderDetail.getCancelNo());
         assertEquals(cancelAccountDto.getAccountId(), payOrderDetail.getAccountId());
-        assertEquals(0, payOrderDetail.getSettlementAmount().compareTo(response.getAmount()));
+        assertEquals(0, payOrderDetail.getSettlementAmount().compareTo(response.getAmount().negate()));
         assertEquals(cancelAccountDto.getRemark(), payOrderDetail.getCloseReason());
         assertEquals(JacksonUtil.toJson(List.of(3)), payOrderDetail.getSnapshotPayload());
         assertEquals(accountBeforeClose.getOwnerId(), payOrderDetail.getOwnerId());
@@ -808,7 +808,7 @@ public class AccountManagerServiceImplIntegrationTest {
                 new LambdaQueryWrapper<OrderEntity>()
                         .eq(OrderEntity::getOrderSn, payOrderDetail.getOrderSn()));
         assertNotNull(payOrderEntity);
-        assertOrderEntity(payOrderEntity, payOrderDetail.getOrderSn(), response.getAmount());
+        assertOrderEntity(payOrderEntity, payOrderDetail.getOrderSn(), response.getAmount().negate());
 
         // 全部销户后账户应被删除
         assertThrows(NotFoundException.class, () -> accountInfoService.getById(3));

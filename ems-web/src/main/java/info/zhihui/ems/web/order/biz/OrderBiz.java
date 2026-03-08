@@ -4,7 +4,6 @@ import com.wechat.pay.java.core.notification.RequestParam;
 import info.zhihui.ems.business.finance.bo.OrderBo;
 import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
-import info.zhihui.ems.business.finance.dto.order.creation.TerminationOrderCreationInfoDto;
 import info.zhihui.ems.business.finance.entity.order.OrderThirdPartyNotificationDto;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.finance.service.order.core.OrderQueryService;
@@ -17,7 +16,6 @@ import info.zhihui.ems.web.order.vo.OrderDetailVo;
 import info.zhihui.ems.web.order.vo.OrderCreationResponseVo;
 import info.zhihui.ems.web.order.vo.OrderQueryVo;
 import info.zhihui.ems.web.order.vo.OrderVo;
-import info.zhihui.ems.web.order.vo.TerminationOrderCreateVo;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -87,16 +85,6 @@ public class OrderBiz {
     public OrderCreationResponseVo createEnergyTopUpOrder(EnergyOrderCreateVo createVo) {
         OrderCreationResponseDto responseDto =
                 orderService.createOrder(orderWebMapper.toEnergyOrderCreationInfoDto(createVo));
-        return orderWebMapper.toOrderCreationResponseVo(responseDto);
-    }
-
-    /**
-     * 创建销户结算订单
-     */
-    public OrderCreationResponseVo createTerminationOrder(TerminationOrderCreateVo createVo) {
-        TerminationOrderCreationInfoDto dto = orderWebMapper.toTerminationOrderCreationInfoDto(createVo);
-        dto.setPaymentChannel(PaymentChannelEnum.OFFLINE);
-        OrderCreationResponseDto responseDto = orderService.createOrder(dto);
         return orderWebMapper.toOrderCreationResponseVo(responseDto);
     }
 

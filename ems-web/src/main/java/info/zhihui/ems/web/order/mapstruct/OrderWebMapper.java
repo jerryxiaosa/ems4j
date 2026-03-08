@@ -6,8 +6,6 @@ import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
 import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
 import info.zhihui.ems.business.finance.dto.order.creation.EnergyOrderCreationInfoDto;
 import info.zhihui.ems.business.finance.dto.order.creation.EnergyTopUpDto;
-import info.zhihui.ems.business.finance.dto.order.creation.TerminationOrderCreationInfoDto;
-import info.zhihui.ems.business.finance.dto.order.creation.TerminationSettlementDto;
 import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
 import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
 import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
@@ -23,8 +21,6 @@ import info.zhihui.ems.web.order.vo.OrderCreationResponseVo;
 import info.zhihui.ems.web.order.vo.OrderDetailVo;
 import info.zhihui.ems.web.order.vo.OrderQueryVo;
 import info.zhihui.ems.web.order.vo.OrderVo;
-import info.zhihui.ems.web.order.vo.TerminationOrderCreateVo;
-import info.zhihui.ems.web.order.vo.TerminationSettlementVo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -65,10 +61,6 @@ public interface OrderWebMapper {
     EnergyOrderCreationInfoDto toEnergyOrderCreationInfoDto(EnergyOrderCreateVo createVo);
 
     EnergyTopUpDto toEnergyTopUpDto(EnergyTopUpDetailVo detailVo);
-
-    TerminationOrderCreationInfoDto toTerminationOrderCreationInfoDto(TerminationOrderCreateVo createVo);
-
-    TerminationSettlementDto toTerminationSettlementDto(TerminationSettlementVo settlementVo);
 
     OrderCreationResponseVo toOrderCreationResponseVo(OrderCreationResponseDto responseDto);
 
