@@ -200,6 +200,44 @@ class TranslateMetadataCacheTest {
     }
 
     @Test
+    @DisplayName("FormatText self=true 时应将当前字段作为源字段")
+    void testGetMetadata_SelfFormatField_ShouldUseTargetFieldAsSource() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(SelfFormatVo.class);
+
+        assertFalse(metadata.isEmpty());
+        assertEquals(1, metadata.getFieldList().size());
+
+        TranslateFieldMetadata formatMetadata = metadata.getFieldList().get(0);
+        assertEquals(TranslateFieldTypeEnum.FORMAT, formatMetadata.getType());
+        assertEquals("userPhone", formatMetadata.getSourceField().getName());
+        assertEquals("userPhone", formatMetadata.getTargetField().getName());
+        assertSame(formatMetadata.getSourceField(), formatMetadata.getTargetField());
+        assertEquals(TestFormatter.class, formatMetadata.getFormatterClass());
+    }
+
+    @Test
+    @DisplayName("FormatText self=true 且source与目标字段名不一致时应跳过")
+    void testGetMetadata_SelfFormatWithDifferentSource_ShouldSkip() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(InvalidSelfFormatSourceVo.class);
+
+        assertTrue(metadata.isEmpty());
+    }
+
+    @Test
+    @DisplayName("FormatText self=true 且字段非字符串类型时应跳过")
+    void testGetMetadata_SelfFormatNonStringField_ShouldSkip() {
+        TranslateMetadataCache cache = new TranslateMetadataCache();
+
+        TranslateMetadata metadata = cache.getMetadata(InvalidSelfFormatVo.class);
+
+        assertTrue(metadata.isEmpty());
+    }
+
+    @Test
     @DisplayName("仅声明递归子字段时也应构建元数据")
     void testGetMetadata_TranslateChildOnly_ShouldBuildChildFieldMetadata() {
         TranslateMetadataCache cache = new TranslateMetadataCache();
@@ -331,6 +369,21 @@ class TranslateMetadataCacheTest {
 
         @FormatText(source = "amount", formatter = TestFormatter.class)
         private String amountText;
+    }
+
+    private static class SelfFormatVo {
+        @FormatText(source = "userPhone", formatter = TestFormatter.class, self = true)
+        private String userPhone;
+    }
+
+    private static class InvalidSelfFormatSourceVo {
+        @FormatText(source = "phone", formatter = TestFormatter.class, self = true)
+        private String userPhone;
+    }
+
+    private static class InvalidSelfFormatVo {
+        @FormatText(source = "userPhone", formatter = TestFormatter.class, self = true)
+        private Integer userPhone;
     }
 
     private static class TranslateChildOnlyVo {

@@ -36,12 +36,12 @@ class OrderBizIntegrationTest {
     @DisplayName("创建能耗充值订单应正确映射能耗充值明细并成功落库")
     void testCreateEnergyTopUpOrder_ShouldMapEnergyTopUpDto() {
         EnergyTopUpDetailVo energyTopUpDetailVo = new EnergyTopUpDetailVo()
-                .setAccountId(10)
+                .setAccountId(1)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT.getCode())
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
-                .setOwnerId(20)
-                .setOwnerName("测试企业")
-                .setElectricAccountType(ElectricAccountTypeEnum.MERGED.getCode())
+                .setOwnerId(1001)
+                .setOwnerName("账户1")
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY.getCode())
                 .setMeterId(30)
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterName("测试电表")
@@ -63,12 +63,12 @@ class OrderBizIntegrationTest {
 
         var detailEntity = orderDetailEnergyTopUpRepository.selectByOrderSn(responseVo.getOrderSn());
         assertThat(detailEntity).isNotNull();
-        assertThat(detailEntity.getAccountId()).isEqualTo(10);
+        assertThat(detailEntity.getAccountId()).isEqualTo(1);
         assertThat(detailEntity.getBalanceType()).isEqualTo(BalanceTypeEnum.ACCOUNT.getCode());
         assertThat(detailEntity.getOwnerType()).isEqualTo(OwnerTypeEnum.ENTERPRISE.getCode());
-        assertThat(detailEntity.getOwnerId()).isEqualTo(20);
-        assertThat(detailEntity.getOwnerName()).isEqualTo("测试企业");
-        assertThat(detailEntity.getElectricAccountType()).isEqualTo(ElectricAccountTypeEnum.MERGED.getCode());
+        assertThat(detailEntity.getOwnerId()).isEqualTo(1001);
+        assertThat(detailEntity.getOwnerName()).isEqualTo("账户1");
+        assertThat(detailEntity.getElectricAccountType()).isEqualTo(ElectricAccountTypeEnum.MONTHLY.getCode());
         assertThat(detailEntity.getMeterId()).isEqualTo(30);
         assertThat(detailEntity.getMeterType()).isEqualTo(MeterTypeEnum.ELECTRIC.getCode());
         assertThat(detailEntity.getMeterName()).isEqualTo("测试电表");

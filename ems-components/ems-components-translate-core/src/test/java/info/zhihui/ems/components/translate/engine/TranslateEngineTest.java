@@ -329,6 +329,21 @@ class TranslateEngineTest {
     }
 
     @Test
+    @DisplayName("FormatText self=true 时应覆盖当前字段值")
+    void testTranslate_FormatTextSelf_ShouldOverwriteCurrentField() {
+        TranslateEngine engine = buildEngine(
+                new EnumLabelResolver(),
+                Collections.emptyList(),
+                List.of(new PhoneMaskTestFormatter())
+        );
+
+        SelfFormatVo vo = new SelfFormatVo().setUserPhone("13800138000");
+        engine.translate(vo, new TranslateContext());
+
+        assertEquals("138****8000", vo.getUserPhone());
+    }
+
+    @Test
     @DisplayName("未注册格式化器时应按固定文案回退并支持重复调用")
     void testTranslate_MissingFormatter_ShouldUseFixedTextFallback() {
         TranslateEngine engine = buildEngine(new EnumLabelResolver(), Collections.emptyList(), Collections.emptyList());
@@ -547,6 +562,13 @@ class TranslateEngineTest {
 
     @Data
     @Accessors(chain = true)
+    private static class SelfFormatVo {
+        @FormatText(source = "userPhone", formatter = PhoneMaskTestFormatter.class, self = true)
+        private String userPhone;
+    }
+
+    @Data
+    @Accessors(chain = true)
     private static class NestedContainerVo {
         @TranslateChild
         private List<NestedChildItemVo> childList;
@@ -696,6 +718,19 @@ class TranslateEngineTest {
         @Override
         public String format(Object sourceValue, TranslateContext context) {
             throw new IllegalStateException("mock formatter error");
+        }
+    }
+
+    private static class PhoneMaskTestFormatter implements FieldTextFormatter {
+        @Override
+        public String format(Object sourceValue, TranslateContext context) {
+            if (!(sourceValue instanceof String phone)) {
+                return null;
+            }
+            if (phone.length() < 7) {
+                return phone;
+            }
+            return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
         }
     }
 }

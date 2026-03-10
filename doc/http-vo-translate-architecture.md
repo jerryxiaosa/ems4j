@@ -30,6 +30,12 @@
 - `@BizLabel`：用于业务主键转换（如 `warnPlanId`、`userId`）。
 - `@FormatText`：用于单源字段的本地格式化（如金额格式化）。
 
+当前已落地的典型场景包括：
+- `organizationId -> organizationName`
+- `certificatesType -> certificatesTypeText`
+- `userPhone -> 脱敏后的 userPhone`
+- `createTime/updateTime -> 格式化后的时间字符串`
+
 示例（VO）：
 
 ```java
@@ -61,6 +67,7 @@ public class AccountVo {
 补充：
 - `@FormatText` 当前适合“单源字段 + 本地纯格式化”场景，不负责外部 IO。
 - 复杂动态展示值（例如依赖 `isOnline + lastOnlineTime + now` 的离线时长）仍建议放在 Web `biz` 层计算，不要强行塞进 translate 体系。
+- 当前 `PhoneMaskFormatter` 已用于手机号脱敏展示；对于非字符串或空值输入，formatter 会直接返回 `null`。
 
 
 ### 2.2 第 2 层：统一转换引擎（核心在 components-translate-core，HTTP 适配在 components-translate-web）
@@ -131,6 +138,7 @@ public interface BatchLabelResolver<K> {
 当前实现补充：
 - `TranslateMetadataCache` 负责类级元数据缓存。
 - `TranslateEngine` 对 formatter 做了本地缓存与缺失缓存，避免重复扫描与重复告警。
+- `ResponseTranslateAdvice` 已在 `WebMvcTest` 场景中显式导入，用于保证 Web 层接口测试与运行时行为一致。
 
 
 ### 3.3 失败与降级策略
@@ -224,6 +232,23 @@ public class UserNameResolver implements BatchLabelResolver<Integer> {
 - 列表：100 条记录只调用一次 resolver。
 - 分页：`PageResult.list` 正常回填。
 - 缺失用户：字段按降级策略返回 `null`（或约定占位文案）。
+
+
+## 5.4 已落地示例：`UserVo` 的组织名、证件类型与手机号格式化
+
+当前 `UserVo` 已接入三类典型转换：
+
+- `organizationId -> organizationName`
+  - 通过 `OrganizationNameResolver` 批量查询组织名称
+- `certificatesType -> certificatesTypeText`
+  - 通过 `@EnumLabel` 做枚举文案转换
+- `userPhone -> 脱敏手机号`
+  - 通过 `PhoneMaskFormatter` 做本地格式化
+
+这类接入说明：
+- 业务查询仍返回原始字段
+- Web 返回前由统一引擎补齐展示字段
+- `UserManageControllerTest` 中已显式覆盖这些转换链路，确保接口测试能够验证展示值回填结果
 
 
 ## 6. 示例：接入 `warnPlanId -> warnPlanName`
