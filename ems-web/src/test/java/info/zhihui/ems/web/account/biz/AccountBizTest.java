@@ -6,7 +6,7 @@ import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.account.service.AccountManagerService;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.account.mapstruct.AccountWebMapper;

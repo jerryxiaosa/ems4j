@@ -1,7 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.listener.order.success;
 
-import info.zhihui.ems.business.finance.dto.BalanceDeleteDto;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.dto.BalanceDeleteDto;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;

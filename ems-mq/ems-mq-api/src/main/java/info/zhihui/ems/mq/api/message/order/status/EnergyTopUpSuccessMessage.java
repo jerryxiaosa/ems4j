@@ -21,6 +21,11 @@ public class EnergyTopUpSuccessMessage extends BaseOrderStatusMessage {
      */
     @NotNull(message = "订单金额不能为空")
     private BigDecimal orderAmount;
+    /**
+     * 实际充值到账金额
+     */
+    @NotNull(message = "实际充值到账金额不能为空")
+    private BigDecimal topUpAmount;
 
     /**
      * 余额类型

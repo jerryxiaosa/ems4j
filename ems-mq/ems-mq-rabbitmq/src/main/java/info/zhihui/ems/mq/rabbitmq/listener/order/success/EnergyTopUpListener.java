@@ -1,7 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.listener.order.success;
 
-import info.zhihui.ems.business.finance.dto.BalanceDto;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.dto.BalanceDto;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.mq.api.enums.TransactionMessageBusinessTypeEnum;
@@ -34,8 +34,8 @@ public class EnergyTopUpListener {
     // 不需要加事务，订单已保证不能重复充值
     @RabbitListener(queues = QueueConstant.QUEUE_ORDER_SUCCESS_ENERGY_TOP_UP)
     public void handle(@Valid @NotNull EnergyTopUpSuccessMessage message) {
-        log.info("接收到能源充值成功消息，订单号: {}, 充值类型: {}, 充值金额: {}",
-                message.getOrderSn(), message.getBalanceType(), message.getOrderAmount());
+        log.info("接收到能源充值成功消息，订单号: {}, 充值类型: {}, 到账金额: {}",
+                message.getOrderSn(), message.getBalanceType(), message.getTopUpAmount());
 
         try {
             // 参数校验
@@ -87,14 +87,14 @@ public class EnergyTopUpListener {
      */
     private void handleAccountTopUp(EnergyTopUpSuccessMessage message) {
         log.info("开始处理账户充值，订单号: {}, 账户ID: {}, 充值金额: {}",
-                message.getOrderSn(), message.getAccountId(), message.getOrderAmount());
+                message.getOrderSn(), message.getAccountId(), message.getTopUpAmount());
 
         BalanceDto topUpDto = new BalanceDto()
                 .setBalanceRelationId(message.getAccountId())
                 .setBalanceType(message.getBalanceType())
                 .setAccountId(message.getAccountId())
                 .setOrderNo(message.getOrderSn())
-                .setAmount(message.getOrderAmount());
+                .setAmount(message.getTopUpAmount());
 
         balanceService.topUp(topUpDto);
         log.info("账户充值完成，订单号: {}, 账户ID: {}", message.getOrderSn(), message.getAccountId());
@@ -107,7 +107,7 @@ public class EnergyTopUpListener {
      */
     private void handleElectricMeterTopUp(EnergyTopUpSuccessMessage message) {
         log.info("开始处理电表充值，订单号: {}, 电表ID: {}, 充值金额: {}",
-                message.getOrderSn(), message.getMeterId(), message.getOrderAmount());
+                message.getOrderSn(), message.getMeterId(), message.getTopUpAmount());
 
         // 执行充值操作
         BalanceDto topUpDto = new BalanceDto()
@@ -115,7 +115,7 @@ public class EnergyTopUpListener {
                 .setBalanceType(message.getBalanceType())
                 .setAccountId(message.getAccountId())
                 .setOrderNo(message.getOrderSn())
-                .setAmount(message.getOrderAmount());
+                .setAmount(message.getTopUpAmount());
 
         balanceService.topUp(topUpDto);
         log.info("电表充值完成，订单号: {}, 电表ID: {}", message.getOrderSn(), message.getMeterId());

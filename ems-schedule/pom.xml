@@ -33,7 +33,8 @@
         <!-- 业务依赖：订单校验服务 -->
         <dependency>
             <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-finance</artifactId>
+            <artifactId>ems-business-order</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- 业务依赖：设备服务 -->

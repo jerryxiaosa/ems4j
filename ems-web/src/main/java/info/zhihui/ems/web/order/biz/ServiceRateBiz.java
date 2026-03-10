@@ -1,6 +1,6 @@
 package info.zhihui.ems.web.order.biz;
 
-import info.zhihui.ems.business.finance.service.order.fee.ServiceRateService;
+import info.zhihui.ems.business.order.service.fee.ServiceRateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

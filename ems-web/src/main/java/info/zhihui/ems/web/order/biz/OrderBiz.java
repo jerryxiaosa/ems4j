@@ -1,13 +1,13 @@
 package info.zhihui.ems.web.order.biz;
 
 import com.wechat.pay.java.core.notification.RequestParam;
-import info.zhihui.ems.business.finance.bo.OrderBo;
-import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
-import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
-import info.zhihui.ems.business.finance.entity.order.OrderThirdPartyNotificationDto;
-import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
-import info.zhihui.ems.business.finance.service.order.core.OrderQueryService;
-import info.zhihui.ems.business.finance.service.order.core.OrderService;
+import info.zhihui.ems.business.order.dto.OrderCreationResponseDto;
+import info.zhihui.ems.business.order.dto.OrderDetailDto;
+import info.zhihui.ems.business.order.dto.OrderQueryDto;
+import info.zhihui.ems.business.order.entity.OrderThirdPartyNotificationDto;
+import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
+import info.zhihui.ems.business.order.service.core.OrderQueryService;
+import info.zhihui.ems.business.order.service.core.OrderService;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.order.mapstruct.OrderWebMapper;
@@ -57,8 +57,8 @@ public class OrderBiz {
      * 查询订单详情
      */
     public OrderDetailVo getOrderDetail(String orderSn) {
-        OrderBo order = orderService.getDetail(orderSn);
-        return orderWebMapper.toOrderDetailVo(order);
+        OrderDetailDto orderDetail = orderQueryService.getOrderDetail(orderSn);
+        return orderWebMapper.toOrderDetailVo(orderDetail);
     }
 
     /**

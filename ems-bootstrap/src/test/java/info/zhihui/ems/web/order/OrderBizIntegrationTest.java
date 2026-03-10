@@ -1,7 +1,7 @@
 package info.zhihui.ems.web.order;
 
-import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
-import info.zhihui.ems.business.finance.repository.order.OrderDetailEnergyTopUpRepository;
+import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
+import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;

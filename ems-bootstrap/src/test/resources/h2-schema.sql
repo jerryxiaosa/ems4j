@@ -659,7 +659,7 @@ CREATE TABLE purchase_order
     order_amount        DECIMAL(20, 8) NOT NULL COMMENT '订单金额',
     currency            VARCHAR(10) DEFAULT 'CNY' COMMENT '币种',
     service_rate        DECIMAL(20, 8) COMMENT '服务费比例',
-    service_amount      DECIMAL(20, 8) COMMENT '服务费金额',
+    service_amount      DECIMAL(18, 2) COMMENT '服务费金额',
     user_pay_amount     DECIMAL(20, 8) COMMENT '用户实际支付金额',
     payment_channel     VARCHAR(20) COMMENT '支付渠道',
     order_status        VARCHAR(20)    NOT NULL COMMENT '订单状态',
@@ -694,6 +694,7 @@ CREATE TABLE order_detail_energy_top_up
     space_parent_ids      VARCHAR(200)  DEFAULT NULL,
     space_parent_names    VARCHAR(1000) DEFAULT NULL,
     balance_type          SMALLINT      DEFAULT NULL COMMENT '余额类型：0账户余额，1电表余额，参照BalanceTypeEnum',
+    top_up_amount         DECIMAL(20, 8) NOT NULL COMMENT '实际充值到账金额',
     create_time           TIMESTAMP NOT NULL COMMENT '创建时间',
     PRIMARY KEY (id)
 );

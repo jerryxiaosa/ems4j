@@ -1,7 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.listener.order.success;
 
-import info.zhihui.ems.business.finance.dto.BalanceDto;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.dto.BalanceDto;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
@@ -55,6 +55,7 @@ class EnergyTopUpListenerTest {
         accountTopUpMessage.setAccountId(100)
                 .setBalanceType(BalanceTypeEnum.ACCOUNT)
                 .setOrderAmount(new BigDecimal("100.00"))
+                .setTopUpAmount(new BigDecimal("95.00"))
                 .setOrderSn("ORDER-ACCOUNT-001");
 
         electricMeterTopUpMessage = new EnergyTopUpSuccessMessage();
@@ -63,6 +64,7 @@ class EnergyTopUpListenerTest {
                 .setMeterId(2001)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setOrderAmount(new BigDecimal("200.00"))
+                .setTopUpAmount(new BigDecimal("180.00"))
                 .setOrderSn("ORDER-METER-001");
     }
 
@@ -81,7 +83,7 @@ class EnergyTopUpListenerTest {
         Assertions.assertEquals(BalanceTypeEnum.ACCOUNT, capturedDto.getBalanceType());
         Assertions.assertEquals(100, capturedDto.getAccountId());
         Assertions.assertEquals("ORDER-ACCOUNT-001", capturedDto.getOrderNo());
-        Assertions.assertEquals(new BigDecimal("100.00"), capturedDto.getAmount());
+        Assertions.assertEquals(new BigDecimal("95.00"), capturedDto.getAmount());
 
         verify(transactionMessageService, times(1)).success(TransactionMessageBusinessTypeEnum.ORDER_PAYMENT, "ORDER-ACCOUNT-001");
     }
@@ -101,7 +103,7 @@ class EnergyTopUpListenerTest {
         Assertions.assertEquals(BalanceTypeEnum.ELECTRIC_METER, capturedDto.getBalanceType());
         Assertions.assertEquals(1002, capturedDto.getAccountId());
         Assertions.assertEquals("ORDER-METER-001", capturedDto.getOrderNo());
-        Assertions.assertEquals(new BigDecimal("200.00"), capturedDto.getAmount());
+        Assertions.assertEquals(new BigDecimal("180.00"), capturedDto.getAmount());
 
         verify(transactionMessageService, times(1)).success(TransactionMessageBusinessTypeEnum.ORDER_PAYMENT, "ORDER-METER-001");
     }
@@ -110,6 +112,7 @@ class EnergyTopUpListenerTest {
     void testHandle_WhenBalanceTypeUnsupported_ShouldMarkFailure() {
         EnergyTopUpSuccessMessage unsupportedMessage = new EnergyTopUpSuccessMessage();
         unsupportedMessage.setOrderAmount(new BigDecimal("50.00"))
+                .setTopUpAmount(new BigDecimal("45.00"))
                 .setBalanceType(null)
                 .setAccountId(1003)
                 .setOrderSn("ORDER-UNSUPPORTED-001");

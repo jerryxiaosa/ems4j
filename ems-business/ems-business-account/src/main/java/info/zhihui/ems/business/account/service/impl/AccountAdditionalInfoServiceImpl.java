@@ -4,14 +4,14 @@ import info.zhihui.ems.business.account.dto.AccountCandidateMeterDto;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.account.dto.AccountOwnerInfoDto;
 import info.zhihui.ems.business.account.dto.OwnerCandidateMeterQueryDto;
-import info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity;
-import info.zhihui.ems.business.account.repository.OwnerSpaceRelRepository;
 import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
-import info.zhihui.ems.business.finance.bo.BalanceBo;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.bo.BalanceBo;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
+import info.zhihui.ems.business.lease.dto.OwnerSpaceRelationDto;
+import info.zhihui.ems.business.lease.service.OwnerSpaceRelationQueryService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoService {
 
-    private final OwnerSpaceRelRepository ownerSpaceRelRepository;
+    private final OwnerSpaceRelationQueryService ownerSpaceRelationQueryService;
     private final OrganizationService organizationService;
     private final SpaceService spaceService;
     private final ElectricMeterInfoService electricMeterInfoService;
@@ -288,15 +288,15 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
         if (validOwnerIdList.isEmpty()) {
             return Map.of();
         }
-        List<OwnerSpaceRelEntity> entityList = ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        List<OwnerSpaceRelationDto> relationDtoList = ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 Set.of(ownerType.getCode()), validOwnerIdList
         );
 
-        return entityList.stream()
+        return relationDtoList.stream()
                 .filter(item -> item.getOwnerId() != null && item.getSpaceId() != null)
                 .collect(Collectors.groupingBy(
-                        OwnerSpaceRelEntity::getOwnerId,
-                        Collectors.mapping(OwnerSpaceRelEntity::getSpaceId, Collectors.toSet())
+                        OwnerSpaceRelationDto::getOwnerId,
+                        Collectors.mapping(OwnerSpaceRelationDto::getSpaceId, Collectors.toSet())
                 ));
     }
 
@@ -346,26 +346,26 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
             return Map.of();
         }
 
-        List<OwnerSpaceRelEntity> relationList = ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(ownerTypeCodeSet, ownerIdSet);
+        List<OwnerSpaceRelationDto> relationList = ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(ownerTypeCodeSet, ownerIdSet);
         if (CollectionUtils.isEmpty(relationList)) {
             return Map.of();
         }
-        for (OwnerSpaceRelEntity relationEntity : relationList) {
-            if (relationEntity == null
-                    || relationEntity.getOwnerType() == null
-                    || relationEntity.getOwnerId() == null
-                    || relationEntity.getSpaceId() == null) {
+        for (OwnerSpaceRelationDto relationDto : relationList) {
+            if (relationDto == null
+                    || relationDto.getOwnerType() == null
+                    || relationDto.getOwnerId() == null
+                    || relationDto.getSpaceId() == null) {
                 continue;
             }
-            OwnerTypeEnum ownerType = CodeEnum.fromCode(relationEntity.getOwnerType(), OwnerTypeEnum.class);
+            OwnerTypeEnum ownerType = CodeEnum.fromCode(relationDto.getOwnerType(), OwnerTypeEnum.class);
             if (ownerType == null) {
                 continue;
             }
-            OwnerKey ownerKey = new OwnerKey(ownerType, relationEntity.getOwnerId());
+            OwnerKey ownerKey = new OwnerKey(ownerType, relationDto.getOwnerId());
             if (!validOwnerKeySet.contains(ownerKey)) {
                 continue;
             }
-            ownerSpaceIdMap.computeIfAbsent(ownerKey, ignore -> new HashSet<>()).add(relationEntity.getSpaceId());
+            ownerSpaceIdMap.computeIfAbsent(ownerKey, ignore -> new HashSet<>()).add(relationDto.getSpaceId());
         }
         return ownerSpaceIdMap;
     }

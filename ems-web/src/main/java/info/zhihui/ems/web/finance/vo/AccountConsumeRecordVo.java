@@ -1,6 +1,6 @@
 package info.zhihui.ems.web.finance.vo;
 
-import info.zhihui.ems.business.finance.enums.ConsumeTypeEnum;
+import info.zhihui.ems.business.billing.enums.ConsumeTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import io.swagger.v3.oas.annotations.media.Schema;
