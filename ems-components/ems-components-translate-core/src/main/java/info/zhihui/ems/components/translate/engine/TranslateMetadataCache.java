@@ -110,9 +110,8 @@ public class TranslateMetadataCache {
             }
 
             if (formatText != null) {
-                Field sourceField = fieldMap.get(formatText.source());
+                Field sourceField = resolveFormatSourceField(clazz, fieldMap, targetField, formatText);
                 if (sourceField == null) {
-                    log.warn("格式化字段{}找不到源字段{}，已跳过", buildFieldName(clazz, targetField), formatText.source());
                     continue;
                 }
                 sourceField.setAccessible(true);
@@ -157,6 +156,44 @@ public class TranslateMetadataCache {
     }
 
     /**
+     * 解析 @FormatText 的 source。
+     * <p>
+     * self=true 时支持“同字段覆盖”模式，适用于手机号/邮箱等字符串本地脱敏；
+     * 其它场景仍要求显式声明 source，避免配置歧义。
+     */
+    private Field resolveFormatSourceField(Class<?> clazz,
+                                           Map<String, Field> fieldMap,
+                                           Field targetField,
+                                           FormatText formatText) {
+        if (formatText.self()) {
+            String sourceName = formatText.source();
+            if (!sourceName.isEmpty() && !targetField.getName().equals(sourceName)) {
+                log.warn("格式化字段{}配置了self=true，但source={}与目标字段名不一致，已跳过",
+                        buildFieldName(clazz, targetField), sourceName);
+                return null;
+            }
+            if (!isSupportedSelfFormatFieldType(targetField.getType())) {
+                log.warn("格式化字段{}配置了self=true，但字段类型{}不支持同字段覆盖，已跳过",
+                        buildFieldName(clazz, targetField), targetField.getType().getName());
+                return null;
+            }
+            return targetField;
+        }
+
+        String sourceName = formatText.source();
+        if (sourceName.isEmpty()) {
+            log.warn("格式化字段{}未声明source，已跳过", buildFieldName(clazz, targetField));
+            return null;
+        }
+
+        Field sourceField = fieldMap.get(sourceName);
+        if (sourceField == null) {
+            log.warn("格式化字段{}找不到源字段{}，已跳过", buildFieldName(clazz, targetField), sourceName);
+        }
+        return sourceField;
+    }
+
+    /**
      * 收集当前类及其父类字段，支持继承场景下的注解配置。
      */
     private List<Field> collectFieldList(Class<?> clazz) {
@@ -198,5 +235,9 @@ public class TranslateMetadataCache {
                 || Boolean.class == fieldType
                 || Character.class == fieldType
                 || Class.class == fieldType;
+    }
+
+    private boolean isSupportedSelfFormatFieldType(Class<?> fieldType) {
+        return String.class == fieldType || CharSequence.class.isAssignableFrom(fieldType);
     }
 }

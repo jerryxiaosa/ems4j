@@ -1,13 +1,22 @@
 package info.zhihui.ems.web.order.biz;
 
 import com.wechat.pay.java.core.notification.RequestParam;
+import info.zhihui.ems.business.account.bo.AccountBo;
+import info.zhihui.ems.business.account.service.AccountInfoService;
+import info.zhihui.ems.business.device.bo.ElectricMeterBo;
+import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.order.dto.OrderCreationResponseDto;
 import info.zhihui.ems.business.order.dto.OrderDetailDto;
 import info.zhihui.ems.business.order.dto.OrderQueryDto;
+import info.zhihui.ems.business.order.dto.creation.EnergyOrderCreationInfoDto;
+import info.zhihui.ems.business.order.dto.creation.EnergyTopUpDto;
 import info.zhihui.ems.business.order.entity.OrderThirdPartyNotificationDto;
 import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.order.service.core.OrderQueryService;
 import info.zhihui.ems.business.order.service.core.OrderService;
+import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.MeterTypeEnum;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.order.mapstruct.OrderWebMapper;
@@ -38,6 +47,8 @@ public class OrderBiz {
     private final OrderQueryService orderQueryService;
     private final OrderService orderService;
     private final OrderWebMapper orderWebMapper;
+    private final AccountInfoService accountInfoService;
+    private final ElectricMeterInfoService electricMeterInfoService;
 
     /**
      * 查询订单列表
@@ -83,9 +94,49 @@ public class OrderBiz {
      * 创建能耗充值订单
      */
     public OrderCreationResponseVo createEnergyTopUpOrder(EnergyOrderCreateVo createVo) {
-        OrderCreationResponseDto responseDto =
-                orderService.createOrder(orderWebMapper.toEnergyOrderCreationInfoDto(createVo));
+        EnergyOrderCreationInfoDto creationInfoDto = orderWebMapper.toEnergyOrderCreationInfoDto(createVo);
+        validateEnergyTopUpDetail(creationInfoDto.getEnergyTopUpDto());
+
+        OrderCreationResponseDto responseDto = orderService.createOrder(creationInfoDto);
         return orderWebMapper.toOrderCreationResponseVo(responseDto);
+    }
+
+    private void validateEnergyTopUpDetail(EnergyTopUpDto detail) {
+        AccountBo accountBo = accountInfoService.getById(detail.getAccountId());
+        validateAccount(detail, accountBo);
+
+        if (!BalanceTypeEnum.ELECTRIC_METER.equals(detail.getBalanceType())) {
+            return;
+        }
+        if (detail.getMeterId() == null) {
+            throw new BusinessRuntimeException("电表充值时电表ID不能为空");
+        }
+
+        ElectricMeterBo meterBo = electricMeterInfoService.getDetail(detail.getMeterId());
+        validateMeter(detail, meterBo);
+    }
+
+    private void validateAccount(EnergyTopUpDto detail, AccountBo accountBo) {
+        if (!Objects.equals(accountBo.getOwnerId(), detail.getOwnerId())) {
+            throw new BusinessRuntimeException("账户归属者ID不匹配");
+        }
+        if (accountBo.getOwnerType() != detail.getOwnerType()) {
+            throw new BusinessRuntimeException("账户归属者类型不匹配");
+        }
+        if (accountBo.getElectricAccountType() != detail.getElectricAccountType()) {
+            throw new BusinessRuntimeException("电费账户类型不匹配");
+        }
+        detail.setOwnerName(accountBo.getOwnerName());
+    }
+
+    private void validateMeter(EnergyTopUpDto detail, ElectricMeterBo meterBo) {
+        if (!Objects.equals(meterBo.getAccountId(), detail.getAccountId())) {
+            throw new BusinessRuntimeException("电表不属于当前账户");
+        }
+        detail.setMeterName(meterBo.getMeterName());
+        detail.setDeviceNo(meterBo.getDeviceNo());
+        detail.setMeterType(MeterTypeEnum.ELECTRIC);
+        detail.setSpaceId(meterBo.getSpaceId());
     }
 
     private RequestParam buildRequestParam(HttpServletRequest request) {

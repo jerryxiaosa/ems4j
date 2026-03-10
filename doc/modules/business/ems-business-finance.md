@@ -1,18 +1,40 @@
-# ems-business-finance 模块文档
+# ems-business-finance 模块迁移说明
 
 ## 1. 模块概述
 
-`ems-business-finance` 是财务核算核心模块，负责余额管理、订单处理、电量消费计算、金额扣费等财务相关功能。
+`ems-business-finance` 已拆分为两个独立业务模块：
+
+- `ems-business-billing`：负责余额、抄表消费、补正、账务流水
+- `ems-business-order`：负责订单创建、支付回调、订单查询与完成处理
+
+当前仓库中不再以 `ems-business-finance` 作为运行中的业务模块名，本文档保留为迁移说明，避免历史引用失效。
 
 ## 2. 核心功能
 
-| 功能 | 说明 |
+| 旧职责 | 新模块 |
 |------|------|
-| 余额管理 | 账户/电表余额初始化、充值、扣费、查询、软删除 |
-| 订单管理 | 订单创建、支付回调处理、完结/关闭、状态广播 |
-| 电量消费 | 抄表数据落库、分时电量差值计算、金额消费计算 |
-| 账户消费 | 包月扣费、账户级消费记录 |
-| 补正管理 | 电量补正、金额补正 |
+| 余额管理 | `ems-business-billing` |
+| 电量消费 | `ems-business-billing` |
+| 账户消费 | `ems-business-billing` |
+| 补正管理 | `ems-business-billing` |
+| 订单管理 | `ems-business-order` |
+
+## 3. 文档指引
+
+请改为阅读以下新文档：
+
+- [ems-business-billing.md](ems-business-billing.md)
+- [ems-business-order.md](ems-business-order.md)
+- [README.md](README.md)
+
+## 4. 迁移说明
+
+- 代码包名已从 `info.zhihui.ems.business.finance` 迁移为：
+  - `info.zhihui.ems.business.billing`
+  - `info.zhihui.ems.business.order`
+- `schedule` 中的订单待支付检查任务已跟随迁移到 `business/order`
+- `web`、`mq`、`bootstrap` 相关依赖与测试路径已同步调整
+- 表结构未因模块拆分而强制改名，数据库表名仍保持原有业务语义
 
 ## 2.1 设备编号字段口径（当前版本）
 

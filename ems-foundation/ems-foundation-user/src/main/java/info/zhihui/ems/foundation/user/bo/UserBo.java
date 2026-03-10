@@ -5,6 +5,7 @@ import info.zhihui.ems.foundation.user.enums.UserGenderEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -49,6 +50,16 @@ public class UserBo {
      * 备注
      */
     private String remark;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
     
     /**
      * 用户关联的角色列表

@@ -154,10 +154,14 @@ mvn -pl ems-business/ems-business-device -am test
 +------------------------------------------------------------------+
 |                        ems-business                               |
 |    +------------+  +------------+  +------------+  +------------+ |
-|    |   device   |  |  account   |  |  finance   |  |    plan    | |
-|    | (Device Mgmt)| | (Account   |  | (Finance   |  | (Pricing  | |
-|    |            |  |  Mgmt)     |  |  Accounting)|  |  Plan)    | |
+|    |   device   |  |  account   |  |  billing   |  |    order   | |
+|    | (Device Mgmt)| | (Account   |  | (Balance & |  | (Trade &   | |
+|    |            |  |  Mgmt)     |  |  Consume)  |  |  Payment)  | |
 |    +------------+  +------------+  +------------+  +------------+ |
+|    |    lease   |  |    plan    |  | aggregation|                 |
+|    | (Owner &   |  | (Pricing   |  | (Cross-    |                 |
+|    |  Space)    |  |  Plan)     |  | domain)    |                 |
+|    +------------+  +------------+  +------------+                 |
 +------------------------------------------------------------------+
                |
    +-----------+-----------+
@@ -214,8 +218,11 @@ mvn -pl ems-business/ems-business-device -am test
 | `ems-web`                     | HTTP 接口层                                         |
 | `ems-business-device`         | 电表、网关、设备档案管理                                     |
 | `ems-business-account`        | 开户、销户、余额、充值                                      |
-| `ems-business-finance`        | 账单生成、财务流水、对账                                     |
+| `ems-business-billing`        | 余额、抄表消费、补正、账务流水                                 |
+| `ems-business-order`          | 订单创建、支付回调、订单查询与完成处理                              |
+| `ems-business-lease`          | 主体与空间租赁关系、租赁查询与退租校验                             |
 | `ems-business-plan`           | 计费方案、费率、尖峰平谷时段                                   |
+| `ems-business-aggregation`    | 跨域读聚合与应用层编排                                        |
 | `ems-foundation-user`         | 用户认证、权限、角色                                       |
 | `ems-foundation-organization` | 多租户、组织架构                                         |
 | `ems-foundation-space`        | 空间/区域管理                                          |
@@ -228,6 +235,8 @@ mvn -pl ems-business/ems-business-device -am test
 | `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | 前端web页面 - Coming Soon                           |
 
 说明：
+- `ems-business-billing` 与 `ems-business-order` 由原 `finance` 领域拆分而来，分别承载账务与交易能力。
+- `ems-business-lease` 独立承载主体与空间租赁关系，不再放在 `account` 中。
 - ems-mq-api 提供消息契约与基础服务接口（基础设施层）。
 - ems-mq-rabbitmq 属于业务消息应用层实现，承载业务消息监听与编排。
 
