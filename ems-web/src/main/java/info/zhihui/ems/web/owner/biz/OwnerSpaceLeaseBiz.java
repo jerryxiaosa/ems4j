@@ -1,8 +1,8 @@
 package info.zhihui.ems.web.owner.biz;
 
-import info.zhihui.ems.business.account.dto.OwnerSpaceRentDto;
-import info.zhihui.ems.business.account.dto.OwnerSpaceUnrentDto;
-import info.zhihui.ems.business.account.service.OwnerSpaceLeaseService;
+import info.zhihui.ems.business.lease.dto.OwnerSpaceRentDto;
+import info.zhihui.ems.business.lease.dto.OwnerSpaceUnrentDto;
+import info.zhihui.ems.business.lease.service.OwnerSpaceLeaseService;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;

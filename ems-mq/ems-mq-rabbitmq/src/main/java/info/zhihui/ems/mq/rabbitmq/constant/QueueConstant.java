@@ -15,4 +15,6 @@ public class QueueConstant {
     public static final String QUEUE_ORDER_SUCCESS_TERMINATION = "queue.order.success.termination";
 
     public static final String QUEUE_FINANCE_BALANCE_CHANGED = "queue.finance.balanceChanged";
+
+    public static final String QUEUE_DEVICE_STANDARD_ENERGY_REPORT = "queue.device.standardEnergyReport";
 }

@@ -110,6 +110,23 @@ class OrderControllerTest {
     }
 
     @Test
+    @DisplayName("创建能耗充值订单-订单金额超过两位小数时返回参数错误")
+    void testCreateEnergyTopUpOrder_WhenOrderAmountHasMoreThanTwoFractionDigits() throws Exception {
+        String body = "{" +
+                "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100.009,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+
+        mockMvc.perform(post("/v1/orders/energy-top-up")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(-102001));
+
+        verify(orderBiz, never()).createEnergyTopUpOrder(any());
+    }
+
+    @Test
     @DisplayName("创建能耗充值订单-必填编码为null时返回参数错误")
     void testCreateEnergyTopUpOrder_WhenRequiredCodeIsNull() throws Exception {
         String body = "{" +
@@ -148,12 +165,18 @@ class OrderControllerTest {
     void testGetOrderDetail() throws Exception {
         OrderDetailVo detailVo = new OrderDetailVo();
         detailVo.setOrderSn("ORDER456");
+        detailVo.setTopUpAmount(new BigDecimal("95.00"));
+        detailVo.setBeginBalance(new BigDecimal("500.00"));
+        detailVo.setEndBalance(new BigDecimal("510.00"));
         when(orderBiz.getOrderDetail("ORDER456")).thenReturn(detailVo);
 
         mockMvc.perform(get("/v1/orders/ORDER456"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.orderSn").value("ORDER456"));
+                .andExpect(jsonPath("$.data.orderSn").value("ORDER456"))
+                .andExpect(jsonPath("$.data.topUpAmount").value(95.00))
+                .andExpect(jsonPath("$.data.beginBalance").value(500.00))
+                .andExpect(jsonPath("$.data.endBalance").value(510.00));
     }
 
     @Test

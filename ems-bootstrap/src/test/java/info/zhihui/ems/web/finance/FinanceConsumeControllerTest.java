@@ -1,7 +1,7 @@
 package info.zhihui.ems.web.finance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import info.zhihui.ems.business.finance.enums.CorrectionTypeEnum;
+import info.zhihui.ems.business.billing.enums.CorrectionTypeEnum;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.config.satoken.SaWebConfig;
 import info.zhihui.ems.web.finance.biz.FinanceBiz;
@@ -87,6 +87,25 @@ class FinanceConsumeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list[0].meterName").value("1号楼"));
+    }
+
+    @Test
+    @DisplayName("分页查询电量消费记录-不传时间条件")
+    void testFindPowerConsumePage_WithoutTimeRange() throws Exception {
+        PageResult<PowerConsumeRecordVo> page = new PageResult<PowerConsumeRecordVo>()
+                .setPageNum(1).setPageSize(5).setTotal(1L)
+                .setList(List.of(new PowerConsumeRecordVo()
+                        .setMeterName("2号楼")
+                        .setConsumeAmount(new BigDecimal("60"))));
+        when(financeBiz.findPowerConsumePage(any(PowerConsumeQueryVo.class), eq(1), eq(5))).thenReturn(page);
+
+        mockMvc.perform(get("/v1/finance/meter-consumes")
+                        .param("searchKey", "2号")
+                        .param("pageNum", "1")
+                        .param("pageSize", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.list[0].meterName").value("2号楼"));
     }
 
     @Test

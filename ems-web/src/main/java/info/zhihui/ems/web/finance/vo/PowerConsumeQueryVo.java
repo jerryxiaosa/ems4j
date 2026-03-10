@@ -1,7 +1,6 @@
 package info.zhihui.ems.web.finance.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -23,13 +22,11 @@ public class PowerConsumeQueryVo {
     @Size(max = 100, message = "空间名称长度不能超过100")
     private String spaceNameLike;
 
-    @Schema(description = "开始时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "开始时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @NotNull(message = "开始时间不能为空")
     private LocalDateTime beginTime;
 
-    @Schema(description = "结束时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "结束时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @NotNull(message = "结束时间不能为空")
     private LocalDateTime endTime;
 }

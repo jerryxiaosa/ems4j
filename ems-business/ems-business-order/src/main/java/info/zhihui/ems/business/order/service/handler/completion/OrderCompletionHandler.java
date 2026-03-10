@@ -1,0 +1,26 @@
+package info.zhihui.ems.business.order.service.handler.completion;
+
+import info.zhihui.ems.business.order.bo.OrderBo;
+import info.zhihui.ems.business.order.enums.OrderTypeEnum;
+import info.zhihui.ems.mq.api.model.MqMessage;
+
+/**
+ * @author jerryxiaosa
+ */
+public interface OrderCompletionHandler {
+
+    /**
+     * 获取订单类型
+     *
+     * @return 订单类型
+     */
+    OrderTypeEnum getOrderType();
+
+    /**
+     * 订单成功后创建MQ消息
+     *
+     * @param orderBo 订单信息
+     * @return MQ消息
+     */
+    MqMessage createMessageAfterOrderSuccess(OrderBo orderBo);
+}

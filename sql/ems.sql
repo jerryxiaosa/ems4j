@@ -701,6 +701,7 @@ CREATE TABLE `order_detail_energy_top_up`
     `space_parent_ids`      VARCHAR(200) COLLATE utf8mb4_unicode_ci                       DEFAULT NULL COMMENT '父级id',
     `space_parent_names`    VARCHAR(1000) COLLATE utf8mb4_unicode_ci                      DEFAULT NULL COMMENT '父级名称',
     `balance_type`          SMALLINT                                                      DEFAULT NULL COMMENT '余额类型：0账户余额，1电表余额',
+    `top_up_amount`         DECIMAL(20, 8)                                               NOT NULL COMMENT '实际充值到账金额',
     `create_time`           DATETIME     NOT NULL COMMENT '创建时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_order_sn` (`order_sn`) USING BTREE

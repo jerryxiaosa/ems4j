@@ -1,7 +1,7 @@
 package info.zhihui.ems.web.order.vo;
 
-import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
-import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
+import info.zhihui.ems.business.order.enums.OrderTypeEnum;
+import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -61,13 +61,13 @@ public class OrderVo {
     @EnumLabel(source = "orderType", enumClass = OrderTypeEnum.class)
     private String orderTypeName;
 
-    @Schema(description = "订单金额（系统资金方向：收入为正，支出为负）")
+    @Schema(description = "订单总金额（系统资金方向：收入为正，支出为负）")
     private BigDecimal orderAmount;
 
     @Schema(description = "币种")
     private String currency;
 
-    @Schema(description = "服务费比例(%)")
+    @Schema(description = "服务费占订单总金额的比例")
     private BigDecimal serviceRate;
 
     @Schema(description = "服务费金额")

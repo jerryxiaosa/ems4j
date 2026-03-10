@@ -1,14 +1,14 @@
 package info.zhihui.ems.web.order.mapstruct;
 
-import info.zhihui.ems.business.finance.bo.OrderBo;
-import info.zhihui.ems.business.finance.dto.order.OrderListDto;
-import info.zhihui.ems.business.finance.dto.order.OrderCreationResponseDto;
-import info.zhihui.ems.business.finance.dto.order.OrderQueryDto;
-import info.zhihui.ems.business.finance.dto.order.creation.EnergyOrderCreationInfoDto;
-import info.zhihui.ems.business.finance.dto.order.creation.EnergyTopUpDto;
-import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
-import info.zhihui.ems.business.finance.enums.OrderTypeEnum;
-import info.zhihui.ems.business.finance.enums.PaymentChannelEnum;
+import info.zhihui.ems.business.order.dto.OrderCreationResponseDto;
+import info.zhihui.ems.business.order.dto.OrderDetailDto;
+import info.zhihui.ems.business.order.dto.OrderListDto;
+import info.zhihui.ems.business.order.dto.OrderQueryDto;
+import info.zhihui.ems.business.order.dto.creation.EnergyOrderCreationInfoDto;
+import info.zhihui.ems.business.order.dto.creation.EnergyTopUpDto;
+import info.zhihui.ems.business.order.enums.OrderStatusEnum;
+import info.zhihui.ems.business.order.enums.OrderTypeEnum;
+import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.CodeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
@@ -55,7 +55,7 @@ public interface OrderWebMapper {
     }
 
     @Mapping(target = "ownerType", source = "ownerType", qualifiedByName = "ownerTypeToCode")
-    OrderDetailVo toOrderDetailVo(OrderBo bo);
+    OrderDetailVo toOrderDetailVo(OrderDetailDto dto);
 
     @Mapping(target = "energyTopUpDto", source = "energyTopUp")
     EnergyOrderCreationInfoDto toEnergyOrderCreationInfoDto(EnergyOrderCreateVo createVo);

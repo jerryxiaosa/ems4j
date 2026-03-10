@@ -1,6 +1,6 @@
 package info.zhihui.ems.web.finance.mapstruct;
 
-import info.zhihui.ems.business.finance.dto.*;
+import info.zhihui.ems.business.billing.dto.*;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.web.finance.vo.*;
 import org.mapstruct.Mapper;

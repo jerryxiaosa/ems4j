@@ -4,13 +4,13 @@ import info.zhihui.ems.business.account.dto.AccountCandidateMeterDto;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.account.dto.AccountOwnerInfoDto;
 import info.zhihui.ems.business.account.dto.OwnerCandidateMeterQueryDto;
-import info.zhihui.ems.business.account.entity.OwnerSpaceRelEntity;
-import info.zhihui.ems.business.account.repository.OwnerSpaceRelRepository;
+import info.zhihui.ems.business.lease.dto.OwnerSpaceRelationDto;
+import info.zhihui.ems.business.lease.service.OwnerSpaceRelationQueryService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
-import info.zhihui.ems.business.finance.bo.BalanceBo;
-import info.zhihui.ems.business.finance.service.balance.BalanceService;
+import info.zhihui.ems.business.billing.bo.BalanceBo;
+import info.zhihui.ems.business.billing.service.balance.BalanceService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 class AccountAdditionalInfoServiceImplTest {
 
     @Mock
-    private OwnerSpaceRelRepository ownerSpaceRelRepository;
+    private OwnerSpaceRelationQueryService ownerSpaceRelationQueryService;
 
     @Mock
     private OrganizationService organizationService;
@@ -61,7 +61,7 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_NoRentedSpace_ReturnEmpty() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of());
@@ -76,13 +76,13 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_FilterBySpaceNameAndUnopened() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
         ));
 
         SpaceBo spaceBo = new SpaceBo()
@@ -139,7 +139,7 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_PersonalOwner_ShouldSkipOrganizationValidation() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.PERSONAL.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of());
@@ -154,11 +154,11 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_WhenSpaceServiceReturnsEmpty_ShouldReturnEmpty() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(spaceService.findSpaceList(any(SpaceQueryDto.class))).thenReturn(List.of());
 
@@ -172,11 +172,11 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_WhenMatchedSpaceIdIsEmpty_ShouldReturnEmpty() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(spaceService.findSpaceList(any(SpaceQueryDto.class))).thenReturn(Arrays.asList(
                 null,
@@ -193,11 +193,11 @@ class AccountAdditionalInfoServiceImplTest {
 
     @Test
     void testFindCandidateMeterList_WhenSpaceInfoMissing_ShouldReturnCandidateWithNullSpaceInfo() {
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
         )).thenReturn(List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101)
         ));
         when(spaceService.findSpaceList(any(SpaceQueryDto.class))).thenReturn(List.of(
                 new SpaceBo().setId(101).setName("一层101").setParentsNames(List.of("A栋", "一层"))
@@ -241,15 +241,15 @@ class AccountAdditionalInfoServiceImplTest {
                 new AccountOwnerInfoDto().setAccountId(3).setOwnerType(OwnerTypeEnum.PERSONAL).setOwnerId(1003),
                 new AccountOwnerInfoDto().setAccountId(null).setOwnerType(OwnerTypeEnum.PERSONAL).setOwnerId(1004)
         );
-        List<OwnerSpaceRelEntity> enterpriseRelList = List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
+        List<OwnerSpaceRelationDto> enterpriseRelList = List.of(
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(101),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode()).setOwnerId(1001).setSpaceId(102)
         );
-        List<OwnerSpaceRelEntity> personalRelList = List.of(
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(1002).setSpaceId(201),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(null).setSpaceId(301),
-                new OwnerSpaceRelEntity().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(1003).setSpaceId(null)
+        List<OwnerSpaceRelationDto> personalRelList = List.of(
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(1002).setSpaceId(201),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(null).setSpaceId(301),
+                new OwnerSpaceRelationDto().setOwnerType(OwnerTypeEnum.PERSONAL.getCode()).setOwnerId(1003).setSpaceId(null)
         );
         List<ElectricMeterBo> meterBoList = List.of(
                 new ElectricMeterBo().setSpaceId(101),
@@ -261,7 +261,7 @@ class AccountAdditionalInfoServiceImplTest {
                 new ElectricMeterBo().setSpaceId(null)
         );
 
-        List<OwnerSpaceRelEntity> relList = Arrays.asList(
+        List<OwnerSpaceRelationDto> relList = Arrays.asList(
                 enterpriseRelList.get(0),
                 enterpriseRelList.get(1),
                 enterpriseRelList.get(2),
@@ -269,7 +269,7 @@ class AccountAdditionalInfoServiceImplTest {
                 personalRelList.get(1),
                 personalRelList.get(2)
         );
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.containsAll(List.of(
                         OwnerTypeEnum.ENTERPRISE.getCode(), OwnerTypeEnum.PERSONAL.getCode()
                 ))),
@@ -296,7 +296,7 @@ class AccountAdditionalInfoServiceImplTest {
         Map<Integer, Integer> result = accountAdditionalInfoService.countTotalOpenableMeterByAccountOwnerInfoList(inputAccountOwnerInfoDtoList);
 
         assertThat(result).containsEntry(1, 0).containsEntry(2, 0);
-        verifyNoInteractions(ownerSpaceRelRepository);
+        verifyNoInteractions(ownerSpaceRelationQueryService);
         verify(electricMeterInfoService, never()).findList(any(ElectricMeterQueryDto.class));
     }
 
@@ -306,10 +306,10 @@ class AccountAdditionalInfoServiceImplTest {
                 new AccountOwnerInfoDto().setAccountId(1).setOwnerType(OwnerTypeEnum.ENTERPRISE).setOwnerId(1001),
                 null
         );
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
-        )).thenReturn(List.of(new OwnerSpaceRelEntity()
+        )).thenReturn(List.of(new OwnerSpaceRelationDto()
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
                 .setOwnerId(1001)
                 .setSpaceId(101)));
@@ -328,10 +328,10 @@ class AccountAdditionalInfoServiceImplTest {
                 new AccountOwnerInfoDto().setAccountId(1).setOwnerType(OwnerTypeEnum.ENTERPRISE).setOwnerId(1001),
                 new AccountOwnerInfoDto().setAccountId(2).setOwnerType(null).setOwnerId(1002)
         );
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.contains(OwnerTypeEnum.ENTERPRISE.getCode())),
                 argThat(ownerIds -> ownerIds != null && ownerIds.contains(1001))
-        )).thenReturn(List.of(new OwnerSpaceRelEntity()
+        )).thenReturn(List.of(new OwnerSpaceRelationDto()
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE.getCode())
                 .setOwnerId(1001)
                 .setSpaceId(101)));
@@ -351,7 +351,7 @@ class AccountAdditionalInfoServiceImplTest {
                 new AccountOwnerInfoDto().setAccountId(1).setOwnerType(OwnerTypeEnum.ENTERPRISE).setOwnerId(1001),
                 new AccountOwnerInfoDto().setAccountId(2).setOwnerType(OwnerTypeEnum.PERSONAL).setOwnerId(1002)
         );
-        when(ownerSpaceRelRepository.findListByOwnerTypesAndOwnerIds(
+        when(ownerSpaceRelationQueryService.findRelationListByOwnerTypesAndOwnerIds(
                 argThat(ownerTypes -> ownerTypes != null && ownerTypes.containsAll(List.of(
                         OwnerTypeEnum.ENTERPRISE.getCode(), OwnerTypeEnum.PERSONAL.getCode()
                 ))),
@@ -361,7 +361,7 @@ class AccountAdditionalInfoServiceImplTest {
         Map<Integer, Integer> result = accountAdditionalInfoService.countTotalOpenableMeterByAccountOwnerInfoList(inputAccountOwnerInfoDtoList);
 
         assertThat(result).containsEntry(1, 0).containsEntry(2, 0);
-        verify(ownerSpaceRelRepository).findListByOwnerTypesAndOwnerIds(any(), any());
+        verify(ownerSpaceRelationQueryService).findRelationListByOwnerTypesAndOwnerIds(any(), any());
         verify(electricMeterInfoService, never()).findList(any(ElectricMeterQueryDto.class));
     }
 

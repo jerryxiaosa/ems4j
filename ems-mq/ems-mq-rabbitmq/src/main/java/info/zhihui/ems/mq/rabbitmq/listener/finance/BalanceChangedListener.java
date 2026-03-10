@@ -1,8 +1,12 @@
 package info.zhihui.ems.mq.rabbitmq.listener.finance;
 
+import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.service.AccountBalanceChangeService;
-import info.zhihui.ems.business.account.service.MeterBalanceChangeService;
+import info.zhihui.ems.business.account.service.AccountInfoService;
+import info.zhihui.ems.business.device.dto.MeterBalanceChangeDto;
+import info.zhihui.ems.business.device.service.MeterBalanceChangeService;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
+import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.mq.api.message.finance.BalanceChangedMessage;
 import info.zhihui.ems.mq.rabbitmq.constant.QueueConstant;
 import jakarta.validation.Valid;
@@ -25,6 +29,7 @@ import org.springframework.validation.annotation.Validated;
 public class BalanceChangedListener {
 
     private final AccountBalanceChangeService accountBalanceChangeService;
+    private final AccountInfoService accountInfoService;
     private final MeterBalanceChangeService meterBalanceChangeService;
 
     @RabbitListener(queues = QueueConstant.QUEUE_FINANCE_BALANCE_CHANGED)
@@ -36,9 +41,25 @@ public class BalanceChangedListener {
             return;
         }
         if (BalanceTypeEnum.ELECTRIC_METER.equals(message.getBalanceType())) {
-            meterBalanceChangeService.handleBalanceChange(message);
+            handleMeterBalanceChange(message);
             return;
         }
         log.warn("未支持的余额类型，message={}", message);
+    }
+
+    private void handleMeterBalanceChange(BalanceChangedMessage message) {
+        try {
+            meterBalanceChangeService.handleBalanceChange(new MeterBalanceChangeDto()
+                    .setMeterId(message.getBalanceRelationId())
+                    .setNewBalance(message.getNewBalance())
+                    .setNeedHandleSwitchStatus(needHandleSwitchStatus(message.getAccountId())));
+        } catch (Exception exception) {
+            log.error("处理电表余额变化失败，message={}", message, exception);
+        }
+    }
+
+    private boolean needHandleSwitchStatus(Integer accountId) {
+        AccountBo accountBo = accountInfoService.getById(accountId);
+        return ElectricAccountTypeEnum.QUANTITY == accountBo.getElectricAccountType();
     }
 }

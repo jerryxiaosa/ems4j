@@ -1,6 +1,6 @@
 package info.zhihui.ems.mq.rabbitmq.listener.order;
 
-import info.zhihui.ems.business.finance.service.order.core.OrderService;
+import info.zhihui.ems.business.order.service.core.OrderService;
 import info.zhihui.ems.mq.api.message.order.OrderCompleteMessage;
 import info.zhihui.ems.mq.rabbitmq.constant.QueueConstant;
 import lombok.RequiredArgsConstructor;

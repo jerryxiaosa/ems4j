@@ -3,12 +3,12 @@ package info.zhihui.ems.mq.rabbit.order;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import info.zhihui.ems.business.device.entity.ElectricMeterEntity;
 import info.zhihui.ems.business.device.repository.ElectricMeterRepository;
-import info.zhihui.ems.business.finance.entity.BalanceEntity;
-import info.zhihui.ems.business.finance.entity.OrderFlowEntity;
-import info.zhihui.ems.business.finance.enums.OrderStatusEnum;
-import info.zhihui.ems.business.finance.qo.BalanceListQueryQo;
-import info.zhihui.ems.business.finance.repository.BalanceRepository;
-import info.zhihui.ems.business.finance.repository.OrderFlowRepository;
+import info.zhihui.ems.business.billing.entity.BalanceEntity;
+import info.zhihui.ems.business.billing.entity.OrderFlowEntity;
+import info.zhihui.ems.business.order.enums.OrderStatusEnum;
+import info.zhihui.ems.business.billing.qo.BalanceListQueryQo;
+import info.zhihui.ems.business.billing.repository.BalanceRepository;
+import info.zhihui.ems.business.billing.repository.OrderFlowRepository;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository;
@@ -82,6 +82,7 @@ class EnergyTopUpListenerIntegrationTest {
                 .setMeterId(meter.getId())
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setOrderAmount(topUpAmount)
+                .setTopUpAmount(topUpAmount)
                 .setOrderSn(orderSn)
                 .setOrderStatus(OrderStatusEnum.SUCCESS.name());
 

@@ -3,6 +3,7 @@ package info.zhihui.ems.web.order.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class EnergyOrderCreateVo {
 
     @NotNull
     @DecimalMin(value = "0", inclusive = false)
+    @Digits(integer = 16, fraction = 2, message = "订单金额最多保留两位小数")
     @Schema(description = "订单金额", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal orderAmount;
 

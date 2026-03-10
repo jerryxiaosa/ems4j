@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.billing.repository.ElectricMeterPowerRecordRepository">
+    <select id="existsByOriginalReportId" resultType="java.lang.Boolean">
+        select count(1) &gt; 0
+        from energy_electric_meter_power_record
+        where is_deleted = 0
+          and original_report_id = #{originalReportId}
+    </select>
+
+    <select id="findRecordList" resultType="info.zhihui.ems.business.billing.entity.ElectricMeterPowerRecordEntity">
+        select *
+        from energy_electric_meter_power_record
+        where is_deleted = 0
+        <if test="meterId != null">
+          and meter_id = #{meterId}
+        </if>
+        <if test="accountId != null">
+          and account_id = #{accountId}
+        </if>
+        order by record_time desc, id desc
+            limit #{limit}
+    </select>
+
+</mapper>

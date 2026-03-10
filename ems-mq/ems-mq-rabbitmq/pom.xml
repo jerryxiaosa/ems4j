@@ -61,7 +61,13 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-finance</artifactId>
+            <artifactId>ems-business-billing</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-order</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
