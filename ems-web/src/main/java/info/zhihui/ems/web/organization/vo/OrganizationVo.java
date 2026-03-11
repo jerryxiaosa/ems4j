@@ -1,11 +1,14 @@
 package info.zhihui.ems.web.organization.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.foundation.organization.enums.OrganizationTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 组织信息 VO
@@ -27,6 +30,10 @@ public class OrganizationVo {
     @Schema(description = "组织类型编码，参考 organizationType")
     private Integer organizationType;
 
+    @Schema(description = "组织类型名称")
+    @EnumLabel(source = "organizationType", enumClass = OrganizationTypeEnum.class)
+    private String organizationTypeName;
+
     @Schema(description = "组织地址")
     private String organizationAddress;
 
@@ -45,4 +52,12 @@ public class OrganizationVo {
 
     @Schema(description = "负责人电话")
     private String managerPhone;
+
+    @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
 }

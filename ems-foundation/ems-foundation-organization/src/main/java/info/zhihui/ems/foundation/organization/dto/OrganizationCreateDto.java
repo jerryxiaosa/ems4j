@@ -63,8 +63,7 @@ public class OrganizationCreateDto {
     private String remark;
 
     /**
-     * 所属区域ID（必填）
+     * 所属区域ID
      */
-    @NotNull
     private Integer ownAreaId;
 }

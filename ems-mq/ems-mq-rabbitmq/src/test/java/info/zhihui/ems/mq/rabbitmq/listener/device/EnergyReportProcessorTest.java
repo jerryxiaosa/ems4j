@@ -6,7 +6,6 @@ import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.billing.dto.ElectricMeterPowerRecordDto;
 import info.zhihui.ems.business.billing.service.consume.MeterConsumeService;
-import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.enums.CalculateTypeEnum;
@@ -27,7 +26,6 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -47,29 +45,13 @@ class EnergyReportProcessorTest {
     @Mock
     private MeterConsumeService meterConsumeService;
 
-    @Mock
-    private ElectricMeterPowerRecordService electricMeterPowerRecordService;
-
     @InjectMocks
     private EnergyReportProcessor standardEnergyReportProcessor;
-
-    @Test
-    @DisplayName("重复上报应直接跳过")
-    void testProcess_WhenOriginalReportExists_ShouldSkip() {
-        StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(true);
-
-        standardEnergyReportProcessor.process(message);
-
-        verify(electricMeterPowerRecordService).existsByOriginalReportId(anyString());
-        verifyNoInteractions(electricMeterInfoService, accountInfoService, meterConsumeService);
-    }
 
     @Test
     @DisplayName("标准电量上报应组装抄表DTO并保存")
     void testProcess_ShouldBuildRecordDtoAndSave() {
         StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenReturn(new ElectricMeterBo()
                 .setId(101)
                 .setMeterName("1号电表")
@@ -127,7 +109,6 @@ class EnergyReportProcessorTest {
     @DisplayName("电表未绑定账户时应只保存抄表记录")
     void testProcess_WhenMeterHasNoAccount_ShouldNotQueryAccount() {
         StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenReturn(new ElectricMeterBo()
                 .setId(101)
                 .setMeterName("1号电表")
@@ -147,7 +128,6 @@ class EnergyReportProcessorTest {
     @DisplayName("电表不存在时应抛出不可重试异常")
     void testProcess_WhenMeterNotFound_ShouldThrowNonRetryableException() {
         StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenThrow(new NotFoundException("meter not found"));
 
         assertThatThrownBy(() -> standardEnergyReportProcessor.process(message))
@@ -162,7 +142,6 @@ class EnergyReportProcessorTest {
     @DisplayName("账户不存在时应抛出不可重试异常")
     void testProcess_WhenAccountNotFound_ShouldThrowNonRetryableException() {
         StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenReturn(new ElectricMeterBo()
                 .setId(101)
                 .setMeterName("1号电表")
@@ -181,7 +160,6 @@ class EnergyReportProcessorTest {
     @DisplayName("保存抄表记录的业务异常应继续抛出")
     void testProcess_WhenSavePowerRecordThrowsBusinessRuntimeException_ShouldRethrow() {
         StandardEnergyReportMessage message = buildMessage();
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenReturn(new ElectricMeterBo()
                 .setId(101)
                 .setMeterName("1号电表")
@@ -199,7 +177,6 @@ class EnergyReportProcessorTest {
     @DisplayName("source为空时应使用默认值并生成固定长度幂等键")
     void testProcess_WhenSourceIsBlank_ShouldUseDefaultSource() {
         StandardEnergyReportMessage message = buildMessage().setSource(null);
-        when(electricMeterPowerRecordService.existsByOriginalReportId(anyString())).thenReturn(false);
         when(electricMeterInfoService.getByDeviceNo("DEV-001")).thenReturn(new ElectricMeterBo()
                 .setId(101)
                 .setMeterName("1号电表")
@@ -211,13 +188,9 @@ class EnergyReportProcessorTest {
 
         standardEnergyReportProcessor.process(message);
 
-        ArgumentCaptor<String> reportIdCaptor = ArgumentCaptor.forClass(String.class);
-        verify(electricMeterPowerRecordService).existsByOriginalReportId(reportIdCaptor.capture());
-        assertThat(reportIdCaptor.getValue()).hasSize(64);
-
         ArgumentCaptor<ElectricMeterPowerRecordDto> recordCaptor = ArgumentCaptor.forClass(ElectricMeterPowerRecordDto.class);
         verify(meterConsumeService).savePowerRecord(recordCaptor.capture());
-        assertThat(recordCaptor.getValue().getOriginalReportId()).isEqualTo(reportIdCaptor.getValue());
+        assertThat(recordCaptor.getValue().getOriginalReportId()).hasSize(64);
     }
 
     private StandardEnergyReportMessage buildMessage() {

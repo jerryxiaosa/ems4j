@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author jerryxiaosa
@@ -54,4 +55,14 @@ public class OrganizationBo {
      * 负责人电话
      */
     private String managerPhone;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }

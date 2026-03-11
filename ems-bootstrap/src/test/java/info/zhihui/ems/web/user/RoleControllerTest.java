@@ -103,7 +103,6 @@ class RoleControllerTest {
     @DisplayName("更新角色信息")
     void testUpdateRole() throws Exception {
         RoleUpdateVo updateVo = new RoleUpdateVo();
-        updateVo.setRoleKey("test");
         updateVo.setRoleName("更新后的角色");
         updateVo.setRemark("更新后的备注");
 

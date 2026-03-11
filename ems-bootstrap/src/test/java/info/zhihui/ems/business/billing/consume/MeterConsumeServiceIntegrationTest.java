@@ -38,6 +38,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -483,7 +484,7 @@ class MeterConsumeServiceIntegrationTest {
                 .setPowerLow(power.multiply(new BigDecimal("0.2")))
                 .setPowerLower(power.multiply(new BigDecimal("0.25")))
                 .setPowerDeepLow(power.multiply(new BigDecimal("0.3")))
-                .setOriginalReportId("TEST_REPORT_" + meterId)
+                .setOriginalReportId("TEST_REPORT_" + meterId + "_" + UUID.randomUUID())
                 .setRecordTime(LocalDateTime.now())
                 .setNeedConsume(true);
     }

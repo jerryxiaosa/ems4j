@@ -22,15 +22,20 @@ public class UserQueryDto {
     private String realNameLike;
 
     /**
-     * 电话号码（≤20）
+     * 电话号码模糊匹配（≤20）
      */
     @Size(max = 20)
-    private String userPhone;
+    private String userPhoneLike;
 
     /**
      * 机构ID
      */
     private Integer organizationId;
+
+    /**
+     * 角色ID
+     */
+    private Integer roleId;
 
     /**
      * 用户ID集合

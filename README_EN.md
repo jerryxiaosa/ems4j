@@ -155,10 +155,14 @@ mvn -pl ems-business/ems-business-device -am test
 +------------------------------------------------------------------+
 |                        ems-business                               |
 |    +------------+  +------------+  +------------+  +------------+ |
-|    |   device   |  |  account   |  |  finance   |  |    plan    | |
-|    | (Device Mgmt)| | (Account   |  | (Finance   |  | (Pricing  | |
-|    |            |  |  Mgmt)     |  |  Accounting)|  |  Plan)    | |
+|    |   device   |  |  account   |  |  billing   |  |    order   | |
+|    | (Device Mgmt)| | (Account   |  | (Balance & |  | (Trade &   | |
+|    |            |  |  Mgmt)     |  |  Consume)  |  |  Payment)  | |
 |    +------------+  +------------+  +------------+  +------------+ |
+|    |    lease   |  |    plan    |  | aggregation|                 |
+|    | (Owner &   |  | (Pricing   |  | (Cross-    |                 |
+|    |  Space)    |  |  Plan)     |  | domain)    |                 |
+|    +------------+  +------------+  +------------+                 |
 +------------------------------------------------------------------+
                |
    +-----------+-----------+
@@ -214,9 +218,12 @@ Notes:
 | `ems-bootstrap` | Application entry (Spring Boot) |
 | `ems-web` | HTTP API layer |
 | `ems-business-device` | Meter, gateway, device management |
-| `ems-business-account` | Account opening/closing, balance, recharge |
-| `ems-business-finance` | Billing, transactions, reconciliation |
+| `ems-business-account` | Account opening/closing, account management, account read models |
+| `ems-business-billing` | Balance, meter consumption, correction, billing flows |
+| `ems-business-order` | Order creation, payment callback, order query and completion |
+| `ems-business-lease` | Owner-space lease relation, lease query and unlease validation |
 | `ems-business-plan` | Pricing plans, rates, time-of-use periods |
+| `ems-business-aggregation` | Cross-domain read aggregation and application orchestration |
 | `ems-foundation-user` | Authentication, permissions, roles |
 | `ems-foundation-organization` | Multi-tenant, org structure |
 | `ems-foundation-space` | Space/area management |
@@ -229,6 +236,8 @@ Notes:
 | `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Frontend web application - Coming Soon! |
 
 Notes:
+- `ems-business-billing` and `ems-business-order` were split out from the original `finance` domain, separating billing from trading concerns.
+- `ems-business-lease` now owns owner-space lease relations and is no longer placed under `account`.
 - ems-mq-api provides message contracts and base messaging services (infrastructure layer).
 - ems-mq-rabbitmq is the business messaging app layer, hosting message listeners and orchestration.
 
@@ -264,7 +273,7 @@ For detailed platform integration solutions, see:
 | Document | Description |
 |----------|-------------|
 | [Development Practices Guide](doc/development-practices-guide.md) | Code style, naming conventions and development practices |
-| [Business Module Documentation](doc/modules/business/README.md) | Business modules documentation (device, account, finance, plan) |
+| [Business Module Documentation](doc/modules/business/README.md) | Business modules documentation (device, account, billing, order, lease, plan) |
 | [Foundation Module Documentation](doc/modules/foundation/README.md) | Foundation modules documentation (user, organization, space, system, integration) |
 | [IoT Module Documentation](doc/modules/iot/README.md) | IoT module documentation for device access and protocol integration |
 | [Test Guidelines](doc/test-guidelines.md) | Unit and integration test standards and best practices |

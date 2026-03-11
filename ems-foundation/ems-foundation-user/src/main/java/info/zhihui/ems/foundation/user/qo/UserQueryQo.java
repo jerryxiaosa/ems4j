@@ -14,7 +14,8 @@ public class UserQueryQo {
     private String userNameLike;
     private String realNameLike;
     private String userName;
-    private String userPhone;
+    private String userPhoneLike;
     private Integer organizationId;
+    private Integer roleId;
     private List<Integer> ids;
 }

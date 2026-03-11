@@ -39,6 +39,10 @@ public interface UserManageWebMapper {
     @Mapping(target = "certificatesType", expression = "java(mapCertificatesTypeCode(bo.getCertificatesType()))")
     UserVo toUserVo(UserBo bo);
 
+    @Mapping(target = "userGender", expression = "java(mapUserGenderCode(bo.getUserGender()))")
+    @Mapping(target = "certificatesType", expression = "java(mapCertificatesTypeCode(bo.getCertificatesType()))")
+    UserRawVo toUserRawVo(UserBo bo);
+
     List<UserVo> toUserVoList(List<UserBo> bos);
 
     UserRoleVo toUserRoleVo(RoleSimpleBo bo);

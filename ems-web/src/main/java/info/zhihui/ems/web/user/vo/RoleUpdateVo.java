@@ -19,11 +19,6 @@ public class RoleUpdateVo {
     @Schema(description = "角色名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String roleName;
 
-    @NotBlank
-    @Size(max = 64)
-    @Schema(description = "角色唯一标识", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String roleKey;
-
     @Schema(description = "显示排序号")
     private Integer sortNum;
 

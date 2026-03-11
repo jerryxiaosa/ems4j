@@ -151,14 +151,14 @@ class UserServiceImplTest {
         mockQueryDto = new UserQueryDto()
                 .setUserNameLike("test")
                 .setRealNameLike("测试")
-                .setUserPhone("13800138000")
+                .setUserPhoneLike("13800138000")
                 .setOrganizationId(1001)
                 .setIds(List.of(1, 2, 3));
 
         mockQueryQo = new UserQueryQo()
                 .setUserNameLike("test")
                 .setRealNameLike("测试")
-                .setUserPhone("13800138000")
+                .setUserPhoneLike("13800138000")
                 .setOrganizationId(1001)
                 .setIds(List.of(1, 2, 3));
 
@@ -282,6 +282,31 @@ class UserServiceImplTest {
         verify(userMapper).queryDtoToQo(mockQueryDto);
         verify(userRepository).selectByQo(mockQueryQo);
         verify(userMapper).listEntityToBo(Collections.emptyList());
+    }
+
+    @Test
+    @DisplayName("findUserList - 按角色ID透传查询条件")
+    void testFindUserList_ByRoleId() {
+        UserQueryDto queryDto = new UserQueryDto().setRoleId(2);
+        UserQueryQo queryQo = new UserQueryQo().setRoleId(2);
+
+        when(userMapper.queryDtoToQo(queryDto)).thenReturn(queryQo);
+        when(userRepository.selectByQo(queryQo)).thenReturn(List.of(mockEntity));
+        when(userMapper.listEntityToBo(List.of(mockEntity))).thenReturn(List.of(mockBo));
+        when(userRoleRepository.selectByUserIds(any())).thenReturn(List.of(
+                new UserRoleEntity().setUserId(1).setRoleId(2)
+        ));
+        List<RoleBo> roleBos = List.of(new RoleBo().setId(2).setRoleName("普通用户"));
+        when(roleService.findList(any(RoleQueryDto.class))).thenReturn(roleBos);
+        when(userMapper.listRoleBoToSimpleBo(roleBos)).thenReturn(List.of(
+                new RoleSimpleBo().setId(2).setRoleName("普通用户")
+        ));
+
+        List<UserBo> result = userService.findUserList(queryDto);
+
+        assertThat(result).hasSize(1);
+        verify(userMapper).queryDtoToQo(queryDto);
+        verify(userRepository).selectByQo(queryQo);
     }
 
     // ==================== getUserInfo 测试 ====================

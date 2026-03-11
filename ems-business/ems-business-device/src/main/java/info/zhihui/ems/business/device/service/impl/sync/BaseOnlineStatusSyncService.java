@@ -19,10 +19,21 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
 
     private final DeviceModuleContext deviceModuleContext;
 
+    /**
+     * 构造在线状态同步模板。
+     *
+     * @param deviceModuleContext 设备模块上下文，用于按区域获取对应的 IoT 服务
+     */
     protected BaseOnlineStatusSyncService(DeviceModuleContext deviceModuleContext) {
         this.deviceModuleContext = deviceModuleContext;
     }
 
+    /**
+     * 同步设备在线状态。
+     *
+     * @param device 设备对象
+     * @param request 同步请求
+     */
     @Override
     public void syncOnlineStatus(T device, DeviceStatusSyncRequestDto request) {
         Boolean targetStatus = determineTargetStatus(device, request);
@@ -32,13 +43,28 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
         persistStatus(device, targetStatus);
     }
 
+    /**
+     * 计算本次同步的目标在线状态。
+     * 优先使用强制同步参数，否则从 IoT 平台查询。
+     *
+     * @param device 设备对象
+     * @param request 同步请求
+     * @return 目标在线状态
+     */
     private Boolean determineTargetStatus(T device, DeviceStatusSyncRequestDto request) {
+        // 有强制值，就用强制值
         if (request != null && Boolean.TRUE.equals(request.getForce()) && request.getOnlineStatus() != null) {
             return request.getOnlineStatus();
         }
         return queryStatusFromIot(device);
     }
 
+    /**
+     * 从 IoT 平台查询设备在线状态。
+     *
+     * @param device 设备对象
+     * @return 在线状态；当缺少 IoT 标识或所属区域时返回 {@code false}
+     */
     private Boolean queryStatusFromIot(T device) {
         Integer ownAreaId = getOwnAreaId(device);
         String iotId = getIotId(device);

@@ -3,10 +3,7 @@ package info.zhihui.ems.web.user.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import info.zhihui.ems.components.translate.annotation.BizLabel;
 import info.zhihui.ems.components.translate.annotation.EnumLabel;
-import info.zhihui.ems.components.translate.annotation.FormatText;
 import info.zhihui.ems.foundation.user.enums.CertificatesTypeEnum;
-import info.zhihui.ems.web.common.formatter.CertificatesNoMaskFormatter;
-import info.zhihui.ems.web.common.formatter.PhoneMaskFormatter;
 import info.zhihui.ems.web.common.resolver.OrganizationNameResolver;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -16,12 +13,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 用户信息 VO
+ * 用户原始信息 VO。
  */
 @Data
 @Accessors(chain = true)
-@Schema(name = "UserVo", description = "用户信息数据")
-public class UserVo {
+@Schema(name = "UserRawVo", description = "用户原始信息数据")
+public class UserRawVo {
 
     @Schema(description = "用户ID")
     private Integer id;
@@ -40,7 +37,6 @@ public class UserVo {
     private String realName;
 
     @Schema(description = "手机号")
-    @FormatText(source = "userPhone", formatter = PhoneMaskFormatter.class, self = true)
     private String userPhone;
 
     @Schema(description = "性别编码，参考 userGender")
@@ -54,7 +50,6 @@ public class UserVo {
     private String certificatesTypeText;
 
     @Schema(description = "证件号码")
-    @FormatText(source = "certificatesNo", formatter = CertificatesNoMaskFormatter.class, self = true)
     private String certificatesNo;
 
     @Schema(description = "备注")

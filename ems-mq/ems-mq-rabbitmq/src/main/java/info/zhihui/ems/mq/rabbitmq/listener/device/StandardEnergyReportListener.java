@@ -1,5 +1,7 @@
 package info.zhihui.ems.mq.rabbitmq.listener.device;
 
+import info.zhihui.ems.business.billing.constant.BillingConstant;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.mq.api.message.device.StandardEnergyReportMessage;
 import info.zhihui.ems.mq.rabbitmq.constant.QueueConstant;
 import info.zhihui.ems.mq.rabbitmq.exception.NonRetryableException;
@@ -30,9 +32,21 @@ public class StandardEnergyReportListener {
                 message.getDeviceNo(), message.getSource(), message.getSourceReportId());
         try {
             standardEnergyReportProcessor.process(message);
+        } catch (BusinessRuntimeException exception) {
+            if (isDuplicatePowerRecordException(exception)) {
+                log.info("标准电量上报重复，忽略处理，deviceNo={}, source={}, sourceReportId={}, error={}",
+                        message.getDeviceNo(), message.getSource(), message.getSourceReportId(), exception.getMessage());
+                return;
+            }
+            throw exception;
         } catch (NonRetryableException exception) {
             log.error("处理标准电量上报消息失败，deviceNo={}, source={}, sourceReportId={}, error={}",
                     message.getDeviceNo(), message.getSource(), message.getSourceReportId(), exception.getMessage(), exception);
         }
+    }
+
+    private boolean isDuplicatePowerRecordException(BusinessRuntimeException exception) {
+        return exception.getMessage() != null
+                && exception.getMessage().startsWith(BillingConstant.DUPLICATE_POWER_RECORD_MESSAGE_PREFIX);
     }
 }

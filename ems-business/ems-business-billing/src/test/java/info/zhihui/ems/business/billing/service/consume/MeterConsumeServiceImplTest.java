@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.billing.service.consume;
 
 import info.zhihui.ems.business.billing.bo.BalanceBo;
+import info.zhihui.ems.business.billing.constant.BillingConstant;
 import info.zhihui.ems.business.billing.dto.BalanceDto;
 import info.zhihui.ems.business.billing.dto.BalanceQueryDto;
 import info.zhihui.ems.business.billing.dto.ElectricMeterDetailDto;
@@ -39,6 +40,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -230,6 +232,23 @@ class MeterConsumeServiceImplTest {
         assertTrue(exception.getMessage().contains("保存消费记录失败"));
 
         verify(balanceService, never()).deduct(any(BalanceDto.class));
+        verify(lock).unlock();
+    }
+
+    @Test
+    @DisplayName("保存电表记录-原始上报重复时应抛重复业务异常")
+    void testSavePowerRecord_DuplicateOriginalReport_ShouldThrowDuplicateBusinessException() {
+        testDto.setOriginalReportId("REPORT-001");
+        when(lockTemplate.getLock(anyString())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(electricMeterPowerRecordRepository.insert(any(ElectricMeterPowerRecordEntity.class)))
+                .thenThrow(new DuplicateKeyException("Duplicate key"));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterConsumeService.savePowerRecord(testDto));
+
+        assertTrue(exception.getMessage().startsWith(BillingConstant.DUPLICATE_POWER_RECORD_MESSAGE_PREFIX));
+        verify(electricMeterPowerRelationRepository, never()).insert(any(ElectricMeterPowerRelationEntity.class));
         verify(lock).unlock();
     }
 
