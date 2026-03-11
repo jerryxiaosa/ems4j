@@ -9,6 +9,7 @@ import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
 import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
 import info.zhihui.ems.foundation.organization.bo.OrganizationBo;
 import info.zhihui.ems.foundation.organization.service.OrganizationService;
+import info.zhihui.ems.web.common.formatter.CertificatesNoMaskFormatter;
 import info.zhihui.ems.web.common.formatter.PhoneMaskFormatter;
 import info.zhihui.ems.web.common.resolver.OrganizationNameResolver;
 import info.zhihui.ems.web.user.biz.UserManageBiz;
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TranslateMetadataCache.class,
         EnumLabelResolver.class,
         OrganizationNameResolver.class,
+        CertificatesNoMaskFormatter.class,
         PhoneMaskFormatter.class
 })
 class UserManageControllerTest {
@@ -67,6 +70,7 @@ class UserManageControllerTest {
                 .setUserName("admin")
                 .setOrganizationId(1)
                 .setCertificatesType(1)
+                .setCertificatesNo("110101199001011234")
                 .setCreateTime(LocalDateTime.of(2026, 3, 10, 9, 30, 15))
                 .setUpdateTime(LocalDateTime.of(2026, 3, 10, 18, 45, 20))
                 .setUserPhone("13800138000");
@@ -83,6 +87,7 @@ class UserManageControllerTest {
                 .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.list[0].organizationName").value("机构A"))
                 .andExpect(jsonPath("$.data.list[0].certificatesTypeText").value("身份证"))
+                .andExpect(jsonPath("$.data.list[0].certificatesNo").value("110***********1234"))
                 .andExpect(jsonPath("$.data.list[0].createTime").value("2026-03-10 09:30:15"))
                 .andExpect(jsonPath("$.data.list[0].updateTime").value("2026-03-10 18:45:20"))
                 .andExpect(jsonPath("$.data.list[0].userPhone").value("138****8000"));
@@ -96,6 +101,7 @@ class UserManageControllerTest {
                 .setUserName("admin")
                 .setOrganizationId(1)
                 .setCertificatesType(1)
+                .setCertificatesNo("110101199001011234")
                 .setCreateTime(LocalDateTime.of(2026, 3, 10, 9, 30, 15))
                 .setUpdateTime(LocalDateTime.of(2026, 3, 10, 18, 45, 20))
                 .setUserPhone("13800138000");
@@ -109,9 +115,56 @@ class UserManageControllerTest {
                 .andExpect(jsonPath("$.data[0].userName").value("admin"))
                 .andExpect(jsonPath("$.data[0].organizationName").value("机构A"))
                 .andExpect(jsonPath("$.data[0].certificatesTypeText").value("身份证"))
+                .andExpect(jsonPath("$.data[0].certificatesNo").value("110***********1234"))
                 .andExpect(jsonPath("$.data[0].createTime").value("2026-03-10 09:30:15"))
                 .andExpect(jsonPath("$.data[0].updateTime").value("2026-03-10 18:45:20"))
                 .andExpect(jsonPath("$.data[0].userPhone").value("138****8000"));
+    }
+
+    @Test
+    @DisplayName("分页查询用户 - 传递角色ID查询参数")
+    void testFindUserPage_ByRoleId() throws Exception {
+        UserVo userVo = new UserVo()
+                .setId(1)
+                .setUserName("admin")
+                .setOrganizationId(1)
+                .setCertificatesType(1)
+                .setUserPhone("13800138000");
+        when(userManageBiz.findUserPage(argThat(queryVo -> queryVo != null && Integer.valueOf(2).equals(queryVo.getRoleId())), eq(1), eq(10)))
+                .thenReturn(new PageResult<UserVo>().setPageNum(1).setPageSize(10).setTotal(1L).setList(List.of(userVo)));
+        when(organizationService.findOrganizationList(any()))
+                .thenReturn(List.of(new OrganizationBo().setId(1).setName("机构A")));
+
+        mockMvc.perform(get("/v1/users/page")
+                        .param("pageNum", "1")
+                        .param("pageSize", "10")
+                        .param("roleId", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.total").value(1));
+    }
+
+    @Test
+    @DisplayName("分页查询用户 - 传递手机号模糊查询参数")
+    void testFindUserPage_ByUserPhoneLike() throws Exception {
+        UserVo userVo = new UserVo()
+                .setId(1)
+                .setUserName("admin")
+                .setOrganizationId(1)
+                .setCertificatesType(1)
+                .setUserPhone("13800138000");
+        when(userManageBiz.findUserPage(argThat(queryVo -> queryVo != null && "8000".equals(queryVo.getUserPhoneLike())), eq(1), eq(10)))
+                .thenReturn(new PageResult<UserVo>().setPageNum(1).setPageSize(10).setTotal(1L).setList(List.of(userVo)));
+        when(organizationService.findOrganizationList(any()))
+                .thenReturn(List.of(new OrganizationBo().setId(1).setName("机构A")));
+
+        mockMvc.perform(get("/v1/users/page")
+                        .param("pageNum", "1")
+                        .param("pageSize", "10")
+                        .param("userPhoneLike", "8000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.total").value(1));
     }
 
     @Test
@@ -122,6 +175,7 @@ class UserManageControllerTest {
                 .setUserName("admin")
                 .setOrganizationId(1)
                 .setCertificatesType(1)
+                .setCertificatesNo("110101199001011234")
                 .setCreateTime(LocalDateTime.of(2026, 3, 10, 9, 30, 15))
                 .setUpdateTime(LocalDateTime.of(2026, 3, 10, 18, 45, 20))
                 .setUserPhone("13800138000");
@@ -135,9 +189,38 @@ class UserManageControllerTest {
                 .andExpect(jsonPath("$.data.userName").value("admin"))
                 .andExpect(jsonPath("$.data.organizationName").value("机构A"))
                 .andExpect(jsonPath("$.data.certificatesTypeText").value("身份证"))
+                .andExpect(jsonPath("$.data.certificatesNo").value("110***********1234"))
                 .andExpect(jsonPath("$.data.createTime").value("2026-03-10 09:30:15"))
                 .andExpect(jsonPath("$.data.updateTime").value("2026-03-10 18:45:20"))
                 .andExpect(jsonPath("$.data.userPhone").value("138****8000"));
+    }
+
+    @Test
+    @DisplayName("查询用户原始详情")
+    void testGetUserRaw() throws Exception {
+        UserRawVo userRawVo = new UserRawVo()
+                .setId(1)
+                .setUserName("admin")
+                .setOrganizationId(1)
+                .setCertificatesType(1)
+                .setCertificatesNo("110101199001011234")
+                .setUserPhone("13800138000")
+                .setRoles(List.of(new UserRoleVo().setId(1).setRoleName("管理员").setRoleKey("admin")));
+        when(userManageBiz.getUserRaw(1)).thenReturn(userRawVo);
+        when(organizationService.findOrganizationList(any()))
+                .thenReturn(List.of(new OrganizationBo().setId(1).setName("机构A")));
+
+        mockMvc.perform(get("/v1/users/1/raw"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.userName").value("admin"))
+                .andExpect(jsonPath("$.data.organizationName").value("机构A"))
+                .andExpect(jsonPath("$.data.certificatesTypeText").value("身份证"))
+                .andExpect(jsonPath("$.data.certificatesNo").value("110101199001011234"))
+                .andExpect(jsonPath("$.data.userPhone").value("13800138000"))
+                .andExpect(jsonPath("$.data.roles[0].id").value(1))
+                .andExpect(jsonPath("$.data.roles[0].roleName").value("管理员"))
+                .andExpect(jsonPath("$.data.roles[0].roleKey").value("admin"));
     }
 
     @Test

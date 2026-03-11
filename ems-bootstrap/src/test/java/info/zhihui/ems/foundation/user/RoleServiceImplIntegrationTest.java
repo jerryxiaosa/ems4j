@@ -342,7 +342,6 @@ class RoleServiceImplIntegrationTest {
         RoleUpdateDto dto = new RoleUpdateDto();
         dto.setId(roleId);
         dto.setRoleName("更新后的角色名");
-        dto.setRoleKey("updated_role");
         dto.setSortNum(200);
         dto.setIsDisabled(true);
         dto.setRemark("更新后的备注");
@@ -353,7 +352,7 @@ class RoleServiceImplIntegrationTest {
         // Then
         RoleDetailBo updatedRole = roleService.getDetail(roleId);
         assertEquals(dto.getRoleName(), updatedRole.getRoleName());
-        assertEquals(dto.getRoleKey(), updatedRole.getRoleKey());
+        assertEquals("user", updatedRole.getRoleKey());
         assertEquals(dto.getSortNum(), updatedRole.getSortNum());
         assertEquals(dto.getRemark(), updatedRole.getRemark());
         assertEquals(dto.getIsDisabled(), updatedRole.getIsDisabled());
@@ -373,23 +372,9 @@ class RoleServiceImplIntegrationTest {
         RoleUpdateDto dto = new RoleUpdateDto();
         dto.setId(99999);
         dto.setRoleName("不存在的角色");
-        dto.setRoleKey("not_exist");
 
         // When & Then
         assertThrows(NotFoundException.class, () -> roleService.update(dto));
-    }
-
-    @Test
-    @DisplayName("更新角色 - 角色标识已存在")
-    void testUpdate_RoleKeyExists() {
-        // Given
-        RoleUpdateDto dto = new RoleUpdateDto();
-        dto.setId(2);
-        dto.setRoleName("测试角色");
-        dto.setRoleKey("admin"); // 使用已存在的角色标识
-
-        // When & Then
-        assertThrows(BusinessRuntimeException.class, () -> roleService.update(dto));
     }
 
     @Test

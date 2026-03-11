@@ -329,6 +329,7 @@ CREATE TABLE `energy_electric_meter_power_record`
     `create_time`        DATETIME                                DEFAULT NULL,
     `is_deleted`         BIT(1) NOT NULL                         DEFAULT 0 COMMENT '0正常，1删除',
     PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_original_report_id` (`original_report_id`),
     KEY `idx_record_time` (`record_time`),
     KEY `idx_create_time` (`create_time`)
 ) ENGINE = INNODB

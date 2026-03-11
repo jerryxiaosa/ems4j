@@ -29,13 +29,6 @@ public class RoleUpdateDto {
     private String roleName;
 
     /**
-     * 角色唯一标识
-     */
-    @NotBlank
-    @Size(max = 64)
-    private String roleKey;
-
-    /**
      * 显示排序号
      */
     private Integer sortNum;

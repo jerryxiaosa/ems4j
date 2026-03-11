@@ -22,11 +22,19 @@
             <if test="qo.userName != null and qo.userName != ''">
                 and t.user_name = #{qo.userName}
             </if>
-            <if test="qo.userPhone != null and qo.userPhone != ''">
-                and t.user_phone = #{qo.userPhone}
+            <if test="qo.userPhoneLike != null and qo.userPhoneLike != ''">
+                and t.user_phone like concat('%', #{qo.userPhoneLike}, '%')
             </if>
             <if test="qo.organizationId != null">
                 and t.organization_id = #{qo.organizationId}
+            </if>
+            <if test="qo.roleId != null">
+                and exists (
+                    select 1
+                    from sys_user_role ur
+                    where ur.user_id = t.id
+                      and ur.role_id = #{qo.roleId}
+                )
             </if>
         </where>
         order by t.create_time desc, t.id desc

@@ -114,7 +114,6 @@ class RoleServiceImplTest {
         mockUpdateDto = new RoleUpdateDto();
         mockUpdateDto.setId(1);
         mockUpdateDto.setRoleName("更新角色");
-        mockUpdateDto.setRoleKey("updated_role");
         mockUpdateDto.setSortNum(3);
         mockUpdateDto.setRemark("更新角色描述");
         mockUpdateDto.setIsDisabled(false);
@@ -356,7 +355,6 @@ class RoleServiceImplTest {
         RoleEntity updateEntity = new RoleEntity();
         updateEntity.setId(1);
         updateEntity.setRoleName("更新角色");
-        updateEntity.setRoleKey("updated_role");
 
         when(roleRepository.selectById(1)).thenReturn(mockEntity);
         when(roleMapper.updateDtoToEntity(mockUpdateDto)).thenReturn(updateEntity);
@@ -369,6 +367,8 @@ class RoleServiceImplTest {
         verify(roleRepository).selectById(1);
         verify(roleMapper).updateDtoToEntity(mockUpdateDto);
         verify(roleRepository).updateById(updateEntity);
+        assertThat(updateEntity.getRoleKey()).isEqualTo(mockEntity.getRoleKey());
+        verify(roleRepository, never()).selectByQo(any(RoleQueryQo.class));
     }
 
     @Test
@@ -388,40 +388,6 @@ class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("update - 角色标识已存在")
-    void testUpdate_RoleKeyExists() {
-        // Given
-        RoleEntity existEntity = new RoleEntity();
-        existEntity.setId(1);
-        existEntity.setRoleKey("old_role");
-
-        RoleUpdateDto dto = new RoleUpdateDto();
-        dto.setId(1);
-        dto.setRoleKey("existing_role");
-
-        RoleEntity updateEntity = new RoleEntity();
-        updateEntity.setId(1);
-        updateEntity.setRoleKey("existing_role");
-
-        RoleEntity conflictEntity = new RoleEntity();
-        conflictEntity.setId(2);
-        conflictEntity.setRoleKey("existing_role");
-
-        when(roleRepository.selectById(1)).thenReturn(existEntity);
-        when(roleRepository.selectByQo(any(RoleQueryQo.class))).thenReturn(List.of(conflictEntity));
-
-        // When & Then
-        assertThatThrownBy(() -> roleService.update(dto))
-                .isInstanceOf(BusinessRuntimeException.class)
-                .hasMessage("角色标识已存在");
-
-        verify(roleRepository).selectById(1);
-        verify(roleRepository).selectByQo(any(RoleQueryQo.class));
-        verify(roleMapper, never()).updateDtoToEntity(any());
-        verify(roleRepository, never()).updateById(any(RoleEntity.class));
-    }
-
-    @Test
     @DisplayName("update - 超管角色不能被禁用")
     void testUpdate_CannotDisableSuperAdmin() {
         // Given
@@ -433,7 +399,6 @@ class RoleServiceImplTest {
 
         RoleUpdateDto dto = new RoleUpdateDto();
         dto.setId(1);
-        dto.setRoleKey(RoleEnum.SUPER_ADMIN.getCode());
         dto.setIsDisabled(true); // 尝试禁用超管角色
 
         when(roleRepository.selectById(1)).thenReturn(existEntity);

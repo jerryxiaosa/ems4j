@@ -72,6 +72,17 @@ public class UserManageBiz {
     }
 
     /**
+     * 根据 ID 查询用户原始信息。
+     *
+     * @param id 用户ID
+     * @return 用户原始详情
+     */
+    public UserRawVo getUserRaw(Integer id) {
+        UserBo userBo = userService.getUserInfo(id);
+        return userManageWebMapper.toUserRawVo(userBo);
+    }
+
+    /**
      * 新增用户。
      *
      * @param createVo 创建参数

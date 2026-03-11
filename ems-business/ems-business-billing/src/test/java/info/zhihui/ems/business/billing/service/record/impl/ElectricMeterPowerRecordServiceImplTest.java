@@ -18,9 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,27 +77,5 @@ class ElectricMeterPowerRecordServiceImplTest {
         ElectricMeterLatestPowerRecordDto result = electricMeterPowerRecordService.findLatestRecord(1001);
 
         assertNull(result);
-    }
-
-    @Test
-    @DisplayName("按原始上报ID查询存在记录时应返回true")
-    void testExistsByOriginalReportId_WhenRecordExists_ShouldReturnTrue() {
-        when(electricMeterPowerRecordRepository.existsByOriginalReportId("IOT:RPT-001")).thenReturn(true);
-
-        boolean exists = electricMeterPowerRecordService.existsByOriginalReportId("IOT:RPT-001");
-
-        assertTrue(exists);
-        verify(electricMeterPowerRecordRepository).existsByOriginalReportId("IOT:RPT-001");
-    }
-
-    @Test
-    @DisplayName("按原始上报ID查询不存在记录时应返回false")
-    void testExistsByOriginalReportId_WhenRecordMissing_ShouldReturnFalse() {
-        when(electricMeterPowerRecordRepository.existsByOriginalReportId("IOT:RPT-002")).thenReturn(false);
-
-        boolean exists = electricMeterPowerRecordService.existsByOriginalReportId("IOT:RPT-002");
-
-        assertFalse(exists);
-        verify(electricMeterPowerRecordRepository).existsByOriginalReportId("IOT:RPT-002");
     }
 }

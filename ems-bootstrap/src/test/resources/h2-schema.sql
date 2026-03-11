@@ -365,6 +365,7 @@ CREATE TABLE energy_electric_meter_power_record
     PRIMARY KEY (id)
 );
 
+CREATE UNIQUE INDEX uk_original_report_id ON energy_electric_meter_power_record (original_report_id);
 CREATE INDEX idx_record_time ON energy_electric_meter_power_record (record_time);
 CREATE INDEX idx_create_time_power_record ON energy_electric_meter_power_record (create_time);
 

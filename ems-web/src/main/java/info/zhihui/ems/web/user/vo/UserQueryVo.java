@@ -22,11 +22,14 @@ public class UserQueryVo {
     private String realNameLike;
 
     @Size(max = 20)
-    @Schema(description = "手机号")
-    private String userPhone;
+    @Schema(description = "手机号模糊查询条件")
+    private String userPhoneLike;
 
     @Schema(description = "机构ID")
     private Integer organizationId;
+
+    @Schema(description = "角色ID")
+    private Integer roleId;
 
     @Schema(description = "用户ID集合")
     private List<Integer> ids;

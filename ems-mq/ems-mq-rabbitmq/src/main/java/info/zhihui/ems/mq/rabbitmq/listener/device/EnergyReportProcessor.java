@@ -7,7 +7,6 @@ import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.billing.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.billing.dto.ElectricMeterPowerRecordDto;
 import info.zhihui.ems.business.billing.service.consume.MeterConsumeService;
-import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.mq.api.message.device.StandardEnergyReportMessage;
@@ -42,15 +41,9 @@ public class EnergyReportProcessor {
     private final ElectricMeterInfoService electricMeterInfoService;
     private final AccountInfoService accountInfoService;
     private final MeterConsumeService meterConsumeService;
-    private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
 
     public void process(@Valid @NotNull StandardEnergyReportMessage message) {
         String originalReportId = buildOriginalReportId(message);
-        if (electricMeterPowerRecordService.existsByOriginalReportId(originalReportId)) {
-            log.info("标准电量上报重复，忽略处理，originalReportId={}", originalReportId);
-            return;
-        }
-
         ElectricMeterBo meterBo = resolveMeter(message.getDeviceNo());
         AccountBo accountBo = resolveAccount(meterBo.getAccountId());
         meterConsumeService.savePowerRecord(buildPowerRecordDto(message, meterBo, accountBo, originalReportId));
@@ -137,4 +130,5 @@ public class EnergyReportProcessor {
             throw new IllegalStateException("SHA-256 algorithm not available", exception);
         }
     }
+
 }

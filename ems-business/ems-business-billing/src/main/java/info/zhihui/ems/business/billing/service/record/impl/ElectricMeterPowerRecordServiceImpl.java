@@ -5,7 +5,6 @@ import info.zhihui.ems.business.billing.entity.ElectricMeterPowerRecordEntity;
 import info.zhihui.ems.business.billing.qo.ElectricMeterPowerRecordQo;
 import info.zhihui.ems.business.billing.repository.ElectricMeterPowerRecordRepository;
 import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerRecordService;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,11 +37,6 @@ public class ElectricMeterPowerRecordServiceImpl implements ElectricMeterPowerRe
             return null;
         }
         return toLatestPowerRecordDto(recordList.get(0));
-    }
-
-    @Override
-    public boolean existsByOriginalReportId(@NotBlank String originalReportId) {
-        return Boolean.TRUE.equals(electricMeterPowerRecordRepository.existsByOriginalReportId(originalReportId));
     }
 
     private ElectricMeterLatestPowerRecordDto toLatestPowerRecordDto(ElectricMeterPowerRecordEntity recordEntity) {

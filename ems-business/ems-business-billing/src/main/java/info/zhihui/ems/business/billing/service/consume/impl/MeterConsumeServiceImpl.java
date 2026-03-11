@@ -5,6 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.billing.bo.BalanceBo;
+import info.zhihui.ems.business.billing.constant.BillingConstant;
 import info.zhihui.ems.business.billing.dto.*;
 import info.zhihui.ems.business.billing.entity.*;
 import info.zhihui.ems.business.billing.enums.ConsumeTypeEnum;
@@ -42,6 +43,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
@@ -121,6 +123,11 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
             log.debug("成功保存电表记录，电表ID: {}, 记录ID: {}",
                     meterPowerRecordEntity.getMeterId(), meterPowerRecordEntity.getId());
             return meterPowerRecordEntity;
+        } catch (DuplicateKeyException exception) {
+            log.info("电表上报记录重复，忽略处理，meterId: {}, originalReportId: {}",
+                    meterPowerRecordDto.getElectricMeterDetailDto().getMeterId(), meterPowerRecordDto.getOriginalReportId());
+            throw new BusinessRuntimeException(
+                    BillingConstant.DUPLICATE_POWER_RECORD_MESSAGE_PREFIX + "，originalReportId=" + meterPowerRecordDto.getOriginalReportId());
         } catch (Exception e) {
             log.error("保存电表记录失败，电表ID: {}, 错误信息: {}",
                     meterPowerRecordDto.getElectricMeterDetailDto().getMeterId(), e.getMessage(), e);

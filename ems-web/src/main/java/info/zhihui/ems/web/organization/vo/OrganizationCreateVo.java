@@ -50,7 +50,6 @@ public class OrganizationCreateVo {
     @Schema(description = "备注说明")
     private String remark;
 
-    @NotNull
-    @Schema(description = "所属区域ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "所属区域ID")
     private Integer ownAreaId;
 }

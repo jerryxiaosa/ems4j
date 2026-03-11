@@ -19,11 +19,4 @@ public interface ElectricMeterPowerRecordService {
      */
     ElectricMeterLatestPowerRecordDto findLatestRecord(@NotNull Integer meterId);
 
-    /**
-     * 是否存在指定原始上报记录
-     *
-     * @param originalReportId 原始上报ID
-     * @return true-存在；false-不存在
-     */
-    boolean existsByOriginalReportId(@NotBlank String originalReportId);
 }

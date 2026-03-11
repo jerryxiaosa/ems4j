@@ -130,11 +130,11 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("分页查询用户列表 - 按手机号查询")
+    @DisplayName("分页查询用户列表 - 按手机号模糊查询")
     void testFindUserPage_ByPhone() {
         // Given
         UserQueryDto queryDto = new UserQueryDto();
-        queryDto.setUserPhone("13800138001");
+        queryDto.setUserPhoneLike("8001");
         PageParam pageParam = new PageParam();
 
         // When
@@ -142,11 +142,11 @@ class UserServiceImplIntegrationTest {
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getTotal()).isEqualTo(1);
-        assertThat(result.getList()).hasSize(1);
+        assertThat(result.getTotal()).isEqualTo(2);
+        assertThat(result.getList()).hasSize(2);
 
         // 验证返回的用户数据的所有属性
-        UserBo user = result.getList().get(0);
+        UserBo user = result.getList().get(1);
         assertThat(user.getId()).isEqualTo(1);
         assertThat(user.getUserName()).isEqualTo("testuser1");
         assertThat(user.getRealName()).isEqualTo("测试用户1");
@@ -178,6 +178,21 @@ class UserServiceImplIntegrationTest {
         result.getList().forEach(user ->
             assertThat(user.getOrganizationId()).isEqualTo(1)
         );
+    }
+
+    @Test
+    @DisplayName("分页查询用户列表 - 按角色ID查询")
+    void testFindUserPage_ByRoleId() {
+        UserQueryDto queryDto = new UserQueryDto();
+        queryDto.setRoleId(1);
+        PageParam pageParam = new PageParam();
+
+        PageResult<UserBo> result = userService.findUserPage(queryDto, pageParam);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotal()).isEqualTo(1);
+        assertThat(result.getList()).hasSize(1);
+        assertThat(result.getList().get(0).getId()).isEqualTo(1);
     }
 
     @Test
@@ -248,6 +263,18 @@ class UserServiceImplIntegrationTest {
 
         // Then
         assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(UserBo::getId).containsExactlyInAnyOrder(1, 2);
+    }
+
+    @Test
+    @DisplayName("查询用户列表 - 按角色ID查询")
+    void testFindUserList_ByRoleId() {
+        UserQueryDto queryDto = new UserQueryDto();
+        queryDto.setRoleId(2);
+
+        List<UserBo> result = userService.findUserList(queryDto);
+
         assertThat(result).hasSize(2);
         assertThat(result).extracting(UserBo::getId).containsExactlyInAnyOrder(1, 2);
     }

@@ -54,6 +54,13 @@ public class UserManageController {
         return ResultUtil.success(userManageBiz.getUser(id));
     }
 
+    @SaCheckPermission("users:users:update")
+    @GetMapping("/{id}/raw")
+    @Operation(summary = "获取用户原始详情")
+    public RestResult<UserRawVo> getUserRaw(@Parameter(description = "用户ID") @PathVariable Integer id) {
+        return ResultUtil.success(userManageBiz.getUserRaw(id));
+    }
+
     @SaCheckPermission("users:users:add")
     @PostMapping
     @Operation(summary = "新增用户")

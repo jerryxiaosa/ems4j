@@ -24,7 +24,7 @@ public interface UserService {
      * 分页查询用户列表
      * - 仅返回未删除的数据
      *
-     * @param queryDto  查询条件（支持用户名模糊、真实姓名模糊、手机号、机构ID、ID集合）
+     * @param queryDto  查询条件（支持用户名模糊、真实姓名模糊、手机号模糊、机构ID、角色ID、ID集合）
      * @param pageParam 分页参数（页码与每页大小）
      * @return 分页结果（包含总数与用户列表）
      */
@@ -34,7 +34,7 @@ public interface UserService {
      * 查询用户列表
      * - 仅返回未删除的数据
      *
-     * @param queryDto 查询条件（支持用户名模糊、真实姓名模糊、手机号、机构ID、ID集合）
+     * @param queryDto 查询条件（支持用户名模糊、真实姓名模糊、手机号模糊、机构ID、角色ID、ID集合）
      * @return 用户业务对象列表
      */
     List<UserBo> findUserList(@NotNull @Valid UserQueryDto queryDto);

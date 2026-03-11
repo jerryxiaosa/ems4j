@@ -1,5 +1,6 @@
 package info.zhihui.ems.mq.rabbitmq.listener.device;
 
+import info.zhihui.ems.business.billing.constant.BillingConstant;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.mq.api.message.device.StandardEnergyReportMessage;
 import info.zhihui.ems.mq.rabbitmq.exception.NonRetryableException;
@@ -61,6 +62,16 @@ class StandardEnergyReportListenerTest {
         assertThatThrownBy(() -> standardEnergyReportListener.handle(message))
                 .isInstanceOf(BusinessRuntimeException.class)
                 .hasMessage("db timeout");
+    }
+
+    @Test
+    @DisplayName("处理器抛出重复上报异常时监听器应吞掉")
+    void testHandle_WhenProcessorThrowsDuplicateBusinessRuntimeException_ShouldNotThrow() {
+        StandardEnergyReportMessage message = buildMessage();
+        doThrow(new BusinessRuntimeException(BillingConstant.DUPLICATE_POWER_RECORD_MESSAGE_PREFIX + "，originalReportId=abc"))
+                .when(standardEnergyReportProcessor).process(message);
+
+        assertThatCode(() -> standardEnergyReportListener.handle(message)).doesNotThrowAnyException();
     }
 
     private StandardEnergyReportMessage buildMessage() {

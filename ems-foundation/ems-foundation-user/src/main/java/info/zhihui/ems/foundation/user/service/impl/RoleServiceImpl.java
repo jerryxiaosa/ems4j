@@ -140,11 +140,10 @@ public class RoleServiceImpl implements RoleService {
 
     /**
      * 更新角色信息
-     * - 对角色标识唯一性进行校验（排除自身）
+     * - roleKey 作为角色稳定标识，创建后不允许修改
      *
      * @param dto 更新DTO
      * @throws NotFoundException        当角色不存在时抛出
-     * @throws BusinessRuntimeException 当角色标识已存在时抛出
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -160,18 +159,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessRuntimeException("超管角色不能被禁用");
         }
 
-        // 检查角色标识唯一性（排除自身）
-        if (!existEntity.getRoleKey().equals(dto.getRoleKey())) {
-            RoleQueryQo queryQo = new RoleQueryQo();
-            queryQo.setRoleKey(dto.getRoleKey());
-            queryQo.setExcludeIds(List.of(dto.getId()));
-            List<RoleEntity> existingRoles = roleRepository.selectByQo(queryQo);
-            if (!CollectionUtils.isEmpty(existingRoles)) {
-                throw new BusinessRuntimeException("角色标识已存在");
-            }
-        }
-
         RoleEntity entity = roleMapper.updateDtoToEntity(dto);
+        entity.setRoleKey(existEntity.getRoleKey());
         roleRepository.updateById(entity);
     }
 
