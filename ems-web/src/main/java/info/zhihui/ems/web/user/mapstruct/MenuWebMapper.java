@@ -26,7 +26,7 @@ public interface MenuWebMapper {
      * MenuBo 转 MenuVo
      */
     @Mapping(target = "menuSource", expression = "java(menuBo.getMenuSource() != null ? menuBo.getMenuSource().name() : null)")
-    @Mapping(target = "menuType", expression = "java(menuBo.getMenuType() != null ? menuBo.getMenuType().name() : null)")
+    @Mapping(target = "menuType", expression = "java(menuBo.getMenuType() != null ? menuBo.getMenuType().getCode() : null)")
     @Mapping(source = "isHidden", target = "hidden")
     MenuWithChildrenVo toMenuVo(MenuBo menuBo);
 
@@ -38,6 +38,7 @@ public interface MenuWebMapper {
     /**
      * MenuDetailBo 转 MenuDetailVo
      */
+    @Mapping(target = "menuType", expression = "java(menuDetailBo.getMenuType() != null ? menuDetailBo.getMenuType().getCode() : null)")
     @Mapping(source = "isHidden", target = "hidden")
     MenuVo toMenuDetailVo(MenuDetailBo menuDetailBo);
 

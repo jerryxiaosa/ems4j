@@ -2,6 +2,10 @@ package info.zhihui.ems.web.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.zhihui.ems.config.satoken.SaWebConfig;
+import info.zhihui.ems.components.translate.engine.TranslateEngine;
+import info.zhihui.ems.components.translate.engine.TranslateMetadataCache;
+import info.zhihui.ems.components.translate.resolver.EnumLabelResolver;
+import info.zhihui.ems.components.translate.web.advice.ResponseTranslateAdvice;
 import info.zhihui.ems.web.user.biz.MenuBiz;
 import info.zhihui.ems.web.user.controller.MenuController;
 import info.zhihui.ems.web.user.vo.*;
@@ -10,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +29,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MenuController.class)
+@Import({
+        ResponseTranslateAdvice.class,
+        TranslateEngine.class,
+        TranslateMetadataCache.class,
+        EnumLabelResolver.class
+})
 class MenuControllerTest {
 
     @Autowired
@@ -45,11 +56,13 @@ class MenuControllerTest {
                 .setId(2)
                 .setMenuName("用户管理")
                 .setPid(1)
+                .setMenuType(2)
                 .setChildren(List.of());
         MenuWithChildrenVo root = new MenuWithChildrenVo()
                 .setId(1)
                 .setMenuName("系统管理")
                 .setPid(0)
+                .setMenuType(1)
                 .setChildren(List.of(child));
 
         when(menuBiz.findTree(any(MenuQueryVo.class))).thenReturn(List.of(root));
@@ -59,7 +72,11 @@ class MenuControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].id").value(1))
-                .andExpect(jsonPath("$.data[0].children[0].id").value(2));
+                .andExpect(jsonPath("$.data[0].menuType").value(1))
+                .andExpect(jsonPath("$.data[0].menuTypeName").value("菜单"))
+                .andExpect(jsonPath("$.data[0].children[0].id").value(2))
+                .andExpect(jsonPath("$.data[0].children[0].menuType").value(2))
+                .andExpect(jsonPath("$.data[0].children[0].menuTypeName").value("按钮"));
     }
 
     @Test
@@ -73,7 +90,7 @@ class MenuControllerTest {
                 .setSortNum(1)
                 .setPath("/system")
                 .setMenuSource("1")
-                .setMenuType("1")
+                .setMenuType(1)
                 .setIcon("system")
                 .setRemark("系统管理菜单")
                 .setHidden(false)
@@ -91,7 +108,8 @@ class MenuControllerTest {
                 .andExpect(jsonPath("$.data.sortNum").value(1))
                 .andExpect(jsonPath("$.data.path").value("/system"))
                 .andExpect(jsonPath("$.data.menuSource").value("1"))
-                .andExpect(jsonPath("$.data.menuType").value("1"))
+                .andExpect(jsonPath("$.data.menuType").value(1))
+                .andExpect(jsonPath("$.data.menuTypeName").value("菜单"))
                 .andExpect(jsonPath("$.data.icon").value("system"))
                 .andExpect(jsonPath("$.data.remark").value("系统管理菜单"))
                 .andExpect(jsonPath("$.data.hidden").value(false))

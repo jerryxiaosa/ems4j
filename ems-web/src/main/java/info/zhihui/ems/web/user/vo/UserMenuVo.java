@@ -30,4 +30,16 @@ public class UserMenuVo {
     @Schema(description = "路由路径")
     private String path;
 
+    @Schema(description = "菜单类型，参考menuType")
+    private Integer menuType;
+
+    @Schema(description = "菜单图标")
+    private String icon;
+
+    @Schema(description = "是否隐藏")
+    private Boolean hidden;
+
+    @Schema(description = "菜单来源，参考menuSource")
+    private Integer menuSource;
+
 }
