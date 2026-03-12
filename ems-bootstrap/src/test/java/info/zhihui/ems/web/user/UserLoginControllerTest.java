@@ -84,14 +84,25 @@ class UserLoginControllerTest {
     @Test
     @DisplayName("查询当前用户菜单-指定来源")
     void testFindCurrentUserMenus() throws Exception {
-        UserMenuVo menuVo = new UserMenuVo().setId(1).setMenuName("系统管理").setPath("/xxx");
+        UserMenuVo menuVo = new UserMenuVo()
+                .setId(1)
+                .setMenuName("系统管理")
+                .setPath("/xxx")
+                .setMenuType(1)
+                .setIcon("system")
+                .setHidden(false)
+                .setMenuSource(1);
         when(userLoginBiz.findCurrentUserMenus(1)).thenReturn(List.of(menuVo));
 
         mockMvc.perform(get("/v1/users/current/menus")
                         .param("source", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].menuName").value("系统管理"));
+                .andExpect(jsonPath("$.data[0].menuName").value("系统管理"))
+                .andExpect(jsonPath("$.data[0].menuType").value(1))
+                .andExpect(jsonPath("$.data[0].icon").value("system"))
+                .andExpect(jsonPath("$.data[0].hidden").value(false))
+                .andExpect(jsonPath("$.data[0].menuSource").value(1));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package info.zhihui.ems.web.user.vo;
 
+import info.zhihui.ems.components.translate.annotation.EnumLabel;
+import info.zhihui.ems.foundation.user.enums.MenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -36,7 +38,11 @@ public class MenuVo {
     private String menuSource;
 
     @Schema(description = "菜单类型，参考menuType")
-    private String menuType;
+    private Integer menuType;
+
+    @Schema(description = "菜单类型名称")
+    @EnumLabel(source = "menuType", enumClass = MenuTypeEnum.class)
+    private String menuTypeName;
 
     @Schema(description = "菜单图标")
     private String icon;
