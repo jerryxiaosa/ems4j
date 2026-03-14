@@ -75,39 +75,90 @@ The typical flow is recharge after account opening, usage generates charges and 
 
 | Component | Version | Required |
 |-----------|---------|----------|
-| JDK | 17+ | Yes |
-| Maven | 3.8+ | Yes |
-| MySQL | 8.0+ | Yes |
-| Redis | 6.0+ | Yes |
-| RabbitMQ | 3.x | No |
+| JDK | 17+     | Yes |
+| Maven | 3.8+    | Yes |
+| MySQL | 8.0+    | Yes |
+| Redis | 6.0+    | Yes |
+| RabbitMQ | 4.1+    | No |
+| Node.js | 18.18+  | Required for frontend development/build |
+| pnpm | 10.32+  | Required for frontend development/build |
 
 ## Quick Start
 
-### 1) Clone the repository
-
-### 2) Initialize database
+Clone the repository first:
 
 ```bash
-mysql -u <user> -p <db> < sql/ems.sql
+git clone <repository-url>
+cd ems4j
 ```
 
-### 3) Configure the application
+### Option A: Docker local development mode
+
+Backend middleware dependencies can be started with Docker Compose:
+
+```bash
+cp deploy/env.example .env
+docker compose -f deploy/compose/docker-compose.infra.yml up -d
+```
+
+Then start backend and frontend separately:
+
+```bash
+# backend
+mvn clean package -DskipTests
+java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+
+# frontend
+cd frontend-web
+pnpm install
+pnpm dev
+```
+
+Default access URLs:
+- Backend API docs: `http://127.0.0.1:8080/doc.html`
+- Frontend app: `http://127.0.0.1:4173`
+
+### Option B: Full Docker startup
+
+```bash
+cp deploy/env.example .env
+# full container mode uses: ems-bootstrap/src/main/resources/application-docker.yml
+docker compose -f deploy/compose/docker-compose.full.yml up -d --build
+```
+
+Notes:
+- `deploy/compose/docker-compose.infra.yml`: MySQL / Redis / RabbitMQ only
+- `deploy/compose/docker-compose.full.yml`: backend / frontend / middleware
+- RabbitMQ image already includes the `x-delayed-message` plugin
+
+### Option C: Manual environment setup
+
+```bash
+# import database
+mysql -u <user> -p <db> < sql/ems.sql
+
+# install RabbitMQ x-delayed-message plugin
+# @see https://github.com/rabbitmq/rabbitmq-delayed-message-exchange
+```
 
 Edit `ems-bootstrap/src/main/resources/application-dev.yml`:
 - Database connection (`spring.datasource`)
 - Redis connection (`spring.data.redis`)
 - RabbitMQ connection (`spring.rabbitmq`, optional)
 
-### 4) Build and run
+Frontend proxy target defaults to `http://127.0.0.1:8080` and can be overridden:
+
+```bash
+cd frontend-web
+VITE_PROXY_TARGET=http://127.0.0.1:18080 pnpm dev
+```
+
+Build and run:
 
 ```bash
 mvn clean package -DskipTests
 java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
 ```
-
-### 5) Access the system
-
-- API Documentation: http://localhost:8080/doc.html
 
 ## Build & Test
 
@@ -120,6 +171,13 @@ mvn test
 
 # Module build/test (example)
 mvn -pl ems-business/ems-business-device -am test
+
+# Frontend
+cd frontend-web
+pnpm typecheck
+pnpm test:unit
+pnpm test:unit:coverage
+pnpm test:e2e
 ```
 
 ## Tech Stack
@@ -218,7 +276,7 @@ Notes:
 | `ems-bootstrap` | Application entry (Spring Boot) |
 | `ems-web` | HTTP API layer |
 | `ems-business-device` | Meter, gateway, device management |
-| `ems-business-account` | Account opening/closing, account management, account read models |
+| `ems-business-account` | Account opening, closing, balance and recharge |
 | `ems-business-billing` | Balance, meter consumption, correction, billing flows |
 | `ems-business-order` | Order creation, payment callback, order query and completion |
 | `ems-business-lease` | Owner-space lease relation, lease query and unlease validation |
@@ -233,13 +291,13 @@ Notes:
 | `ems-mq-*` | Messaging infrastructure API (ems-mq-api) and business messaging app layer (ems-mq-rabbitmq) |
 | `ems-iot` | Netty device access, protocol parsing |
 | `ems-schedule` | Scheduled jobs |
-| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Frontend web application - Coming Soon! |
+| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Vue 3 + TypeScript admin frontend with Vitest unit tests and Playwright smoke tests |
+| `deploy` ![NEW](https://img.shields.io/badge/NEW-orange) ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Docker Compose files, Dockerfiles, init SQL and environment examples for local infrastructure and full deployment orchestration |
 
 Notes:
-- `ems-business-billing` and `ems-business-order` were split out from the original `finance` domain, separating billing from trading concerns.
-- `ems-business-lease` now owns owner-space lease relations and is no longer placed under `account`.
 - ems-mq-api provides message contracts and base messaging services (infrastructure layer).
 - ems-mq-rabbitmq is the business messaging app layer, hosting message listeners and orchestration.
+- Frontend details are maintained in [`frontend-web/README.md`](frontend-web/README.md).
 
 ## Supported Devices
 
@@ -284,6 +342,6 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
 ## Contact
 
-- WeChat:
+- Add me on WeChat and note `ems4j`:
   
   <img src="resource/images/wechat.png" alt="WeChat QR Code" width="220" />

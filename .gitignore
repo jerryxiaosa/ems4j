@@ -31,15 +31,20 @@ build/
 
 ### VS Code ###
 .vscode/
-
-logs/
-
+node_modules/
+dist/
+coverage/
+.pnpm-store
+.tmp-corepack
 .cursor
 .trae
 
+logs/
 /docs
 /resources
 /htmlReport
 **/Debug.java
 AGENTS.md
 TODO.md
+
+.env

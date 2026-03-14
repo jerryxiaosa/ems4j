@@ -1,0 +1,147 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: EMS-SERVICE
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/ems_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true}
+    type: com.alibaba.druid.pool.DruidDataSource
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:Ems@123456}
+    druid:
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  rabbitmq:
+    addresses: ${SPRING_RABBITMQ_ADDRESSES:rabbitmq:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:emsuser}
+    password: ${SPRING_RABBITMQ_PASSWORD:ems@pass}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:ems}
+    listener:
+      simple:
+        prefetch: 20
+        concurrency: 1
+        max-concurrency: 3
+        retry:
+          max-attempts: 5
+          initial-interval: 1000
+          max-interval: 60000
+          multiplier: 4
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      database: 4
+      password: ${SPRING_DATA_REDIS_PASSWORD:123456}
+      timeout: 5s
+      ssl.enabled: false
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+
+redisson:
+  keyPrefix: ems-v202510-
+  threads: 4
+  nettyThreads: 8
+  singleServerConfig:
+    clientName: ems-redisson-client
+    connectionMinimumIdleSize: 8
+    connectionPoolSize: 32
+    idleConnectionTimeout: 10000
+    timeout: 3000
+
+mybatis-plus:
+  repositoryPackage: info.zhihui.ems.**.repository
+  mapperLocations: classpath*:mapper/**/*Repository.xml
+  typeAliasesPackage: info.zhihui.ems.**.entity
+
+logging:
+  file:
+    name: /app/logs/ems.log
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+    info.zhihui.ems: debug
+  logback:
+    rolling policy:
+      max-file-size: 100MB
+      max-history: 30
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [${PID}] [%thread] %-5level %logger{36} - %msg%n"
+
+schedule:
+  thread-pool-size: 4
+  aspect:
+    enabled: true
+
+useRealDevice: false
+
+sa-token:
+  token-name: Authorization
+  timeout: 2592000
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: true
+  jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:change_me}
+  is-read-body: true
+  is-read-header: true
+  is-read-cookie: false
+  token-session-check-login: true
+
+springdoc:
+  group-configs:
+    - group: '账户管理'
+      packages-to-scan: info.zhihui.ems.web.account.controller
+    - group: '系统对象主体管理'
+      packages-to-scan: info.zhihui.ems.web.owner.controller
+    - group: '设备管理'
+      packages-to-scan: info.zhihui.ems.web.device.controller
+    - group: '订单管理'
+      packages-to-scan: info.zhihui.ems.web.order.controller
+    - group: '方案管理'
+      packages-to-scan: info.zhihui.ems.web.plan.controller
+    - group: '用户管理'
+      packages-to-scan: info.zhihui.ems.web.user.controller
+    - group: '机构管理'
+      packages-to-scan: info.zhihui.ems.web.organization.controller
+    - group: '空间管理'
+      packages-to-scan: info.zhihui.ems.web.space.controller
+    - group: '系统管理'
+      packages-to-scan: info.zhihui.ems.web.system.controller
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+permission:
+  excludes: /doc.html,/v3/api-docs/**,/**/*.css,/**/*.js,/**/*.ico,/**/error
+
+mq:
+  type: rabbitmq
+  transaction-message:
+    retry:
+      max-retry-times: 10
+      fetch-size: 100
