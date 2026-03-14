@@ -7,63 +7,86 @@
 [中文文档](README.md)
 
 EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and the codebase is cleanly structured for easy extension.
-
-## Motivation
-In an era where AI can churn out runnable code in seconds, merely “working” code is losing its value; what is becoming precious is the taste and design embodied in that code. Such taste is never born overnight—it is forged through long-term architectural refinement and deep design reflection.
-
-This project is exactly that kind of practice: I refactored and distilled the architecture of production-grade code—through crisp layer separation and thorough module decoupling—so that the core logic becomes purer and more adaptable to ever-changing requirements.
-
-A few design gems are woven into the codebase, and I hope they spark inspiration. As the saying goes, “Give a man a fish and you feed him for a day; teach a man to fish and you feed him for a lifetime.” What I would rather share is the design thinking and architectural philosophy behind the code.
-
-If this project helps you, please consider giving it a Star ⭐️ as support—I would be deeply honored.
+**It is also an open-source project for learning complex business modeling and Spring Boot multi-module architecture design.**
+If this project helps you, please consider giving it a ⭐️.
 
 ## Features
 
-- Multi-protocol device access 
+- Multi-protocol device access
 - Billing models (pay-as-you-go / consolidated billing / monthly subscription)
 - Metering and billing (peak/off-peak/valley / tiered rates)
 - Account management (opening / closing / recharge)
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
 
-## System Screenshots
+## Quick Experience
 
-> Screenshot assets directory: `resource/images`
+```bash
+cp deploy/env.example .env
+docker compose -f deploy/compose/docker-compose.full.yml up -d --build
+```
 
-### Account Management
+Default access URLs:
+- Frontend app: `http://127.0.0.1:4173`
+- Backend API docs: `http://127.0.0.1:8080/doc.html`
+
+Default credentials:
+- Username: `admin`
+- Password: `Abc123!@#`
+
+Notes:
+- `docker-compose.full.yml` starts the frontend, backend, MySQL, Redis, and RabbitMQ together
+- The first startup may take longer because images need to be built and dependencies initialized
+- If you prefer running frontend and backend separately, see the `Development & Deployment` section below
+
+## Highlights and Design Focus
+
+### Business and Architecture
+
+- **More than a CRUD-style admin system**  
+  The project includes end-to-end flows for prepaid billing, settlement, payments, remote control, and permission management.
+
+- **Clear module boundaries for a complex domain**  
+  The Spring Boot multi-module structure separates `device / account / billing / order / lease / plan / aggregation`, making the codebase easier to study and extend.
+
+- **Business modeling for prepaid scenarios**  
+  It covers pay-as-you-go, consolidated billing, and monthly subscription models, along with the collaboration between accounts, meters, and orders.
+
+- **Billing, accounting, and permission flows**  
+  It demonstrates balance deduction, consumption records, order payment, account closure settlement, warning linkage, and role/menu authorization.
+
+### IoT and Engineering Implementation
+
+- **Includes a full IoT access path, not just the management backend**  
+  The standalone `ems-iot` module supports multi-protocol access, packet parsing, command dispatch, and event publishing based on Netty.
+
+- **Decoupling between IoT access and business domains**  
+  You can trace how `ems-iot`, `foundation.integration`, and the business modules collaborate through protocol access, event publishing, and platform integration.
+
+- **MQ async handling and idempotency**  
+  The project covers standard energy report processing, transactional messaging, duplicate report handling, and unique-index-backed idempotency.
+
+- **Runnable locally, not just a conceptual repository**  
+  The repo includes frontend and backend projects, Docker-based dependencies, SQL bootstrap scripts, and runtime documentation.
+
+## Key Screens
+
+### Core Business Loop
 
 | Page | Screenshot |
 |------|------------|
-| Account List | ![Account List](resource/images/account-list.png) |
 | Account Detail | ![Account Detail](resource/images/account-detail.png) |
 | Account Settlement | ![Account Settlement](resource/images/clear-account.png) |
-
-### Device Management
-
-| Page | Screenshot |
-|------|------------|
-| Meter List | ![Meter List](resource/images/meter-list.png) |
-| Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
-| Gateway List | ![Gateway List](resource/images/gateway-list.png) |
-| Gateway Detail | ![Gateway Detail](resource/images/gateway-detail.png) |
-| Device Category | ![Device Category](resource/images/device-type.png) |
-
-### Warnings & Orders
-
-| Page | Screenshot |
-|------|------------|
-| Warning Plan List | ![Warning Plan List](resource/images/warn-list.png) |
-| Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 | Order List | ![Order List](resource/images/order-list.png) |
 | Order Creation | ![Order Creation](resource/images/order-create.png) |
 
-### Pricing Configuration
+### Device and Billing Capabilities
 
 | Page | Screenshot |
 |------|------------|
-| Price Plan List | ![Price Plan List](resource/images/electric-plan.png) |
+| Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
 | Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
-| TOU Period | ![TOU Period](resource/images/period.png) |
+| Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 
 ## Prepaid Mode Description
 
@@ -83,7 +106,7 @@ The typical flow is recharge after account opening, usage generates charges and 
 | Node.js | 18.18+  | Required for frontend development/build |
 | pnpm | 10.32+  | Required for frontend development/build |
 
-## Quick Start
+## Development & Deployment
 
 Clone the repository first:
 
@@ -335,6 +358,16 @@ For detailed platform integration solutions, see:
 | [Foundation Module Documentation](doc/modules/foundation/README.md) | Foundation modules documentation (user, organization, space, system, integration) |
 | [IoT Module Documentation](doc/modules/iot/README.md) | IoT module documentation for device access and protocol integration |
 | [Test Guidelines](doc/test-guidelines.md) | Unit and integration test standards and best practices |
+
+## Motivation
+
+This project grew out of an ongoing effort to reorganize and refactor a real-world complex business system.
+
+In a prepaid energy domain, devices, accounts, billing, orders, permissions, and remote control are tightly coupled. As the business evolves, unclear module boundaries quickly make the code harder to maintain and harder to extend.
+
+EMS4J is not only about making the features work. It is about making those relationships explicit: what belongs to `device`, what belongs to `billing`, what should be split out of `account`, and what logic should remain in upper-layer orchestration.
+
+That is why this repository is both a runnable prepaid energy system and a practical reference for complex domain modeling, module-boundary governance, and engineering maintainability.
 
 ## License
 
