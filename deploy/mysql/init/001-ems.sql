@@ -544,19 +544,19 @@ CREATE TABLE `device_type`
   COLLATE = utf8mb4_unicode_ci COMMENT ='智能设备品类表';
 
 INSERT INTO device_type
-    (id, pid, ancestor_id, type_name, type_key, `level`)
+(id, pid, ancestor_id, type_name, type_key, `level`)
 VALUES (1, 0, '0', '能源', 'energy', 1);
 INSERT INTO device_type
-    (id, pid, ancestor_id, type_name, type_key, `level`)
+(id, pid, ancestor_id, type_name, type_key, `level`)
 VALUES (2, 1, '0,1', '计量设备', 'metering', 2);
 INSERT INTO device_type
-    (id, pid, ancestor_id, type_name, type_key, `level`)
+(id, pid, ancestor_id, type_name, type_key, `level`)
 VALUES (3, 2, '0,1,2', '智能电表', 'electricMeter', 3);
 INSERT INTO device_type
-    (id, pid, ancestor_id, type_name, type_key, `level`)
+(id, pid, ancestor_id, type_name, type_key, `level`)
 VALUES (4, 1, '0,1', '网络设备', 'energy_network', 2);
 INSERT INTO device_type
-    (id, pid, ancestor_id, type_name, type_key, `level`)
+(id, pid, ancestor_id, type_name, type_key, `level`)
 VALUES (5, 4, '0,1,4', '网关', 'gateway', 3);
 
 CREATE TABLE `device_command_record`
@@ -1031,5 +1031,5 @@ CREATE TABLE sys_user_role
   COLLATE = utf8mb4_unicode_ci;
 
 INSERT INTO sys_user_role
-    (id, user_id, role_id, create_time)
+(id, user_id, role_id, create_time)
 VALUES (1, 1, 1, NULL);
