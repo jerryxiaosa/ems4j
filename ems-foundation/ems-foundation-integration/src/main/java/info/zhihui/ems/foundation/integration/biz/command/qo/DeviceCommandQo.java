@@ -23,11 +23,6 @@ public class DeviceCommandQo {
     private Boolean success;
 
     /**
-     * 所属机构名称
-     */
-    private String organizationName;
-
-    /**
      * 设备所属空间名称
      */
     private String spaceName;

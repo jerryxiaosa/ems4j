@@ -174,7 +174,6 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
                 .setOperateUserName(query.getOperateUserName())
                 .setCommandType(commandType)
                 .setSuccess(query.getSuccess())
-                .setOrganizationName(query.getOrganizationName())
                 .setSpaceName(query.getSpaceName())
                 .setDeviceName(query.getDeviceName())
                 .setDeviceNo(query.getDeviceNo())

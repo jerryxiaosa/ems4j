@@ -25,16 +25,6 @@ public class DeviceCommandQueryDto {
     private Boolean success;
 
     /**
-     * 所属机构id
-     */
-    private Integer organizationId;
-
-    /**
-     * 所属机构名称
-     */
-    private String organizationName;
-
-    /**
      * 设备所属空间名称
      */
     private String spaceName;

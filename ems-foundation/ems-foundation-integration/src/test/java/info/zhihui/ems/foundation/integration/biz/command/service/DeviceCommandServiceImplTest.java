@@ -134,7 +134,6 @@ class DeviceCommandServiceImplTest {
                 .setOperateUserName("测试用户")
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_TURN_ON)
                 .setSuccess(true)
-                .setOrganizationName("测试机构")
                 .setSpaceName("测试空间")
                 .setDeviceName("测试设备")
                 .setDeviceNo("DEV001")

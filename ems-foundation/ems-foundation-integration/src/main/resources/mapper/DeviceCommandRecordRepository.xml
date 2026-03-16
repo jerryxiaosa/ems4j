@@ -19,9 +19,6 @@
             <if test="success != null and !success">
                 and t.success = 0
             </if>
-            <if test="organizationName != null and organizationName != ''">
-                and t.organization_name like concat('%', #{organizationName}, '%')
-            </if>
             <if test="spaceName != null and spaceName != ''">
                 and t.space_name like concat('%', #{spaceName}, '%')
             </if>
