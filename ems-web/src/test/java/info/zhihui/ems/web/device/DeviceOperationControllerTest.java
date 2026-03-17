@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
@@ -79,6 +80,15 @@ class DeviceOperationControllerTest {
     }
 
     @Test
+    @DisplayName("重试设备操作_应委托业务层并返回成功结果")
+    void testRetryDeviceOperation_ShouldDelegateToBiz() {
+        RestResult<Void> result = deviceOperationController.retryDeviceOperation(12);
+
+        verify(deviceOperationBiz).retryDeviceOperation(12);
+        assertThat(result.getSuccess()).isTrue();
+    }
+
+    @Test
     @DisplayName("设备操作控制器_路由应符合约定")
     void testRouteAnnotations_ShouldMatchExpectedPath() throws NoSuchMethodException {
         RequestMapping classRequestMapping = DeviceOperationController.class.getAnnotation(RequestMapping.class);
@@ -90,9 +100,12 @@ class DeviceOperationControllerTest {
         );
         Method detailMethod = DeviceOperationController.class.getMethod("getDeviceOperation", Integer.class);
         Method recordMethod = DeviceOperationController.class.getMethod("findDeviceOperationExecuteRecordList", Integer.class);
+        Method retryMethod = DeviceOperationController.class.getMethod("retryDeviceOperation", Integer.class);
 
         assertThat(pageMethod.getAnnotation(GetMapping.class).value()).containsExactly("/page");
         assertThat(detailMethod.getAnnotation(GetMapping.class).value()).containsExactly("/{id}");
         assertThat(recordMethod.getAnnotation(GetMapping.class).value()).containsExactly("/{id}/execute-records");
+
+        assertThat(retryMethod.getAnnotation(PostMapping.class).value()).containsExactly("/{id}/retry");
     }
 }

@@ -11,6 +11,7 @@ import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.lock.core.LockTemplate;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
+import info.zhihui.ems.foundation.integration.biz.command.config.DeviceCommandRetryProperties;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandCancelDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
@@ -18,6 +19,7 @@ import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandEx
 import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
+import info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandStartExecuteQo;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.service.impl.DeviceCommandServiceImpl;
@@ -58,6 +60,9 @@ class DeviceCommandServiceImplTest {
     private LockTemplate lockTemplate;
 
     @Mock
+    private DeviceCommandRetryProperties retryProperties;
+
+    @Mock
     private Lock mockLock;
 
     @Mock
@@ -71,6 +76,8 @@ class DeviceCommandServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(retryProperties.getMaxExecuteTimes()).thenReturn(10);
+
         addDto = new DeviceCommandAddDto()
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
                 .setDeviceId(1)
@@ -184,6 +191,7 @@ class DeviceCommandServiceImplTest {
         when(lockTemplate.getLock(anyString())).thenReturn(mockLock);
         when(mockLock.tryLock()).thenReturn(true);
         when(commandRecordRepository.selectById(recordBo.getId())).thenReturn(recordEntity);
+        when(commandRecordRepository.startExecute(any(DeviceCommandStartExecuteQo.class))).thenReturn(1);
         when(deviceCommandExecutorContext.getDeviceCommandExecutor(any(CommandTypeEnum.class))).thenReturn(mockExecutor);
         doNothing().when(mockExecutor).execute(any(DeviceCommandRecordBo.class));
 
@@ -191,6 +199,10 @@ class DeviceCommandServiceImplTest {
         deviceCommandService.execDeviceCommand(recordBo.getId(), CommandSourceEnum.USER);
 
         // Then
+        verify(commandRecordRepository).startExecute(argThat(qo ->
+                qo.getCommandId().equals(recordBo.getId())
+                        && qo.getMaxExecuteTimes().equals(10)
+                        && qo.getStartTime() != null));
         verify(mockExecutor).execute(any(DeviceCommandRecordBo.class));
         verify(commandExecuteRecordRepository).insert(any(DeviceCommandExecuteRecordEntity.class));
         verify(commandRecordRepository).updateCommandExecuteInfo(any(DeviceCommandRecordEntity.class));
@@ -203,6 +215,7 @@ class DeviceCommandServiceImplTest {
         when(lockTemplate.getLock(anyString())).thenReturn(mockLock);
         when(mockLock.tryLock()).thenReturn(true);
         when(commandRecordRepository.selectById(recordBo.getId())).thenReturn(recordEntity);
+        when(commandRecordRepository.startExecute(any(DeviceCommandStartExecuteQo.class))).thenReturn(1);
         when(deviceCommandExecutorContext.getDeviceCommandExecutor(any(CommandTypeEnum.class))).thenReturn(mockExecutor);
         doThrow(new RuntimeException("执行失败")).when(mockExecutor).execute(any(DeviceCommandRecordBo.class));
 

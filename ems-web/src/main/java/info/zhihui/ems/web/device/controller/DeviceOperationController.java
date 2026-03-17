@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,5 +59,14 @@ public class DeviceOperationController {
     @Operation(summary = "查询设备操作执行记录")
     public RestResult<List<DeviceOperationExecuteRecordVo>> findDeviceOperationExecuteRecordList(@PathVariable Integer id) {
         return ResultUtil.success(deviceOperationBiz.findDeviceOperationExecuteRecordList(id));
+    }
+
+
+    @SaCheckPermission("devices:operations:detail")
+    @PostMapping("/{id}/retry")
+    @Operation(summary = "重试设备操作")
+    public RestResult<Void> retryDeviceOperation(@PathVariable Integer id) {
+        deviceOperationBiz.retryDeviceOperation(id);
+        return ResultUtil.success();
     }
 }

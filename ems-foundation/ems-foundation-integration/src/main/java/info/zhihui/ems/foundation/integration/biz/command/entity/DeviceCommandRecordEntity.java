@@ -91,7 +91,12 @@ public class DeviceCommandRecordEntity extends AreaBaseEntity {
     private Boolean ensureSuccess;
 
     /**
-     * 运行
+     * 是否执行中
+     */
+    private Boolean isRunning;
+
+    /**
+     * 已启动执行次数
      */
     private Integer executeTimes;
 

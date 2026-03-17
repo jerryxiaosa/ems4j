@@ -48,6 +48,21 @@
         </if>
     </select>
 
+    <select id="findAutoRetryList"
+            parameterType="info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandRetryQo"
+            resultType="info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity">
+        select t.*
+        from device_command_record t
+        where t.is_deleted = 0
+          and t.ensure_success = 1
+          and t.success = 0
+          and t.is_running = 0
+          and t.execute_times <![CDATA[ > ]]> 0
+          and t.execute_times <![CDATA[ < ]]> #{maxExecuteTimes}
+        order by t.id asc
+        limit #{fetchSize}
+    </select>
+
     <update id="cancelDeviceCommand"
             parameterType="info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandCancelQo">
         update device_command_record
@@ -64,6 +79,27 @@
         and device_id = #{deviceId}
     </update>
 
+    <update id="startExecute"
+            parameterType="info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandStartExecuteQo">
+        update device_command_record
+        set is_running = 1,
+            last_execute_time = #{startTime},
+            execute_times = execute_times + 1
+        where id = #{commandId}
+          and is_deleted = 0
+          and success = 0
+          and is_running = 0
+          and execute_times <![CDATA[ < ]]> #{maxExecuteTimes}
+    </update>
+
+    <update id="recoverTimeoutRunningCommands">
+        update device_command_record
+        set is_running = 0
+        where is_deleted = 0
+          and is_running = 1
+          and last_execute_time <![CDATA[ < ]]> #{timeoutTime}
+    </update>
+
     <update id="updateCommandExecuteInfo"
             parameterType="info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity">
         update device_command_record
@@ -73,7 +109,7 @@
             success_time = #{successTime},
         </if>
         last_execute_time = #{lastExecuteTime},
-        execute_times = execute_times + 1
+        is_running = #{isRunning}
         where id = #{id}
         and is_deleted = 0
     </update>

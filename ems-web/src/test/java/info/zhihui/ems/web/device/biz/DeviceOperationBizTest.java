@@ -9,6 +9,7 @@ import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecord
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
+import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandRetryService;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
 import info.zhihui.ems.web.device.vo.DeviceOperationDetailVo;
 import info.zhihui.ems.web.device.vo.DeviceOperationExecuteRecordVo;
@@ -39,6 +40,9 @@ class DeviceOperationBizTest {
 
     @Mock
     private DeviceCommandService deviceCommandService;
+
+    @Mock
+    private DeviceCommandRetryService deviceCommandRetryService;
 
     @Test
     @DisplayName("分页查询设备操作_应正确映射查询条件和结果")
@@ -97,7 +101,7 @@ class DeviceOperationBizTest {
         assertThat(operationVo.getId()).isEqualTo(11);
         assertThat(operationVo.getDeviceType()).isEqualTo("electricMeter");
         assertThat(operationVo.getCommandType()).isEqualTo(1);
-        assertThat(operationVo.getCommandTypeName()).isEqualTo("电表充值自动合闸");
+        assertThat(operationVo.getCommandTypeName()).isEqualTo("电表合闸");
     }
 
     @Test
@@ -177,5 +181,13 @@ class DeviceOperationBizTest {
         assertThat(recordVo.getReason()).isEqualTo("设备离线");
         assertThat(recordVo.getCommandSource()).isEqualTo(0);
         assertThat(recordVo.getCommandSourceName()).isEqualTo("系统命令");
+    }
+
+    @Test
+    @DisplayName("重试设备操作_应以用户命令来源调用重试服务")
+    void testRetryDeviceOperation_ShouldDelegateToRetryService() {
+        deviceOperationBiz.retryDeviceOperation(19);
+
+        verify(deviceCommandRetryService).retryDeviceCommand(19, CommandSourceEnum.USER);
     }
 }

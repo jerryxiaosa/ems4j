@@ -10,6 +10,7 @@ import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecord
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
+import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandRetryService;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
 import info.zhihui.ems.web.device.vo.DeviceOperationDetailVo;
 import info.zhihui.ems.web.device.vo.DeviceOperationExecuteRecordVo;
@@ -31,6 +32,7 @@ import java.util.Objects;
 public class DeviceOperationBiz {
 
     private final DeviceCommandService deviceCommandService;
+    private final DeviceCommandRetryService deviceCommandRetryService;
 
     /**
      * 分页查询设备操作
@@ -68,6 +70,13 @@ public class DeviceOperationBiz {
             return Collections.emptyList();
         }
         return executeRecordBoList.stream().map(this::toDeviceOperationExecuteRecordVo).toList();
+    }
+
+    /**
+     * 手动重试设备操作
+     */
+    public void retryDeviceOperation(Integer operationId) {
+        deviceCommandRetryService.retryDeviceCommand(operationId, CommandSourceEnum.USER);
     }
 
     private DeviceCommandQueryDto buildQueryDto(DeviceOperationQueryVo queryVo) {

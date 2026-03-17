@@ -82,7 +82,14 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-useRealDevice: false
+device:
+  module:
+    use-real-device: false
+  command:
+    retry:
+      max-execute-times: 10
+      fetch-size: 100
+      running-timeout-minutes: 10
 
 schedule:
   enabled: false
