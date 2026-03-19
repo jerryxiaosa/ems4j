@@ -39,8 +39,14 @@ public class DeviceOperationVo {
     @Schema(description = "操作状态")
     private Boolean success;
 
+    @Schema(description = "是否执行中")
+    private Boolean isRunning;
+
     @Schema(description = "执行次数")
     private Integer executeTimes;
+
+    @Schema(description = "最大执行次数")
+    private Integer maxExecuteTimes;
 
     @Schema(description = "操作人")
     private String operateUserName;

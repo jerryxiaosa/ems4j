@@ -5,6 +5,7 @@ import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
+import info.zhihui.ems.foundation.integration.biz.command.config.DeviceCommandRetryProperties;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
@@ -33,6 +34,7 @@ public class DeviceOperationBiz {
 
     private final DeviceCommandService deviceCommandService;
     private final DeviceCommandRetryService deviceCommandRetryService;
+    private final DeviceCommandRetryProperties retryProperties;
 
     /**
      * 分页查询设备操作
@@ -105,7 +107,9 @@ public class DeviceOperationBiz {
                 .setCommandType(commandType == null ? null : commandType.getCode())
                 .setCommandTypeName(commandType == null ? null : commandType.getInfo())
                 .setSuccess(commandRecordBo.getSuccess())
+                .setIsRunning(commandRecordBo.getIsRunning())
                 .setExecuteTimes(commandRecordBo.getExecuteTimes())
+                .setMaxExecuteTimes(retryProperties.getMaxExecuteTimes())
                 .setOperateUserName(commandRecordBo.getOperateUserName())
                 .setCreateTime(commandRecordBo.getCreateTime());
     }
@@ -130,10 +134,12 @@ public class DeviceOperationBiz {
                 .setAreaId(commandRecordBo.getAreaId())
                 .setAccountId(commandRecordBo.getAccountId())
                 .setSuccess(commandRecordBo.getSuccess())
+                .setIsRunning(commandRecordBo.getIsRunning())
                 .setSuccessTime(commandRecordBo.getSuccessTime())
                 .setLastExecuteTime(commandRecordBo.getLastExecTime())
                 .setEnsureSuccess(commandRecordBo.getEnsureSuccess())
                 .setExecuteTimes(commandRecordBo.getExecuteTimes())
+                .setMaxExecuteTimes(retryProperties.getMaxExecuteTimes())
                 .setOperateUser(commandRecordBo.getOperateUser())
                 .setOperateUserName(commandRecordBo.getOperateUserName())
                 .setCreateTime(commandRecordBo.getCreateTime())

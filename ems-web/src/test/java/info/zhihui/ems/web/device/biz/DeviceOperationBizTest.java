@@ -6,6 +6,7 @@ import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
+import info.zhihui.ems.foundation.integration.biz.command.config.DeviceCommandRetryProperties;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQueryDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
@@ -43,6 +44,9 @@ class DeviceOperationBizTest {
 
     @Mock
     private DeviceCommandRetryService deviceCommandRetryService;
+
+    @Mock
+    private DeviceCommandRetryProperties retryProperties;
 
     @Test
     @DisplayName("分页查询设备操作_应正确映射查询条件和结果")

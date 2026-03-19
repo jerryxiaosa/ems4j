@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchEnumOptionsByKey, type EnumOption } from '@/api/adapters/system'
-import { fetchDeviceOperationPage } from '@/api/adapters/device-operation'
+import { fetchDeviceOperationPage, retryDeviceOperation } from '@/api/adapters/device-operation'
 import CommonPagination from '@/components/common/CommonPagination.vue'
 import UiEmptyState from '@/components/common/UiEmptyState.vue'
 import UiLoadingState from '@/components/common/UiLoadingState.vue'
@@ -61,6 +61,7 @@ const operationPage = reactive<DeviceOperationPageResult>({
   pageSize: 10
 })
 const loading = ref(false)
+const retryingIds = ref<number[]>([])
 
 const clearNoticeTimers = () => {
   if (noticeFadeTimer !== null) {
@@ -209,6 +210,72 @@ const openDetail = (row: DeviceOperationItem) => {
   })
 }
 
+const isRetrying = (id: number) => {
+  return retryingIds.value.includes(id)
+}
+
+const getRetryDisabledReason = (row: DeviceOperationItem) => {
+  if (row.success === true) {
+    return '当前操作已成功'
+  }
+  if (row.isRunning === true) {
+    return '当前操作正在执行中'
+  }
+  if (
+    row.executeTimes !== undefined &&
+    row.executeTimes !== null &&
+    row.maxExecuteTimes !== undefined &&
+    row.maxExecuteTimes !== null &&
+    row.executeTimes >= row.maxExecuteTimes
+  ) {
+    return '当前操作已达到重试上限'
+  }
+  if (row.success !== false) {
+    return '当前状态不可重试'
+  }
+  return ''
+}
+
+const getRetryButtonText = (row: DeviceOperationItem) => {
+  if (isRetrying(row.id)) {
+    return '重试中'
+  }
+  if (row.success === true) {
+    return '已成功'
+  }
+  if (row.isRunning === true) {
+    return '执行中'
+  }
+  if (
+    row.executeTimes !== undefined &&
+    row.executeTimes !== null &&
+    row.maxExecuteTimes !== undefined &&
+    row.maxExecuteTimes !== null &&
+    row.executeTimes >= row.maxExecuteTimes
+  ) {
+    return '已达上限'
+  }
+  return '重试'
+}
+
+const handleRetry = async (row: DeviceOperationItem) => {
+  const disabledReason = getRetryDisabledReason(row)
+  if (disabledReason || isRetrying(row.id)) {
+    return
+  }
+
+  retryingIds.value = [...retryingIds.value, row.id]
+  try {
+    await retryDeviceOperation(row.id)
+    setNotice('success', '设备操作重试已提交')
+    await loadOperationPage()
+  } catch (error) {
+    setNotice('error', `设备操作重试失败：${getErrorMessage(error)}`)
+  } finally {
+    retryingIds.value = retryingIds.value.filter((id) => id !== row.id)
+  }
+}
+
 onMounted(async () => {
   await loadFilterOptions()
   await loadOperationPage()
@@ -333,7 +400,7 @@ onBeforeUnmount(() => {
               <th>操作状态</th>
               <th>操作人员</th>
               <th>操作时间</th>
-              <th>操作详情</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -364,7 +431,18 @@ onBeforeUnmount(() => {
               <td>{{ row.operateUserName }}</td>
               <td>{{ row.createTime }}</td>
               <td>
-                <button class="btn-link" @click="openDetail(row)">详情</button>
+                <div class="action-buttons">
+                  <button class="btn-link" @click="openDetail(row)">详情</button>
+                  <button
+                    class="btn-link"
+                    :class="{ 'btn-link-disabled': !!getRetryDisabledReason(row) || isRetrying(row.id) }"
+                    :disabled="!!getRetryDisabledReason(row) || isRetrying(row.id)"
+                    :title="getRetryDisabledReason(row) || '重试设备操作'"
+                    @click="handleRetry(row)"
+                  >
+                    {{ getRetryButtonText(row) }}
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="!loading && operationPage.list.length === 0">
@@ -553,6 +631,19 @@ button:disabled {
 
 .btn-link:hover {
   color: var(--es-color-primary-hover);
+}
+
+.btn-link-disabled,
+.btn-link:disabled {
+  color: var(--es-color-text-placeholder);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.action-buttons {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .btn-link:focus-visible,

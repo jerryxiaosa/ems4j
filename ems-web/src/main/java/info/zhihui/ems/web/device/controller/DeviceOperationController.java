@@ -61,7 +61,6 @@ public class DeviceOperationController {
         return ResultUtil.success(deviceOperationBiz.findDeviceOperationExecuteRecordList(id));
     }
 
-
     @SaCheckPermission("devices:operations:detail")
     @PostMapping("/{id}/retry")
     @Operation(summary = "重试设备操作")

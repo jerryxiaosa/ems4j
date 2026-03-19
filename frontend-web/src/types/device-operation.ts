@@ -22,7 +22,10 @@ export interface DeviceOperationItem {
   commandType?: number
   commandTypeName: string
   success?: boolean
+  isRunning?: boolean
   successName: string
+  executeTimes?: number
+  maxExecuteTimes?: number
   operateUserName: string
   createTime: string
 }
@@ -46,11 +49,13 @@ export interface DeviceOperationDetail {
   commandSourceName: string
   commandData: string
   success?: boolean
+  isRunning?: boolean
   successName: string
   successTime: string
   lastExecuteTime: string
   ensureSuccess?: boolean
   executeTimes?: number
+  maxExecuteTimes?: number
   operateUserName: string
   createTime: string
   remark: string

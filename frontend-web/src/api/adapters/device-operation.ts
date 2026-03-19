@@ -2,6 +2,7 @@ import {
   getDeviceOperationDetailRaw,
   getDeviceOperationExecuteRecordListRaw,
   getDeviceOperationPageRaw,
+  postDeviceOperationRetryRaw,
   type DeviceOperationEnumRaw,
   type DeviceOperationExecuteRecordRaw,
   type DeviceOperationRaw
@@ -188,7 +189,10 @@ const normalizeOperationItem = (raw: DeviceOperationRaw): DeviceOperationItem =>
     commandType: resolveEnumCode(raw.commandType),
     commandTypeName: resolveCommandTypeName(raw),
     success,
+    isRunning: toBool(raw.isRunning),
     successName: resolveSuccessName(success),
+    executeTimes: toNumber(raw.executeTimes),
+    maxExecuteTimes: toNumber(raw.maxExecuteTimes),
     operateUserName: toText(raw.operateUserName),
     createTime: toText(raw.createTime)
   }
@@ -215,11 +219,13 @@ const normalizeOperationDetail = (raw: DeviceOperationRaw): DeviceOperationDetai
     commandSourceName: resolveCommandSourceName(raw.commandSource, raw.commandSourceName),
     commandData: toText(raw.commandData),
     success,
+    isRunning: toBool(raw.isRunning),
     successName: resolveSuccessName(success),
     successTime: toText(raw.successTime),
     lastExecuteTime,
     ensureSuccess: toBool(raw.ensureSuccess),
     executeTimes: toNumber(raw.executeTimes),
+    maxExecuteTimes: toNumber(raw.maxExecuteTimes),
     operateUserName: toText(raw.operateUserName),
     createTime: toText(raw.createTime),
     remark: toText(raw.remark)
@@ -264,4 +270,8 @@ export const fetchDeviceOperationExecuteRecordList = async (
   )
   const sourceList = Array.isArray(payload) ? payload : []
   return sourceList.map(normalizeExecuteRecord)
+}
+
+export const retryDeviceOperation = async (id: number): Promise<void> => {
+  unwrapEnvelope(await postDeviceOperationRetryRaw(id))
 }

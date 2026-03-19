@@ -25,11 +25,13 @@ export interface DeviceOperationRaw {
   commandSourceName?: string
   commandData?: string
   success?: boolean
+  isRunning?: boolean
   successTime?: string
   lastExecTime?: string
   lastExecuteTime?: string
   ensureSuccess?: boolean
   executeTimes?: number | string
+  maxExecuteTimes?: number | string
   operateUserName?: string
   createTime?: string
   remark?: string
@@ -81,5 +83,12 @@ export const getDeviceOperationExecuteRecordListRaw = (id: number) => {
   return requestV1<ApiEnvelope<DeviceOperationExecuteRecordRaw[]>>({
     method: 'GET',
     url: `/device/operations/${id}/execute-records`
+  })
+}
+
+export const postDeviceOperationRetryRaw = (id: number) => {
+  return requestV1<ApiEnvelope<null>>({
+    method: 'POST',
+    url: `/device/operations/${id}/retry`
   })
 }

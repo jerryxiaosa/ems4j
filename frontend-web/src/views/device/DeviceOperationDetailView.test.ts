@@ -135,7 +135,7 @@ describe('DeviceOperationDetailView', () => {
     )
   })
 
-  test('testDetailFieldOrder_WhenRender_ShouldPlaceStatusAndExecuteTimesAtLastRow', async () => {
+  test('testDetailFieldOrder_WhenRender_ShouldPlaceExecuteStatusAndRemarkAtExpectedPosition', async () => {
     mockedFetchDeviceOperationDetail.mockResolvedValue(createDetail())
     mockedFetchDeviceOperationExecuteRecordList.mockResolvedValue([])
 
@@ -146,6 +146,6 @@ describe('DeviceOperationDetailView', () => {
       .findAll('.detail-label')
       .map((item) => item.text())
 
-    expect(labels.slice(-2)).toEqual(['操作状态', '执行次数'])
+    expect(labels.slice(-4)).toEqual(['执行状态', '操作状态', '执行次数', '备注'])
   })
 })
