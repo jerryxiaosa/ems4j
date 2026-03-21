@@ -98,6 +98,7 @@ class GatewayServiceImplTest {
                 .setCommunicateModel("485")
                 .setSn("SN123456")
                 .setImei("")
+                .setDeviceSecret("gateway-secret")
                 .setIotId("12345")
                 .setIsOnline(true)
                 .setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}")
@@ -131,6 +132,7 @@ class GatewayServiceImplTest {
         createDto.setDeviceNo("SN123456");
         createDto.setSn("SN123456");
         createDto.setImei("");
+        createDto.setDeviceSecret("gateway-secret");
         createDto.setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}");
         createDto.setRemark("测试备注");
 
@@ -142,6 +144,7 @@ class GatewayServiceImplTest {
         updateDto.setDeviceNo("SN123456");
         updateDto.setSn("SN123456");
         updateDto.setImei("");
+        updateDto.setDeviceSecret("gateway-secret-new");
         updateDto.setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}");
         updateDto.setRemark("测试备注");
 
@@ -264,6 +267,7 @@ class GatewayServiceImplTest {
                 .setCommunicateModel("485")
                 .setSn("SN123456")
                 .setImei("")
+                .setDeviceSecret("gateway-secret")
                 .setConfigInfo("""
                         {"serverIp":"192.168.2.23",
                                     "aesKey":"fromhdsegtoacrel",
@@ -313,6 +317,36 @@ class GatewayServiceImplTest {
         ElectricDeviceAddDto capturedAddDto = addDtoCaptor.getValue();
         assertEquals("gateway-model-200", capturedAddDto.getProductCode());
         assertEquals(1000, capturedAddDto.getAreaId());
+        assertEquals("gateway-secret", capturedAddDto.getDeviceSecret());
+    }
+
+    @Test
+    void testAdd_EmptyDeviceSecret_ShouldAllow() {
+        GatewayEntity insertEntity = new GatewayEntity();
+        insertEntity.setSpaceId(100)
+                .setGatewayName("测试网关")
+                .setDeviceNo("SN123456")
+                .setModelId(200)
+                .setSn("SN123456")
+                .setDeviceSecret("");
+
+        when(mapper.createDtoToEntity(createDto)).thenReturn(insertEntity);
+        when(deviceModelService.getDetail(200)).thenReturn(deviceModelBo);
+        when(spaceService.getDetail(100)).thenReturn(spaceBo);
+        when(deviceModuleContext.getService(EnergyService.class, 1000)).thenReturn(energyService);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
+        doAnswer(invocation -> {
+            GatewayEntity arg = invocation.getArgument(0);
+            arg.setId(1);
+            return null;
+        }).when(repository).insert(any(GatewayEntity.class));
+
+        Integer result = gatewayService.add(createDto);
+
+        assertEquals(1, result);
+        ArgumentCaptor<ElectricDeviceAddDto> addDtoCaptor = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
+        verify(energyService).addDevice(addDtoCaptor.capture());
+        assertEquals("", addDtoCaptor.getValue().getDeviceSecret());
     }
 
     @Test
@@ -502,6 +536,7 @@ class GatewayServiceImplTest {
                 .setDeviceNo("GW202401010001")
                 .setDeviceNo("SN123456")
                 .setIotId("12345")
+                .setDeviceSecret("gateway-secret-old")
                 .setOwnAreaId(1000);
 
         GatewayEntity updateEntity = new GatewayEntity();
@@ -513,6 +548,7 @@ class GatewayServiceImplTest {
                 .setCommunicateModel("485")
                 .setSn("SN123456")
                 .setImei("")
+                .setDeviceSecret("gateway-secret-new")
                 .setConfigInfo("{\"productCode\":\"TEST_PRODUCT\",\"data\":\"test_data\"}")
                 .setRemark("更新后的备注")
                 .setOwnAreaId(1000);
@@ -543,12 +579,14 @@ class GatewayServiceImplTest {
         assertEquals("gateway-model-200", capturedUpdateDto.getProductCode());
         assertEquals("12345", capturedUpdateDto.getDeviceId());
         assertEquals(1000, capturedUpdateDto.getAreaId());
+        assertEquals("gateway-secret-new", capturedUpdateDto.getDeviceSecret());
 
         ArgumentCaptor<GatewayEntity> gatewayCaptor = ArgumentCaptor.forClass(GatewayEntity.class);
         verify(repository).updateById(gatewayCaptor.capture());
         GatewayEntity capturedGateway = gatewayCaptor.getValue();
         assertEquals(100, capturedGateway.getSpaceId());
         assertEquals(200, capturedGateway.getModelId());
+        assertEquals("gateway-secret-new", capturedGateway.getDeviceSecret());
     }
 
     @Test
@@ -675,7 +713,12 @@ class GatewayServiceImplTest {
         updateDto.setConfigInfo(""); // 空配置信息
 
         GatewayEntity oldEntity = new GatewayEntity();
-        oldEntity.setId(1).setDeviceNo("SN123456").setIotId("12345").setOwnAreaId(1000);
+        oldEntity.setId(1)
+                .setDeviceNo("SN123456")
+                .setIotId("12345")
+                .setOwnAreaId(1000);
+        oldEntity.setConfigInfo("");
+        oldEntity.setDeviceSecret("gateway-secret-new");
 
         GatewayEntity updateEntity = new GatewayEntity();
         updateEntity.setId(1)
@@ -683,6 +726,7 @@ class GatewayServiceImplTest {
                 .setModelId(200)
                 .setSpaceId(100)
                 .setCommunicateModel("485")
+                .setDeviceSecret("gateway-secret-new")
                 .setConfigInfo("")
                 .setOwnAreaId(1000);
 
@@ -700,6 +744,46 @@ class GatewayServiceImplTest {
         verify(deviceModelService).getDetail(200);
         verify(spaceService).getDetail(100);
         verify(repository).updateById(any(GatewayEntity.class));
+        verifyNoInteractions(energyService);
+    }
+
+    @Test
+    void testUpdate_BlankDeviceSecret_ShouldKeepOldSecret() {
+        updateDto.setId(1);
+        updateDto.setDeviceSecret("");
+        updateDto.setConfigInfo("");
+
+        GatewayEntity oldEntity = new GatewayEntity();
+        oldEntity.setId(1)
+                .setDeviceNo("SN123456")
+                .setIotId("12345")
+                .setOwnAreaId(1000);
+        oldEntity.setConfigInfo("{\"old\":true}");
+        oldEntity.setDeviceSecret("gateway-secret-old");
+
+        GatewayEntity updateEntity = new GatewayEntity();
+        updateEntity.setId(1)
+                .setDeviceNo("SN123456")
+                .setModelId(200)
+                .setSpaceId(100)
+                .setCommunicateModel("485")
+                .setConfigInfo("")
+                .setOwnAreaId(1000);
+
+        when(repository.selectById(1)).thenReturn(oldEntity);
+        when(mapper.updateDtoToEntity(updateDto)).thenReturn(updateEntity);
+        when(deviceModelService.getDetail(200)).thenReturn(deviceModelBo);
+        when(spaceService.getDetail(100)).thenReturn(spaceBo);
+        when(deviceModuleContext.getService(EnergyService.class, 1000)).thenReturn(energyService);
+        doNothing().when(energyService).editDevice(any(ElectricDeviceUpdateDto.class));
+
+        gatewayService.update(updateDto);
+
+        ArgumentCaptor<ElectricDeviceUpdateDto> updateDtoCaptor = ArgumentCaptor.forClass(ElectricDeviceUpdateDto.class);
+        verify(energyService).editDevice(updateDtoCaptor.capture());
+
+        ArgumentCaptor<GatewayEntity> entityCaptor = ArgumentCaptor.forClass(GatewayEntity.class);
+        verify(repository).updateById(entityCaptor.capture());
     }
 
     @Test
@@ -735,7 +819,7 @@ class GatewayServiceImplTest {
         when(spaceService.getDetail(100)).thenReturn(spaceBo);
 
         // 执行测试
-        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,() -> gatewayService.update(updateDto));
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> gatewayService.update(updateDto));
         assertEquals("数据异常：网关没有对应的iot数据", exception.getMessage());
 
         // 验证方法调用

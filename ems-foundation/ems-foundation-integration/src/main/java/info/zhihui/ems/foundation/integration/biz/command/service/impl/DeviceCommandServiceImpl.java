@@ -10,6 +10,7 @@ import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.lock.core.LockTemplate;
+import info.zhihui.ems.foundation.integration.biz.command.config.DeviceCommandRetryProperties;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandExecuteRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.bo.DeviceCommandRecordBo;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDto;
@@ -18,8 +19,10 @@ import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandQuery
 import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandExecuteRecordEntity;
 import info.zhihui.ems.foundation.integration.biz.command.entity.DeviceCommandRecordEntity;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
+import info.zhihui.ems.foundation.integration.biz.command.exception.DeviceCommandExecuteException;
 import info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandCancelQo;
 import info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandQo;
+import info.zhihui.ems.foundation.integration.biz.command.qo.DeviceCommandStartExecuteQo;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandExecuteRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.repository.DeviceCommandRecordRepository;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandExecutor;
@@ -31,6 +34,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
@@ -50,6 +54,8 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
     private final DeviceCommandExecuteRecordRepository commandExecuteRecordRepository;
     private final DeviceCommandExecutorContext deviceCommandExecutorContext;
     private final LockTemplate lockTemplate;
+    private final DeviceCommandRetryProperties retryProperties;
+    private final TransactionTemplate transactionTemplate;
 
     private final static String LOCK_DEVICE_COMMAND = "LOCK:DEVICE:COMMAND:%s-%d";
 
@@ -88,6 +94,17 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
 
         boolean isSuccess = true;
         String reason = null;
+        Exception executeException = null;
+        LocalDateTime startTime = LocalDateTime.now();
+        DeviceCommandStartExecuteQo startExecuteQo = new DeviceCommandStartExecuteQo()
+                .setCommandId(commandId)
+                .setMaxExecuteTimes(retryProperties.getMaxExecuteTimes())
+                .setStartTime(startTime);
+        int updatedRows = commandRecordRepository.startExecute(startExecuteQo);
+        if (updatedRows == 0) {
+            lock.unlock();
+            throw new BusinessRuntimeException("设备命令状态已变化，请稍后重试");
+        }
 
         try {
             DeviceCommandExecutor executor = deviceCommandExecutorContext.getDeviceCommandExecutor(commandRecordBo.getCommandType());
@@ -95,6 +112,7 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
         } catch (Exception e) {
             isSuccess = false;
             reason = e.getMessage();
+            executeException = e;
             Integer payloadSize = commandRecordBo.getCommandData() == null ? null : commandRecordBo.getCommandData().length();
             log.error("设备命令执行异常: commandId={}, deviceId={}, deviceType={}, commandType={}, areaId={}, payloadSize={}",
                     commandRecordBo.getId(),
@@ -105,29 +123,49 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
                     payloadSize,
                     e);
         } finally {
-            saveExecuteRecord(commandRecordBo, commandSource, isSuccess, reason);
-            lock.unlock();
+            try {
+                saveExecuteRecord(commandRecordBo, commandSource, isSuccess, reason, LocalDateTime.now());
+            } finally {
+                lock.unlock();
+            }
             log.info("命令执行完毕：{}；执行成功状态：{}", commandRecordBo.getDeviceId(), isSuccess);
+        }
+
+        if (executeException != null) {
+            throw new DeviceCommandExecuteException(getExecuteExceptionMessage(reason), executeException);
         }
     }
 
-    private void saveExecuteRecord(DeviceCommandRecordBo commandRecordBo, CommandSourceEnum commandSource, boolean isSuccess, String reason) {
-        LocalDateTime now = LocalDateTime.now();
+    // 任务执行结果记录和任务状态作为事务保存
+    private void saveExecuteRecord(DeviceCommandRecordBo commandRecordBo,
+                                   CommandSourceEnum commandSource,
+                                   boolean isSuccess,
+                                   String reason,
+                                   LocalDateTime finishTime) {
+        transactionTemplate.executeWithoutResult(transactionStatus -> {
+            DeviceCommandExecuteRecordEntity executeRecordEntity = new DeviceCommandExecuteRecordEntity()
+                    .setCommandId(commandRecordBo.getId())
+                    .setCommandSource(getCommandSource(commandRecordBo, commandSource))
+                    .setSuccess(isSuccess)
+                    .setReason(reason)
+                    .setExecuteTime(finishTime);
+            commandExecuteRecordRepository.insert(executeRecordEntity);
 
-        DeviceCommandExecuteRecordEntity executeRecordEntity = new DeviceCommandExecuteRecordEntity()
-                .setCommandId(commandRecordBo.getId())
-                .setCommandSource(getCommandSource(commandRecordBo, commandSource))
-                .setSuccess(isSuccess)
-                .setReason(reason)
-                .setExecuteTime(now);
-        commandExecuteRecordRepository.insert(executeRecordEntity);
+            DeviceCommandRecordEntity recordEntity = new DeviceCommandRecordEntity()
+                    .setId(commandRecordBo.getId())
+                    .setSuccess(isSuccess)
+                    .setSuccessTime(isSuccess ? finishTime : null)
+                    .setLastExecuteTime(finishTime)
+                    .setIsRunning(false);
+            commandRecordRepository.updateCommandExecuteInfo(recordEntity);
+        });
+    }
 
-        DeviceCommandRecordEntity recordEntity = new DeviceCommandRecordEntity()
-                .setId(commandRecordBo.getId())
-                .setSuccess(isSuccess)
-                .setSuccessTime(isSuccess ? now : null)
-                .setLastExecuteTime(now);
-        commandRecordRepository.updateCommandExecuteInfo(recordEntity);
+    private String getExecuteExceptionMessage(String reason) {
+        if (reason == null || reason.isBlank()) {
+            return "设备命令执行失败";
+        }
+        return reason;
     }
 
     private Lock getDeviceLock(Integer deviceId, String deviceType) {
@@ -174,7 +212,6 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
                 .setOperateUserName(query.getOperateUserName())
                 .setCommandType(commandType)
                 .setSuccess(query.getSuccess())
-                .setOrganizationName(query.getOrganizationName())
                 .setSpaceName(query.getSpaceName())
                 .setDeviceName(query.getDeviceName())
                 .setDeviceNo(query.getDeviceNo())
@@ -213,6 +250,7 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
                 .setSuccessTime(entity.getSuccessTime())
                 .setLastExecTime(entity.getLastExecuteTime())
                 .setEnsureSuccess(entity.getEnsureSuccess())
+                .setIsRunning(entity.getIsRunning())
                 .setExecuteTimes(entity.getExecuteTimes())
                 .setOperateUser(entity.getCreateUser())
                 .setOperateUserName(entity.getCreateUserName())
@@ -246,16 +284,14 @@ public class DeviceCommandServiceImpl implements DeviceCommandService {
 
         try {
             Integer commandType = dto.getCommandType() == null ? null : dto.getCommandType().getCode();
-            DeviceCommandCancelQo qo = new DeviceCommandCancelQo()
+            commandRecordRepository.cancelDeviceCommand(new DeviceCommandCancelQo()
                     .setDeviceId(dto.getDeviceId())
                     .setDeviceType(dto.getDeviceType().getKey())
                     .setCommandType(commandType)
-                    .setReason(dto.getReason());
-            commandRecordRepository.cancelDeviceCommand(qo);
+                    .setReason(dto.getReason()));
         } finally {
             lock.unlock();
         }
     }
-
 
 }

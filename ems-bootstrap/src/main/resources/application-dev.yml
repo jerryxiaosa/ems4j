@@ -104,8 +104,15 @@ schedule:
   aspect:
     enabled: true     # 开启调度切面
 
-# 对接真实设备：true；对接模拟数据：false
-useRealDevice: false
+device:
+  module:
+    # 对接真实设备：true；对接模拟数据：false
+    use-real-device: false
+  command:
+    retry:
+      max-execute-times: 10
+      fetch-size: 100
+      running-timeout-minutes: 10
 
 sa-token:
   # token 名称（同时也是 cookie 名称）

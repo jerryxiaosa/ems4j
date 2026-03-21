@@ -29,10 +29,23 @@ public class DeviceBind {
     }
 
     @Bean
+    public Queue deviceCommandExecuteQueue() {
+        return new Queue(QueueConstant.QUEUE_DEVICE_COMMAND_EXECUTE);
+    }
+
+    @Bean
     public Binding standardEnergyReportBinding(@Qualifier("deviceExchange") TopicExchange deviceExchange,
                                                @Qualifier("standardEnergyReportQueue") Queue standardEnergyReportQueue) {
         return BindingBuilder.bind(standardEnergyReportQueue)
                 .to(deviceExchange)
                 .with(DeviceMqConstant.ROUTING_KEY_STANDARD_ENERGY_REPORT);
+    }
+
+    @Bean
+    public Binding deviceCommandExecuteBinding(@Qualifier("deviceExchange") TopicExchange deviceExchange,
+                                               @Qualifier("deviceCommandExecuteQueue") Queue deviceCommandExecuteQueue) {
+        return BindingBuilder.bind(deviceCommandExecuteQueue)
+                .to(deviceExchange)
+                .with(DeviceMqConstant.ROUTING_KEY_DEVICE_COMMAND_EXECUTE);
     }
 }

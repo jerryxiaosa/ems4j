@@ -2,6 +2,7 @@ package info.zhihui.ems.foundation.integration.core.service;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModuleConfigBo;
+import info.zhihui.ems.foundation.integration.core.config.DeviceModuleProperties;
 import info.zhihui.ems.foundation.integration.core.service.testdata.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +26,7 @@ public class DeviceModuleContextTest {
     @InjectMocks
     private DeviceModuleContext deviceModuleContext;
     private final DeviceModuleConfigService deviceConfigService = Mockito.mock(DeviceModuleConfigService.class);
+    private final DeviceModuleProperties deviceModuleProperties = new DeviceModuleProperties();
 
     public DeviceModuleContextTest() {
         serviceMap = new HashMap<>();
@@ -33,12 +34,12 @@ public class DeviceModuleContextTest {
         serviceMap.put(TestEnergy1Impl.class.getSimpleName().toLowerCase(), new TestEnergy1Impl());
         serviceMap.put(MockEnergy3ServiceImpl.class.getSimpleName().toLowerCase(), new MockEnergy3ServiceImpl());
 
-        deviceModuleContext = new DeviceModuleContext(serviceMap, deviceConfigService);
+        deviceModuleContext = new DeviceModuleContext(serviceMap, deviceConfigService, deviceModuleProperties);
     }
 
     @Test
     public void testGetServiceByModule() {
-        ReflectionTestUtils.setField(deviceModuleContext, "useRealDevice", true);
+        deviceModuleProperties.setUseRealDevice(true);
         DeviceModuleConfigBo deviceModuleConfigBo = new DeviceModuleConfigBo().setImplName(TestEnergy2ServiceImpl.class.getSimpleName().toLowerCase());
         Mockito.when(deviceConfigService.getDeviceConfigByModule(TestEnergy2Service.class, 1)).thenReturn(deviceModuleConfigBo);
 
@@ -46,7 +47,7 @@ public class DeviceModuleContextTest {
         Assertions.assertEquals(serviceMap.get(TestEnergy2ServiceImpl.class.getSimpleName().toLowerCase()), carService);
 
         // 测试mock场景
-        ReflectionTestUtils.setField(deviceModuleContext, "useRealDevice", false);
+        deviceModuleProperties.setUseRealDevice(false);
         TestEnergy3Service cameraService = deviceModuleContext.getService(TestEnergy3Service.class, 1);
         Assertions.assertEquals(serviceMap.get(MockEnergy3ServiceImpl.class.getSimpleName().toLowerCase()), cameraService);
     }
@@ -81,7 +82,7 @@ public class DeviceModuleContextTest {
     public void testGetOnlyInterface_WithExtraInterface_ShouldNotThrow() {
         Map<String, CommonDeviceModule> map = new HashMap<>();
         map.put(TestEnergy1ExtraInterfaceImpl.class.getSimpleName().toLowerCase(), new TestEnergy1ExtraInterfaceImpl());
-        DeviceModuleContext context = new DeviceModuleContext(map, deviceConfigService);
+        DeviceModuleContext context = new DeviceModuleContext(map, deviceConfigService, new DeviceModuleProperties());
 
         Map<String, List<String>> res = context.getModuleAndServiceName();
         Assertions.assertTrue(res.containsKey(TestEnergy1.class.getSimpleName()));
@@ -93,7 +94,7 @@ public class DeviceModuleContextTest {
         map.put(TestEnergyMultiModuleImpl.class.getSimpleName().toLowerCase(), new TestEnergyMultiModuleImpl());
 
         BusinessRuntimeException exception = Assertions.assertThrows(BusinessRuntimeException.class,
-                () -> new DeviceModuleContext(map, deviceConfigService));
+                () -> new DeviceModuleContext(map, deviceConfigService, new DeviceModuleProperties()));
         Assertions.assertTrue(exception.getMessage().contains("只能实现一个模块接口"));
     }
 

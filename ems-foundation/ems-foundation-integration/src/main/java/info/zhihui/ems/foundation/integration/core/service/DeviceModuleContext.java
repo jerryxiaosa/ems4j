@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.integration.core.bo.DeviceModuleConfigBo;
+import info.zhihui.ems.foundation.integration.core.config.DeviceModuleProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 
@@ -33,9 +33,7 @@ public class DeviceModuleContext {
     private final Map<Class<?>, CommonDeviceModule> mockDeviceService = new HashMap<>();
 
     private final DeviceModuleConfigService deviceModuleConfigService;
-
-    @Value("${useRealDevice:true}")
-    public Boolean useRealDevice;
+    private final DeviceModuleProperties deviceModuleProperties;
 
     private static final String MOCK_PREFIX = "mock";
 
@@ -57,7 +55,9 @@ public class DeviceModuleContext {
      * @param deviceModuleConfigService 模块配置信息接口
      */
     @Autowired
-    public DeviceModuleContext(Map<String, CommonDeviceModule> commonDeviceModuleServiceMap, DeviceModuleConfigService deviceModuleConfigService) {
+    public DeviceModuleContext(Map<String, CommonDeviceModule> commonDeviceModuleServiceMap,
+                               DeviceModuleConfigService deviceModuleConfigService,
+                               DeviceModuleProperties deviceModuleProperties) {
         commonDeviceModuleServiceMap.forEach((s, commonDeviceModuleService) -> {
             Class<?> deviceModule = getOnlyInterface(ClassUtils.getUserClass(commonDeviceModuleService.getClass()));
 
@@ -76,6 +76,7 @@ public class DeviceModuleContext {
         });
 
         this.deviceModuleConfigService = deviceModuleConfigService;
+        this.deviceModuleProperties = deviceModuleProperties;
     }
 
     /**
@@ -90,7 +91,7 @@ public class DeviceModuleContext {
      */
     public <T extends CommonDeviceModule> T getService(Class<T> moduleType, Integer areaId) {
         T service;
-        if (useRealDevice) {
+        if (Boolean.TRUE.equals(deviceModuleProperties.getUseRealDevice())) {
             service = getRealService(moduleType, areaId);
         } else {
             service = getMockService(moduleType);

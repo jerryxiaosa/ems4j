@@ -6,7 +6,7 @@
 
 [中文文档](README.md)
 
-EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and the codebase is cleanly structured for easy extension.
+EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and can be adapted to typical scenarios such as campus dormitory prepaid systems and industrial park prepaid systems. The codebase is cleanly structured for easy extension.
 **It is also an open-source project for learning complex business modeling and Spring Boot multi-module architecture design.**
 If this project helps you, please consider giving it a ⭐️.
 
@@ -41,33 +41,23 @@ Notes:
 
 ## Highlights and Design Focus
 
-### Business and Architecture
+- **A complete prepaid business loop**  
+  Covers account opening, recharge, charging, warnings, account settlement, order payment, and remote control beyond a simple CRUD admin system.
 
-- **More than a CRUD-style admin system**  
-  The project includes end-to-end flows for prepaid billing, settlement, payments, remote control, and permission management.
+- **Clear multi-module layering**  
+  Built with a Spring Boot multi-module structure where domains such as `device / account / billing / order / lease / plan / aggregation` stay explicit and readable.
 
-- **Clear module boundaries for a complex domain**  
-  The Spring Boot multi-module structure separates `device / account / billing / order / lease / plan / aggregation`, making the codebase easier to study and extend.
+- **Useful for studying complex business modeling**  
+  Includes pay-as-you-go, consolidated, and monthly billing models, plus the collaboration between accounts, meters, orders, and accounting flows.
 
-- **Business modeling for prepaid scenarios**  
-  It covers pay-as-you-go, consolidated billing, and monthly subscription models, along with the collaboration between accounts, meters, and orders.
+- **Includes the IoT access path, not just the business backend**  
+  The standalone `ems-iot` module covers multi-protocol access, packet parsing, command dispatch, and event publishing.
 
-- **Billing, accounting, and permission flows**  
-  It demonstrates balance deduction, consumption records, order payment, account closure settlement, warning linkage, and role/menu authorization.
-
-### IoT and Engineering Implementation
-
-- **Includes a full IoT access path, not just the management backend**  
-  The standalone `ems-iot` module supports multi-protocol access, packet parsing, command dispatch, and event publishing based on Netty.
-
-- **Decoupling between IoT access and business domains**  
-  You can trace how `ems-iot`, `foundation.integration`, and the business modules collaborate through protocol access, event publishing, and platform integration.
-
-- **MQ async handling and idempotency**  
-  The project covers standard energy report processing, transactional messaging, duplicate report handling, and unique-index-backed idempotency.
+- **Solid async and idempotency practices**  
+  Covers MQ-based processing, transactional messaging, duplicate report handling, and unique-index-backed protection.
 
 - **Runnable locally, not just a conceptual repository**  
-  The repo includes frontend and backend projects, Docker-based dependencies, SQL bootstrap scripts, and runtime documentation.
+  Includes frontend and backend projects, Docker-based dependencies, SQL bootstrap scripts, and runtime documentation.
 
 ## Key Screens
 
@@ -129,7 +119,7 @@ Then start backend and frontend separately:
 ```bash
 # backend
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 
 # frontend
 cd frontend-web
@@ -180,7 +170,7 @@ Build and run:
 
 ```bash
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 ```
 
 ## Build & Test
@@ -314,8 +304,8 @@ Notes:
 | `ems-mq-*` | Messaging infrastructure API (ems-mq-api) and business messaging app layer (ems-mq-rabbitmq) |
 | `ems-iot` | Netty device access, protocol parsing |
 | `ems-schedule` | Scheduled jobs |
-| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Vue 3 + TypeScript admin frontend with Vitest unit tests and Playwright smoke tests |
-| `deploy` ![NEW](https://img.shields.io/badge/NEW-orange) ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Docker Compose files, Dockerfiles, init SQL and environment examples for local infrastructure and full deployment orchestration |
+| `frontend-web` | Vue 3 + TypeScript admin frontend with Vitest unit tests and Playwright smoke tests |
+| `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Docker Compose files, Dockerfiles, init SQL and environment examples for local infrastructure and full deployment orchestration |
 
 Notes:
 - ems-mq-api provides message contracts and base messaging services (infrastructure layer).

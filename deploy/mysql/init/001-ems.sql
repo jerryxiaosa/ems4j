@@ -499,6 +499,7 @@ CREATE TABLE `energy_gateway`
     `communicate_model` VARCHAR(100) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '通信模式',
     `sn`                VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci           DEFAULT NULL COMMENT '序列号',
     `imei`              VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci           DEFAULT NULL COMMENT '移动设备IMEI',
+    `device_secret`     VARCHAR(128) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '设备密钥',
     `is_online`         BIT(1)                                                                 DEFAULT NULL COMMENT '是否在线：0不在线，1在线',
     `config_info`       text CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci COMMENT '网关配置信息,json字符串',
     `remark`            VARCHAR(500) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci          DEFAULT NULL COMMENT '备注',
@@ -577,7 +578,8 @@ CREATE TABLE `device_command_record`
     `success_time`      DATETIME                                                                DEFAULT NULL COMMENT '成功的时间',
     `last_execute_time` DATETIME                                                                DEFAULT NULL COMMENT '最后执行时间',
     `ensure_success`    BIT(1)                                                         NOT NULL DEFAULT b'0' COMMENT '是否需要确保命令执行成功，为1时的命令会重试',
-    `execute_times`     SMALLINT                                                       NOT NULL DEFAULT 0 COMMENT '运行次数',
+    `is_running`        BIT(1)                                                         NOT NULL DEFAULT b'0' COMMENT '是否执行中',
+    `execute_times`     SMALLINT                                                       NOT NULL DEFAULT 0 COMMENT '已启动执行次数',
     `remark`            VARCHAR(500) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci           DEFAULT NULL COMMENT '备注，任务描述',
     `create_user`       INT UNSIGNED                                                            DEFAULT NULL,
     `create_user_name`  VARCHAR(50) CHARACTER SET UTF8MB4 COLLATE utf8mb4_unicode_ci            DEFAULT NULL,
@@ -641,15 +643,15 @@ CREATE TABLE `device_model`
 
 INSERT INTO device_model
 (id, type_id, type_key, manufacturer_name, model_name, product_code, model_property)
-VALUES (1, 3, 'electricMeter', '安科瑞', 'ddsy1352', 'ddsy1352',
+VALUES (1, 3, 'electricMeter', '安科瑞', 'ddsy1352', 'ACREL_DDSY_1352',
         '{"communicateModel":"tcp","isCt":true,"isPrepay":true}');
 INSERT INTO device_model
 (id, type_id, type_key, manufacturer_name, model_name, product_code, model_property)
-VALUES (2, 3, 'electricMeter', '安科瑞', 'dtsy1352-4g', 'dtsy1352-4g',
+VALUES (2, 3, 'electricMeter', '安科瑞', 'dtsy1352-4g', 'ACREL_DTSY_1352_4G',
         '{"communicateModel":"nb","isCt":true,"isPrepay":true}');
 INSERT INTO device_model
 (id, type_id, type_key, manufacturer_name, model_name, product_code, model_property)
-VALUES (3, 5, 'gateway', '安科瑞', 'tcp智能网关', 'AWT100_4G_MQTT', '{"communicateModel":"tcpClient模式"}');
+VALUES (3, 5, 'gateway', '安科瑞', 'tcp智能网关', 'ACREL_GATEWAY', '{"communicateModel":"tcpClient模式"}');
 
 
 
@@ -802,7 +804,7 @@ INSERT INTO sys_config (config_module_name, config_key, config_name, config_valu
 VALUES ('finance', 'service_rate', '默认服务费', '0.1', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('finance', 'wx_pay_config', '微信支付配置', '{}', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('device', 'device_config', '设备配置',
-        '[{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://127.0.0.1:8899"}}]}]',
+        '[{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://127.0.0.1:8880"}}]}]',
         TRUE, FALSE, '2025-01-02 03:04:05'),
        ('plan', 'electric_price_time', '尖峰平谷深谷时间段配置',
         '[{"start":[0,0,0],"type":4},{"start":[6,0,0],"type":3},{"start":[11,0,0],"type":4},{"start":[13,0,0],"type":3},{"start":[14,0,0],"type":2},{"start":[22,0,0],"type":3}]',

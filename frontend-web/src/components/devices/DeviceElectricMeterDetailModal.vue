@@ -7,6 +7,7 @@ interface DetailCell {
   label: string
   value: string
   type?: 'online'
+  fullWidth?: boolean
 }
 
 const props = defineProps<{
@@ -66,23 +67,13 @@ const getOnlineStatusClass = (meter: ElectricMeterItem) => {
   return 'detail-online-status detail-online-status-unknown'
 }
 
-const buildTableRows = (cells: DetailCell[]) => {
-  const rows: Array<[DetailCell, DetailCell | null]> = []
-
-  for (let index = 0; index < cells.length; index += 2) {
-    rows.push([cells[index], cells[index + 1] ?? null])
-  }
-
-  return rows
-}
-
-const baseRows = computed(() => {
+const baseFields = computed<DetailCell[]>(() => {
   const meter = props.meter
   if (!meter) {
     return []
   }
 
-  return buildTableRows([
+  return [
     { label: '电表名称', value: meter.meterName || '--' },
     { label: '电表编号', value: meter.deviceNo || '--' },
     { label: '所在位置', value: meter.spaceName || '--' },
@@ -100,29 +91,29 @@ const baseRows = computed(() => {
     { label: '表计状态', value: meter.statusName || '--' },
     { label: '是否保电', value: meter.protectedModel ? '是' : '否' },
     { label: 'CT变比', value: meter.ct || '--' }
-  ])
+  ]
 })
 
-const billingRows = computed(() => {
+const billingFields = computed<DetailCell[]>(() => {
   const meter = props.meter
   if (!meter) {
     return []
   }
 
-  return buildTableRows([
+  return [
     { label: '计费方案名称', value: meter.pricePlanName || '--' },
     { label: '预警方案名称', value: meter.warnPlanName || '--' },
     { label: '电费预警级别', value: meter.electricWarnTypeName || '--' }
-  ])
+  ]
 })
 
-const latestRows = computed(() => {
+const latestFields = computed<DetailCell[]>(() => {
   const meter = props.meter
   if (!meter) {
     return []
   }
 
-  return buildTableRows([
+  return [
     { label: '总电量', value: meter.latestReportPower || '--' },
     { label: '上报时间', value: meter.latestReportTime || '--' },
     { label: '尖电量', value: meter.latestReportHigherPower || '--' },
@@ -130,7 +121,7 @@ const latestRows = computed(() => {
     { label: '平电量', value: meter.latestReportLowPower || '--' },
     { label: '谷电量', value: meter.latestReportLowerPower || '--' },
     { label: '深谷电量', value: meter.latestReportDeepLowPower || '--' }
-  ])
+  ]
 })
 
 const close = () => emit('update:modelValue', false)
@@ -152,78 +143,48 @@ const close = () => emit('update:modelValue', false)
           <h4 class="section-title es-detail-section-title">基本信息</h4>
           <div class="summary-grid base-grid">
             <div
-              v-for="[leftCell, rightCell] in baseRows"
-              :key="leftCell.label"
-              class="summary-row"
+              v-for="field in baseFields"
+              :key="field.label"
+              :class="['summary-item', { 'summary-item-full': field.fullWidth }]"
             >
-              <div class="summary-item">
-                <span class="summary-label es-detail-label">{{ leftCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span
-                    v-if="leftCell.type === 'online'"
-                    :class="getOnlineStatusClass(props.meter as ElectricMeterItem)"
-                  >
-                    {{ leftCell.value }}
-                  </span>
-                  <span v-else class="summary-text">{{ leftCell.value }}</span>
+              <span class="summary-label es-detail-label">{{ field.label }}</span>
+              <span class="summary-value es-detail-value-box">
+                <span
+                  v-if="field.type === 'online'"
+                  :class="getOnlineStatusClass(props.meter as ElectricMeterItem)"
+                >
+                  {{ field.value }}
                 </span>
-              </div>
-              <div v-if="rightCell" class="summary-item">
-                <span class="summary-label es-detail-label">{{ rightCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span
-                    v-if="rightCell.type === 'online'"
-                    :class="getOnlineStatusClass(props.meter as ElectricMeterItem)"
-                  >
-                    {{ rightCell.value }}
-                  </span>
-                  <span v-else class="summary-text">{{ rightCell.value }}</span>
-                </span>
-              </div>
+                <span v-else class="summary-text">{{ field.value }}</span>
+              </span>
             </div>
           </div>
 
           <h4 class="section-title es-detail-section-title">最近上报</h4>
           <div class="summary-grid section-grid">
             <div
-              v-for="[leftCell, rightCell] in latestRows"
-              :key="leftCell.label"
-              class="summary-row"
+              v-for="field in latestFields"
+              :key="field.label"
+              :class="['summary-item', { 'summary-item-full': field.fullWidth }]"
             >
-              <div class="summary-item">
-                <span class="summary-label es-detail-label">{{ leftCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span class="summary-text">{{ leftCell.value }}</span>
-                </span>
-              </div>
-              <div v-if="rightCell" class="summary-item">
-                <span class="summary-label es-detail-label">{{ rightCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span class="summary-text">{{ rightCell.value }}</span>
-                </span>
-              </div>
+              <span class="summary-label es-detail-label">{{ field.label }}</span>
+              <span class="summary-value es-detail-value-box">
+                <span class="summary-text">{{ field.value }}</span>
+              </span>
             </div>
           </div>
 
           <h4 class="section-title es-detail-section-title">计费信息</h4>
           <div class="summary-grid latest-grid">
             <div
-              v-for="[leftCell, rightCell] in billingRows"
-              :key="leftCell.label"
-              class="summary-row"
+              v-for="field in billingFields"
+              :key="field.label"
+              :class="['summary-item', { 'summary-item-full': field.fullWidth }]"
             >
-              <div class="summary-item">
-                <span class="summary-label es-detail-label">{{ leftCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span class="summary-text">{{ leftCell.value }}</span>
-                </span>
-              </div>
-              <div v-if="rightCell" class="summary-item">
-                <span class="summary-label es-detail-label">{{ rightCell.label }}</span>
-                <span class="summary-value es-detail-value-box">
-                  <span class="summary-text">{{ rightCell.value }}</span>
-                </span>
-              </div>
+              <span class="summary-label es-detail-label">{{ field.label }}</span>
+              <span class="summary-value es-detail-value-box">
+                <span class="summary-text">{{ field.value }}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -297,16 +258,7 @@ const close = () => emit('update:modelValue', false)
   min-height: 160px;
 }
 
-.summary-label {
-  font-size: var(--es-font-size-sm);
-  font-weight: 600;
-  color: var(--es-color-text-primary);
-  white-space: nowrap;
-}
-
 .summary-text {
-  font-size: var(--es-font-size-sm);
-  color: var(--es-color-text-primary);
   word-break: break-all;
 }
 
@@ -319,7 +271,8 @@ const close = () => emit('update:modelValue', false)
 
 .summary-grid {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 56px;
 }
 
 .section-grid {
@@ -334,12 +287,6 @@ const close = () => emit('update:modelValue', false)
   margin-bottom: 8px;
 }
 
-.summary-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 56px;
-}
-
 .summary-item {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
@@ -347,13 +294,17 @@ const close = () => emit('update:modelValue', false)
   gap: 2px;
 }
 
+.summary-item-full {
+  grid-column: 1 / -1;
+}
+
 .summary-value {
   width: 100%;
 }
 
 .detail-online-status {
-  font-size: var(--es-font-size-sm);
-  font-weight: 600;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .detail-online-status-online {

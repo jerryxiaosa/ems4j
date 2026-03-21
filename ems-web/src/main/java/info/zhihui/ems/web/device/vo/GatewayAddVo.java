@@ -33,14 +33,17 @@ public class GatewayAddVo {
     @Schema(description = "设备编号，设备上报标识", requiredMode = Schema.RequiredMode.REQUIRED)
     private String deviceNo;
 
+    @Size(max = 128)
+    @Schema(description = "设备密钥")
+    private String deviceSecret;
+
     @Schema(description = "网关序列号")
     private String sn;
 
     @Schema(description = "网关IMEI")
     private String imei;
 
-    @NotBlank
-    @Schema(description = "网关配置信息JSON", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "网关配置信息JSON")
     private String configInfo;
 
     @Schema(description = "备注")

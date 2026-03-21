@@ -71,7 +71,7 @@ public class DeviceModuleConfigServiceImpl implements DeviceModuleConfigService 
     public <T extends CommonDeviceModule, E> E getDeviceConfigValue(Class<T> interfaceType, Class<E> returnObject, Integer areaId) {
         DeviceModuleConfigBo deviceConfigByModule = getDeviceConfigByModule(interfaceType, areaId);
         // e.g. configValue形如：
-        // [{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://127.0.0.1:8899"}}]}]
+        // [{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://127.0.0.1:8880"}}]}]
         String configValue = deviceConfigByModule.getConfigValue();
         try {
             return JacksonUtil.fromJson(configValue, returnObject);

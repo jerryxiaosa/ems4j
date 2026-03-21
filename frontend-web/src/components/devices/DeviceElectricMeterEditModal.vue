@@ -350,10 +350,8 @@ const validate = () => {
     } else if (!/^(?:[1-9]|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])$/.test(form.meterAddress.trim())) {
       errors.meterAddress = '电表地址码需为 1-255 的整数'
     }
-    if (showCtField.value) {
-      if (!form.ct.trim()) {
-        errors.ct = '请输入 CT 变比'
-      } else if (!/^[1-9][0-9]*$/.test(form.ct.trim()) || Number(form.ct.trim()) >= 65535) {
+    if (showCtField.value && form.ct.trim()) {
+      if (!/^[1-9][0-9]*$/.test(form.ct.trim()) || Number(form.ct.trim()) >= 65535) {
         errors.ct = 'CT 变比需为小于 65535 的正整数'
       }
     }
@@ -525,12 +523,12 @@ const getRequiredLabelClass = (required: boolean) => ({
             </label>
 
             <label v-if="showCtField" class="field">
-              <span :class="['field-label', getRequiredLabelClass(!isEditMode)]">CT变比</span>
+              <span class="field-label">CT变比</span>
               <input
                 v-model="form.ct"
                 class="form-control"
                 type="text"
-                placeholder="请输入 CT 变比"
+                placeholder="请输入 CT 变比（选填）"
                 :disabled="isEditMode"
               />
               <span v-if="errors.ct" class="field-error">{{ errors.ct }}</span>

@@ -5,6 +5,7 @@ import { type ElectricMeterItem } from '@/components/devices/electric-meter.mock
 const props = defineProps<{
   modelValue: boolean
   meter: ElectricMeterItem | null
+  submitting?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +32,9 @@ watch(
 )
 
 const close = () => {
+  if (props.submitting) {
+    return
+  }
   emit('update:modelValue', false)
 }
 
@@ -92,7 +96,7 @@ const handleSubmit = () => {
       <div class="modal-panel meter-ct-modal">
         <div class="modal-head">
           <h3 class="modal-title">设置CT变比</h3>
-          <button class="icon-btn" type="button" @click="close">关闭</button>
+          <button class="icon-btn" type="button" :disabled="submitting" @click="close">关闭</button>
         </div>
 
         <div class="modal-body">
@@ -103,6 +107,7 @@ const handleSubmit = () => {
                 v-model="form.ct"
                 class="form-control"
                 type="text"
+                :disabled="submitting"
                 placeholder="请输入 CT 变比"
               />
               <span v-if="error.ct" class="field-error">{{ error.ct }}</span>
@@ -120,8 +125,12 @@ const handleSubmit = () => {
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" @click="close">取消</button>
-          <button class="btn btn-primary" type="button" @click="handleSubmit">确定</button>
+          <button class="btn btn-secondary" type="button" :disabled="submitting" @click="close">
+            取消
+          </button>
+          <button class="btn btn-primary" type="button" :disabled="submitting" @click="handleSubmit">
+            {{ submitting ? '提交中...' : '确定' }}
+          </button>
         </div>
       </div>
     </div>

@@ -57,6 +57,10 @@ import info.zhihui.ems.foundation.integration.core.service.DeviceModuleContext;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.enums.SpaceTypeEnum;
 import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.mq.api.constant.device.DeviceMqConstant;
+import info.zhihui.ems.mq.api.message.device.DeviceCommandExecuteMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
+import info.zhihui.ems.mq.api.service.MqService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -103,6 +107,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     private final SpaceService spaceService;
     private final DeviceStatusSynchronizer<ElectricMeterBo> electricMeterOnlineStatusSynchronizer;
     private final WarnPlanService warnPlanService;
+    private final MqService mqService;
 
     private static final int DEFAULT_DAILY_PLAN_ID = 1;
 
@@ -113,27 +118,28 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
      * @return 新增电表的ID
      * @throws BusinessRuntimeException 当业务规则验证失败时
      */
-    @Transactional(rollbackFor = Exception.class)
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer add(@Valid @NotNull ElectricMeterCreateDto dto) {
         ElectricMeterEntity entity = validateAndSetEntity(dto);
-        // 保存表数据
         saveNewMeterData(entity);
-
-        // 同步设备到iot
         syncToIotPlatform(entity);
+        Integer meterId = entity.getId();
 
-        // 下发尖峰平谷时间段
-        setElectricTime(new ElectricMeterTimeDto()
-                .setId(entity.getId())
-                .setCommandSource(CommandSourceEnum.SYSTEM)
-                .setTimeList(electricPlanService.getElectricTime())
-        );
+        if (entity.getCt() != null) {
+            Integer ctCommandId = saveInitCtCommand(meterId, entity.getCt());
+            // CT 作为新增成功的必要条件，在事务内最后同步执行。
+            deviceCommandService.execDeviceCommand(ctCommandId, CommandSourceEnum.SYSTEM);
+        }
 
-        // 设置ct变比
-        setCtWhenAddNewMeter(entity.getId(), entity.getCt());
+        Integer priceTimeCommandId = saveInitPriceTimeCommand(meterId);
+        // 时间命令不阻断新增成功，在事务提交后异步触发。
+        mqService.sendMessageAfterCommit(new MqMessage()
+                .setMessageDestination(DeviceMqConstant.DEVICE_DESTINATION)
+                .setRoutingIdentifier(DeviceMqConstant.ROUTING_KEY_DEVICE_COMMAND_EXECUTE)
+                .setPayload(new DeviceCommandExecuteMessage().setCommandId(priceTimeCommandId)));
 
-        return entity.getId();
+        return meterId;
     }
 
     /**
@@ -209,6 +215,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         performSwitchOperation(meter, electricMeterSwitchStatusDto.getSwitchStatus(), electricMeterSwitchStatusDto.getCommandSource());
 
         // 命令执行成功后再更新本地开关状态
+        // 注意这里失败的话，也可能出现和设备状态不一致的情况
         updateMeterSwitchStatus(meter.getId(), electricMeterSwitchStatusDto.getSwitchStatus());
 
         log.info("设备{}开关闸操作完成，目标状态：{}（原状态：{}）",
@@ -268,7 +275,8 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                         String.format("不支持的开关状态：%s", switchStatus));
         }
 
-        saveMeterCommandAndRun(ctCommandDto);
+        Integer commandId = saveMeterCommand(ctCommandDto);
+        deviceCommandService.execDeviceCommand(commandId, commandSource);
     }
 
     /**
@@ -284,31 +292,22 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
     /**
      * 设置电费尖峰平谷时间段
+     * 目前没有每个表设置的数据对照
      *
      * @param electricMeterTimeDto 电表时间数据传输对象
      */
     @Override
     public void setElectricTime(@Valid @NotNull ElectricMeterTimeDto electricMeterTimeDto) {
         ElectricMeterBo meter = electricMeterInfoService.getDetail(electricMeterTimeDto.getId());
-
-        List<ElectricPriceTimeDto> validElectricPlanTime = ElectricPlanValidationUtil.getValidElectricPlanTime(electricMeterTimeDto.getTimeList());
-        List<DailyEnergySlot> slotList = validElectricPlanTime.stream()
-                .map(item -> new DailyEnergySlot()
-                        .setPeriod(item.getType())
-                        .setTime(item.getStart()))
-                .collect(Collectors.toList());
-        DailyEnergyPlanUpdateDto commandPayload = new DailyEnergyPlanUpdateDto()
-                .setDailyPlanId(DEFAULT_DAILY_PLAN_ID)
-                .setSlots(slotList);
-        String commandData = JacksonUtil.toJson(commandPayload);
-        log.info("生成电表尖峰平谷时间段命令数据：{}", commandData);
-
-        MeterCommandDto commandDto = new MeterCommandDto()
-                .setMeter(meter)
+        deviceCommandService.cancelDeviceCommand(new DeviceCommandCancelDto()
+                .setDeviceId(meter.getId())
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_PRICE_TIME)
-                .setCommandSource(electricMeterTimeDto.getCommandSource())
-                .setCommandData(commandData);
-        saveMeterCommandAndRun(commandDto);
+                .setReason("已被新时间命令覆盖，停止自动执行"));
+
+        MeterCommandDto commandDto = buildPriceTimeCommand(meter, electricMeterTimeDto.getTimeList(), electricMeterTimeDto.getCommandSource());
+        Integer commandId = saveMeterCommand(commandDto);
+        deviceCommandService.execDeviceCommand(commandId, electricMeterTimeDto.getCommandSource());
     }
 
     /**
@@ -455,7 +454,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         checkUpdateCt(meter);
 
         meter.setCt(electricMeterCtDto.getCt());
-
         // 未开户的电表，删除重建
         // 因为调整了ct之后电量会变化；为防止状态不一致，即使CT未变也执行该流程
         // 注意：可能对统计造成影响
@@ -467,8 +465,9 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
                 .setCommandSource(CommandSourceEnum.SYSTEM)
                 .setCommandData(String.valueOf(newMeter.getCt()));
-        saveMeterCommandAndRun(ctCommandDto);
-
+        Integer commandId = saveMeterCommand(ctCommandDto);
+        // CT 在事务内最后执行，执行失败则整体回滚。
+        deviceCommandService.execDeviceCommand(commandId, CommandSourceEnum.SYSTEM);
         return newMeterId;
     }
 
@@ -1107,7 +1106,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         }
     }
 
-    private void saveMeterCommandAndRun(MeterCommandDto meterCommandDto) {
+    private Integer saveMeterCommand(MeterCommandDto meterCommandDto) {
         ElectricMeterBo meter = meterCommandDto.getMeter();
         if (StringUtils.isBlank(meter.getIotId())) {
             throw new BusinessRuntimeException("电表未同步到IoT平台，无法下发命令");
@@ -1131,10 +1130,45 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 .setAccountId(meter.getAccountId())
                 .setOperateUser(requestContext.getUserId())
                 .setOperateUserName(requestContext.getUserRealName())
-                .setEnsureSuccess(true);
-        Integer commandId = deviceCommandService.saveDeviceCommand(dto);
+                .setEnsureSuccess(meterCommandDto.getCommandType().isRetryable());
+        return deviceCommandService.saveDeviceCommand(dto);
+    }
 
-        deviceCommandService.execDeviceCommand(commandId, meterCommandDto.getCommandSource());
+    private Integer saveInitPriceTimeCommand(Integer meterId) {
+        ElectricMeterBo meter = electricMeterInfoService.getDetail(meterId);
+        MeterCommandDto commandDto = buildPriceTimeCommand(meter, electricPlanService.getElectricTime(), CommandSourceEnum.SYSTEM);
+        return saveMeterCommand(commandDto);
+    }
+
+    private Integer saveInitCtCommand(Integer meterId, Integer ct) {
+        ElectricMeterBo meter = electricMeterInfoService.getDetail(meterId);
+        MeterCommandDto commandDto = new MeterCommandDto()
+                .setMeter(meter)
+                .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
+                .setCommandSource(CommandSourceEnum.SYSTEM)
+                .setCommandData(String.valueOf(ct));
+        return saveMeterCommand(commandDto);
+    }
+
+    private MeterCommandDto buildPriceTimeCommand(ElectricMeterBo meter, List<ElectricPriceTimeDto> timeList, CommandSourceEnum commandSource) {
+        List<ElectricPriceTimeDto> validElectricPlanTime = ElectricPlanValidationUtil.getValidElectricPlanTime(timeList);
+        List<DailyEnergySlot> slotList = validElectricPlanTime.stream()
+                .map(item -> new DailyEnergySlot()
+                        .setPeriod(item.getType())
+                        .setTime(item.getStart()))
+                .collect(Collectors.toList());
+
+        DailyEnergyPlanUpdateDto commandPayload = new DailyEnergyPlanUpdateDto()
+                .setDailyPlanId(DEFAULT_DAILY_PLAN_ID)
+                .setSlots(slotList);
+        String commandData = JacksonUtil.toJson(commandPayload);
+        log.info("生成电表尖峰平谷时间段命令数据：{}", commandData);
+
+        return new MeterCommandDto()
+                .setMeter(meter)
+                .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_PRICE_TIME)
+                .setCommandSource(commandSource)
+                .setCommandData(commandData);
     }
 
     /**
@@ -1330,25 +1364,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (BooleanUtil.isTrue(entity.getIsPrepay()) && !SpaceTypeEnum.ROOM.equals(space.getType())) {
             throw new BusinessRuntimeException("预付费模式下电表只允许绑定到房间");
         }
-    }
-
-    private void setCtWhenAddNewMeter(Integer meterId, Integer ct) {
-        // 其他的参数校验在add方法最开始已完成
-        if (ct == null) {
-            return;
-        }
-        if (ct <= 0) {
-            throw new BusinessRuntimeException("CT变比必须为正整数");
-        }
-
-        // 重新查询一次，保持最新的数据
-        ElectricMeterBo meter = electricMeterInfoService.getDetail(meterId);
-        MeterCommandDto ctCommandDto = new MeterCommandDto()
-                .setMeter(meter)
-                .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_CT)
-                .setCommandSource(CommandSourceEnum.SYSTEM)
-                .setCommandData(String.valueOf(ct));
-        saveMeterCommandAndRun(ctCommandDto);
     }
 
     private void checkAndSetUpdateInfo(ElectricMeterEntity entity, ElectricMeterBo old, ElectricMeterUpdateDto dto) {

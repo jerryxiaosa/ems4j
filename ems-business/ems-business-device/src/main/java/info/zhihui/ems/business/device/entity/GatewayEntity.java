@@ -55,6 +55,11 @@ public class GatewayEntity extends AreaBaseEntity {
     private String imei;
 
     /**
+     * 设备密钥
+     */
+    private String deviceSecret;
+
+    /**
      * iot服务里的id
      */
     private String iotId;

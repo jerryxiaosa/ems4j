@@ -94,6 +94,11 @@ public class DeviceCommandRecordBo {
     private Boolean ensureSuccess;
 
     /**
+     * 是否执行中
+     */
+    private Boolean isRunning;
+
+    /**
      * 运行次数
      */
     private Integer executeTimes;

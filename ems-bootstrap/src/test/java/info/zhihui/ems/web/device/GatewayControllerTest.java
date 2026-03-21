@@ -113,6 +113,7 @@ class GatewayControllerTest {
         GatewayAddVo addVo = new GatewayAddVo()
                 .setSpaceId(1)
                 .setGatewayName("GatewayA")
+                .setDeviceSecret("gateway-secret")
                 .setConfigInfo("{}")
                 .setModelId(2)
                 .setDeviceNo("SN-001");
@@ -131,6 +132,7 @@ class GatewayControllerTest {
         GatewayUpdateVo saveVo = new GatewayUpdateVo()
                 .setSpaceId(1)
                 .setGatewayName("GatewayA")
+                .setDeviceSecret("gateway-secret-updated")
                 .setConfigInfo("{}")
                 .setModelId(2)
                 .setDeviceNo("SN-001");

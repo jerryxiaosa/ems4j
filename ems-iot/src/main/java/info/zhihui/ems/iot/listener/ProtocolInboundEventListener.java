@@ -21,12 +21,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -53,14 +49,8 @@ public class ProtocolInboundEventListener {
             return;
         }
         LocalDateTime receivedAt = event.getReceivedAt() != null ? event.getReceivedAt() : LocalDateTime.now();
-        try {
-            Device device = deviceRegistry.getByDeviceNo(event.getDeviceNo());
-            device.setLastOnlineAt(receivedAt);
-            deviceRegistry.update(device);
-            log.debug("---- 协议心跳 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId());
-        } catch (Exception ex) {
-            log.warn("心跳处理异常 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId(), ex);
-        }
+        touchDeviceLastOnlineAt(event.getDeviceNo(), receivedAt, "协议心跳");
+        log.debug("---- 协议心跳 deviceNo={} session={}", event.getDeviceNo(), event.getSessionId());
     }
 
     @EventListener
@@ -70,6 +60,7 @@ public class ProtocolInboundEventListener {
         }
         LocalDateTime receivedAt = event.getReceivedAt() != null ? event.getReceivedAt() : LocalDateTime.now();
         LocalDateTime reportedAt = event.getReportedAt() != null ? event.getReportedAt() : receivedAt;
+        touchDeviceLastOnlineAt(event.getDeviceNo(), receivedAt, "能耗上报");
         DeviceEnergyReportEvent reportEvent = buildDeviceEnergyReportEvent(event, receivedAt, reportedAt);
         log.info("---- 能耗上报: {}", reportEvent);
         if (!energyReportPushProperties.isEnabled()) {
@@ -161,7 +152,7 @@ public class ProtocolInboundEventListener {
     private StandardEnergyReportPushVo buildPushVo(DeviceEnergyReportEvent reportEvent) {
         return new StandardEnergyReportPushVo()
                 .setSource(resolveSource(reportEvent))
-                .setSourceReportId(buildSourceReportId(reportEvent))
+                .setSourceReportId(UUID.randomUUID().toString())
                 .setDeviceNo(reportEvent.getDeviceNo())
                 .setRecordTime(reportEvent.getReportedAt())
                 .setTotalEnergy(reportEvent.getTotalEnergy())
@@ -182,31 +173,13 @@ public class ProtocolInboundEventListener {
         return "IOT";
     }
 
-    private String buildSourceReportId(DeviceEnergyReportEvent reportEvent) {
-        String sourceSeed = String.join("|",
-                StringUtils.defaultString(reportEvent.getDeviceNo()),
-                String.valueOf(reportEvent.getReportedAt()),
-                normalizeDecimal(reportEvent.getTotalEnergy()),
-                normalizeDecimal(reportEvent.getHigherEnergy()),
-                normalizeDecimal(reportEvent.getHighEnergy()),
-                normalizeDecimal(reportEvent.getLowEnergy()),
-                normalizeDecimal(reportEvent.getLowerEnergy()),
-                normalizeDecimal(reportEvent.getDeepLowEnergy()),
-                StringUtils.defaultString(reportEvent.getRaw()));
-        return sha256Hex(sourceSeed);
-    }
-
-    private String normalizeDecimal(BigDecimal value) {
-        return value == null ? "" : value.stripTrailingZeros().toPlainString();
-    }
-
-    private String sha256Hex(String content) {
+    private void touchDeviceLastOnlineAt(String deviceNo, LocalDateTime receivedAt, String sourceType) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = digest.digest(content.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(bytes);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException("不支持SHA-256算法", ex);
+            Device device = deviceRegistry.getByDeviceNo(deviceNo);
+            device.setLastOnlineAt(receivedAt);
+            deviceRegistry.update(device);
+        } catch (Exception ex) {
+            log.warn("{}更新在线时间异常 deviceNo={}", sourceType, deviceNo, ex);
         }
     }
 

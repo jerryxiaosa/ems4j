@@ -1,17 +1,19 @@
 package info.zhihui.ems.iot.application;
 
+import info.zhihui.ems.common.enums.DeviceTypeEnum;
+import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.iot.config.IotOnlineProperties;
 import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.common.model.energy.DatePlanItem;
+import info.zhihui.ems.iot.config.IotOnlineProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.vo.electric.ElectricDateDurationVo;
 import info.zhihui.ems.iot.vo.electric.ElectricDurationVo;
-import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,7 +37,7 @@ class DeviceVendorFacadeTest {
                 .setProduct(new Product().setAccessMode(DeviceAccessModeEnum.DIRECT))
                 .setLastOnlineAt(null);
         Mockito.when(deviceRegistry.getById(1)).thenReturn(device);
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertFalse(facade.getOnline(1));
     }
@@ -51,9 +53,58 @@ class DeviceVendorFacadeTest {
                 .setProduct(new Product().setAccessMode(DeviceAccessModeEnum.DIRECT))
                 .setLastOnlineAt(LocalDateTime.now().plusMinutes(5));
         Mockito.when(deviceRegistry.getById(1)).thenReturn(device);
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertFalse(facade.getOnline(1));
+    }
+
+    @Test
+    void testGetOnline_whenGatewaySelf_shouldReturnTrueWithoutProbeCommand() {
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        IotOnlineProperties onlineProperties = new IotOnlineProperties();
+        onlineProperties.setTimeoutSeconds(30);
+        CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
+        Device gateway = new Device()
+                .setId(1)
+                .setDeviceNo("gw-1")
+                .setProduct(new Product()
+                        .setAccessMode(DeviceAccessModeEnum.GATEWAY)
+                        .setDeviceType(DeviceTypeEnum.GATEWAY))
+                .setLastOnlineAt(LocalDateTime.now().minusSeconds(5));
+        Mockito.when(deviceRegistry.getById(1)).thenReturn(gateway);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
+
+        Assertions.assertTrue(facade.getOnline(1));
+        Mockito.verifyNoInteractions(commandAppService);
+    }
+
+    @Test
+    void testGetOnline_whenGatewayChild_shouldUseTargetDeviceLastOnlineAt() {
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        IotOnlineProperties onlineProperties = new IotOnlineProperties();
+        onlineProperties.setTimeoutSeconds(30);
+        CommandAppService commandAppService = Mockito.mock(CommandAppService.class);
+        Device childDevice = new Device()
+                .setId(2)
+                .setDeviceNo("meter-1")
+                .setParentId(1)
+                .setProduct(new Product()
+                        .setAccessMode(DeviceAccessModeEnum.GATEWAY)
+                        .setDeviceType(DeviceTypeEnum.ELECTRIC))
+                .setLastOnlineAt(LocalDateTime.now().minusSeconds(5));
+        Device gateway = new Device()
+                .setId(1)
+                .setDeviceNo("gw-1")
+                .setProduct(new Product()
+                        .setAccessMode(DeviceAccessModeEnum.GATEWAY)
+                        .setDeviceType(DeviceTypeEnum.GATEWAY))
+                .setLastOnlineAt(null);
+        Mockito.when(deviceRegistry.getById(2)).thenReturn(childDevice);
+        Mockito.when(deviceRegistry.getById(1)).thenReturn(gateway);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
+
+        Assertions.assertTrue(facade.getOnline(2));
+        Mockito.verifyNoInteractions(commandAppService);
     }
 
     @Test
@@ -66,7 +117,7 @@ class DeviceVendorFacadeTest {
                 .setData(5);
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertEquals(5, facade.getCt(1));
     }
@@ -81,7 +132,7 @@ class DeviceVendorFacadeTest {
                 .setErrorMessage("failed");
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.setCt(1, 5));
     }
@@ -95,7 +146,7 @@ class DeviceVendorFacadeTest {
         future.completeExceptionally(new IllegalStateException("send-fail"));
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(future);
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.cutPower(1));
     }
@@ -118,7 +169,7 @@ class DeviceVendorFacadeTest {
                 .setData(slots);
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         List<ElectricDurationVo> durations = facade.getDuration(1, 1);
 
@@ -141,7 +192,7 @@ class DeviceVendorFacadeTest {
                 .setData(List.of("bad"));
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.getDuration(1, 1));
     }
@@ -160,7 +211,7 @@ class DeviceVendorFacadeTest {
                 .setData(items);
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         List<ElectricDateDurationVo> durations = facade.getDateDuration(1);
 
@@ -183,8 +234,19 @@ class DeviceVendorFacadeTest {
                 .setData(List.of("bad"));
         Mockito.when(commandAppService.sendCommand(Mockito.eq(1), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(result));
-        DeviceVendorFacade facade = new DeviceVendorFacade(commandAppService, deviceRegistry, onlineProperties);
+        DeviceVendorFacade facade = buildFacade(commandAppService, deviceRegistry, onlineProperties);
 
         Assertions.assertThrows(BusinessRuntimeException.class, () -> facade.getDateDuration(1));
+    }
+
+    private DeviceVendorFacade buildFacade(CommandAppService commandAppService,
+                                           DeviceRegistry deviceRegistry,
+                                           IotOnlineProperties onlineProperties) {
+        return new DeviceVendorFacade(
+                commandAppService,
+                deviceRegistry,
+                onlineProperties,
+                new GatewayRouteService(deviceRegistry)
+        );
     }
 }

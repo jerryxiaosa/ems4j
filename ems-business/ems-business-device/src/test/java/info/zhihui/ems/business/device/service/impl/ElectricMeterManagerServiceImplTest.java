@@ -39,6 +39,7 @@ import info.zhihui.ems.components.context.RequestContext;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandAddDto;
 import info.zhihui.ems.foundation.integration.biz.command.dto.DeviceCommandCancelDto;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
+import info.zhihui.ems.foundation.integration.biz.command.enums.CommandTypeEnum;
 import info.zhihui.ems.foundation.integration.biz.command.service.DeviceCommandService;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.BaseElectricDeviceDto;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.ElectricDeviceAddDto;
@@ -50,6 +51,10 @@ import info.zhihui.ems.foundation.integration.core.service.DeviceModuleContext;
 import info.zhihui.ems.foundation.space.bo.SpaceBo;
 import info.zhihui.ems.foundation.space.enums.SpaceTypeEnum;
 import info.zhihui.ems.foundation.space.service.SpaceService;
+import info.zhihui.ems.mq.api.constant.device.DeviceMqConstant;
+import info.zhihui.ems.mq.api.message.device.DeviceCommandExecuteMessage;
+import info.zhihui.ems.mq.api.model.MqMessage;
+import info.zhihui.ems.mq.api.service.MqService;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +62,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -134,6 +140,9 @@ class ElectricMeterManagerServiceImplTest {
 
     @Mock
     private ElectricMeterPowerRecordService electricMeterPowerRecordService;
+
+    @Mock
+    private MqService mqService;
 
     @InjectMocks
     private ElectricMeterManagerServiceImpl electricMeterService;
@@ -256,6 +265,9 @@ class ElectricMeterManagerServiceImplTest {
         assertNotNull(result);
         verify(repository).insert(entity);
         verify(repository).updateById(any(ElectricMeterEntity.class));
+        verify(deviceCommandService, times(2)).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+        verify(mqService).sendMessageAfterCommit(any(MqMessage.class));
         ArgumentCaptor<ElectricDeviceAddDto> deviceAddCaptor = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(deviceAddCaptor.capture());
         ElectricDeviceAddDto capturedDto = deviceAddCaptor.getValue();
@@ -1078,6 +1090,7 @@ class ElectricMeterManagerServiceImplTest {
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("12345", capturedCommand.getDeviceIotId());
         assertEquals(CommandSourceEnum.USER, capturedCommand.getCommandSource());
+        assertFalse(capturedCommand.getEnsureSuccess());
 
         // 验证更新电表状态
         ArgumentCaptor<ElectricMeterEntity> captor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
@@ -1142,6 +1155,7 @@ class ElectricMeterManagerServiceImplTest {
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("12345", capturedCommand.getDeviceIotId());
         assertEquals(CommandSourceEnum.USER, capturedCommand.getCommandSource());
+        assertFalse(capturedCommand.getEnsureSuccess());
 
         // 验证更新电表状态
         ArgumentCaptor<ElectricMeterEntity> captor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
@@ -1250,6 +1264,7 @@ class ElectricMeterManagerServiceImplTest {
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("12345", capturedCommand.getDeviceIotId());
         assertEquals(CommandSourceEnum.USER, capturedCommand.getCommandSource());
+        assertFalse(capturedCommand.getEnsureSuccess());
 
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
         verify(repository).updateById(entityCaptor.capture());
@@ -1286,6 +1301,7 @@ class ElectricMeterManagerServiceImplTest {
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("12345", capturedCommand.getDeviceIotId());
         assertEquals(CommandSourceEnum.USER, capturedCommand.getCommandSource());
+        assertFalse(capturedCommand.getEnsureSuccess());
 
         ArgumentCaptor<ElectricMeterEntity> entityCaptor = ArgumentCaptor.forClass(ElectricMeterEntity.class);
         verify(repository).updateById(entityCaptor.capture());
@@ -1321,6 +1337,38 @@ class ElectricMeterManagerServiceImplTest {
         verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
         verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.USER));
         verify(repository, never()).updateById(any(ElectricMeterEntity.class));
+    }
+
+    @Test
+    void testSetElectricTime_ShouldDisableOldAutoCommandAndSaveRetryableCommand() {
+        ElectricMeterBo meterBo = new ElectricMeterBo();
+        meterBo.setId(1)
+                .setSpaceId(100)
+                .setIotId("12345")
+                .setOwnAreaId(1000)
+                .setMeterName("测试电表")
+                .setDeviceNo("EM202401010001");
+        ElectricPriceTimeDto timeDto = new ElectricPriceTimeDto()
+                .setStart(LocalTime.of(0, 0))
+                .setType(ElectricPricePeriodEnum.HIGHER);
+        ElectricMeterTimeDto dto = new ElectricMeterTimeDto()
+                .setId(1)
+                .setTimeList(List.of(timeDto))
+                .setCommandSource(CommandSourceEnum.USER);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(meterBo);
+        when(spaceService.getDetail(100)).thenReturn(spaceBo);
+
+        assertDoesNotThrow(() -> electricMeterService.setElectricTime(dto));
+
+        ArgumentCaptor<DeviceCommandCancelDto> cancelCaptor = ArgumentCaptor.forClass(DeviceCommandCancelDto.class);
+        verify(deviceCommandService).cancelDeviceCommand(cancelCaptor.capture());
+        assertEquals(CommandTypeEnum.ENERGY_ELECTRIC_PRICE_TIME, cancelCaptor.getValue().getCommandType());
+
+        ArgumentCaptor<DeviceCommandAddDto> commandCaptor = ArgumentCaptor.forClass(DeviceCommandAddDto.class);
+        verify(deviceCommandService).saveDeviceCommand(commandCaptor.capture());
+        assertTrue(commandCaptor.getValue().getEnsureSuccess());
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.USER));
     }
 
 
@@ -1630,6 +1678,12 @@ class ElectricMeterManagerServiceImplTest {
         verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
         // 验证执行设备命令（来源为SYSTEM）
         verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+
+        InOrder inOrder = inOrder(repository, deviceCommandService);
+        inOrder.verify(repository).deleteById(1);
+        inOrder.verify(repository).insert(any(ElectricMeterEntity.class));
+        inOrder.verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        inOrder.verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
     }
 
     @Test
@@ -1981,10 +2035,9 @@ class ElectricMeterManagerServiceImplTest {
 
     @Test
     void testAdd_Success_WithSetMeterCtCommand() {
-        // 准备数据 - 确保CT为null以触发setElectricCt调用
+        // 准备数据 - CT为空时，支持CT的型号会补默认值1，仍会触发CT初始化命令
         List<ElectricPriceTimeDto> timeList = List.of(new ElectricPriceTimeDto().setStart(LocalTime.of(0, 0)).setType(ElectricPricePeriodEnum.HIGHER));
 
-        // 设置entity的CT为null，这样会触发setElectricCt方法
         entity.setCt(null);
         saveDto.setCt(null);
 
@@ -2020,18 +2073,43 @@ class ElectricMeterManagerServiceImplTest {
         assertNotNull(capturedAddDevice.getProductCode());
         assertNotNull(capturedAddDevice.getDeviceNo());
 
-        // 验证setElectricCt被调用 - 通过验证saveMeterCommandAndRun被调用
+        // 验证保存了两条初始化命令，CT 同步执行，时间命令异步触发
         ArgumentCaptor<DeviceCommandAddDto> commandCaptor = ArgumentCaptor.forClass(DeviceCommandAddDto.class);
         verify(deviceCommandService, times(2)).saveDeviceCommand(commandCaptor.capture());
         List<DeviceCommandAddDto> capturedCommands = commandCaptor.getAllValues();
-        assertEquals(2, capturedCommands.size());
+        assertEquals(CommandTypeEnum.ENERGY_ELECTRIC_CT, capturedCommands.get(0).getCommandType());
+        assertEquals(CommandTypeEnum.ENERGY_ELECTRIC_PRICE_TIME, capturedCommands.get(1).getCommandType());
         assertEquals("12345", capturedCommands.get(0).getDeviceIotId());
         assertEquals("12345", capturedCommands.get(1).getDeviceIotId());
+        assertFalse(capturedCommands.stream()
+                .filter(command -> CommandTypeEnum.ENERGY_ELECTRIC_CT.equals(command.getCommandType()))
+                .findFirst()
+                .orElseThrow()
+                .getEnsureSuccess());
+        assertTrue(capturedCommands.stream()
+                .filter(command -> CommandTypeEnum.ENERGY_ELECTRIC_PRICE_TIME.equals(command.getCommandType()))
+                .findFirst()
+                .orElseThrow()
+                .getEnsureSuccess());
+
+        ArgumentCaptor<MqMessage> mqCaptor = ArgumentCaptor.forClass(MqMessage.class);
+        verify(mqService).sendMessageAfterCommit(mqCaptor.capture());
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+        MqMessage capturedMqMessage = mqCaptor.getValue();
+        assertEquals(DeviceMqConstant.DEVICE_DESTINATION, capturedMqMessage.getMessageDestination());
+        assertEquals(DeviceMqConstant.ROUTING_KEY_DEVICE_COMMAND_EXECUTE, capturedMqMessage.getRoutingIdentifier());
+        assertInstanceOf(DeviceCommandExecuteMessage.class, capturedMqMessage.getPayload());
+        DeviceCommandExecuteMessage executeMessage = (DeviceCommandExecuteMessage) capturedMqMessage.getPayload();
+        assertNotNull(executeMessage.getCommandId());
+
+        InOrder inOrder = inOrder(deviceCommandService, mqService);
+        inOrder.verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+        inOrder.verify(mqService).sendMessageAfterCommit(any(MqMessage.class));
     }
 
     @Test
     void testAdd_Success_WithCtAlreadySet() {
-        // 准备数据 - CT已设置，不应触发setElectricCt调用
+        // 准备数据 - CT已设置，应保存两条初始化命令并发送两条首次执行消息
         List<ElectricPriceTimeDto> timeList = List.of(new ElectricPriceTimeDto().setStart(LocalTime.of(0, 0)).setType(ElectricPricePeriodEnum.HIGHER));
 
         // 设置entity的CT不为null，这样不会触发setElectricCt方法
@@ -2061,11 +2139,90 @@ class ElectricMeterManagerServiceImplTest {
         assertNotNull(result);
         verify(repository).insert(entity);
         verify(repository).updateById(any(ElectricMeterEntity.class));
+        verify(deviceCommandService, times(2)).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+        verify(mqService).sendMessageAfterCommit(any(MqMessage.class));
         ArgumentCaptor<ElectricDeviceAddDto> addDeviceCaptor2 = ArgumentCaptor.forClass(ElectricDeviceAddDto.class);
         verify(energyService).addDevice(addDeviceCaptor2.capture());
         ElectricDeviceAddDto capturedAddDevice2 = addDeviceCaptor2.getValue();
         assertNotNull(capturedAddDevice2.getProductCode());
         assertNotNull(capturedAddDevice2.getDeviceNo());
+    }
+
+    @Test
+    void testAdd_WhenInitCtExecuteFailed_ShouldNotSendPriceTimeMessage() {
+        entity.setCt(100);
+        saveDto.setCt(100);
+
+        ElectricMeterQueryDto query = new ElectricMeterQueryDto().setPortNo(1).setGatewayId(300).setMeterAddress(1);
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(bo);
+        when(mapper.saveDtoToEntity(saveDto)).thenReturn(entity);
+        when(deviceModelService.getDetail(200)).thenReturn(deviceModelBo);
+        when(spaceService.getDetail(100)).thenReturn(spaceBo);
+        when(gatewayService.getDetail(300)).thenReturn(gatewayBo);
+        when(electricMeterInfoService.findList(query)).thenReturn(Collections.emptyList());
+        when(repository.updateById(any(ElectricMeterEntity.class))).thenReturn(1);
+        when(deviceModuleContext.getService(eq(EnergyService.class), eq(1000))).thenReturn(energyService);
+        when(energyService.addDevice(any(ElectricDeviceAddDto.class))).thenReturn("12345");
+        when(requestContext.getUserId()).thenReturn(1001);
+        when(requestContext.getUserRealName()).thenReturn("测试用户");
+        doThrow(new BusinessRuntimeException("CT执行失败"))
+                .when(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterService.add(saveDto));
+
+        assertEquals("CT执行失败", exception.getMessage());
+        verify(deviceCommandService, times(1)).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+        verify(deviceCommandService, times(1)).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        verify(mqService, never()).sendMessageAfterCommit(any(MqMessage.class));
+    }
+
+    @Test
+    void testSetMeterCt_WhenExecCommandFailed_ShouldThrow() {
+        ElectricMeterCtDto dto = new ElectricMeterCtDto()
+                .setMeterId(1)
+                .setCt(100);
+
+        ElectricMeterBo existingBo = new ElectricMeterBo()
+                .setId(1)
+                .setModelId(1000)
+                .setCt(50)
+                .setAccountId(null)
+                .setIotId("123")
+                .setOwnAreaId(1000);
+
+        DeviceModelBo deviceModel = new DeviceModelBo()
+                .setId(1000)
+                .setProductCode("meter-model-1000-sync")
+                .setModelProperty(Map.of("isCt", true));
+
+        when(electricMeterInfoService.getDetail(1)).thenReturn(existingBo);
+        when(mapper.boToEntity(existingBo)).thenReturn(new ElectricMeterEntity().setId(1).setModelId(1000).setIotId("123").setCt(100));
+        when(deviceModelService.getDetail(1000)).thenReturn(deviceModel);
+        int newMeterId = 2;
+        when(repository.insert(any(ElectricMeterEntity.class))).thenAnswer(invocation -> {
+            ElectricMeterEntity entity = invocation.getArgument(0);
+            entity.setId(newMeterId);
+            return 1;
+        });
+        ElectricMeterBo newBo = new ElectricMeterBo()
+                .setId(newMeterId)
+                .setModelId(1000)
+                .setIotId("123")
+                .setCt(dto.getCt())
+                .setOwnAreaId(1000);
+        when(electricMeterInfoService.getDetail(newMeterId)).thenReturn(newBo);
+        doThrow(new BusinessRuntimeException("CT执行失败"))
+                .when(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                () -> electricMeterService.setMeterCt(dto));
+
+        assertEquals("CT执行失败", exception.getMessage());
+        verify(deviceCommandService).saveDeviceCommand(any(DeviceCommandAddDto.class));
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
     }
 
     @Test
@@ -2119,13 +2276,15 @@ class ElectricMeterManagerServiceImplTest {
         assertEquals(dto.getCt(), insertedEntity.getCt());
         assertEquals(newMeterId, insertedEntity.getId());
 
-        // 验证setElectricCt被调用 - 通过验证saveMeterCommandAndRun被调用
+        // 验证 CT 命令被保存并同步执行
         ArgumentCaptor<DeviceCommandAddDto> commandCaptor = ArgumentCaptor.forClass(DeviceCommandAddDto.class);
         verify(deviceCommandService).saveDeviceCommand(commandCaptor.capture());
         DeviceCommandAddDto capturedCommand = commandCaptor.getValue();
         assertEquals("123", capturedCommand.getDeviceIotId());
         assertEquals(CommandSourceEnum.SYSTEM, capturedCommand.getCommandSource());
         assertEquals(newMeterId, capturedCommand.getDeviceId());
+        assertFalse(capturedCommand.getEnsureSuccess());
+        verify(deviceCommandService).execDeviceCommand(anyInt(), eq(CommandSourceEnum.SYSTEM));
     }
 
     /**

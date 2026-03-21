@@ -56,7 +56,8 @@ export interface GatewayCreatePayload {
   deviceNo: string
   sn?: string
   imei?: string
-  configInfo: string
+  deviceSecret?: string
+  configInfo?: string
   remark?: string
 }
 
@@ -68,6 +69,7 @@ export interface GatewayUpdatePayload {
   deviceNo: string
   sn?: string
   imei?: string
+  deviceSecret?: string
   configInfo?: string
   remark?: string
 }

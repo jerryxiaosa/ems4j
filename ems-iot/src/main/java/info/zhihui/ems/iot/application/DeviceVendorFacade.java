@@ -9,7 +9,9 @@ import info.zhihui.ems.iot.domain.command.DeviceCommandRequest;
 import info.zhihui.ems.iot.domain.command.concrete.*;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
+import info.zhihui.ems.iot.domain.model.GatewayRoute;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.vo.electric.ElectricDateDurationVo;
 import info.zhihui.ems.iot.vo.electric.ElectricDurationUpdateVo;
@@ -37,6 +39,7 @@ public class DeviceVendorFacade {
     private final CommandAppService commandAppService;
     private final DeviceRegistry deviceRegistry;
     private final IotOnlineProperties onlineProperties;
+    private final GatewayRouteService gatewayRouteService;
 
     public Integer getCt(Integer deviceId) {
         DeviceCommandResult result = sendAndAssertSuccess(deviceId, new GetCtCommand(), "CT读取");
@@ -100,7 +103,7 @@ public class DeviceVendorFacade {
         DeviceAccessModeEnum accessMode = device.getProduct() == null ? null : device.getProduct().getAccessMode();
 
         if (DeviceAccessModeEnum.GATEWAY.equals(accessMode)) {
-            return probeGatewayChildOnline(device);
+            return probeGatewayOnline(device);
         }
         return isDirectOnline(device);
     }
@@ -307,16 +310,11 @@ public class DeviceVendorFacade {
         return seconds <= timeoutSeconds;
     }
 
-    private boolean probeGatewayChildOnline(Device device) {
-        Integer parentId = device.getParentId();
-        if (parentId == null) {
-            throw new BusinessRuntimeException("网关设备缺失");
+    private boolean probeGatewayOnline(Device device) {
+        GatewayRoute gatewayRoute = gatewayRouteService.getRoute(device);
+        if (gatewayRoute.isGatewaySelf()) {
+            return isDirectOnline(gatewayRoute.getGateway());
         }
-        Device gateway = deviceRegistry.getById(parentId);
-        if (!isDirectOnline(gateway)) {
-            return false;
-        }
-        sendAndAssertSuccess(device.getId(), new GetTotalEnergyCommand(), "在线探测");
-        return true;
+        return isDirectOnline(gatewayRoute.getTargetDevice());
     }
 }

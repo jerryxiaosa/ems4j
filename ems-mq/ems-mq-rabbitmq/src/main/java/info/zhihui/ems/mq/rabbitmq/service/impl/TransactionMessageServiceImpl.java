@@ -1,5 +1,6 @@
 package info.zhihui.ems.mq.rabbitmq.service.impl;
 
+import info.zhihui.ems.common.utils.RetryBackoffUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.common.utils.JacksonUtil;
@@ -29,16 +30,6 @@ import java.util.List;
 @Slf4j
 @Validated
 public class TransactionMessageServiceImpl implements TransactionMessageService {
-    /**
-     * 指数退避基础秒数。
-     */
-    private static final long RETRY_BASE_SECONDS = 60L;
-
-    /**
-     * 指数退避最大秒数上限。
-     */
-    private static final long RETRY_MAX_SECONDS = 3600L;
-
     /**
      * 单次查询补拉的最大扫描轮次，避免长时间占用数据库。
      */
@@ -272,32 +263,6 @@ public class TransactionMessageServiceImpl implements TransactionMessageService 
         if (baseTime == null) {
             return true;
         }
-
-        long backoffSeconds = calculateBackoffSeconds(messageBo.getTryTimes());
-        LocalDateTime nextRetryAt = baseTime.plusSeconds(backoffSeconds);
-        return !nextRetryAt.isAfter(now);
-    }
-
-    /**
-     * 计算指数退避秒数。
-     * 公式：delay = min(base * 2^(tryTimes-1), max)，其中 tryTimes<=1 时按 base 处理。
-     *
-     * @param tryTimes 当前重试次数
-     * @return 退避秒数
-     */
-    private long calculateBackoffSeconds(Integer tryTimes) {
-        int safeTryTimes = tryTimes == null ? 0 : Math.max(tryTimes, 0);
-        if (safeTryTimes <= 1) {
-            return RETRY_BASE_SECONDS;
-        }
-
-        long delaySeconds = RETRY_BASE_SECONDS;
-        for (int i = 1; i < safeTryTimes; i++) {
-            if (delaySeconds >= RETRY_MAX_SECONDS) {
-                return RETRY_MAX_SECONDS;
-            }
-            delaySeconds = Math.min(delaySeconds * 2, RETRY_MAX_SECONDS);
-        }
-        return delaySeconds;
+        return RetryBackoffUtil.shouldRetryNow(baseTime, messageBo.getTryTimes(), now);
     }
 }

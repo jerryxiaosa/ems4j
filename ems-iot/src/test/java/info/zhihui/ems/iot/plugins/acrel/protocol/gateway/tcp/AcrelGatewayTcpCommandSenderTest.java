@@ -1,13 +1,13 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp;
 
+import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.iot.domain.command.concrete.GetCtCommand;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.Product;
-import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
-import info.zhihui.ems.iot.protocol.port.outbound.MultiStepDeviceCommandTranslator;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
@@ -16,7 +16,9 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPack
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
+import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
+import info.zhihui.ems.iot.protocol.port.outbound.MultiStepDeviceCommandTranslator;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.StepResult;
 import org.junit.jupiter.api.Assertions;
@@ -75,7 +77,7 @@ class AcrelGatewayTcpCommandSenderTest {
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, deviceRegistry,
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -101,7 +103,7 @@ class AcrelGatewayTcpCommandSenderTest {
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, deviceRegistry,
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -120,6 +122,36 @@ class AcrelGatewayTcpCommandSenderTest {
     }
 
     @Test
+    void send_whenGatewaySelf_shouldThrowUnsupported() {
+        ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
+        DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
+        AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
+                new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
+
+        Device device = new Device()
+                .setId(1)
+                .setDeviceNo("gw-1")
+                .setDeviceSecret("1234567890abcdef")
+                .setProduct(new Product()
+                        .setVendor("ACREL")
+                        .setCode("ACREL_GATEWAY")
+                        .setAccessMode(DeviceAccessModeEnum.GATEWAY)
+                        .setDeviceType(DeviceTypeEnum.GATEWAY));
+        DeviceCommand command = new DeviceCommand()
+                .setDevice(device)
+                .setType(DeviceCommandTypeEnum.GET_CT)
+                .setPayload(new GetCtCommand());
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class, () -> sender.send(command));
+
+        Assertions.assertEquals("暂不支持网关设备自身下发命令，deviceNo=gw-1", exception.getMessage());
+        Mockito.verifyNoInteractions(translatorRegistry, commandTransport);
+    }
+
+    @Test
     void send_whenGateway_shouldSendAndReturnResult() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
@@ -128,7 +160,7 @@ class AcrelGatewayTcpCommandSenderTest {
         AcrelGatewayTransparentCodec gatewayTransparentCodec = new AcrelGatewayTransparentCodec();
         AcrelGatewayFrameCodec gatewayFrameCodec = new AcrelGatewayFrameCodec();
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, deviceRegistry,
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
                 gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec);
 
         Device device = new Device()
@@ -184,7 +216,7 @@ class AcrelGatewayTcpCommandSenderTest {
         AcrelGatewayTransparentCodec gatewayTransparentCodec = new AcrelGatewayTransparentCodec();
         AcrelGatewayFrameCodec gatewayFrameCodec = new AcrelGatewayFrameCodec();
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, deviceRegistry,
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
                 gatewayFrameCodec, gatewayCryptoService, gatewayTransparentCodec);
 
         Device device = new Device()
@@ -250,7 +282,7 @@ class AcrelGatewayTcpCommandSenderTest {
         DeviceCommandTranslatorResolver translatorRegistry = Mockito.mock(DeviceCommandTranslatorResolver.class);
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayTcpCommandSender sender = new AcrelGatewayTcpCommandSender(
-                commandTransport, translatorRegistry, deviceRegistry,
+                commandTransport, translatorRegistry, new GatewayRouteService(deviceRegistry),
                 new AcrelGatewayFrameCodec(), new AcrelGatewayCryptoService(), new AcrelGatewayTransparentCodec());
 
         Device device = new Device()
@@ -291,10 +323,11 @@ class AcrelGatewayTcpCommandSenderTest {
     }
 
     private AcrelGatewayTcpCommandSender buildSender() {
+        DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         return new AcrelGatewayTcpCommandSender(
                 Mockito.mock(ProtocolCommandTransport.class),
                 Mockito.mock(DeviceCommandTranslatorResolver.class),
-                Mockito.mock(DeviceRegistry.class),
+                new GatewayRouteService(deviceRegistry),
                 new AcrelGatewayFrameCodec(),
                 new AcrelGatewayCryptoService(),
                 new AcrelGatewayTransparentCodec()

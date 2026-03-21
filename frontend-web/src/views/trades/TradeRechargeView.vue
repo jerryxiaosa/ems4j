@@ -173,7 +173,7 @@ const summaryRows = computed(() => {
   const enterprise = selectedEnterprise.value
   if (!enterprise) {
     return [
-      { label: '机构名称', value: '--' },
+      { label: '账户名称', value: '--' },
       { label: '负责人', value: '--' },
       { label: '手机号', value: '--' },
       { label: '电费余额（元）', value: '--' },
@@ -183,7 +183,7 @@ const summaryRows = computed(() => {
   }
 
   return [
-    { label: '机构名称', value: enterprise.name || '--' },
+    { label: '账户名称', value: enterprise.name || '--' },
     { label: '负责人', value: enterprise.contactName || '--' },
     { label: '手机号', value: enterprise.contactPhone || '--' },
     { label: '电费余额（元）', value: enterprise.electricBalanceAmountText || '--' },
@@ -477,7 +477,7 @@ const ensureCurrentUser = async (): Promise<CurrentUser> => {
 const buildEnergyTopUpPayload = async (orderAmount: number) => {
   const enterprise = selectedEnterprise.value
   if (!enterprise) {
-    throw new Error('请先选择机构')
+    throw new Error('请先选择账户')
   }
 
   await ensureOrderEnumOptions()
@@ -621,7 +621,7 @@ const handleMeterConfirm = (meter: RechargeMeterItem) => {
 
 const validateSubmit = (): number | null => {
   if (!selectedEnterprise.value) {
-    setNotice('error', '请先选择机构')
+    setNotice('error', '请先选择账户')
     return null
   }
   if (isNeedMeter.value && !selectedMeter.value) {
@@ -705,10 +705,10 @@ onMounted(() => {
       <div class="workspace-search">
         <div class="search-row search-row-recharge">
           <label class="search-item search-item-enterprise">
-            <span class="search-label-inline search-label-required">选择机构</span>
+            <span class="search-label-inline search-label-required">选择账户</span>
             <OrganizationPicker
               v-model="enterpriseKeyword"
-              placeholder="请选择机构"
+              placeholder="请选择账户"
               :disabled="selectingEnterprise"
               :search-fn="searchAccountOptions"
               @select="selectEnterprise"

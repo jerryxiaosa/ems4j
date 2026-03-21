@@ -95,7 +95,14 @@ schedule:
   aspect:
     enabled: true
 
-useRealDevice: false
+device:
+  module:
+    use-real-device: false
+  command:
+    retry:
+      max-execute-times: 10
+      fetch-size: 100
+      running-timeout-minutes: 10
 
 sa-token:
   token-name: Authorization

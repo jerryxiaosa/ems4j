@@ -36,6 +36,10 @@ public class GatewayUpdateVo {
     @Schema(description = "设备编号，设备上报标识", requiredMode = Schema.RequiredMode.REQUIRED)
     private String deviceNo;
 
+    @Size(max = 128)
+    @Schema(description = "设备密钥，留空表示不修改")
+    private String deviceSecret;
+
     @Schema(description = "网关序列号")
     private String sn;
 

@@ -72,9 +72,14 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
             return Boolean.FALSE;
         }
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, ownAreaId);
-        return energyService.isOnline(new BaseElectricDeviceDto()
-                .setDeviceId(iotId)
-                .setAreaId(ownAreaId));
+        try {
+            return energyService.isOnline(new BaseElectricDeviceDto()
+                    .setDeviceId(iotId)
+                    .setAreaId(ownAreaId));
+        } catch (Exception e) {
+            // 获取在线状态失败，返回 false
+            return false;
+        }
     }
 
     /**
