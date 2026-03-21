@@ -6,7 +6,7 @@
 
 [English](README_EN.md)
 
-EMS4J是一款基于Spring Boot多模块架构的能源管理系统，支持预付费和能耗分析两种模式。系统具有远程设备的控制能力，支持按需、合并、包月等多种计费方式。支持微信支付与线下支付。提供尖峰平谷计量、阶梯电价、账户管理与财务核算等完整功能，兼容多协议设备接入。代码结构清晰，易于二次开发与功能扩展。  
+EMS4J是一款基于Spring Boot多模块架构的能源管理系统，支持预付费和能耗分析两种模式。系统具有远程设备的控制能力，支持按需、合并、包月等多种计费方式。支持微信支付与线下支付。提供尖峰平谷计量、阶梯电价、账户管理与财务核算等完整功能，兼容多协议设备接入。代码结构清晰，易于二次开发与功能扩展。可落地为校园宿舍预付费系统、园区预付费系统等典型场景。  
 **它同时也是一个适合学习复杂业务建模与 Spring Boot 多模块架构拆分的开源项目。**
 
 ## 核心功能
@@ -40,33 +40,23 @@ docker compose -f deploy/compose/docker-compose.full.yml up -d --build
 
 ## 项目亮点与设计看点
 
-### 业务与架构
+- **完整的预付费业务闭环**  
+  覆盖开户、充值、扣费、预警、销户结算、订单支付与远程控制，不是单纯的 CRUD 后台。
 
-- **不是普通后台 CRUD 项目**  
-  这里包含预付费、计费结算、订单支付、远程控制、权限模型等完整业务闭环。
+- **清晰的多模块分层结构**  
+  采用 Spring Boot 多模块架构，`device / account / billing / order / lease / plan / aggregation` 等业务域职责明确，便于二次开发与阅读。
 
-- **复杂业务系统的模块边界拆分**  
-  采用 Spring Boot 多模块架构，`device / account / billing / order / lease / plan / aggregation` 职责清晰，便于系统化阅读和参考。
+- **适合参考复杂业务建模**  
+  包含按需、合并、包月等计费模式，以及账户、电表、订单、账务之间的协同关系。
 
-- **预付费场景下的业务建模方法**  
-  包括按需、合并、包月等计费模式，以及账户、电表、订单之间的协同关系。
+- **不止业务后台，还包含 IoT 接入链路**  
+  提供独立 `ems-iot` 模块，支持多协议接入、报文解析、命令下发与事件发布。
 
-- **计费、账务与权限链路的实现方式**  
-  包括余额扣费、消费记录、订单支付、销户结算、预警联动、角色权限与菜单权限等关键流程。
+- **异步处理与幂等保护完整**  
+  包含 MQ、事务消息、重复上报处理与唯一索引兜底等工程实践。
 
-### IoT 与工程实现
-
-- **包含 IoT 接入链路，不只停留在业务后台**  
-  提供独立 `ems-iot` 模块，支持基于 Netty 的多协议接入、报文解析、命令下发与事件发布。
-
-- **IoT 接入与业务域解耦**  
-  参考 `ems-iot`、`foundation.integration` 与业务模块之间的职责划分，以及协议接入、事件发布、平台集成的组织方式。
-
-- **MQ 异步处理与幂等保护**  
-  覆盖标准电量上报、事务消息、重复上报处理、唯一索引兜底等实现思路。
-
-- **可以本地运行，不是概念仓库**  
-  提供前后端工程、Docker 依赖环境、数据库脚本和运行说明，能够直接体验完整链路。
+- **可直接本地运行和体验**  
+  提供前后端工程、Docker 依赖环境、数据库脚本和运行说明，不是概念仓库。
 
 ## 核心页面预览
 
@@ -309,8 +299,8 @@ pnpm test:e2e
 | `ems-mq-*`                    | 消息基础设施 API（ems-mq-api）与业务消息应用层实现（ems-mq-rabbitmq） |
 | `ems-iot`                     | Netty 设备接入、协议解析                                  |
 | `ems-schedule`                | 定时任务                                             |
-| `frontend-web` ![NEW](https://img.shields.io/badge/NEW-orange) | Vue 3 + TypeScript 前端管理台，含 Vitest 单测与 Playwright 冒烟回归 |
-| `deploy` ![NEW](https://img.shields.io/badge/NEW-orange) ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen)      | Docker Compose、Dockerfile、初始化 SQL 与环境示例，提供本地基础设施和全量部署编排 |
+| `frontend-web` | Vue 3 + TypeScript 前端管理台，含 Vitest 单测与 Playwright 冒烟回归 |
+| `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen)      | Docker Compose、Dockerfile、初始化 SQL 与环境示例，提供本地基础设施和全量部署编排 |
 
 说明：
 - ems-mq-api 提供消息契约与基础服务接口（基础设施层）。
