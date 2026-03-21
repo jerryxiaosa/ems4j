@@ -118,7 +118,7 @@ docker compose -f deploy/compose/docker-compose.infra.yml up -d
 ```bash
 # 后端
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 
 # 前端
 cd frontend-web
@@ -165,7 +165,7 @@ VITE_PROXY_TARGET=http://127.0.0.1:18080 pnpm dev
 
 ```bash
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 ```
 
 ## 构建与测试

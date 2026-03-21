@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.zhihui</groupId>
         <artifactId>ems-mq</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>ems-mq-rabbitmq</artifactId>

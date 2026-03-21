@@ -119,7 +119,7 @@ Then start backend and frontend separately:
 ```bash
 # backend
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 
 # frontend
 cd frontend-web
@@ -170,7 +170,7 @@ Build and run:
 
 ```bash
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.1.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
 ```
 
 ## Build & Test
