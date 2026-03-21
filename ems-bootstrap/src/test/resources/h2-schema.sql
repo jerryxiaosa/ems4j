@@ -225,6 +225,7 @@ CREATE TABLE energy_gateway
     communicate_model varchar(100)          DEFAULT NULL,
     sn                varchar(50)           DEFAULT NULL,
     imei              VARCHAR(50)           DEFAULT NULL,
+    device_secret     VARCHAR(128)          DEFAULT NULL,
     is_online         BOOLEAN               DEFAULT NULL,
     config_info       text,
     remark            varchar(500),

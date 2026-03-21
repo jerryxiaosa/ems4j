@@ -6,11 +6,12 @@ import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.Product;
-import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
-import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandlerResolver;
+import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
+import info.zhihui.ems.iot.protocol.port.registry.DeviceProtocolHandlerResolver;
+import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -23,6 +24,7 @@ public class CommandAppService {
 
     private final DeviceRegistry deviceRegistry;
     private final DeviceProtocolHandlerResolver handlerResolver;
+    private final GatewayRouteService gatewayRouteService;
 
     public CompletableFuture<DeviceCommandResult> sendCommand(Integer deviceId, DeviceCommandRequest request) {
         if (request == null) {
@@ -52,34 +54,22 @@ public class CommandAppService {
     }
 
     private ProtocolSignature buildSignature(Device device, Product product) {
+        Product signatureProduct = product;
         if (DeviceAccessModeEnum.GATEWAY.equals(product.getAccessMode())) {
-            Integer parentId = device.getParentId();
-            if (parentId == null) {
-                throw new IllegalArgumentException("网关设备缺失，无法下发命令");
-            }
-            Device gateway = deviceRegistry.getById(parentId);
-            Product gatewayProduct = gateway.getProduct();
-            if (gatewayProduct == null || !StringUtils.hasText(gatewayProduct.getVendor())) {
-                throw new IllegalArgumentException("网关产品信息缺失，无法下发命令");
-            }
-            if (gatewayProduct.getAccessMode() == null) {
-                throw new IllegalArgumentException("网关接入方式缺失，无法下发命令");
-            }
-            TransportProtocolEnum protocol = gatewayProduct.getProtocol();
-            TransportProtocolEnum transport = protocol == null ? TransportProtocolEnum.TCP : protocol;
-            return new ProtocolSignature()
-                    .setVendor(gatewayProduct.getVendor())
-                    .setProductCode(gatewayProduct.getCode())
-                    .setAccessMode(gatewayProduct.getAccessMode())
-                    .setTransportType(transport);
+            signatureProduct = gatewayRouteService.getRoute(device).getGateway().getProduct();
         }
-
-        TransportProtocolEnum protocol = product.getProtocol();
+        if (signatureProduct == null || !StringUtils.hasText(signatureProduct.getVendor())) {
+            throw new IllegalArgumentException("产品信息缺失，无法下发命令");
+        }
+        if (signatureProduct.getAccessMode() == null) {
+            throw new IllegalArgumentException("接入方式缺失，无法下发命令");
+        }
+        TransportProtocolEnum protocol = signatureProduct.getProtocol();
         TransportProtocolEnum transport = protocol == null ? TransportProtocolEnum.TCP : protocol;
         return new ProtocolSignature()
-                .setVendor(product.getVendor())
-                .setProductCode(product.getCode())
-                .setAccessMode(product.getAccessMode())
+                .setVendor(signatureProduct.getVendor())
+                .setProductCode(signatureProduct.getCode())
+                .setAccessMode(signatureProduct.getAccessMode())
                 .setTransportType(transport);
     }
 }

@@ -82,6 +82,7 @@ class GatewayServiceImplIntegrationTest {
         addDto.setModelId(1);
         addDto.setSn("TEST_SN");
         addDto.setDeviceNo(addDto.getSn());
+        addDto.setDeviceSecret("gateway-secret");
         assertThrows(ConstraintViolationException.class, () -> {
             gatewayService.add(addDto);
         }, "add方法spaceId为null应抛出ConstraintViolationException");
@@ -101,9 +102,14 @@ class GatewayServiceImplIntegrationTest {
         addDtoConfig.setModelId(1);
         addDtoConfig.setSn("TEST_SN");
         addDtoConfig.setDeviceNo(addDtoConfig.getSn());
-        assertThrows(ConstraintViolationException.class, () -> {
+        addDtoConfig.setDeviceSecret("gateway-secret");
+        try {
             gatewayService.add(addDtoConfig);
-        }, "add方法configInfo为null应抛出ConstraintViolationException");
+        } catch (ConstraintViolationException e) {
+            throw new AssertionError("add方法configInfo为null不应抛出ConstraintViolationException", e);
+        } catch (Exception e) {
+            // 这里不关心业务执行结果，只验证参数校验已放开
+        }
     }
 
     @Test
@@ -209,6 +215,7 @@ class GatewayServiceImplIntegrationTest {
         dto.setModelId(4);
         dto.setSn("TEST_SN_" + System.currentTimeMillis());
         dto.setDeviceNo(dto.getSn());
+        dto.setDeviceSecret("gateway-secret");
         dto.setConfigInfo("{\"test\":\"data\"}");
         dto.setRemark("测试备注");
 
@@ -238,6 +245,7 @@ class GatewayServiceImplIntegrationTest {
         addDto.setModelId(4);
         addDto.setSn("ORIGINAL_SN_" + System.currentTimeMillis());
         addDto.setDeviceNo(addDto.getSn());
+        addDto.setDeviceSecret("gateway-secret");
         addDto.setConfigInfo("{\"original\":\"data\"}");
         addDto.setRemark("原始备注");
 
@@ -255,6 +263,7 @@ class GatewayServiceImplIntegrationTest {
         updateDto.setModelId(4);
         updateDto.setSn(addDto.getSn()); // 保持序列号不变
         updateDto.setDeviceNo(updateDto.getSn());
+        updateDto.setDeviceSecret("gateway-secret-updated");
         updateDto.setConfigInfo("{\"updated\":\"data\"}");
         updateDto.setRemark("更新后的备注");
 
@@ -281,6 +290,7 @@ class GatewayServiceImplIntegrationTest {
         addDto.setModelId(4);
         addDto.setSn("SYNC_SN_" + System.currentTimeMillis());
         addDto.setDeviceNo(addDto.getSn());
+        addDto.setDeviceSecret("gateway-secret");
         addDto.setConfigInfo("{\"sync\":true}");
         addDto.setRemark("初始状态");
 
@@ -316,6 +326,7 @@ class GatewayServiceImplIntegrationTest {
         addDto.setModelId(4);
         addDto.setSn("DELETE_SN_" + System.currentTimeMillis());
         addDto.setDeviceNo(addDto.getSn());
+        addDto.setDeviceSecret("gateway-secret");
         addDto.setConfigInfo("{\"delete\":\"test\"}");
         addDto.setRemark("待删除备注");
 

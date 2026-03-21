@@ -38,6 +38,7 @@ export interface GatewayFormValue {
   communicateModel: string
   sn: string
   imei: string
+  deviceSecret: string
   configInfo: string
 }
 
@@ -299,6 +300,7 @@ export const createDefaultGatewayForm = (): GatewayFormValue => ({
   communicateModel: '',
   sn: '',
   imei: '',
+  deviceSecret: '',
   configInfo: ''
 })
 

@@ -120,6 +120,20 @@ const createComposable = (rowsSource: ElectricMeterItem[] = [createRow()]) => {
   }
 }
 
+const createDeferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve
+    reject = innerReject
+  })
+  return {
+    promise,
+    resolve,
+    reject
+  }
+}
+
 describe('useElectricMeterActions', () => {
   beforeEach(() => {
     mockedCreateElectricMeter.mockReset()
@@ -479,6 +493,23 @@ describe('useElectricMeterActions', () => {
     expect(second.setNotice).toHaveBeenCalledWith('error', '取消失败')
   })
 
+  test('testHandleConfirm_WhenSingleCommandSubmitting_ShouldPreventDuplicateSubmit', async () => {
+    const deferred = createDeferred<void>()
+    mockedUpdateElectricMeterSwitch.mockReturnValue(deferred.promise)
+    const { composable } = createComposable()
+    composable.openSingleCommandConfirm(createRow({ id: 50 }), 'cut')
+
+    const firstPromise = composable.handleConfirm()
+    expect(composable.confirmSubmitting.value).toBe(true)
+
+    await composable.handleConfirm()
+    expect(mockedUpdateElectricMeterSwitch).toHaveBeenCalledTimes(1)
+
+    deferred.resolve(undefined)
+    await firstPromise
+    expect(composable.confirmSubmitting.value).toBe(false)
+  })
+
   test('testHandleConfirm_WhenBatchCutPartiallyFails_ShouldShowPartialFailureNotice', async () => {
     mockedUpdateElectricMeterSwitch.mockImplementation(({ id }) => {
       if (id === 2) {
@@ -605,5 +636,21 @@ describe('useElectricMeterActions', () => {
 
     await composable.handleSubmitCt({ id: 3, ct: '200' })
     expect(setNotice).toHaveBeenCalledWith('error', '设置失败')
+  })
+
+  test('testHandleSubmitCt_WhenSubmitting_ShouldPreventDuplicateSubmit', async () => {
+    const deferred = createDeferred<number | undefined>()
+    mockedUpdateElectricMeterCt.mockReturnValue(deferred.promise)
+    const { composable } = createComposable([createRow({ id: 60, ct: '150' })])
+
+    const firstPromise = composable.handleSubmitCt({ id: 60, ct: '200' })
+    expect(composable.ctSubmitting.value).toBe(true)
+
+    await composable.handleSubmitCt({ id: 60, ct: '200' })
+    expect(mockedUpdateElectricMeterCt).toHaveBeenCalledTimes(1)
+
+    deferred.resolve(undefined)
+    await firstPromise
+    expect(composable.ctSubmitting.value).toBe(false)
   })
 })

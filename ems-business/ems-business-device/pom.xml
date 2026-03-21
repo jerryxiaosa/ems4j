@@ -76,6 +76,11 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
+            <artifactId>ems-mq-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
             <artifactId>ems-foundation-space</artifactId>
         </dependency>
 

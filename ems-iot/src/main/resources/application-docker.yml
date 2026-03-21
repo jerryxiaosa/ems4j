@@ -1,29 +1,29 @@
 server:
-  port: 8880
+  port: ${IOT_PORT:8880}
 
 transport:
   netty:
-    port: 19500
-    bossThreads: 1
-    workerThreads: 4
+    port: ${IOT_NETTY_PORT:19500}
+    bossThreads: ${IOT_NETTY_BOSS_THREADS:1}
+    workerThreads: ${IOT_NETTY_WORKER_THREADS:4}
 
 iot:
   report:
     push:
-      enabled: true
-      base-url: http://127.0.0.1:8080
-      path: /v1/device/energy-reports/standard
-      source: IOT
+      enabled: ${IOT_REPORT_PUSH_ENABLED:true}
+      base-url: ${IOT_REPORT_PUSH_BASE_URL:http://backend:8080}
+      path: ${IOT_REPORT_PUSH_PATH:/v1/device/energy-reports/standard}
+      source: ${IOT_REPORT_PUSH_SOURCE:IOT}
 
 spring:
   application:
     name: IOT-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:13306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true
+    url: ${IOT_SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true}
     type: com.alibaba.druid.pool.DruidDataSource
-    username: root
-    password: Ems@123456
+    username: ${IOT_SPRING_DATASOURCE_USERNAME:root}
+    password: ${IOT_SPRING_DATASOURCE_PASSWORD:Ems@123456}
     druid:
       initialSize: 5
       minIdle: 5
@@ -46,7 +46,7 @@ mybatis-plus:
 
 logging:
   file:
-    name: ./logs/iot.log
+    name: /app/logs/iot.log
   level:
     org.springframework.web.filter.CommonsRequestLoggingFilter: debug
     info.zhihui.ems: debug

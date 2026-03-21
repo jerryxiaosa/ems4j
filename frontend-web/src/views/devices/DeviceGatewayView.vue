@@ -290,6 +290,7 @@ const handleSubmitGateway = async (payload: GatewayFormValue) => {
         deviceNo: payload.deviceNo.trim(),
         sn: payload.sn.trim() || undefined,
         imei: payload.imei.trim() || undefined,
+        deviceSecret: payload.deviceSecret.trim() || undefined,
         configInfo: payload.configInfo.trim()
       })
 
@@ -316,7 +317,8 @@ const handleSubmitGateway = async (payload: GatewayFormValue) => {
       deviceNo: payload.deviceNo.trim(),
       sn: payload.sn.trim() || undefined,
       imei: payload.imei.trim() || undefined,
-      configInfo: payload.configInfo.trim() || undefined
+      deviceSecret: payload.deviceSecret.trim() || undefined,
+      configInfo: payload.configInfo.trim()
     })
 
     editModalVisible.value = false

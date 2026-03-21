@@ -31,7 +31,7 @@ public class GatewayTask {
     /**
      * 每 10 分钟执行一次网关在线状态全量同步
      */
-    @Scheduled(cron = "0 */10 * * * ?")
+    @Scheduled(cron = "0 */3 * * * ?")
     public void syncOnlineStatus() {
         log.info("开始执行网关在线状态全量同步任务");
 

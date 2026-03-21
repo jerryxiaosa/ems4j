@@ -12,5 +12,7 @@ public final class DeviceMqConstant {
 
     public static final String DEVICE_DESTINATION = "exchange.device";
 
+    public static final String ROUTING_KEY_DEVICE_COMMAND_EXECUTE = "device.command.execute";
+
     public static final String ROUTING_KEY_STANDARD_ENERGY_REPORT = "device.energy.report.standard";
 }

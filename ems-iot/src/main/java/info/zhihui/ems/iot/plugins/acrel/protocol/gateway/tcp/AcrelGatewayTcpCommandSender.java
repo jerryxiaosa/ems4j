@@ -3,7 +3,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
-import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.domain.model.GatewayRoute;
+import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
@@ -39,7 +40,7 @@ public class AcrelGatewayTcpCommandSender {
 
     private final ProtocolCommandTransport commandTransport;
     private final DeviceCommandTranslatorResolver translatorRegistry;
-    private final DeviceRegistry deviceRegistry;
+    private final GatewayRouteService gatewayRouteService;
     private final AcrelGatewayFrameCodec gatewayFrameCodec;
     private final AcrelGatewayCryptoService gatewayCryptoService;
     private final AcrelGatewayTransparentCodec gatewayTransparentCodec;
@@ -75,13 +76,13 @@ public class AcrelGatewayTcpCommandSender {
 
     public CompletableFuture<DeviceCommandResult> send(DeviceCommand command) {
         Device device = DeviceCommandSupport.requireDevice(command, DeviceAccessModeEnum.GATEWAY);
-        Integer parentId = device.getParentId();
-        if (parentId == null) {
-            throw new IllegalArgumentException("网关设备缺失，deviceNo=" + device.getDeviceNo());
-        }
-        Device gateway = deviceRegistry.getById(parentId);
+        GatewayRoute gatewayRoute = gatewayRouteService.getRoute(device);
+        Device gateway = gatewayRoute.getGateway();
         if (!StringUtils.hasText(gateway.getDeviceSecret())) {
             throw new IllegalArgumentException("网关密钥缺失，deviceNo=" + gateway.getDeviceNo());
+        }
+        if (gatewayRoute.isGatewaySelf()) {
+            throw new IllegalArgumentException("暂不支持网关设备自身下发命令，deviceNo=" + device.getDeviceNo());
         }
         if (device.getPortNo() == null || device.getMeterAddress() == null) {
             throw new IllegalArgumentException("子设备标识缺失，deviceNo=" + device.getDeviceNo());

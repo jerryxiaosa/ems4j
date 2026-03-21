@@ -38,6 +38,8 @@ const {
   moreActionMenu,
   ctModalVisible,
   ctMeter,
+  confirmSubmitting,
+  ctSubmitting,
   confirmState,
   closeConfirm,
   handleDocumentClick,
@@ -132,6 +134,7 @@ onMounted(() => {
     <DeviceElectricMeterCtModal
       v-model="ctModalVisible"
       :meter="ctMeter"
+      :submitting="ctSubmitting"
       @submit="handleSubmitCt"
     />
 
@@ -140,7 +143,9 @@ onMounted(() => {
         <div class="modal-panel confirm-modal">
           <div class="modal-head">
             <h3 class="modal-title">{{ confirmState.title }}</h3>
-            <button class="icon-btn" type="button" @click="closeConfirm">关闭</button>
+            <button class="icon-btn" type="button" :disabled="confirmSubmitting" @click="closeConfirm">
+              关闭
+            </button>
           </div>
           <div class="modal-body">
             <div :class="['confirm-summary', `confirm-summary-${confirmState.type}`]">
@@ -151,9 +156,21 @@ onMounted(() => {
             </div>
           </div>
           <div class="modal-actions">
-            <button class="btn btn-secondary" type="button" @click="closeConfirm">取消</button>
-            <button class="btn btn-primary" type="button" @click="handleConfirm">
-              {{ confirmState.confirmText }}
+            <button
+              class="btn btn-secondary"
+              type="button"
+              :disabled="confirmSubmitting"
+              @click="closeConfirm"
+            >
+              取消
+            </button>
+            <button
+              class="btn btn-primary"
+              type="button"
+              :disabled="confirmSubmitting"
+              @click="handleConfirm"
+            >
+              {{ confirmSubmitting ? '处理中...' : confirmState.confirmText }}
             </button>
           </div>
         </div>

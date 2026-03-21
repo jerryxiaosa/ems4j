@@ -84,6 +84,8 @@ export const useElectricMeterActions = ({
 
   const ctModalVisible = ref(false)
   const ctMeter = ref<ElectricMeterItem | null>(null)
+  const confirmSubmitting = ref(false)
+  const ctSubmitting = ref(false)
 
   const confirmState = reactive<ConfirmState>({
     visible: false,
@@ -97,6 +99,9 @@ export const useElectricMeterActions = ({
   })
 
   const closeConfirm = () => {
+    if (confirmSubmitting.value) {
+      return
+    }
     confirmState.visible = false
     confirmState.title = ''
     confirmState.content = ''
@@ -350,6 +355,10 @@ export const useElectricMeterActions = ({
   }
 
   const handleConfirm = async () => {
+    if (confirmSubmitting.value) {
+      return
+    }
+    confirmSubmitting.value = true
     switch (confirmState.action) {
       case 'delete':
         try {
@@ -484,6 +493,7 @@ export const useElectricMeterActions = ({
       default:
         break
     }
+    confirmSubmitting.value = false
     closeConfirm()
   }
 
@@ -508,6 +518,10 @@ export const useElectricMeterActions = ({
   }
 
   const handleSubmitCt = async (payload: { id: number; ct: string }) => {
+    if (ctSubmitting.value) {
+      return
+    }
+    ctSubmitting.value = true
     try {
       await updateElectricMeterCt({
         meterId: payload.id,
@@ -526,6 +540,8 @@ export const useElectricMeterActions = ({
       setNotice('success', 'CT 变比设置成功')
     } catch (error) {
       setNotice('error', getElectricMeterErrorMessage(error))
+    } finally {
+      ctSubmitting.value = false
     }
   }
 
@@ -539,6 +555,8 @@ export const useElectricMeterActions = ({
     moreActionMenu,
     ctModalVisible,
     ctMeter,
+    confirmSubmitting,
+    ctSubmitting,
     confirmState,
     closeConfirm,
     closeMoreActionMenu,

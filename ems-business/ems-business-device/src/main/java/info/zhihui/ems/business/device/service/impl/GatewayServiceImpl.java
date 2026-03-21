@@ -6,19 +6,14 @@ import com.github.pagehelper.PageInfo;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.bo.GatewayBo;
 import info.zhihui.ems.business.device.constant.DeviceConstant;
-import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
-import info.zhihui.ems.business.device.dto.DeviceStatusSyncRequestDto;
-import info.zhihui.ems.business.device.dto.GatewayCreateDto;
-import info.zhihui.ems.business.device.dto.GatewayOnlineStatusDto;
-import info.zhihui.ems.business.device.dto.GatewayQueryDto;
-import info.zhihui.ems.business.device.dto.GatewayUpdateDto;
+import info.zhihui.ems.business.device.dto.*;
 import info.zhihui.ems.business.device.entity.GatewayEntity;
 import info.zhihui.ems.business.device.mapper.GatewayMapper;
 import info.zhihui.ems.business.device.qo.GatewayQo;
 import info.zhihui.ems.business.device.repository.GatewayRepository;
+import info.zhihui.ems.business.device.service.DeviceStatusSynchronizer;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.GatewayService;
-import info.zhihui.ems.business.device.service.DeviceStatusSynchronizer;
 import info.zhihui.ems.business.device.utils.DeviceUtil;
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
@@ -44,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 网关服务接口
@@ -150,9 +146,11 @@ public class GatewayServiceImpl implements GatewayService {
         GatewayEntity entity = mapper.updateDtoToEntity(dto);
         buildGatewayEntity(entity);
 
-        boolean configChanged = StringUtils.isNotBlank(dto.getConfigInfo()) && !dto.getConfigInfo().equals(old.getConfigInfo());
+        boolean configChanged = !Objects.equals(entity.getConfigInfo(), old.getConfigInfo());
         boolean deviceNoChanged = StringUtils.isNotBlank(entity.getDeviceNo()) && !entity.getDeviceNo().equals(old.getDeviceNo());
-        if (configChanged || deviceNoChanged) {
+        boolean deviceSecretChanged = StringUtils.isNotBlank(dto.getDeviceSecret())
+                && !Objects.equals(dto.getDeviceSecret(), old.getDeviceSecret());
+        if (configChanged || deviceNoChanged || deviceSecretChanged) {
             if (StringUtils.isBlank(old.getIotId())) {
                 throw new BusinessRuntimeException("数据异常：网关没有对应的iot数据");
             }
@@ -246,6 +244,7 @@ public class GatewayServiceImpl implements GatewayService {
 
         ElectricDeviceAddDto addDto = new ElectricDeviceAddDto()
                 .setDeviceNo(entity.getDeviceNo())
+                .setDeviceSecret(entity.getDeviceSecret())
                 .setProductCode(entity.getProductCode())
                 .setAreaId(entity.getOwnAreaId());
 
@@ -259,6 +258,7 @@ public class GatewayServiceImpl implements GatewayService {
 
         ElectricDeviceUpdateDto updateDto = new ElectricDeviceUpdateDto();
         updateDto.setDeviceNo(entity.getDeviceNo())
+                .setDeviceSecret(entity.getDeviceSecret())
                 .setProductCode(entity.getProductCode())
                 .setDeviceId(oldIotId)
                 .setAreaId(entity.getOwnAreaId());

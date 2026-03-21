@@ -64,6 +64,7 @@ const fillForm = (gateway: GatewayItem | null) => {
   form.communicateModel = gateway.communicateModel
   form.sn = gateway.sn
   form.imei = gateway.imei || ''
+  form.deviceSecret = ''
   form.configInfo = gateway.configInfo
 }
 
@@ -283,10 +284,6 @@ const validate = () => {
   if (showImeiField.value && !form.imei.trim()) {
     errors.imei = '请输入IMEI'
   }
-  if (!form.configInfo.trim()) {
-    errors.configInfo = '请输入配置信息'
-  }
-
   return Object.keys(errors).length === 0
 }
 
@@ -302,6 +299,7 @@ const handleSubmit = () => {
     gatewayName: form.gatewayName.trim(),
     sn: form.sn.trim(),
     imei: form.imei.trim(),
+    deviceSecret: form.deviceSecret.trim(),
     configInfo: form.configInfo.trim(),
     modelName: selectedModel.value?.modelName || form.modelName,
     communicateModel: selectedModel.value?.communicateModel || form.communicateModel,
@@ -445,15 +443,26 @@ const handleSubmit = () => {
               />
               <span v-if="errors.imei" class="field-error">{{ errors.imei }}</span>
             </label>
+
+            <label class="field">
+              <span class="field-label">设备密钥</span>
+              <input
+                v-model="form.deviceSecret"
+                class="form-control"
+                type="text"
+                :placeholder="isEditMode ? '留空表示不修改设备密钥' : '请输入设备密钥（选填）'"
+              />
+              <span v-if="errors.deviceSecret" class="field-error">{{ errors.deviceSecret }}</span>
+            </label>
           </div>
 
           <label class="field field-full">
-            <span :class="['field-label', getRequiredLabelClass(true)]">配置信息</span>
+            <span class="field-label">配置信息</span>
             <textarea
               v-model="form.configInfo"
               class="form-control textarea-control"
               rows="6"
-              placeholder="请输入配置信息"
+              placeholder="请输入配置信息（选填）"
             ></textarea>
             <span v-if="errors.configInfo" class="field-error">{{ errors.configInfo }}</span>
           </label>

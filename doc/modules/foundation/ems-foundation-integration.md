@@ -55,12 +55,18 @@
 
 | 方法 | 说明 |
 |------|------|
-| `saveDeviceCommand(DeviceCommandAddDto dto)` | 保存设备命令（仅落库，不自动下发） |
+| `saveDeviceCommand(DeviceCommandAddDto dto)` | 保存设备命令（仅落库，不自动下发，也不处理旧命令停用） |
 | `execDeviceCommand(Integer commandId, CommandSourceEnum commandSource)` | 按命令 ID 执行下发 |
 | `findDeviceCommandPage(DeviceCommandQueryDto query, PageParam pageParam)` | 分页查询命令记录 |
 | `getDeviceCommandDetail(Integer commandId)` | 查询单条命令详情 |
 | `findCommandExecuteRecordList(Integer commandId)` | 查询命令执行/重试记录 |
-| `cancelDeviceCommand(DeviceCommandCancelDto dto)` | 取消（废弃）可重试命令 |
+| `cancelDeviceCommand(DeviceCommandCancelDto dto)` | 停用设备命令自动执行；取消过程与执行过程共用设备锁 |
+
+补充说明：
+
+- 是否允许自动重试由 `CommandTypeEnum.retryable` 决定，并在业务层映射到 `ensureSuccess`。
+- 同类型旧自动任务停用、互斥命令处理属于业务层职责，不在 `saveDeviceCommand` 内部隐式完成。
+- `cancelDeviceCommand` 通过设备锁避免与命令执行并发交错；实际停用范围仅限 `ensureSuccess=true`、`success=false`、`isRunning=false` 的命令。
 
 ### 2.2 EnergyService
 
