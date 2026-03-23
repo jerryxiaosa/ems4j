@@ -368,3 +368,5 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE).
 - Add me on WeChat and note `ems4j`:
   
   <img src="resource/images/wechat.png" alt="WeChat QR Code" width="220" />
+
+- Zhihu Column: [能源管理系统实践](https://www.zhihu.com/column/c_2017220125376401881)
