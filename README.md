@@ -344,6 +344,10 @@ pnpm test:e2e
 | [IoT 模块文档](doc/modules/iot/README.md) | IoT 模块文档，用于设备接入和协议集成 |
 | [测试指南](doc/test-guidelines.md) | 单元测试和集成测试标准及最佳实践 |
 
+## 延伸阅读
+
+- 知乎专栏：[能源管理系统实践](https://www.zhihu.com/column/c_2017220125376401881)
+
 ## 动机
 
 这个项目源于对真实复杂业务系统的一次持续整理与重构。
@@ -365,5 +369,3 @@ EMS4J 试图解决的，不只是"把功能做出来"，而是把这些复杂关
 - 添加我的微信，请注名"ems4j"：
   
   <img src="resource/images/wechat.png" alt="微信二维码" width="220" />
-
-- 知乎专栏：[能源管理系统实践](https://www.zhihu.com/column/c_2017220125376401881)
