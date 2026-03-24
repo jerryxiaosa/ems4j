@@ -6,7 +6,7 @@
     <parent>
         <groupId>info.zhihui</groupId>
         <artifactId>ems-components</artifactId>
-        <version>0.2.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>ems-components-datasource</artifactId>
