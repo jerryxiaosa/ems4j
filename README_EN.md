@@ -8,7 +8,6 @@
 
 EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and can be adapted to typical scenarios such as campus dormitory prepaid systems and industrial park prepaid systems. The codebase is cleanly structured for easy extension.
 **It is also an open-source project for learning complex business modeling and Spring Boot multi-module architecture design.**
-If this project helps you, please consider giving it a ⭐️.
 
 ## Features
 
@@ -126,10 +125,6 @@ cd frontend-web
 pnpm install
 pnpm dev
 ```
-
-Default access URLs:
-- Backend API docs: `http://127.0.0.1:8080/doc.html`
-- Frontend app: `http://127.0.0.1:4173`
 
 ### Option B: Full Docker startup
 
@@ -303,6 +298,7 @@ Notes:
 | `ems-components-*` | Common components (datasource/lock/context) |
 | `ems-mq-*` | Messaging infrastructure API (ems-mq-api) and business messaging app layer (ems-mq-rabbitmq) |
 | `ems-iot` | Netty device access, protocol parsing |
+| `ems-iot-simulator` | IoT device simulator, currently supporting Acrel 4G direct meter TCP access, historical replay, live reporting, and basic command responses |
 | `ems-schedule` | Scheduled jobs |
 | `frontend-web` | Vue 3 + TypeScript admin frontend with Vitest unit tests and Playwright smoke tests |
 | `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Docker Compose files, Dockerfiles, init SQL and environment examples for local infrastructure and full deployment orchestration |
@@ -358,6 +354,8 @@ In a prepaid energy domain, devices, accounts, billing, orders, permissions, and
 EMS4J is not only about making the features work. It is about making those relationships explicit: what belongs to `device`, what belongs to `billing`, what should be split out of `account`, and what logic should remain in upper-layer orchestration.
 
 That is why this repository is both a runnable prepaid energy system and a practical reference for complex domain modeling, module-boundary governance, and engineering maintainability.
+
+If this project gives you useful ideas, consider giving it a ⭐️.
 
 ## License
 

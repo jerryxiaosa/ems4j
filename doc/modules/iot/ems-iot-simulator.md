@@ -54,6 +54,8 @@ simulator:
 关键字段说明：
 
 - `simulator.target.host` / `simulator.target.port`：`ems-iot` Netty 服务地址。
+- `simulator.target.connect-timeout-ms`：单次建连超时时间。
+- `simulator.target.reconnect-interval-ms`：建连失败后的重试间隔。
 - `simulator.runtime.heartbeat-interval-seconds`：心跳间隔，单位秒。
 - `simulator.runtime.persistence-file`：本地状态文件路径，默认 `./.data/iot-simulator-state.json`。
 - `simulator.replay.enabled`：是否先执行历史补投。
@@ -62,6 +64,12 @@ simulator:
 - `simulator.devices[].device-no`：前端建档后得到的电表编号。
 - `simulator.devices[].meter-address`：协议中的表地址。
 - `simulator.devices[].profile-type`：当前支持 `OFFICE`、`FACTORY`。
+
+注意：
+
+- 当前默认会激活 `example` profile。
+- 如果直接使用仓库内默认配置启动，模拟器会按示例参数连接 `127.0.0.1:19500` 并尝试补投示例数据。
+- 正式联调时建议通过外部配置覆盖默认示例值。
 
 ## 启动方式
 
@@ -94,84 +102,70 @@ IotSimulator.main
   -> Spring Boot 启动
   -> 绑定 simulator.* 配置并创建 Bean
   -> SmartLifecycle 自动触发 SimulatorLifecycle.start()
-  -> 读取本地状态文件
-  -> 按 devices 配置构造每台设备的运行上下文
-  -> 每台设备启动：TCP 建链 -> 发送注册 -> 启动心跳 -> 启动上报循环
+  -> SimulatorLauncher.loadStateSnapshot()
+  -> SimulatorLauncher.loadDeviceContexts()
+  -> create SimulatorDeviceRuntime[]
+  -> 每台设备启动：建连 -> 注册 -> 心跳 -> 上报循环
   -> 上报循环：先历史补投，再实时上报
-  -> 收到下行命令：解析命令 -> 更新运行状态 -> 持久化 -> 回 ACK
+  -> 收到下行命令：解析命令 -> 持久化运行态 -> 回 ACK
 ```
 
 ### ASCII 时序图
 
 ```text
-+----------------+      +-------------------+      +--------------------+      +---------------------+      +---------------------+      +-----------------------+
-| IotSimulator   |      | Spring Container  |      | SimulatorLifecycle |      | DeviceRuntime       |      | Acrel4gSocketSession|      | ems-iot(Netty Server) |
-+----------------+      +-------------------+      +--------------------+      +---------------------+      +---------------------+      +-----------------------+
-        |                           |                          |                           |                            |                               |
-        | main()                    |                          |                           |                            |                               |
-        |-------------------------->| create/refresh context   |                           |                            |                               |
-        |                           | bind simulator.*         |                           |                            |                               |
-        |                           | create beans             |                           |                            |                               |
-        |                           |------------------------->| start()                   |                            |                               |
-        |                           |                          | loadStateSnapshot()       |                            |                               |
-        |                           |                          | loadDeviceContexts()      |                            |                               |
-        |                           |                          | create DeviceRuntime[]    |                            |                               |
-        |                           |                          |-------------------------->| start()                    |                               |
-        |                           |                          |                           | ensureConnectedAndRegistered()                           |
-        |                           |                          |                           |--------------------------->| connect()                      |
-        |                           |                          |                           |                            |------------------------------->| TCP connect
-        |                           |                          |                           | sendRegisterFrame()        |                               |
-        |                           |                          |                           |--------------------------->| send(register)                 |
-        |                           |                          |                           |                            |------------------------------->| register
-        |                           |                          |                           | startHeartbeat()           |                               |
-        |                           |                          |                           | runReportLoop()            |                               |
-        |                           |                          |                           | runReplayIfNecessary()     |                               |
-        |                           |                          |                           | runReplayPoint()/runLivePoint()                           |
-        |                           |                          |                           | buildDataUploadFrame()     |                               |
-        |                           |                          |                           |--------------------------->| send(upload/heartbeat)         |
-        |                           |                          |                           |                            |------------------------------->| upload / heartbeat
-        |                           |                          |                           |                            |<-------------------------------| downlink command
-        |                           |                          |                           |<---------------------------| readLoop()/dispatchFrames()
-        |                           |                          | handleInboundFrame()      |                            |                               |
-        |                           |                          | parse command             |                            |                               |
-        |                           |                          | persistRuntimeState()     |                            |                               |
-        |                           |                          |-------------------------->| update switch/status       |                               |
-        |                           |                          | encode ack                |                            |                               |
-        |                           |                          |--------------------------->| sendSimulatorFrame()      |                               |
-        |                           |                          |                           |--------------------------->| send(ack)                      |
-        |                           |                          |                           |                            |------------------------------->| ack
-        |                           |                          | stop()                    |                            |                               |
-        |                           |------------------------->|                           |                            |                               |
-        |                           |                          |-------------------------->| stop()                     |                               |
-        |                           |                          |                           |--------------------------->| close()                        |
-        |                           |                          |                           |                            |------------------------------->| TCP close
++----------------+      +-------------------+      +--------------------+      +------------------------+      +---------------------+      +-----------------------+
+| IotSimulator   |      | Spring Container  |      | SimulatorLifecycle |      | SimulatorDeviceRuntime |      | Acrel4gSocketSession|      | ems-iot(Netty Server) |
++----------------+      +-------------------+      +--------------------+      +------------------------+      +---------------------+      +-----------------------+
+        |                           |                          |                            |                             |                               |
+        | main()                    |                          |                            |                             |                               |
+        |-------------------------->| create/refresh context   |                            |                             |                               |
+        |                           | bind simulator.*         |                            |                             |                               |
+        |                           | create beans             |                            |                             |                               |
+        |                           |------------------------->| start()                    |                             |                               |
+        |                           |                          | loadStateSnapshot()        |                             |                               |
+        |                           |                          | loadDeviceContexts()       |                             |                               |
+        |                           |                          | create SimulatorDeviceRuntime[]                         |                               |
+        |                           |                          |--------------------------->| start()                     |                               |
+        |                           |                          |                            | ensureConnectedAndRegistered()                             |
+        |                           |                          |                            |---------------------------->| connect()                      |
+        |                           |                          |                            |                             |------------------------------->| TCP connect
+        |                           |                          |                            | sendRegisterFrame()         |                               |
+        |                           |                          |                            |---------------------------->| send(register)                 |
+        |                           |                          |                            |                             |------------------------------->| register
+        |                           |                          |                            | startHeartbeat()            |                               |
+        |                           |                          |                            | runReportLoop()             |                               |
+        |                           |                          |                            | runReplayIfNecessary()      |                               |
+        |                           |                          |                            | runReplayPoint()/runLivePoint()                            |
+        |                           |                          |                            | runScheduledReport()        |                               |
+        |                           |                          |                            |---------------------------->| send(upload/heartbeat)         |
+        |                           |                          |                            |                             |------------------------------->| upload / heartbeat
+        |                           |                          |                            |                             |<-------------------------------| downlink command
+        |                           |                          |                            |<----------------------------| readLoop()/dispatchFrames()
+        |                           |                          |                            | handleInboundFrame()        |                               |
+        |                           |                          |                            | Acrel4gCommandResponder.handle()                          |
+        |                           |                          |                            | persistRuntimeState()       |                               |
+        |                           |                          |                            |---------------------------->| send(ack)                      |
+        |                           |                          |                            |                             |------------------------------->| ack
+        |                           |                          | stop()                     |                             |                               |
+        |                           |------------------------->|                            |                             |                               |
+        |                           |                          |--------------------------->| stop()                      |                               |
+        |                           |                          |                            |---------------------------->| close()                        |
+        |                           |                          |                            |                             |------------------------------->| TCP close
 ```
-
-### 启动阶段
-
-1. 命令行入口是 [IotSimulator.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/IotSimulator.java)。
-2. [IotSimulator.java:20](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/IotSimulator.java#L20) 调用 `SpringApplication.run(...)` 启动容器。
-3. [IotSimulator.java:22](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/IotSimulator.java#L22) 把应用固定成 `WebApplicationType.NONE`，因此它是常驻命令行进程，不启动 Web 容器。
-4. Spring 读取 [application.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application.yml) 并默认激活 `example` profile，然后再读取 [application-example.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-example.yml)。
-5. `simulator.*` 配置绑定到 [SimulatorProperties.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/config/SimulatorProperties.java)，协议编解码器由 [SimulatorConfiguration.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/config/SimulatorConfiguration.java) 提供。
 
 ### 生命周期启动阶段
 
-1. [SimulatorLifecycle.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java) 实现了 `SmartLifecycle`。
-2. [SimulatorLifecycle.java:95](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L95) 返回 `isAutoStartup=true`，所以 Spring 容器刷新完成后会自动调用 [SimulatorLifecycle.java:56](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L56) 的 `start()`。
-3. `start()` 先调用 [SimulatorLauncher.java:28](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLauncher.java#L28) 读取本地状态快照，底层由 [FileStateStore.java:38](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/state/FileStateStore.java#L38) 从 `persistence-file` 指定的 json 文件中恢复状态。
-4. 然后调用 [SimulatorLauncher.java:33](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLauncher.java#L33)，把配置中的 `devices` 和持久化状态合并成 `SimulatorDeviceContext`，同时补齐默认 `switchStatus=ON`、`replayCompleted` 等运行态字段。
-5. 每个 `SimulatorDeviceContext` 会被包装成一个 `DeviceRuntime`，并在 [SimulatorLifecycle.java:67](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L67) 逐台启动。
+1. [SimulatorLifecycle.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java) 实现了 `SmartLifecycle`，容器刷新后会自动启动。
+2. `SimulatorLifecycle.start()` 先通过 [SimulatorLauncher.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLauncher.java) 读取状态快照，并把配置中的 `devices` 与本地状态合并成 [SimulatorDeviceContext.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/runtime/SimulatorDeviceContext.java)。
+3. 每个 `SimulatorDeviceContext` 会被包装成一个 [SimulatorDeviceRuntime.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRuntime.java)，由它负责单台设备的完整运行编排。
+4. 当前实现会在 `SmartLifecycle.start()` 阶段依次调用每台 `SimulatorDeviceRuntime.start()`，也就是启动时就会立即尝试建立连接并发送注册报文。
 
 ### 单台设备启动链路
 
-1. 单台设备的入口是 [SimulatorLifecycle.java:127](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L127) 的 `DeviceRuntime.start()`。
-2. 第一步 [SimulatorLifecycle.java:128](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L128) 调用 `ensureConnectedAndRegistered()`：
-   - 先通过 [Acrel4gSocketSession.java:49](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L49) 建立 TCP 连接。
-   - 连接成功后回到 [SimulatorLifecycle.java:209](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L209) 构造注册报文。
-   - 注册报文由 [Acrel4gSimulatorClient.java:39](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSimulatorClient.java#L39) 组帧，再经 [Acrel4gSocketSession.java:73](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L73) 发送。
-3. 第二步 [SimulatorLifecycle.java:129](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L129) 启动心跳调度，最终由 [SimulatorLifecycle.java:200](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L200) 周期发送心跳报文。
-4. 第三步 [SimulatorLifecycle.java:130](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L130) 提交上报线程，进入 [SimulatorLifecycle.java:146](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L146) 的 `runReportLoop()`。
+1. `SimulatorDeviceRuntime.start()` 会依次执行 `ensureConnectedAndRegistered()`、`startHeartbeat()` 和 `reportExecutor.submit(this::runReportLoop)`。
+2. `ensureConnectedAndRegistered()` 会先调用 [Acrel4gSocketSession.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java) 建立 TCP 连接，再调用 [Acrel4gSimulatorClient.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSimulatorClient.java) 组装注册帧并发送。
+3. `startHeartbeat()` 会为每台设备启动独立的心跳定时线程，按 `heartbeat-interval-seconds` 周期发送心跳。
+4. `runReportLoop()` 会先执行历史补投，再切换到实时上报循环。
 
 ### 上报链路
 
@@ -179,63 +173,71 @@ IotSimulator.main
 runReportLoop
   -> runReplayIfNecessary
     -> ReplayScheduleService.buildReplayPoints
-    -> SimulatorDeviceRunner.runReplayPoint
+    -> runReplayPoint
+      -> runScheduledReport
   -> runLiveLoop
-    -> LiveScheduleService.nextPoint
-    -> SimulatorDeviceRunner.runLivePoint
+    -> resolveFirstLivePoint
+    -> nextLivePoint
+    -> runLivePoint
+      -> runScheduledReport
 ```
 
-1. 如果开启历史补投，[SimulatorLifecycle.java:155](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L155) 会先执行 `runReplayIfNecessary()`。
-2. 补投时间点由 [ReplayScheduleService.java:31](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleService.java#L31) 生成，规则是 `startTime + N 小时`，并且 [ReplayScheduleService.java:43](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleService.java#L43) 会校验补投结束时间必须是历史时间。
-3. 实时模式的首个时间点由 [LiveScheduleService.java:13](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/LiveScheduleService.java#L13) 计算，锚点是当前 `DeviceRuntime` 创建时记录的 `startupAnchorTime`。
-4. 每个时间点最终都会走到 [SimulatorDeviceRunner.java:75](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRunner.java#L75)。
-5. [SimulatorDeviceRunner.java:77](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRunner.java#L77) 先调用 [EnergySimulationService.java:36](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/EnergySimulationService.java#L36) 生成本次 `EnergySnapshot`。
-6. 如果设备当前处于拉闸状态，[EnergySimulationService.java:38](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/EnergySimulationService.java#L38) 会返回 `shouldReport=false`，于是 [SimulatorDeviceRunner.java:81](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRunner.java#L81) 直接跳过发送。
-7. 无论是否真正发送，本次电量累计值和补投游标都会先在 [SimulatorDeviceRunner.java:135](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRunner.java#L135) 落到本地状态文件。
-8. 需要上报时，[SimulatorDeviceRunner.java:142](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRunner.java#L142) 组装 `DataUploadMessage`，再通过 [Acrel4gSimulatorClient.java:49](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSimulatorClient.java#L49) 编码成协议帧，最后回到 [SimulatorLifecycle.java:219](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L219) 发出。
+1. 历史补投时间点由 [ReplayScheduleService.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleService.java) 生成，规则是 `startTime + N 小时`，并且要求结束时间早于当前时间。
+2. 实时模式的首个时间点由 `resolveFirstLivePoint()` 和 `nextLivePoint()` 计算，锚点是 `SimulatorDeviceRuntime` 创建时记录的 `startupAnchorTime`。
+3. 每个计划点最终都会进入 `runScheduledReport()`：
+   - 先调用 [EnergySimulationService.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/EnergySimulationService.java) 生成 `EnergySnapshot`
+   - 再更新 `DeviceRuntimeState`
+   - 再把共享快照写回 [StateStore.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/state/StateStore.java)
+   - 最后按需组装并发送 `DataUploadMessage`
+4. 如果设备当前处于拉闸状态，`EnergySnapshot.shouldReport=false`，当前计划点只推进运行态和补投游标，不会发送上报帧。
 
 ### 下行命令处理链路
 
 ```text
 Acrel4gSocketSession.readLoop
   -> dispatchFrames
-  -> SimulatorLifecycle.handleInboundFrame
+  -> SimulatorDeviceRuntime.handleInboundFrame
   -> Acrel4gCommandResponder.handle
   -> persistRuntimeState
   -> encode DOWNLINK ack
   -> sendSimulatorFrame
 ```
 
-1. 建链成功后，[Acrel4gSocketSession.java:98](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L98) 会启动 reader 线程。
-2. reader 线程在 [Acrel4gSocketSession.java:106](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L106) 中持续读流，并在 [Acrel4gSocketSession.java:135](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L135) 里按 `7B7B ... 7D7D` 切帧。
-3. 每个完整帧会回调到 [SimulatorLifecycle.java:257](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L257) 的 `handleInboundFrame()`。
-4. 这里直接调用 [Acrel4gCommandResponder.java:38](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponder.java#L38) 解析命令。
-5. 目前只处理三类命令：
-   - [Acrel4gCommandResponder.java:53](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponder.java#L53) 拉闸，把 `switchStatus` 改成 `OFF`
-   - [Acrel4gCommandResponder.java:58](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponder.java#L58) 合闸，把 `switchStatus` 改成 `ON`
-   - [Acrel4gCommandResponder.java:63](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponder.java#L63) 读总电量，按当前累计值生成响应
-6. 命令处理成功后，[SimulatorLifecycle.java:265](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L265) 会先持久化，再在 [SimulatorLifecycle.java:266](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L266) 用 `Acrel4gFrameCodec` 组装 `DOWNLINK` 响应帧并发回。
+1. 建链成功后，`Acrel4gSocketSession` 会启动独立 reader 线程持续读取服务端下行数据，并按 `7B7B ... 7D7D` 切分完整帧。
+2. 每个完整帧都会回调到 `SimulatorDeviceRuntime.handleInboundFrame()`。
+3. [Acrel4gCommandResponder.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponder.java) 当前只处理三类命令：
+   - `拉闸`
+   - `合闸`
+   - `读总电量`
+4. 命令处理成功后，会先持久化当前运行态，再通过 [Acrel4gFrameCodec.java](/Users/jerry/Workspace/github/ems4j/ems-iot/src/main/java/info/zhihui/ems/iot/plugins/acrel/protocol/fourthgeneration/tcp/support/Acrel4gFrameCodec.java) 组装 `DOWNLINK` 响应帧并发回。
+
+### 连接与重连说明
+
+1. `sendSimulatorFrame()` 在真正发送前会再次执行 `ensureConnectedAndRegistered()`，用于处理断线后的自动重连。
+2. `Acrel4gSocketSession.readLoop()` 的 reader 线程退出时，只回收自己持有的 `currentSocket/currentInputStream`。
+3. 只有当退出的 reader 对应当前活跃连接时，才会清空共享 `socket/inputStream/outputStream` 并标记设备离线。
+4. 这样可以避免旧连接的 reader 线程在退出时误关新连接，降低断线恢复后的连接抖动风险。
 
 ### 线程模型
 
-- 每台模拟表都有一个独立的 `DeviceRuntime`。
-- 每台表至少会创建三类执行单元：
-  - 一个 TCP reader 线程，负责持续收包
-  - 一个心跳定时线程，负责周期发送心跳
-  - 一个上报线程，负责执行历史补投和实时上报
+- 每台模拟表对应一个独立的 `SimulatorDeviceRuntime`。
+- 每台表至少会创建三个执行单元：
+  - 一个 TCP reader 线程，负责收包
+  - 一个心跳定时线程，负责保活
+  - 一个上报线程，负责历史补投和实时上报
 - 不同设备之间互不影响，一台表断线重连不会阻塞其他表。
-- 所有需要持久化状态的地方，都会同步调用 `StateStore.save(...)`，保证重启后电量、开关状态和补投进度可恢复。
+- 持久化保存通过同一份 `SimulatorStateSnapshot` 完成，并在 `StateStore` 锁内写回，避免多设备并发覆盖。
 
 ### 停止流程
 
-1. Spring 容器关闭时，会回调 [SimulatorLifecycle.java:74](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L74) 的 `stop()`。
-2. `stop()` 会遍历所有 `DeviceRuntime`，逐个调用 [SimulatorLifecycle.java:133](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycle.java#L133) 的 `DeviceRuntime.stop()`。
-3. 每台设备停止时会：
+1. Spring 容器关闭时，会调用 `SimulatorLifecycle.stop()`。
+2. `stop()` 会遍历所有 `SimulatorDeviceRuntime`，逐台执行 `stop()`。
+3. 单台设备停止时会：
    - 把 `stopped` 置为 `true`
    - 关闭心跳线程
    - 关闭上报线程
-   - 调用 [Acrel4gSocketSession.java:93](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L93) 关闭 TCP 连接
-4. 连接关闭后，reader 线程会在 [Acrel4gSocketSession.java:128](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSession.java#L128) 的 `finally` 中标记设备离线并释放底层流资源。
+   - 调用 `Acrel4gSocketSession.close()` 主动关闭 TCP 会话
+4. `Acrel4gSocketSession.close()` 会显式标记设备离线，reader 线程则会在下一次循环或 IO 异常时自然退出。
 
 ## 行为规则
 
@@ -258,6 +260,24 @@ Acrel4gSocketSession.readLoop
 4. 启动 `ems-iot-simulator`。
 5. 在 `ems-iot` 侧确认设备注册、心跳和上报日志。
 6. 从 `ems-iot` 侧下发 `拉闸 / 合闸 / 读总电量`，确认模拟器能正常回包。
+
+## 自动化验证
+
+当前与模拟器主链路直接相关的测试主要包括：
+
+- [SimulatorPropertiesTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/config/SimulatorPropertiesTest.java)：配置绑定
+- [ReplayScheduleServiceTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleServiceTest.java)：历史补投时间点计算
+- [EnergySimulationServiceTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/service/EnergySimulationServiceTest.java)：能耗快照生成
+- [Acrel4gCommandResponderTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gCommandResponderTest.java)：下行命令识别与响应
+- [Acrel4gSocketSessionTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/protocol/acrel/Acrel4gSocketSessionTest.java)：TCP 收发、切帧和旧 reader 不误关新连接
+- [SimulatorDeviceRuntimeTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/service/SimulatorDeviceRuntimeTest.java)：单设备补投、实时上报、拉合闸与持久化
+- [SimulatorLifecycleTest.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/test/java/info/zhihui/ems/iot/simulator/service/SimulatorLifecycleTest.java)：启动装配与主链路联动
+
+模块级验证命令：
+
+```bash
+mvn -pl ems-iot-simulator -am -DfailIfNoTests=false test -q
+```
 
 ## 持久化说明
 
