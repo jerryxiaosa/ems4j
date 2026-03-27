@@ -66,7 +66,7 @@ public class ElectricMeterTask {
             pageNum++;
         }
 
-        log.info("电表状态全量同步任务完成：在线状态成功 {} 个、失败 {} 个",
+        log.info("电表状态全量同步任务完成：同步成功 {} 个、失败 {} 个",
                 onlineResult.success, onlineResult.failed);
     }
 

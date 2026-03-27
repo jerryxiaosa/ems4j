@@ -1,11 +1,11 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support;
 
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gFrameConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.netty.decoder.AcrelDelimitedFrameDecoder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +29,7 @@ public class Acrel4gFrameCodec {
             return new FrameDecodeResult(null, new byte[0], ProtocolDecodeErrorEnum.FRAME_TOO_SHORT);
         }
         byte command = frame[2];
-        String commandKey = Acrel4gPacketCode.commandKey(command);
+        String commandKey = AcrelPacketKeySupport.commandKey(command);
         int crcIdx = frame.length - 4;
 
         // 取出消息体（不含起止符、命令字、CRC）：
@@ -59,15 +59,15 @@ public class Acrel4gFrameCodec {
         byte[] crc = ModbusCrcUtil.crc(combine(new byte[]{command}, payload));
         byte[] frame = new byte[2 + 1 + payload.length + 2 + 2];
         int idx = 0;
-        frame[idx++] = AcrelProtocolConstants.DELIMITER;
-        frame[idx++] = AcrelProtocolConstants.DELIMITER;
+        frame[idx++] = Acrel4gFrameConstants.DELIMITER;
+        frame[idx++] = Acrel4gFrameConstants.DELIMITER;
         frame[idx++] = command;
         System.arraycopy(payload, 0, frame, idx, payload.length);
         idx += payload.length;
         frame[idx++] = crc[0];
         frame[idx++] = crc[1];
-        frame[idx++] = AcrelProtocolConstants.DELIMITER_END;
-        frame[idx] = AcrelProtocolConstants.DELIMITER_END;
+        frame[idx++] = Acrel4gFrameConstants.DELIMITER_END;
+        frame[idx] = Acrel4gFrameConstants.DELIMITER_END;
         return frame;
     }
 

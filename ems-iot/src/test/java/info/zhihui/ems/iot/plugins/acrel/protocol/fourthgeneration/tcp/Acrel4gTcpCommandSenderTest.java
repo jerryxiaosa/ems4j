@@ -10,7 +10,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
@@ -96,7 +96,7 @@ class Acrel4gTcpCommandSenderTest {
         ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
         Mockito.verify(commandTransport).sendWithAck(Mockito.eq("dev-1"), captor.capture());
         byte[] expectedFrame = new Acrel4gFrameCodec().encode(
-                Acrel4gPacketCode.DOWNLINK, ModbusRtuBuilder.build(request));
+                Acrel4gCommandConstants.DOWNLINK, ModbusRtuBuilder.build(request));
         Assertions.assertArrayEquals(expectedFrame, captor.getValue());
     }
 

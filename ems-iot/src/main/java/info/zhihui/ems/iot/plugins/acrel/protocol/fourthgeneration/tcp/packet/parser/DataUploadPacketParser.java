@@ -2,8 +2,10 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.p
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,24 +19,9 @@ import java.util.Arrays;
 @Component
 public class DataUploadPacketParser implements Acrel4gPacketParser {
 
-    private static final int DATA_LENGTH_RATE4 = 0x60;
-    private static final int DATA_LENGTH_RATE8 = 0x90;
-    private static final int RATE_TOTAL_OFFSET = 42;
-    private static final int RATE_HIGHER_OFFSET = 46;
-    private static final int RATE_HIGH_OFFSET = 50;
-    private static final int RATE_LOW_OFFSET = 54;
-    private static final int RATE_LOWER_OFFSET = 58;
-    private static final int RATE_DEEP_LOWER_OFFSET = 96;
-    private static final int RATE4_TIME_OFFSET = 80;
-    private static final int RATE8_TIME_OFFSET = 80;
-    private static final byte SECTION_START = 0x5b; // '['，采集段以 "[[" 开头
-    private static final byte SECTION_END = 0x5d; // ']'，采集段以 "]]" 结束
-    private static final byte MODBUS_START = 0x28; // '('，Modbus 数据以 "((" 开始
-    private static final byte MODBUS_END = 0x29; // ')'，Modbus 数据以 "))" 结束
-
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD);
     }
 
     @Override
@@ -51,7 +38,8 @@ public class DataUploadPacketParser implements Acrel4gPacketParser {
         }
 
         int offset;
-        boolean startsWithSection = payload[0] == SECTION_START && payload[1] == SECTION_START;
+        boolean startsWithSection = payload[0] == Acrel4gPayloadConstants.SECTION_START
+                && payload[1] == Acrel4gPayloadConstants.SECTION_START;
         if (startsWithSection) {
             offset = 0;
         } else {
@@ -59,8 +47,8 @@ public class DataUploadPacketParser implements Acrel4gPacketParser {
                 log.error("数据上报格式不正确：小于包含序列号的最小长度");
                 return null;
             }
-            msg.setSerialNumber(Acrel4gParseSupport.readString(payload, 0, Acrel4gParseSupport.SERIAL_NUMBER_LENGTH));
-            offset = Acrel4gParseSupport.SERIAL_NUMBER_LENGTH;
+            msg.setSerialNumber(Acrel4gParseSupport.readString(payload, 0, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH));
+            offset = Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH;
         }
         int res = fillSegment(msg, payload, offset);
         if (res == -1) {
@@ -75,24 +63,24 @@ public class DataUploadPacketParser implements Acrel4gPacketParser {
      */
     private int fillSegment(DataUploadMessage msg, byte[] payload, int offset) {
         int idx = Math.max(0, offset);
-        int sectionStartIdx = findPair(payload, idx, SECTION_START, SECTION_START);
+        int sectionStartIdx = findPair(payload, idx, Acrel4gPayloadConstants.SECTION_START, Acrel4gPayloadConstants.SECTION_START);
         if (sectionStartIdx < 0) {
             log.error("数据上报格式不正确：没有找到数据段开始的标志");
             return -1;
         }
-        int sectionEndIdx = findPair(payload, sectionStartIdx + 2, SECTION_END, SECTION_END);
+        int sectionEndIdx = findPair(payload, sectionStartIdx + 2, Acrel4gPayloadConstants.SECTION_END, Acrel4gPayloadConstants.SECTION_END);
         if (sectionEndIdx < 0) {
             log.error("数据上报格式不正确：没有找到数据段结束的标志");
             return -1;
         }
 
         int contentStart = sectionStartIdx + 2;
-        int modbusStartIdx = findPair(payload, contentStart, MODBUS_START, MODBUS_START);
+        int modbusStartIdx = findPair(payload, contentStart, Acrel4gPayloadConstants.MODBUS_START, Acrel4gPayloadConstants.MODBUS_START);
         if (modbusStartIdx < 0 || modbusStartIdx >= sectionEndIdx) {
             log.error("数据上报格式不正确：没有找到正确的Modbus数据流开始标志");
             return -1;
         }
-        int modbusEndIdx = findPair(payload, modbusStartIdx + 2, MODBUS_END, MODBUS_END);
+        int modbusEndIdx = findPair(payload, modbusStartIdx + 2, Acrel4gPayloadConstants.MODBUS_END, Acrel4gPayloadConstants.MODBUS_END);
         if (modbusEndIdx < 0 || modbusEndIdx >= sectionEndIdx) {
             log.error("数据上报格式不正确：没有找到正确的Modbus数据流结束标志");
             return -1;
@@ -132,9 +120,9 @@ public class DataUploadPacketParser implements Acrel4gPacketParser {
             return;
         }
         byte[] data = Arrays.copyOfRange(modbusFrame, dataStart, dataEnd);
-        if (byteCount == DATA_LENGTH_RATE4) {
+        if (byteCount == Acrel4gPayloadConstants.DATA_LENGTH_RATE4) {
             fillRate4(msg, data);
-        } else if (byteCount == DATA_LENGTH_RATE8) {
+        } else if (byteCount == Acrel4gPayloadConstants.DATA_LENGTH_RATE8) {
             fillRate8(msg, data);
         }
     }
@@ -143,25 +131,25 @@ public class DataUploadPacketParser implements Acrel4gPacketParser {
      * 解析 4 费率数据区。
      */
     private void fillRate4(DataUploadMessage msg, byte[] data) {
-        msg.setTotalEnergy(Acrel4gParseSupport.readUInt32(data, RATE_TOTAL_OFFSET));
-        msg.setHigherEnergy(Acrel4gParseSupport.readUInt32(data, RATE_HIGHER_OFFSET));
-        msg.setHighEnergy(Acrel4gParseSupport.readUInt32(data, RATE_HIGH_OFFSET));
-        msg.setLowEnergy(Acrel4gParseSupport.readUInt32(data, RATE_LOW_OFFSET));
-        msg.setLowerEnergy(Acrel4gParseSupport.readUInt32(data, RATE_LOWER_OFFSET));
+        msg.setTotalEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_TOTAL_OFFSET));
+        msg.setHigherEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_HIGHER_OFFSET));
+        msg.setHighEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_HIGH_OFFSET));
+        msg.setLowEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_LOW_OFFSET));
+        msg.setLowerEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_LOWER_OFFSET));
         msg.setDeepLowEnergy(0);
-        msg.setTime(Acrel4gParseSupport.parseDateTime(data, RATE4_TIME_OFFSET, true));
+        msg.setTime(Acrel4gParseSupport.parseDateTime(data, Acrel4gPayloadConstants.RATE4_TIME_OFFSET, true));
     }
 
     /**
      * 解析 8 费率数据区。
      */
     private void fillRate8(DataUploadMessage msg, byte[] data) {
-        msg.setTotalEnergy(Acrel4gParseSupport.readUInt32(data, RATE_TOTAL_OFFSET));
-        msg.setHigherEnergy(Acrel4gParseSupport.readUInt32(data, RATE_HIGHER_OFFSET));
-        msg.setHighEnergy(Acrel4gParseSupport.readUInt32(data, RATE_HIGH_OFFSET));
-        msg.setLowEnergy(Acrel4gParseSupport.readUInt32(data, RATE_LOW_OFFSET));
-        msg.setLowerEnergy(Acrel4gParseSupport.readUInt32(data, RATE_LOWER_OFFSET));
-        msg.setDeepLowEnergy(Acrel4gParseSupport.readUInt32(data, RATE_DEEP_LOWER_OFFSET));
-        msg.setTime(Acrel4gParseSupport.parseDateTime(data, RATE8_TIME_OFFSET, false));
+        msg.setTotalEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_TOTAL_OFFSET));
+        msg.setHigherEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_HIGHER_OFFSET));
+        msg.setHighEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_HIGH_OFFSET));
+        msg.setLowEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_LOW_OFFSET));
+        msg.setLowerEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_LOWER_OFFSET));
+        msg.setDeepLowEnergy(Acrel4gParseSupport.readUInt32(data, Acrel4gPayloadConstants.RATE_DEEP_LOWER_OFFSET));
+        msg.setTime(Acrel4gParseSupport.parseDateTime(data, Acrel4gPayloadConstants.RATE8_TIME_OFFSET, false));
     }
 }

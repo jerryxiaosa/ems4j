@@ -7,7 +7,8 @@ import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolS
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.TimeSyncMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -23,7 +24,7 @@ class TimeSyncPacketHandlerTest {
         DeviceBinder deviceBinder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         TimeSyncPacketHandler handler = new TimeSyncPacketHandler(deviceBinder, codec);
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.TIME_SYNC), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.TIME_SYNC), handler.command());
     }
 
     @Test

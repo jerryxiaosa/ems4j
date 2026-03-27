@@ -9,7 +9,8 @@ import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
 
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class DataUploadPacketHandler implements Acrel4gPacketHandler {
             log.warn("4G 上报事件发布异常 deviceNo={} session={}", deviceNo, session.getSessionId(), ex);
             return;
         }
-        session.send(frameCodec.encodeAck(Acrel4gPacketCode.DATA_UPLOAD));
+        session.send(frameCodec.encodeAck(Acrel4gCommandConstants.DATA_UPLOAD));
     }
 
 

@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler.DataPacketHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser.DataPacketParser;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class DataPacketDefinition implements GatewayPacketDefinition {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.DATA);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DATA);
     }
 
     @Override

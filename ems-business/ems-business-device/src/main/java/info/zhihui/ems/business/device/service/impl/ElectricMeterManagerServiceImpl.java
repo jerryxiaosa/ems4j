@@ -1238,14 +1238,8 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
                 Boolean.class
         );
 
-        if (BooleanUtil.isTrue(isCt)) {
-            if (entity.getCt() == null) {
-                entity.setCt(1);
-            }
-        } else {
-            if (entity.getCt() != null) {
-                throw new BusinessRuntimeException("当前电表型号不支持CT变比");
-            }
+        if (!BooleanUtil.isTrue(isCt) && entity.getCt() != null) {
+            throw new BusinessRuntimeException("当前电表型号不支持CT变比");
         }
     }
 

@@ -1,7 +1,7 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
-import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayFrameConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decoder.AcrelGatewayFrameDecoder;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
@@ -20,28 +20,30 @@ public class AcrelGatewayFrameCodec {
      * 切分后的完整帧，不在此处重复校验帧头与长度边界。
      */
     public FrameDecodeResult decode(byte[] frame) {
-        if (frame == null || frame.length < 7) {
+        if (frame == null || frame.length < AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH) {
             return new FrameDecodeResult(null, new byte[0], ProtocolDecodeErrorEnum.FRAME_TOO_SHORT);
         }
         byte type = frame[2];
-        String commandKey = GatewayPacketCode.commandKey(type);
-        byte[] data = frame.length == 7 ? new byte[0] : Arrays.copyOfRange(frame, 7, frame.length);
+        String commandKey = AcrelPacketKeySupport.commandKey(type);
+        byte[] data = frame.length == AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH
+                ? new byte[0]
+                : Arrays.copyOfRange(frame, AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH, frame.length);
         return new FrameDecodeResult(commandKey, data, null);
     }
 
     public byte[] encode(byte type, byte[] data) {
         byte[] payload = data == null ? new byte[0] : data;
         int length = payload.length;
-        byte[] frame = new byte[7 + length];
-        frame[0] = (byte) ((AcrelProtocolConstants.GATEWAY_HEAD >> 8) & 0xFF);
-        frame[1] = (byte) (AcrelProtocolConstants.GATEWAY_HEAD & 0xFF);
+        byte[] frame = new byte[AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH + length];
+        frame[0] = (byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF);
+        frame[1] = (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF);
         frame[2] = type;
         frame[3] = (byte) ((length >> 24) & 0xFF);
         frame[4] = (byte) ((length >> 16) & 0xFF);
         frame[5] = (byte) ((length >> 8) & 0xFF);
         frame[6] = (byte) (length & 0xFF);
         if (length > 0) {
-            System.arraycopy(payload, 0, frame, 7, length);
+            System.arraycopy(payload, 0, frame, AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH, length);
         }
         return frame;
     }

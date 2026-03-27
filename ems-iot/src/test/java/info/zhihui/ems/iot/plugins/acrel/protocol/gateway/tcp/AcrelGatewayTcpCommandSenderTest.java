@@ -12,7 +12,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
@@ -203,7 +203,7 @@ class AcrelGatewayTcpCommandSenderTest {
         byte[] transparent = gatewayTransparentCodec.encode(device.getPortNo(), device.getMeterAddress(), rtuFrame);
         byte[] encrypted = gatewayCryptoService.encrypt(
                 transparent, "1234567890abcdef");
-        byte[] expectedFrame = gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
+        byte[] expectedFrame = gatewayFrameCodec.encode(AcrelGatewayCommandConstants.DOWNLINK, encrypted);
         Assertions.assertArrayEquals(expectedFrame, captor.getValue());
     }
 
@@ -346,7 +346,7 @@ class AcrelGatewayTcpCommandSenderTest {
         byte[] rtuFrame = ModbusRtuBuilder.build(request);
         byte[] transparent = gatewayTransparentCodec.encode(device.getPortNo(), device.getMeterAddress(), rtuFrame);
         byte[] encrypted = gatewayCryptoService.encrypt(transparent, gateway.getDeviceSecret());
-        return gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
+        return gatewayFrameCodec.encode(AcrelGatewayCommandConstants.DOWNLINK, encrypted);
     }
 
 }

@@ -6,7 +6,7 @@ import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition.GatewayPacketDefinition;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
@@ -61,7 +61,7 @@ class AcrelGatewayTcpInboundHandlerTest {
         GatewayPacketDefinition definition = new GatewayPacketDefinition() {
             @Override
             public String command() {
-                return GatewayPacketCode.commandKey((byte) 0x12);
+                return AcrelPacketKeySupport.commandKey((byte) 0x12);
             }
 
             @Override
@@ -91,7 +91,7 @@ class AcrelGatewayTcpInboundHandlerTest {
     void handle_whenParseSuccess_shouldInvokeDefinitionHandle() {
         AcrelGatewayFrameCodec codec = new AcrelGatewayFrameCodec();
         StubMessage message = new StubMessage();
-        CaptureDefinition definition = new CaptureDefinition(GatewayPacketCode.commandKey((byte) 0x13), message);
+        CaptureDefinition definition = new CaptureDefinition(AcrelPacketKeySupport.commandKey((byte) 0x13), message);
         AcrelGatewayTcpInboundHandler handler = new AcrelGatewayTcpInboundHandler(codec, new GatewayPacketRegistry(List.of(definition)));
         EventCaptureHandler capture = new EventCaptureHandler();
         EmbeddedChannel channel = new EmbeddedChannel(capture);

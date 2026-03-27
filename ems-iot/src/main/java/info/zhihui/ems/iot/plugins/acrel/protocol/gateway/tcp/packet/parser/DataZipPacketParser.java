@@ -8,7 +8,8 @@ import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatew
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayDataMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayReportMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class DataZipPacketParser implements GatewayPacketParser {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.DATA_ZIP);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DATA_ZIP);
     }
 
     @Override

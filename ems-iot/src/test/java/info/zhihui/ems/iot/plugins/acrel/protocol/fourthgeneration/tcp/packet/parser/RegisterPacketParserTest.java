@@ -1,7 +1,9 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser;
 
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
@@ -19,32 +21,32 @@ class RegisterPacketParserTest {
     void command_shouldReturnRegister() {
         RegisterPacketParser parser = new RegisterPacketParser();
 
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.REGISTER), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.REGISTER), parser.command());
     }
 
     @Test
     void testParse_Register_ShouldParseFields() {
-        byte[] payload = new byte[58];
+        byte[] payload = new byte[Acrel4gPayloadConstants.REGISTER_BODY_LENGTH];
 
         byte[] serialBytes = "02121031700227".getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serialBytes, 0, payload, 0, serialBytes.length);
 
         byte[] iccidBytes = "898604510919C0452888".getBytes(StandardCharsets.UTF_8);
-        System.arraycopy(iccidBytes, 0, payload, 20, iccidBytes.length);
+        System.arraycopy(iccidBytes, 0, payload, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH, iccidBytes.length);
 
-        payload[50] = 0x1b; // RSSI = 27
-        payload[51] = 0x00;
-        payload[52] = 0x02;
-        payload[53] = 0x01;
-        payload[54] = 0x00;
-        payload[55] = 0x01;
-        payload[56] = 0x00;
-        payload[57] = 0x1e; // 30min
+        payload[Acrel4gPayloadConstants.REGISTER_RSSI_OFFSET] = 0x1b; // RSSI = 27
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE1_OFFSET] = 0x00;
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE1_OFFSET + 1] = 0x02;
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE2_OFFSET] = 0x01;
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE2_OFFSET + 1] = 0x00;
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE3_OFFSET] = 0x01;
+        payload[Acrel4gPayloadConstants.REGISTER_FIRMWARE3_OFFSET + 1] = 0x00;
+        payload[Acrel4gPayloadConstants.REGISTER_REPORT_INTERVAL_OFFSET] = 0x1e; // 30min
 
-        byte[] frame = codec.encode(Acrel4gPacketCode.REGISTER, payload);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.REGISTER, payload);
 
         AcrelMessage msg = parseMessage(frame, new RegisterPacketParser(),
-                Acrel4gPacketCode.commandKey(Acrel4gPacketCode.REGISTER));
+                AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.REGISTER));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(RegisterMessage.class, msg);
@@ -60,8 +62,8 @@ class RegisterPacketParserTest {
 
     @Test
     void testParse_RegisterPayloadLengthMismatch_ShouldReturnNull() {
-        byte[] payload = new byte[57];
-        byte[] frame = codec.encode(Acrel4gPacketCode.REGISTER, payload);
+        byte[] payload = new byte[Acrel4gPayloadConstants.REGISTER_BODY_LENGTH - 1];
+        byte[] frame = codec.encode(Acrel4gCommandConstants.REGISTER, payload);
 
         Object parsed = parseFrame(frame);
         AcrelMessage msg = new RegisterPacketParser().parse(newContext(), extractPayload(parsed));

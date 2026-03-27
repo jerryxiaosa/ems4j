@@ -7,7 +7,8 @@ import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class DownlinkPacketHandlerTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
 
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK), handler.command());
     }
 
     @Test

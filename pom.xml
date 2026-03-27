@@ -17,6 +17,7 @@
         <module>ems-business</module>
         <module>ems-foundation</module>
         <module>ems-iot</module>
+        <module>ems-iot-simulator</module>
         <module>ems-mq</module>
         <module>ems-schedule</module>
         <module>ems-web</module>

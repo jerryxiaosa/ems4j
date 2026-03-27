@@ -47,4 +47,5 @@ logs/
 AGENTS.md
 TODO.md
 
+.data/
 .env

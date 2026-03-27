@@ -7,7 +7,8 @@ import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.util.HexUtil;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class HeartbeatPacketHandler implements GatewayPacketHandler {
 
         String time = HEARTBEAT_TIME_FORMAT.format(LocalDateTime.now());
         String xml = buildHeartbeatXml(gateway.getDeviceNo(), time);
-        byte[] frame = frameCodec.encode(GatewayPacketCode.HEARTBEAT, xml.getBytes(StandardCharsets.UTF_8));
+        byte[] frame = frameCodec.encode(AcrelGatewayCommandConstants.HEARTBEAT, xml.getBytes(StandardCharsets.UTF_8));
         ProtocolSession session = context.getSession();
         if (session != null) {
             session.send(frame);

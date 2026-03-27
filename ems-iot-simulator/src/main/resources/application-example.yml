@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: IOT-SIMULATOR
+
+simulator:
+  target:
+    host: 127.0.0.1
+    port: 19500
+    connect-timeout-ms: 5000
+    reconnect-interval-ms: 3000
+  runtime:
+    heartbeat-interval-seconds: 60
+    persistence-file: ./.data/iot-simulator-state.json
+  replay:
+    enabled: true
+    start-time: 2026-03-01T17:00:08
+    end-time: 2026-03-18T02:33:18
+    send-interval-ms: 200
+  devices:
+    - device-no: DEV005
+      vendor: ACREL
+      product-code: ACREL_4G_DIRECT
+      access-mode: DIRECT
+      meter-address: "001"
+      profile-type: OFFICE
+      random-seed: 101

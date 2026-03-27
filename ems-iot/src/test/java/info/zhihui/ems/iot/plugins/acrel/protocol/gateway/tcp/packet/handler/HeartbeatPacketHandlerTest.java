@@ -4,7 +4,8 @@ import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolHeartbeatInboundEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
@@ -26,7 +27,7 @@ class HeartbeatPacketHandlerTest {
         AcrelGatewayFrameCodec frameCodec = Mockito.mock(AcrelGatewayFrameCodec.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(deviceResolver, protocolInboundPublisher, frameCodec);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT), handler.command());
     }
 
     @Test
@@ -51,7 +52,7 @@ class HeartbeatPacketHandlerTest {
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(gateway);
         byte[] encoded = new byte[]{0x01};
         ArgumentCaptor<byte[]> payloadCaptor = ArgumentCaptor.forClass(byte[].class);
-        Mockito.when(frameCodec.encode(Mockito.eq(GatewayPacketCode.HEARTBEAT), payloadCaptor.capture()))
+        Mockito.when(frameCodec.encode(Mockito.eq(AcrelGatewayCommandConstants.HEARTBEAT), payloadCaptor.capture()))
                 .thenReturn(encoded);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(deviceResolver, protocolInboundPublisher, frameCodec);
         SimpleProtocolMessageContext context = buildContext();
@@ -70,7 +71,7 @@ class HeartbeatPacketHandlerTest {
         Assertions.assertEquals(LocalDateTime.of(2024, 1, 2, 3, 4, 5), event.getReceivedAt());
         Assertions.assertEquals(TransportProtocolEnum.TCP, event.getTransportType());
         Assertions.assertEquals("0102", event.getRawPayloadHex());
-        Mockito.verify(frameCodec).encode(Mockito.eq(GatewayPacketCode.HEARTBEAT), Mockito.any());
+        Mockito.verify(frameCodec).encode(Mockito.eq(AcrelGatewayCommandConstants.HEARTBEAT), Mockito.any());
         Mockito.verify(context.getSession()).send(encoded);
         byte[] payload = payloadCaptor.getValue();
         String xml = new String(payload, StandardCharsets.UTF_8);

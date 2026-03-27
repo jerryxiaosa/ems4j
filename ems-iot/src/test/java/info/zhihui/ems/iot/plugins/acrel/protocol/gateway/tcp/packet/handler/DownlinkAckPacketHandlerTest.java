@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayTransparentMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
@@ -20,7 +21,7 @@ class DownlinkAckPacketHandlerTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkAckPacketHandler handler = new DownlinkAckPacketHandler(deviceResolver, commandTransport);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.DOWNLINK_ACK), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DOWNLINK_ACK), handler.command());
     }
 
     @Test

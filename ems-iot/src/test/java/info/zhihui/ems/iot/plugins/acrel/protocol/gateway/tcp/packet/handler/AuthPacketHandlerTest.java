@@ -3,7 +3,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
@@ -28,7 +29,7 @@ class AuthPacketHandlerTest {
         DeviceBinder deviceBinder = Mockito.mock(DeviceBinder.class);
         AuthPacketHandler handler = new AuthPacketHandler(cryptoService, frameCodec, deviceRegistry, deviceBinder);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.AUTH), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.AUTH), handler.command());
     }
 
     @Test
@@ -43,7 +44,7 @@ class AuthPacketHandlerTest {
         Mockito.when(deviceRegistry.getByDeviceNo("gw-1")).thenReturn(gateway);
         byte[] encoded = new byte[]{0x01, 0x02};
         ArgumentCaptor<byte[]> payloadCaptor = ArgumentCaptor.forClass(byte[].class);
-        Mockito.when(frameCodec.encode(Mockito.eq(GatewayPacketCode.AUTH), payloadCaptor.capture()))
+        Mockito.when(frameCodec.encode(Mockito.eq(AcrelGatewayCommandConstants.AUTH), payloadCaptor.capture()))
                 .thenReturn(encoded);
         AuthPacketHandler handler = new AuthPacketHandler(cryptoService, frameCodec, deviceRegistry, deviceBinder);
         GatewayAuthMessage message = new GatewayAuthMessage("gw-1", "b1", "request", null, null);
@@ -77,7 +78,7 @@ class AuthPacketHandlerTest {
         Mockito.when(cryptoService.md5Hex("secretseq-1")).thenReturn("expected");
         byte[] encoded = new byte[]{0x03};
         ArgumentCaptor<byte[]> payloadCaptor = ArgumentCaptor.forClass(byte[].class);
-        Mockito.when(frameCodec.encode(Mockito.eq(GatewayPacketCode.AUTH), payloadCaptor.capture()))
+        Mockito.when(frameCodec.encode(Mockito.eq(AcrelGatewayCommandConstants.AUTH), payloadCaptor.capture()))
                 .thenReturn(encoded);
         AuthPacketHandler handler = new AuthPacketHandler(cryptoService, frameCodec, deviceRegistry, deviceBinder);
         GatewayAuthMessage message = new GatewayAuthMessage("gw-1", "b1", "md5", null, "wrong");

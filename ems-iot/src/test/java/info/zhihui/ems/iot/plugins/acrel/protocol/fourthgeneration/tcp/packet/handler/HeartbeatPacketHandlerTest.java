@@ -9,7 +9,8 @@ import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolS
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.HeartbeatMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.util.HexUtil;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +27,7 @@ class HeartbeatPacketHandlerTest {
         ApplicationEventPublisher publisher = Mockito.mock(ApplicationEventPublisher.class);
         HeartbeatPacketHandler handler = new HeartbeatPacketHandler(publisher);
 
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.HEARTBEAT), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.HEARTBEAT), handler.command());
     }
 
     @Test

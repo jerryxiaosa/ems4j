@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser;
 
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayXmlParser;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
@@ -19,7 +20,7 @@ class AuthPacketParserTest {
         AcrelGatewayXmlParser xmlParser = Mockito.mock(AcrelGatewayXmlParser.class);
         AuthPacketParser parser = new AuthPacketParser(xmlParser);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.AUTH), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.AUTH), parser.command());
     }
 
     @Test

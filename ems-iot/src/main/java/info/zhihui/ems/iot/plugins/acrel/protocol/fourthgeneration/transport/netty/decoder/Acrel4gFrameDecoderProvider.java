@@ -4,7 +4,7 @@ import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.infrastructure.transport.netty.spi.NettyFrameDecoderProvider;
 import info.zhihui.ems.iot.enums.VendorEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gFrameConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ public class Acrel4gFrameDecoderProvider implements NettyFrameDecoderProvider {
         if (payload == null || payload.length < 2) {
             return null;
         }
-        if (payload[0] != AcrelProtocolConstants.DELIMITER || payload[1] != AcrelProtocolConstants.DELIMITER) {
+        if (payload[0] != Acrel4gFrameConstants.DELIMITER || payload[1] != Acrel4gFrameConstants.DELIMITER) {
             return null;
         }
         return new ProtocolSignature()

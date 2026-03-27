@@ -6,7 +6,8 @@ import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.TimeSyncMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class TimeSyncPacketHandler implements Acrel4gPacketHandler {
 
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.TIME_SYNC);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.TIME_SYNC);
     }
 
     @Override
@@ -57,7 +58,7 @@ public class TimeSyncPacketHandler implements Acrel4gPacketHandler {
         }
 
         LocalDateTime receivedAt = context.getReceivedAt() == null ? LocalDateTime.now() : context.getReceivedAt();
-        byte[] frame = frameCodec.encode(Acrel4gPacketCode.TIME_SYNC, buildTimeSyncBody(receivedAt));
+        byte[] frame = frameCodec.encode(Acrel4gCommandConstants.TIME_SYNC, buildTimeSyncBody(receivedAt));
         session.send(frame);
         log.debug("4G 对时响应已下发 session={}", session.getSessionId());
     }

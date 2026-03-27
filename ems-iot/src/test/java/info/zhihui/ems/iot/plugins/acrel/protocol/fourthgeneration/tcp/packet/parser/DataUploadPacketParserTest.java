@@ -1,8 +1,10 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser;
 
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DataUploadMessage;
@@ -19,7 +21,7 @@ class DataUploadPacketParserTest {
     @Test
     void testCommand_ShouldReturnDataUpload() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD), parser.command());
     }
 
     @Test
@@ -33,10 +35,10 @@ class DataUploadPacketParserTest {
         LocalDateTime time = LocalDateTime.of(2021, 10, 21, 19, 37, 1);
         byte[] modbusFrame = buildRate4ModbusFrame(100, 10, 20, 30, 40, time);
         byte[] payload = buildDataUploadPayloadWithoutSerial("1-1", modbusFrame);
-        byte[] frame = codec.encode(Acrel4gPacketCode.DATA_UPLOAD, payload);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.DATA_UPLOAD, payload);
 
         AcrelMessage msg = parseMessage(frame, new DataUploadPacketParser(),
-                Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD));
+                AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(DataUploadMessage.class, msg);
@@ -58,15 +60,15 @@ class DataUploadPacketParserTest {
         byte[] modbusFrame = buildRate4ModbusFrame(100, 10, 20, 30, 40, time);
         byte[] body = buildDataUploadPayloadWithoutSerial("1-1", modbusFrame);
 
-        byte[] payload = new byte[20 + body.length];
+        byte[] payload = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + body.length];
         byte[] serialBytes = "02121031700227".getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serialBytes, 0, payload, 0, serialBytes.length);
-        System.arraycopy(body, 0, payload, 20, body.length);
+        System.arraycopy(body, 0, payload, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH, body.length);
 
-        byte[] frame = codec.encode(Acrel4gPacketCode.DATA_UPLOAD, payload);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.DATA_UPLOAD, payload);
 
         AcrelMessage msg = parseMessage(frame, new DataUploadPacketParser(),
-                Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD));
+                AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(DataUploadMessage.class, msg);
@@ -87,10 +89,10 @@ class DataUploadPacketParserTest {
         LocalDateTime time = LocalDateTime.of(2024, 10, 30, 16, 24, 0);
         byte[] modbusFrame = buildRate8ModbusFrame(120, 5, 6, 7, 8, 9, time);
         byte[] payload = buildDataUploadPayloadWithoutSerial("1-1", modbusFrame);
-        byte[] frame = codec.encode(Acrel4gPacketCode.DATA_UPLOAD, payload);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.DATA_UPLOAD, payload);
 
         AcrelMessage msg = parseMessage(frame, new DataUploadPacketParser(),
-                Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DATA_UPLOAD));
+                AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DATA_UPLOAD));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(DataUploadMessage.class, msg);
@@ -106,7 +108,7 @@ class DataUploadPacketParserTest {
 
     @Test
     void testParse_DataUploadTooShort_ShouldReturnNull() {
-        byte[] frame = codec.encode(Acrel4gPacketCode.DATA_UPLOAD, new byte[]{1, 2, 3, 4, 5});
+        byte[] frame = codec.encode(Acrel4gCommandConstants.DATA_UPLOAD, new byte[]{1, 2, 3, 4, 5});
         Object parsed = parseFrame(frame);
         AcrelMessage msg = new DataUploadPacketParser().parse(newContext(), extractPayload(parsed));
         Assertions.assertNull(msg);
@@ -115,7 +117,7 @@ class DataUploadPacketParserTest {
     @Test
     void testParse_NoSectionAndPayloadShorterThanSerial_ShouldReturnNull() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[20];
+        byte[] payload = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH];
         payload[0] = 0x41;
         payload[1] = 0x41;
 
@@ -125,7 +127,7 @@ class DataUploadPacketParserTest {
     @Test
     void testParse_SerialWithoutSection_ShouldReturnNull() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[31];
+        byte[] payload = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + 11];
         byte[] serial = "02121031700227".getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serial, 0, payload, 0, serial.length);
         for (int i = 20; i < payload.length; i++) {
@@ -137,28 +139,34 @@ class DataUploadPacketParserTest {
     @Test
     void testParse_SectionMissingEnd_ShouldReturnNull() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[]{0x5b, 0x5b, '1', '-', '1', 0x28, 0x28, 0x01, 0x03, 0x00, 0x00};
+        byte[] payload = new byte[]{Acrel4gPayloadConstants.SECTION_START, Acrel4gPayloadConstants.SECTION_START, '1', '-', '1',
+                Acrel4gPayloadConstants.MODBUS_START, Acrel4gPayloadConstants.MODBUS_START, 0x01, 0x03, 0x00, 0x00};
         Assertions.assertNull(parser.parse(newContext(), payload));
     }
 
     @Test
     void testParse_SectionMissingModbusStart_ShouldReturnNull() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[]{0x5b, 0x5b, '1', '-', '1', 'A', 'B', 'C', 'D', 0x5d, 0x5d};
+        byte[] payload = new byte[]{Acrel4gPayloadConstants.SECTION_START, Acrel4gPayloadConstants.SECTION_START, '1', '-', '1',
+                'A', 'B', 'C', 'D', Acrel4gPayloadConstants.SECTION_END, Acrel4gPayloadConstants.SECTION_END};
         Assertions.assertNull(parser.parse(newContext(), payload));
     }
 
     @Test
     void testParse_SectionMissingModbusEnd_ShouldReturnNull() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[]{0x5b, 0x5b, '1', '-', '1', 0x28, 0x28, 0x01, 0x03, 0x00, 0x5d, 0x5d};
+        byte[] payload = new byte[]{Acrel4gPayloadConstants.SECTION_START, Acrel4gPayloadConstants.SECTION_START, '1', '-', '1',
+                Acrel4gPayloadConstants.MODBUS_START, Acrel4gPayloadConstants.MODBUS_START, 0x01, 0x03, 0x00,
+                Acrel4gPayloadConstants.SECTION_END, Acrel4gPayloadConstants.SECTION_END};
         Assertions.assertNull(parser.parse(newContext(), payload));
     }
 
     @Test
     void testParse_ModbusFrameTooShort_ShouldReturnMessageWithDefaults() {
         DataUploadPacketParser parser = new DataUploadPacketParser();
-        byte[] payload = new byte[]{0x5b, 0x5b, '1', '-', '1', 0x28, 0x28, 0x29, 0x29, 0x5d, 0x5d};
+        byte[] payload = new byte[]{Acrel4gPayloadConstants.SECTION_START, Acrel4gPayloadConstants.SECTION_START, '1', '-', '1',
+                Acrel4gPayloadConstants.MODBUS_START, Acrel4gPayloadConstants.MODBUS_START, Acrel4gPayloadConstants.MODBUS_END,
+                Acrel4gPayloadConstants.MODBUS_END, Acrel4gPayloadConstants.SECTION_END, Acrel4gPayloadConstants.SECTION_END};
         AcrelMessage msg = parser.parse(newContext(), payload);
         Assertions.assertNotNull(msg);
         DataUploadMessage upload = (DataUploadMessage) msg;
@@ -195,42 +203,42 @@ class DataUploadPacketParserTest {
         byte[] addressBytes = meterAddress.getBytes(StandardCharsets.UTF_8);
         byte[] payload = new byte[2 + addressBytes.length + 2 + modbusFrame.length + 2 + 2];
         int idx = 0;
-        payload[idx++] = 0x5b;
-        payload[idx++] = 0x5b;
+        payload[idx++] = Acrel4gPayloadConstants.SECTION_START;
+        payload[idx++] = Acrel4gPayloadConstants.SECTION_START;
         System.arraycopy(addressBytes, 0, payload, idx, addressBytes.length);
         idx += addressBytes.length;
-        payload[idx++] = 0x28;
-        payload[idx++] = 0x28;
+        payload[idx++] = Acrel4gPayloadConstants.MODBUS_START;
+        payload[idx++] = Acrel4gPayloadConstants.MODBUS_START;
         System.arraycopy(modbusFrame, 0, payload, idx, modbusFrame.length);
         idx += modbusFrame.length;
-        payload[idx++] = 0x29;
-        payload[idx++] = 0x29;
-        payload[idx++] = 0x5d;
-        payload[idx] = 0x5d;
+        payload[idx++] = Acrel4gPayloadConstants.MODBUS_END;
+        payload[idx++] = Acrel4gPayloadConstants.MODBUS_END;
+        payload[idx++] = Acrel4gPayloadConstants.SECTION_END;
+        payload[idx] = Acrel4gPayloadConstants.SECTION_END;
         return payload;
     }
 
     private byte[] buildRate4ModbusFrame(int total, int higher, int high, int low, int lower, LocalDateTime time) {
-        byte[] data = new byte[0x60];
-        putUInt32(data, 42, total);
-        putUInt32(data, 46, higher);
-        putUInt32(data, 50, high);
-        putUInt32(data, 54, low);
-        putUInt32(data, 58, lower);
+        byte[] data = new byte[Acrel4gPayloadConstants.DATA_LENGTH_RATE4];
+        putUInt32(data, Acrel4gPayloadConstants.RATE_TOTAL_OFFSET, total);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_HIGHER_OFFSET, higher);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_HIGH_OFFSET, high);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_LOW_OFFSET, low);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_LOWER_OFFSET, lower);
         fillRate4Time(data, time);
-        return wrapModbusFrame((byte) 0x60, data);
+        return wrapModbusFrame((byte) Acrel4gPayloadConstants.DATA_LENGTH_RATE4, data);
     }
 
     private byte[] buildRate8ModbusFrame(int total, int higher, int high, int low, int lower, int deepLow, LocalDateTime time) {
-        byte[] data = new byte[0x90];
-        putUInt32(data, 42, total);
-        putUInt32(data, 46, higher);
-        putUInt32(data, 50, high);
-        putUInt32(data, 54, low);
-        putUInt32(data, 58, lower);
-        putUInt32(data, 96, deepLow);
+        byte[] data = new byte[Acrel4gPayloadConstants.DATA_LENGTH_RATE8];
+        putUInt32(data, Acrel4gPayloadConstants.RATE_TOTAL_OFFSET, total);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_HIGHER_OFFSET, higher);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_HIGH_OFFSET, high);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_LOW_OFFSET, low);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_LOWER_OFFSET, lower);
+        putUInt32(data, Acrel4gPayloadConstants.RATE_DEEP_LOWER_OFFSET, deepLow);
         fillRate8Time(data, time);
-        return wrapModbusFrame((byte) 0x90, data);
+        return wrapModbusFrame((byte) Acrel4gPayloadConstants.DATA_LENGTH_RATE8, data);
     }
 
     private byte[] wrapModbusFrame(byte byteCount, byte[] data) {
@@ -250,22 +258,22 @@ class DataUploadPacketParserTest {
     }
 
     private void fillRate4Time(byte[] data, LocalDateTime time) {
-        data[80] = (byte) (time.getYear() - 2000);
-        data[81] = (byte) time.getMonthValue();
-        data[82] = (byte) time.getDayOfMonth();
-        data[83] = (byte) (time.getDayOfWeek().getValue() % 7);
-        data[84] = (byte) time.getHour();
-        data[85] = (byte) time.getMinute();
-        data[86] = (byte) time.getSecond();
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET] = (byte) (time.getYear() - 2000);
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 1] = (byte) time.getMonthValue();
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 2] = (byte) time.getDayOfMonth();
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 3] = (byte) (time.getDayOfWeek().getValue() % 7);
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 4] = (byte) time.getHour();
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 5] = (byte) time.getMinute();
+        data[Acrel4gPayloadConstants.RATE4_TIME_OFFSET + 6] = (byte) time.getSecond();
     }
 
     private void fillRate8Time(byte[] data, LocalDateTime time) {
-        data[80] = (byte) (time.getYear() - 2000);
-        data[81] = (byte) time.getMonthValue();
-        data[82] = (byte) time.getDayOfMonth();
-        data[83] = (byte) time.getHour();
-        data[84] = (byte) time.getMinute();
-        data[85] = (byte) time.getSecond();
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET] = (byte) (time.getYear() - 2000);
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET + 1] = (byte) time.getMonthValue();
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET + 2] = (byte) time.getDayOfMonth();
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET + 3] = (byte) time.getHour();
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET + 4] = (byte) time.getMinute();
+        data[Acrel4gPayloadConstants.RATE8_TIME_OFFSET + 5] = (byte) time.getSecond();
     }
 
     private Object parseFrame(byte[] frame) {

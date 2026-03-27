@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler.DownlinkAckPacketHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser.DownlinkAckPacketParser;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class DownlinkAckPacketDefinition implements GatewayPacketDefinition {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.DOWNLINK_ACK);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DOWNLINK_ACK);
     }
 
     @Override

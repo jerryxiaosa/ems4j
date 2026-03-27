@@ -2,6 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet;
 
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition.GatewayPacketDefinition;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
@@ -13,17 +14,17 @@ class GatewayPacketRegistryTest {
 
     @Test
     void testResolve_ShouldReturnDefinition() {
-        GatewayPacketDefinition definition = new StubDefinition(GatewayPacketCode.commandKey((byte) 0x10));
+        GatewayPacketDefinition definition = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
         GatewayPacketRegistry registry = new GatewayPacketRegistry(List.of(definition));
 
-        Assertions.assertSame(definition, registry.resolve(GatewayPacketCode.commandKey((byte) 0x10)));
-        Assertions.assertNull(registry.resolve(GatewayPacketCode.commandKey((byte) 0x11)));
+        Assertions.assertSame(definition, registry.resolve(AcrelPacketKeySupport.commandKey((byte) 0x10)));
+        Assertions.assertNull(registry.resolve(AcrelPacketKeySupport.commandKey((byte) 0x11)));
     }
 
     @Test
     void testConstructor_DuplicateCommand_ShouldThrow() {
-        GatewayPacketDefinition first = new StubDefinition(GatewayPacketCode.commandKey((byte) 0x10));
-        GatewayPacketDefinition second = new StubDefinition(GatewayPacketCode.commandKey((byte) 0x10));
+        GatewayPacketDefinition first = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
+        GatewayPacketDefinition second = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
 
         Assertions.assertThrows(BusinessRuntimeException.class,
                 () -> new GatewayPacketRegistry(List.of(first, second)));

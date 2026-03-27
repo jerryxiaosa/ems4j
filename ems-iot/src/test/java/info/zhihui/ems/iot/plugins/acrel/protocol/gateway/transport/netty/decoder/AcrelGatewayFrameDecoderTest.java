@@ -2,6 +2,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decod
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayFrameConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ class AcrelGatewayFrameDecoderTest {
     void decode_whenFrameComplete_shouldOutputFrame() {
         EmbeddedChannel channel = new EmbeddedChannel(new AcrelGatewayFrameDecoder());
         byte[] frame = new byte[]{
-                0x1f, 0x1f, 0x01,
+                (byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF), (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), 0x01,
                 0x00, 0x00, 0x00, 0x03,
                 0x11, 0x22, 0x33
         };
@@ -25,7 +26,8 @@ class AcrelGatewayFrameDecoderTest {
     @Test
     void decode_whenFragmented_shouldWaitForCompleteFrame() {
         EmbeddedChannel channel = new EmbeddedChannel(new AcrelGatewayFrameDecoder());
-        byte[] first = new byte[]{0x1f, 0x1f, 0x01, 0x00, 0x00};
+        byte[] first = new byte[]{(byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF),
+                (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), 0x01, 0x00, 0x00};
         byte[] second = new byte[]{0x00, 0x03, 0x11, 0x22, 0x33};
 
         channel.writeInbound(Unpooled.wrappedBuffer(first));
@@ -34,7 +36,7 @@ class AcrelGatewayFrameDecoderTest {
         channel.writeInbound(Unpooled.wrappedBuffer(second));
         byte[] decoded = channel.readInbound();
         Assertions.assertArrayEquals(new byte[]{
-                0x1f, 0x1f, 0x01,
+                (byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF), (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), 0x01,
                 0x00, 0x00, 0x00, 0x03,
                 0x11, 0x22, 0x33
         }, decoded);
@@ -45,7 +47,7 @@ class AcrelGatewayFrameDecoderTest {
         EmbeddedChannel channel = new EmbeddedChannel(new AcrelGatewayFrameDecoder());
         byte[] input = new byte[]{
                 0x00,
-                0x1f, 0x1f, 0x01,
+                (byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF), (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), 0x01,
                 0x00, 0x00, 0x00, 0x01,
                 0x7f
         };
@@ -54,7 +56,7 @@ class AcrelGatewayFrameDecoderTest {
 
         byte[] decoded = channel.readInbound();
         Assertions.assertArrayEquals(new byte[]{
-                0x1f, 0x1f, 0x01,
+                (byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF), (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), 0x01,
                 0x00, 0x00, 0x00, 0x01,
                 0x7f
         }, decoded);

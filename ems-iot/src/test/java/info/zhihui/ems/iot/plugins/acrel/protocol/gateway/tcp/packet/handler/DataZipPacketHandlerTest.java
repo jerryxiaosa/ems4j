@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler;
 
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ class DataZipPacketHandlerTest {
         DataPacketHandler delegate = Mockito.mock(DataPacketHandler.class);
         DataZipPacketHandler handler = new DataZipPacketHandler(delegate);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.DATA_ZIP), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DATA_ZIP), handler.command());
     }
 
     @Test

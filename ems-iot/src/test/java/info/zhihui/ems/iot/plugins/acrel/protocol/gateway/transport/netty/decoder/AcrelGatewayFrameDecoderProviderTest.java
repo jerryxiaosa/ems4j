@@ -3,6 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.transport.netty.decod
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.enums.VendorEnum;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayFrameConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +16,8 @@ class AcrelGatewayFrameDecoderProviderTest {
     @Test
     void detectTcp_whenHeadMatch_shouldReturnSignature() {
         AcrelGatewayFrameDecoderProvider provider = new AcrelGatewayFrameDecoderProvider();
-        byte[] payload = new byte[]{0x1f, 0x1f};
+        byte[] payload = new byte[]{(byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF),
+                (byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF)};
 
         ProtocolSignature signature = provider.detectTcp(payload);
 

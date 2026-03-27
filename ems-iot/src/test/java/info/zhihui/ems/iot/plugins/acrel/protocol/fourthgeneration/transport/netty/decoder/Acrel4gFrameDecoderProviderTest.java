@@ -3,7 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.transport.ne
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.enums.TransportProtocolEnum;
 import info.zhihui.ems.iot.enums.VendorEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.constant.AcrelProtocolConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gFrameConstants;
 import info.zhihui.ems.iot.protocol.port.registry.ProtocolSignature;
 import io.netty.channel.ChannelHandler;
 import org.junit.jupiter.api.Assertions;
@@ -13,10 +13,10 @@ import java.util.List;
 
 class Acrel4gFrameDecoderProviderTest {
 
-    @Test
+        @Test
     void detectTcp_whenDelimiterMatch_shouldReturnSignature() {
         Acrel4gFrameDecoderProvider provider = new Acrel4gFrameDecoderProvider();
-        byte[] payload = new byte[]{AcrelProtocolConstants.DELIMITER, AcrelProtocolConstants.DELIMITER};
+        byte[] payload = new byte[]{Acrel4gFrameConstants.DELIMITER, Acrel4gFrameConstants.DELIMITER};
 
         ProtocolSignature signature = provider.detectTcp(payload);
 

@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser;
 
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayHeartbeatMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ class HeartbeatPacketParserTest {
     void command_shouldReturnHeartbeat() {
         HeartbeatPacketParser parser = new HeartbeatPacketParser();
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT), parser.command());
     }
 
     @Test

@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.definition;
 
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.handler.HeartbeatPacketHandler;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser.HeartbeatPacketParser;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
@@ -15,19 +16,19 @@ class HeartbeatPacketDefinitionTest {
     void command_shouldReturnHeartbeat() {
         HeartbeatPacketParser parser = Mockito.mock(HeartbeatPacketParser.class);
         HeartbeatPacketHandler handler = Mockito.mock(HeartbeatPacketHandler.class);
-        Mockito.when(parser.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
-        Mockito.when(handler.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
+        Mockito.when(parser.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
+        Mockito.when(handler.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
         HeartbeatPacketDefinition definition = new HeartbeatPacketDefinition(parser, handler);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT), definition.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT), definition.command());
     }
 
     @Test
     void parse_shouldDelegateToParser() {
         HeartbeatPacketParser parser = Mockito.mock(HeartbeatPacketParser.class);
         HeartbeatPacketHandler handler = Mockito.mock(HeartbeatPacketHandler.class);
-        Mockito.when(parser.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
-        Mockito.when(handler.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
+        Mockito.when(parser.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
+        Mockito.when(handler.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
         HeartbeatPacketDefinition definition = new HeartbeatPacketDefinition(parser, handler);
         ProtocolMessageContext context = Mockito.mock(ProtocolMessageContext.class);
         byte[] payload = new byte[]{0x01};
@@ -44,8 +45,8 @@ class HeartbeatPacketDefinitionTest {
     void handle_shouldDelegateToHandler() {
         HeartbeatPacketParser parser = Mockito.mock(HeartbeatPacketParser.class);
         HeartbeatPacketHandler handler = Mockito.mock(HeartbeatPacketHandler.class);
-        Mockito.when(parser.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
-        Mockito.when(handler.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
+        Mockito.when(parser.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
+        Mockito.when(handler.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
         HeartbeatPacketDefinition definition = new HeartbeatPacketDefinition(parser, handler);
         ProtocolMessageContext context = Mockito.mock(ProtocolMessageContext.class);
         AcrelMessage message = Mockito.mock(AcrelMessage.class);
@@ -60,7 +61,7 @@ class HeartbeatPacketDefinitionTest {
         HeartbeatPacketParser parser = Mockito.mock(HeartbeatPacketParser.class);
         HeartbeatPacketHandler handler = Mockito.mock(HeartbeatPacketHandler.class);
         Mockito.when(parser.command()).thenReturn("ff");
-        Mockito.when(handler.command()).thenReturn(GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT));
+        Mockito.when(handler.command()).thenReturn(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT));
 
         Assertions.assertThrows(IllegalStateException.class, () -> new HeartbeatPacketDefinition(parser, handler));
     }

@@ -2,8 +2,10 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.p
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.RegisterMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,27 +14,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class RegisterPacketParser implements Acrel4gPacketParser {
 
-    private static final int REGISTER_BODY_LENGTH = 58;
-
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.REGISTER);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.REGISTER);
     }
 
     @Override
     public AcrelMessage parse(ProtocolMessageContext context, byte[] payload) {
-        if (payload == null || payload.length != REGISTER_BODY_LENGTH) {
+        if (payload == null || payload.length != Acrel4gPayloadConstants.REGISTER_BODY_LENGTH) {
             return null;
         }
         RegisterMessage msg = new RegisterMessage();
-        msg.setSerialNumber(Acrel4gParseSupport.readString(payload, 0, 20));
-        msg.setIccid(Acrel4gParseSupport.readString(payload, 20, 30));
-        msg.setRssi(Byte.toUnsignedInt(payload[50]));
-        msg.setFirmware1(toBcdString(payload[51]) + toBcdString(payload[52]));
-        msg.setFirmware2(toBcdString(payload[53]) + toBcdString(payload[54]));
-        msg.setFirmware3(toBcdString(payload[55]) + toBcdString(payload[56]));
-        msg.setReportIntervalMinutes(Byte.toUnsignedInt(payload[57]));
+        msg.setSerialNumber(Acrel4gParseSupport.readString(payload, 0, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH));
+        msg.setIccid(Acrel4gParseSupport.readString(payload,
+                Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH,
+                Acrel4gPayloadConstants.ICCID_LENGTH));
+        msg.setRssi(Byte.toUnsignedInt(payload[Acrel4gPayloadConstants.REGISTER_RSSI_OFFSET]));
+        msg.setFirmware1(readBcdVersion(payload, Acrel4gPayloadConstants.REGISTER_FIRMWARE1_OFFSET));
+        msg.setFirmware2(readBcdVersion(payload, Acrel4gPayloadConstants.REGISTER_FIRMWARE2_OFFSET));
+        msg.setFirmware3(readBcdVersion(payload, Acrel4gPayloadConstants.REGISTER_FIRMWARE3_OFFSET));
+        msg.setReportIntervalMinutes(Byte.toUnsignedInt(payload[Acrel4gPayloadConstants.REGISTER_REPORT_INTERVAL_OFFSET]));
         return msg;
+    }
+
+    private String readBcdVersion(byte[] payload, int offset) {
+        return toBcdString(payload[offset]) + toBcdString(payload[offset + 1]);
     }
 
     /**
