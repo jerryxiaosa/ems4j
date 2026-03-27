@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
 import info.zhihui.ems.iot.protocol.decode.ProtocolDecodeErrorEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayFrameConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +38,7 @@ class AcrelGatewayFrameCodecTest {
         FrameDecodeResult result = codec.decode(frame);
 
         Assertions.assertNull(result.reason());
-        Assertions.assertEquals(GatewayPacketCode.commandKey((byte) 0x10), result.commandKey());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey((byte) 0x10), result.commandKey());
         Assertions.assertArrayEquals(payload, result.payload());
     }
 
@@ -48,7 +49,9 @@ class AcrelGatewayFrameCodecTest {
         byte[] frame = codec.encode((byte) 0x01, null);
         FrameDecodeResult result = codec.decode(frame);
 
-        Assertions.assertEquals(7, frame.length);
+        Assertions.assertEquals(AcrelGatewayFrameConstants.FRAME_HEADER_LENGTH, frame.length);
+        Assertions.assertEquals((byte) ((AcrelGatewayFrameConstants.GATEWAY_HEAD >> 8) & 0xFF), frame[0]);
+        Assertions.assertEquals((byte) (AcrelGatewayFrameConstants.GATEWAY_HEAD & 0xFF), frame[1]);
         Assertions.assertNull(result.reason());
         Assertions.assertEquals(0, result.payload().length);
     }

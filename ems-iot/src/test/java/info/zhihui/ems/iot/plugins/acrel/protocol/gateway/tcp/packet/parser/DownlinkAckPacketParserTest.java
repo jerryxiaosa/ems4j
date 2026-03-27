@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser;
 
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayTransparentMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayDeviceResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
@@ -24,7 +25,7 @@ class DownlinkAckPacketParserTest {
         AcrelGatewayDeviceResolver deviceResolver = Mockito.mock(AcrelGatewayDeviceResolver.class);
         DownlinkAckPacketParser parser = new DownlinkAckPacketParser(cryptoService, transparentCodec, deviceResolver);
 
-        Assertions.assertEquals(GatewayPacketCode.commandKey(GatewayPacketCode.DOWNLINK_ACK), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.DOWNLINK_ACK), parser.command());
     }
 
     @Test

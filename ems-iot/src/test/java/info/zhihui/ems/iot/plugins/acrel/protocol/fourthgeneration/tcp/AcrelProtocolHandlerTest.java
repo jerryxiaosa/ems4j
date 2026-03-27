@@ -6,7 +6,8 @@ import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.definition.Acrel4gPacketDefinition;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
@@ -66,7 +67,7 @@ class AcrelProtocolHandlerTest {
         Acrel4gPacketDefinition definition = new Acrel4gPacketDefinition() {
             @Override
             public String command() {
-                return Acrel4gPacketCode.commandKey((byte) 0x12);
+                return AcrelPacketKeySupport.commandKey((byte) 0x12);
             }
 
             @Override
@@ -115,7 +116,7 @@ class AcrelProtocolHandlerTest {
     }
 
     private byte[] buildTimeSyncFrame(Acrel4gFrameCodec codec, LocalDateTime time) {
-        return codec.encode(Acrel4gPacketCode.TIME_SYNC, buildTimeSyncBody(time));
+        return codec.encode(Acrel4gCommandConstants.TIME_SYNC, buildTimeSyncBody(time));
     }
 
     private byte[] buildTimeSyncBody(LocalDateTime time) {

@@ -8,7 +8,8 @@ import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.RegisterMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,7 @@ public class RegisterPacketHandler implements Acrel4gPacketHandler {
 
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.REGISTER);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.REGISTER);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class RegisterPacketHandler implements Acrel4gPacketHandler {
         try {
             deviceBinder.bind(context, deviceNo);
 
-            session.send(frameCodec.encodeAck(Acrel4gPacketCode.REGISTER));
+            session.send(frameCodec.encodeAck(Acrel4gCommandConstants.REGISTER));
             log.info("4G 电表 {} 注册成功，session={}", deviceNo, session.getSessionId());
         } catch (NotFoundException e) {
             log.error("4G 注册设备不存在，deviceNo={} session={}", deviceNo, session.getSessionId());

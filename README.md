@@ -298,6 +298,7 @@ pnpm test:e2e
 | `ems-components-*`            | 通用组件（数据源/锁/上下文）                                  |
 | `ems-mq-*`                    | 消息基础设施 API（ems-mq-api）与业务消息应用层实现（ems-mq-rabbitmq） |
 | `ems-iot`                     | Netty 设备接入、协议解析                                  |
+| `ems-iot-simulator`           | IoT 设备模拟器，当前支持安科瑞 4G 直连电表的 TCP 接入、历史补投、实时上报与基础命令响应 |
 | `ems-schedule`                | 定时任务                                             |
 | `frontend-web` | Vue 3 + TypeScript 前端管理台，含 Vitest 单测与 Playwright 冒烟回归 |
 | `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen)      | Docker Compose、Dockerfile、初始化 SQL 与环境示例，提供本地基础设施和全量部署编排 |

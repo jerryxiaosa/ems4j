@@ -4,7 +4,8 @@ import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayAuthMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.protocol.port.session.CommonProtocolSessionKeys;
@@ -38,7 +39,7 @@ public class AuthPacketHandler implements GatewayPacketHandler {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.AUTH);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.AUTH);
     }
 
     @Override
@@ -98,7 +99,7 @@ public class AuthPacketHandler implements GatewayPacketHandler {
 
     private void sendAuthSequence(ProtocolMessageContext context, GatewayAuthMessage payload, String sequence) {
         String xml = buildAuthSequenceXml(payload, sequence);
-        byte[] frame = frameCodec.encode(GatewayPacketCode.AUTH, xml.getBytes(StandardCharsets.UTF_8));
+        byte[] frame = frameCodec.encode(AcrelGatewayCommandConstants.AUTH, xml.getBytes(StandardCharsets.UTF_8));
         ProtocolSession session = context == null ? null : context.getSession();
         if (session != null) {
             session.send(frame);
@@ -107,7 +108,7 @@ public class AuthPacketHandler implements GatewayPacketHandler {
 
     private void sendAuthResult(ProtocolMessageContext context, GatewayAuthMessage payload, boolean pass) {
         String xml = buildAuthResultXml(payload, pass);
-        byte[] frame = frameCodec.encode(GatewayPacketCode.AUTH, xml.getBytes(StandardCharsets.UTF_8));
+        byte[] frame = frameCodec.encode(AcrelGatewayCommandConstants.AUTH, xml.getBytes(StandardCharsets.UTF_8));
         ProtocolSession session = context == null ? null : context.getSession();
         if (session != null) {
             session.send(frame);

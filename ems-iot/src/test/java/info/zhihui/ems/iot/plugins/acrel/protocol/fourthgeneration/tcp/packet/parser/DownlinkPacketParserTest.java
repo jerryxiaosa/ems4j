@@ -3,10 +3,12 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.p
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +23,7 @@ class DownlinkPacketParserTest {
     void command_shouldReturnDownlink() {
         DownlinkPacketParser parser = new DownlinkPacketParser();
 
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK), parser.command());
     }
 
     @Test
@@ -29,12 +31,12 @@ class DownlinkPacketParserTest {
         DownlinkPacketParser parser = new DownlinkPacketParser();
         byte[] modbusFrame = withCrc(new byte[]{0x01, 0x03, 0x02, 0x00, 0x01});
 
-        byte[] payload = new byte[Acrel4gParseSupport.SERIAL_NUMBER_LENGTH + modbusFrame.length];
+        byte[] payload = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + modbusFrame.length];
         byte[] serialBytes = "02121031700227".getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serialBytes, 0, payload, 0, serialBytes.length);
-        System.arraycopy(modbusFrame, 0, payload, Acrel4gParseSupport.SERIAL_NUMBER_LENGTH, modbusFrame.length);
+        System.arraycopy(modbusFrame, 0, payload, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH, modbusFrame.length);
 
-        AcrelMessage msg = parseMessage(payload, parser, Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK));
+        AcrelMessage msg = parseMessage(payload, parser, AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(DownlinkAckMessage.class, msg);
@@ -48,7 +50,7 @@ class DownlinkPacketParserTest {
         DownlinkPacketParser parser = new DownlinkPacketParser();
         byte[] modbusFrame = withCrc(new byte[]{0x01, 0x03, 0x02, 0x00, 0x02});
 
-        AcrelMessage msg = parseMessage(modbusFrame, parser, Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK));
+        AcrelMessage msg = parseMessage(modbusFrame, parser, AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(DownlinkAckMessage.class, msg);
@@ -63,7 +65,7 @@ class DownlinkPacketParserTest {
         byte[] modbusFrame = withCrc(new byte[]{0x01, 0x03, 0x02, 0x00, 0x03});
         modbusFrame[modbusFrame.length - 1] ^= 0x01;
 
-        AcrelMessage msg = parseMessage(modbusFrame, parser, Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK));
+        AcrelMessage msg = parseMessage(modbusFrame, parser, AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK));
 
         Assertions.assertNull(msg);
     }
@@ -78,12 +80,12 @@ class DownlinkPacketParserTest {
     @Test
     void parse_withInvalidSerialButValidRtuPayload_shouldFallbackToRtuOnly() {
         DownlinkPacketParser parser = new DownlinkPacketParser();
-        byte[] body = new byte[Acrel4gParseSupport.SERIAL_NUMBER_LENGTH + 3];
+        byte[] body = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + 3];
         body[0] = 0x01;
         body[1] = (byte) 0xFF;
-        body[20] = 0x01;
-        body[21] = 0x02;
-        body[22] = 0x03;
+        body[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH] = 0x01;
+        body[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + 1] = 0x02;
+        body[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + 2] = 0x03;
         byte[] payload = withCrc(body);
 
         AcrelMessage msg = parser.parse(newContext(), payload);
@@ -100,10 +102,10 @@ class DownlinkPacketParserTest {
         byte[] modbusFrame = withCrc(new byte[]{0x01, 0x03, 0x02, 0x00, 0x05});
         modbusFrame[modbusFrame.length - 1] ^= 0x01;
 
-        byte[] payload = new byte[Acrel4gParseSupport.SERIAL_NUMBER_LENGTH + modbusFrame.length];
+        byte[] payload = new byte[Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH + modbusFrame.length];
         byte[] serialBytes = "02121031700227".getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serialBytes, 0, payload, 0, serialBytes.length);
-        System.arraycopy(modbusFrame, 0, payload, Acrel4gParseSupport.SERIAL_NUMBER_LENGTH, modbusFrame.length);
+        System.arraycopy(modbusFrame, 0, payload, Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH, modbusFrame.length);
 
         AcrelMessage msg = parser.parse(newContext(), payload);
 
@@ -119,7 +121,7 @@ class DownlinkPacketParserTest {
     }
 
     private AcrelMessage parseMessage(byte[] payload, Acrel4gPacketParser parser, String expectedCommandKey) {
-        byte[] frame = codec.encode(Acrel4gPacketCode.DOWNLINK, payload);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.DOWNLINK, payload);
         Object parsed = parseFrame(frame);
         Assertions.assertEquals(expectedCommandKey, extractCommand(parsed));
         return parser.parse(newContext(), extractPayload(parsed));

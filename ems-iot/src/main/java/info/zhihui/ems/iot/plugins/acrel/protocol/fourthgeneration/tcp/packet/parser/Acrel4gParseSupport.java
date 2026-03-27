@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser;
 
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -8,9 +9,6 @@ import java.time.LocalDateTime;
 
 @Slf4j
 final class Acrel4gParseSupport {
-
-    static final int SERIAL_NUMBER_LENGTH = 20;
-    static final int TIME_SYNC_BODY_LENGTH = 7;
 
     private Acrel4gParseSupport() {
     }
@@ -37,7 +35,7 @@ final class Acrel4gParseSupport {
      * 解析时间字段，支持带/不带星期。
      */
     static LocalDateTime parseDateTime(byte[] payload, int offset, boolean withDayOfWeek) {
-        int length = withDayOfWeek ? TIME_SYNC_BODY_LENGTH : TIME_SYNC_BODY_LENGTH - 1;
+        int length = withDayOfWeek ? Acrel4gPayloadConstants.TIME_SYNC_BODY_LENGTH : Acrel4gPayloadConstants.TIME_SYNC_BODY_LENGTH - 1;
         if (payload == null || payload.length < offset + length) {
             return null;
         }

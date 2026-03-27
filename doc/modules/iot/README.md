@@ -18,3 +18,6 @@
 
 ### 异常与空值处理规则
 [exception-handling-guidelines.md](./exception-handling-guidelines.md)
+
+### IoT 模拟器使用说明（安科瑞 4G 直连）
+[ems-iot-simulator.md](./ems-iot-simulator.md)

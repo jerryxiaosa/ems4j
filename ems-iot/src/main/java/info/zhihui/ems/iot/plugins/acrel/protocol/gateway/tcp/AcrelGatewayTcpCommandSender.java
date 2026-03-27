@@ -6,7 +6,7 @@ import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.domain.model.GatewayRoute;
 import info.zhihui.ems.iot.domain.service.GatewayRouteService;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayCryptoService;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support.AcrelGatewayTransparentCodec;
@@ -156,7 +156,7 @@ public class AcrelGatewayTcpCommandSender {
         log.debug("网关透明转发编码，transparent={}", new String(transparent, StandardCharsets.UTF_8));
 
         byte[] encrypted = gatewayCryptoService.encrypt(transparent, gateway.getDeviceSecret());
-        byte[] frame = gatewayFrameCodec.encode(GatewayPacketCode.DOWNLINK, encrypted);
+        byte[] frame = gatewayFrameCodec.encode(AcrelGatewayCommandConstants.DOWNLINK, encrypted);
         log.debug("发送网关帧，frame={}", HexUtils.toHexString(frame));
         return frame;
     }

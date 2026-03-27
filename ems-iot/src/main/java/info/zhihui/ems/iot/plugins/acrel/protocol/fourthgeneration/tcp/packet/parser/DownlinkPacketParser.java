@@ -3,8 +3,10 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.p
 import info.zhihui.ems.iot.protocol.modbus.ModbusCrcUtil;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gPayloadConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.DownlinkAckMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -15,12 +17,12 @@ import java.util.Arrays;
 @Component
 public class DownlinkPacketParser implements Acrel4gPacketParser {
 
-    private static final int SERIAL_LENGTH = Acrel4gParseSupport.SERIAL_NUMBER_LENGTH;
+    private static final int SERIAL_LENGTH = Acrel4gPayloadConstants.SERIAL_NUMBER_LENGTH;
     private static final int MIN_RTU_LENGTH = 5;
 
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.DOWNLINK);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.DOWNLINK);
     }
 
     @Override

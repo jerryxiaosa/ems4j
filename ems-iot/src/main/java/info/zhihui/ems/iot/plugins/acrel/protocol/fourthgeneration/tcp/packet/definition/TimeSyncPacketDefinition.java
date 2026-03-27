@@ -2,7 +2,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.d
 
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler.TimeSyncPacketHandler;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser.TimeSyncPacketParser;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class TimeSyncPacketDefinition implements Acrel4gPacketDefinition {
 
     @Override
     public String command() {
-        return Acrel4gPacketCode.commandKey(Acrel4gPacketCode.TIME_SYNC);
+        return AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.TIME_SYNC);
     }
 
     @Override

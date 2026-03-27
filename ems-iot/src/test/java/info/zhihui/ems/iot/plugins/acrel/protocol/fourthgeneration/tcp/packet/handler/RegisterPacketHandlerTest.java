@@ -7,7 +7,8 @@ import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.message.RegisterMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
 import info.zhihui.ems.iot.protocol.port.session.DeviceBinder;
@@ -26,7 +27,7 @@ class RegisterPacketHandlerTest {
         DeviceBinder deviceBinder = Mockito.mock(DeviceBinder.class);
         Acrel4gFrameCodec codec = new Acrel4gFrameCodec();
         RegisterPacketHandler handler = new RegisterPacketHandler(deviceBinder, codec);
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.REGISTER), handler.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.REGISTER), handler.command());
     }
 
     @Test
@@ -62,7 +63,7 @@ class RegisterPacketHandlerTest {
 
         Object outbound = channel.readOutbound();
         Assertions.assertNotNull(outbound);
-        byte[] expected = codec.encodeAck(Acrel4gPacketCode.REGISTER);
+        byte[] expected = codec.encodeAck(Acrel4gCommandConstants.REGISTER);
         byte[] actual = new byte[((io.netty.buffer.ByteBuf) outbound).readableBytes()];
         ((io.netty.buffer.ByteBuf) outbound).readBytes(actual);
         ReferenceCountUtil.release(outbound);

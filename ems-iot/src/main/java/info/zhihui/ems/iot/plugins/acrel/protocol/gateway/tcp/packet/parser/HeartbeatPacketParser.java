@@ -3,7 +3,8 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.parser;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.message.GatewayHeartbeatMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
-import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.packet.GatewayPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.gateway.constant.AcrelGatewayCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,7 +15,7 @@ public class HeartbeatPacketParser implements GatewayPacketParser {
 
     @Override
     public String command() {
-        return GatewayPacketCode.commandKey(GatewayPacketCode.HEARTBEAT);
+        return AcrelPacketKeySupport.commandKey(AcrelGatewayCommandConstants.HEARTBEAT);
     }
 
     @Override

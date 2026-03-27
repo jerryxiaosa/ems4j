@@ -3,6 +3,7 @@ package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.definition.Acrel4gPacketDefinition;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.protocol.port.inbound.ProtocolMessageContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,17 +14,17 @@ class Acrel4gPacketRegistryTest {
 
     @Test
     void testResolve_ShouldReturnDefinition() {
-        Acrel4gPacketDefinition definition = new StubDefinition(Acrel4gPacketCode.commandKey((byte) 0x10));
+        Acrel4gPacketDefinition definition = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
         Acrel4gPacketRegistry registry = new Acrel4gPacketRegistry(List.of(definition));
 
-        Assertions.assertSame(definition, registry.resolve(Acrel4gPacketCode.commandKey((byte) 0x10)));
-        Assertions.assertNull(registry.resolve(Acrel4gPacketCode.commandKey((byte) 0x11)));
+        Assertions.assertSame(definition, registry.resolve(AcrelPacketKeySupport.commandKey((byte) 0x10)));
+        Assertions.assertNull(registry.resolve(AcrelPacketKeySupport.commandKey((byte) 0x11)));
     }
 
     @Test
     void testConstructor_DuplicateCommand_ShouldThrow() {
-        Acrel4gPacketDefinition first = new StubDefinition(Acrel4gPacketCode.commandKey((byte) 0x10));
-        Acrel4gPacketDefinition second = new StubDefinition(Acrel4gPacketCode.commandKey((byte) 0x10));
+        Acrel4gPacketDefinition first = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
+        Acrel4gPacketDefinition second = new StubDefinition(AcrelPacketKeySupport.commandKey((byte) 0x10));
 
         Assertions.assertThrows(BusinessRuntimeException.class,
                 () -> new Acrel4gPacketRegistry(List.of(first, second)));

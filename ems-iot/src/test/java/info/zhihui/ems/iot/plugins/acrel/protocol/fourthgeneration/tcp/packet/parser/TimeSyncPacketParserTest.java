@@ -1,7 +1,8 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.parser;
 
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
+import info.zhihui.ems.iot.plugins.acrel.protocol.support.AcrelPacketKeySupport;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.plugins.acrel.protocol.common.message.AcrelMessage;
 import info.zhihui.ems.iot.protocol.decode.FrameDecodeResult;
@@ -19,7 +20,7 @@ class TimeSyncPacketParserTest {
     void command_shouldReturnTimeSync() {
         TimeSyncPacketParser parser = new TimeSyncPacketParser();
 
-        Assertions.assertEquals(Acrel4gPacketCode.commandKey(Acrel4gPacketCode.TIME_SYNC), parser.command());
+        Assertions.assertEquals(AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.TIME_SYNC), parser.command());
     }
 
     @Test
@@ -48,10 +49,10 @@ class TimeSyncPacketParserTest {
         byte[] serialBytes = serial.getBytes(StandardCharsets.UTF_8);
         System.arraycopy(serialBytes, 0, body, 0, serialBytes.length);
 
-        byte[] frame = codec.encode(Acrel4gPacketCode.TIME_SYNC, body);
+        byte[] frame = codec.encode(Acrel4gCommandConstants.TIME_SYNC, body);
 
         AcrelMessage msg = parseMessage(frame, new TimeSyncPacketParser(),
-                Acrel4gPacketCode.commandKey(Acrel4gPacketCode.TIME_SYNC));
+                AcrelPacketKeySupport.commandKey(Acrel4gCommandConstants.TIME_SYNC));
 
         Assertions.assertNotNull(msg);
         Assertions.assertInstanceOf(TimeSyncMessage.class, msg);

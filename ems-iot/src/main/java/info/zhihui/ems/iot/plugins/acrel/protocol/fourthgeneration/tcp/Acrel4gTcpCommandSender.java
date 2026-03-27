@@ -7,7 +7,7 @@ import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import info.zhihui.ems.iot.enums.DeviceAccessModeEnum;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
-import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.Acrel4gPacketCode;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
@@ -37,7 +37,7 @@ public class Acrel4gTcpCommandSender {
         // 组装 Modbus RTU 帧用于下行请求。
         byte[] rtuFrame = ModbusRtuBuilder.build(rtuRequest);
         // 将 RTU 帧封装为 4G 协议下行报文。
-        byte[] frame = frameCodec.encode(Acrel4gPacketCode.DOWNLINK, rtuFrame);
+        byte[] frame = frameCodec.encode(Acrel4gCommandConstants.DOWNLINK, rtuFrame);
 
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(device.getDeviceNo(), frame);
         return future.thenApply(payload -> translator.parseResponse(command, payload));
