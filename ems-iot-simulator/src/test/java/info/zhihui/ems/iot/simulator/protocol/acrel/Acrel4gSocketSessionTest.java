@@ -7,20 +7,25 @@ import info.zhihui.ems.iot.simulator.config.SimulatorTargetProperties;
 import info.zhihui.ems.iot.simulator.runtime.SimulatorDeviceContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Acrel4gSocketSessionTest {
@@ -58,6 +63,37 @@ class Acrel4gSocketSessionTest {
         }
     }
 
+    @Test
+    void testReadLoop_WhenStaleReaderExits_ShouldNotCloseActiveConnection() throws Exception {
+        SimulatorDeviceContext deviceContext = buildDeviceContext();
+        Acrel4gSocketSession socketSession = new Acrel4gSocketSession(
+                buildTargetProperties(0),
+                deviceContext,
+                frame -> {
+                });
+        TestSocket staleSocket = new TestSocket();
+        BlockingInputStream staleInputStream = new BlockingInputStream();
+        TestSocket activeSocket = new TestSocket();
+        ByteArrayInputStream activeInputStream = new ByteArrayInputStream(new byte[0]);
+        ByteArrayOutputStream activeOutputStream = new ByteArrayOutputStream();
+
+        setField(socketSession, "socket", activeSocket);
+        setField(socketSession, "inputStream", activeInputStream);
+        setField(socketSession, "outputStream", activeOutputStream);
+        deviceContext.setConnectionId("active-connection");
+
+        Thread readerThread = new Thread(() -> invokeReadLoop(socketSession, staleSocket, staleInputStream),
+                "stale-reader-test");
+        readerThread.start();
+        staleInputStream.awaitReadStarted();
+        staleInputStream.finish();
+        readerThread.join(2000);
+
+        assertTrue(!readerThread.isAlive(), "旧 reader 线程未按预期退出");
+        assertEquals("active-connection", deviceContext.getConnectionId());
+        assertTrue(!activeSocket.isClosed(), "旧 reader 不应关闭当前活跃连接");
+    }
+
     private SimulatorTargetProperties buildTargetProperties(int port) {
         SimulatorTargetProperties targetProperties = new SimulatorTargetProperties();
         targetProperties.setHost("127.0.0.1");
@@ -70,6 +106,26 @@ class Acrel4gSocketSessionTest {
         SimulatorDeviceProperties deviceProperties = new SimulatorDeviceProperties();
         deviceProperties.setDeviceNo("SIM001");
         return new SimulatorDeviceContext().setDeviceProperties(deviceProperties);
+    }
+
+    private void invokeReadLoop(Acrel4gSocketSession socketSession, Socket socket, InputStream inputStream) {
+        try {
+            var readLoopMethod = Acrel4gSocketSession.class.getDeclaredMethod("readLoop", Socket.class, InputStream.class);
+            readLoopMethod.setAccessible(true);
+            readLoopMethod.invoke(socketSession, socket, inputStream);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void setField(Object target, String fieldName, Object value) {
+        try {
+            var field = Acrel4gSocketSession.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static final class SocketStubServer implements AutoCloseable {
@@ -150,6 +206,59 @@ class Acrel4gSocketSessionTest {
                 socket.close();
             }
             serverSocket.close();
+        }
+    }
+
+    private static final class BlockingInputStream extends InputStream {
+
+        private final CountDownLatch readStartedLatch = new CountDownLatch(1);
+        private final CountDownLatch finishLatch = new CountDownLatch(1);
+
+        @Override
+        public int read() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int read(byte[] bytes, int offset, int length) throws IOException {
+            readStartedLatch.countDown();
+            try {
+                if (!finishLatch.await(2, TimeUnit.SECONDS)) {
+                    throw new IOException("等待测试放行超时");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new IOException("测试线程被中断", ex);
+            }
+            return -1;
+        }
+
+        private void awaitReadStarted() throws InterruptedException {
+            assertTrue(readStartedLatch.await(2, TimeUnit.SECONDS), "reader 未进入读取");
+        }
+
+        private void finish() {
+            finishLatch.countDown();
+        }
+    }
+
+    private static final class TestSocket extends Socket {
+
+        private boolean closed;
+
+        @Override
+        public synchronized void close() {
+            closed = true;
+        }
+
+        @Override
+        public synchronized boolean isClosed() {
+            return closed;
+        }
+
+        @Override
+        public boolean isConnected() {
+            return true;
         }
     }
 }

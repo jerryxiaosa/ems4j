@@ -105,6 +105,7 @@ public class Acrel4gSocketSession {
     public synchronized void close() {
         closed = true;
         closeResources();
+        SimulatorDeviceContextUpdater.markDisconnected(deviceContext);
     }
 
     /**
@@ -139,13 +140,10 @@ public class Acrel4gSocketSession {
             }
         } catch (IOException ex) {
             if (!closed) {
-                SimulatorDeviceContextUpdater.markDisconnected(deviceContext);
                 log.warn("模拟设备读取连接异常 deviceNo={}", deviceContext.getDeviceProperties().getDeviceNo(), ex);
             }
         } finally {
-            SimulatorDeviceContextUpdater.markDisconnected(deviceContext);
-            log.info("模拟设备连接关闭 deviceNo={}", deviceContext.getDeviceProperties().getDeviceNo());
-            closeResources();
+            closeReaderConnection(currentSocket, currentInputStream);
         }
     }
 
@@ -231,6 +229,28 @@ public class Acrel4gSocketSession {
         inputStream = null;
         outputStream = null;
         socket = null;
+    }
+
+    /**
+     * reader 线程退出时只回收自己持有的连接资源；只有当前活跃连接退出时才清空共享字段并标记离线。
+     */
+    private void closeReaderConnection(Socket currentSocket, InputStream currentInputStream) {
+        boolean activeConnection;
+        synchronized (this) {
+            activeConnection = currentSocket != null && currentSocket == socket;
+            closeQuietly(currentInputStream);
+            closeQuietly(currentSocket);
+            if (activeConnection) {
+                closeQuietly(outputStream);
+                inputStream = null;
+                outputStream = null;
+                socket = null;
+            }
+        }
+        if (activeConnection) {
+            SimulatorDeviceContextUpdater.markDisconnected(deviceContext);
+            log.info("模拟设备连接关闭 deviceNo={}", deviceContext.getDeviceProperties().getDeviceNo());
+        }
     }
 
     /**
