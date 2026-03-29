@@ -7,13 +7,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 电量消费记录查询出参DTO
+ * 电表计费记录查询出参DTO
  *
  * @author jerryxiaosa
  */
 @Data
 @Accessors(chain = true)
-public class PowerConsumeRecordDto {
+public class MeterBillingRecordDto {
 
     /**
      * 记录ID

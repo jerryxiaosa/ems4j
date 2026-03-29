@@ -40,16 +40,16 @@ public class FinanceBiz {
         return financeWebMapper.toAccountConsumeRecordVoPage(page);
     }
 
-    public PageResult<PowerConsumeRecordVo> findPowerConsumePage(PowerConsumeQueryVo queryVo, Integer pageNum, Integer pageSize) {
-        PowerConsumeQueryDto queryDto = financeWebMapper.toPowerConsumeQueryDto(queryVo);
+    public PageResult<MeterBillingRecordVo> findMeterBillingPage(MeterBillingQueryVo queryVo, Integer pageNum, Integer pageSize) {
+        MeterBillingQueryDto queryDto = financeWebMapper.toMeterBillingQueryDto(queryVo);
         PageParam pageParam = buildPageParam(pageNum, pageSize);
-        PageResult<PowerConsumeRecordDto> page = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
-        return financeWebMapper.toPowerConsumeRecordVoPage(page);
+        PageResult<MeterBillingRecordDto> page = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
+        return financeWebMapper.toMeterBillingRecordVoPage(page);
     }
 
-    public PowerConsumeDetailVo getPowerConsumeDetail(Integer id) {
-        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(id);
-        return financeWebMapper.toPowerConsumeDetailVo(detailDto);
+    public MeterBillingDetailVo getMeterBillingDetail(Integer id) {
+        MeterBillingDetailDto detailDto = meterConsumeService.getMeterBillingDetail(id);
+        return financeWebMapper.toMeterBillingDetailVo(detailDto);
     }
 
     public PageResult<CorrectionRecordVo> findCorrectionRecordPage(CorrectionRecordQueryVo queryVo, Integer pageNum, Integer pageSize) {

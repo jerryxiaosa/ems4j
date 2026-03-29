@@ -280,7 +280,7 @@ export const getOrderDetailRaw = (orderSn: string) => {
 export const getMeterConsumePageRaw = (params: MeterConsumePageQueryRaw) => {
   return requestV1<ApiEnvelope<PageResultRaw<MeterConsumeItemRaw>>>({
     method: 'GET',
-    url: '/finance/meter-consumes',
+    url: '/finance/meter-billings',
     params: {
       searchKey: params.searchKey,
       spaceNameLike: params.spaceNameLike,
@@ -295,7 +295,7 @@ export const getMeterConsumePageRaw = (params: MeterConsumePageQueryRaw) => {
 export const getMeterConsumeDetailRaw = (id: number) => {
   return requestV1<ApiEnvelope<MeterConsumeDetailRaw>>({
     method: 'GET',
-    url: `/finance/meter-consumes/${id}`
+    url: `/finance/meter-billings/${id}`
   })
 }
 

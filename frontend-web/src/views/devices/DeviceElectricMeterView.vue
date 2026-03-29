@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted } from 'vue'
 import DeviceElectricMeterCtModal from '@/components/devices/DeviceElectricMeterCtModal.vue'
 import DeviceElectricMeterDetailModal from '@/components/devices/DeviceElectricMeterDetailModal.vue'
 import DeviceElectricMeterEditModal from '@/components/devices/DeviceElectricMeterEditModal.vue'
+import DeviceElectricMeterTrendModal from '@/components/devices/DeviceElectricMeterTrendModal.vue'
 import DeviceElectricMeterSearchPanel from '@/modules/devices/electric-meters/components/DeviceElectricMeterSearchPanel.vue'
 import DeviceElectricMeterTableSection from '@/modules/devices/electric-meters/components/DeviceElectricMeterTableSection.vue'
 import { useElectricMeterActions } from '@/modules/devices/electric-meters/composables/useElectricMeterActions'
@@ -35,6 +36,8 @@ const {
   detailModalVisible,
   detailMeter,
   detailLoading,
+  trendModalVisible,
+  trendMeter,
   moreActionMenu,
   ctModalVisible,
   ctMeter,
@@ -47,6 +50,7 @@ const {
   openCreateModal,
   openEditModal,
   openDetailModal,
+  openTrendModal,
   toggleMoreActionMenu,
   handleSubmitMeter,
   openDeleteConfirm,
@@ -110,6 +114,7 @@ onMounted(() => {
         @create="openCreateModal"
         @detail="openDetailModal"
         @edit="openEditModal"
+        @trend="openTrendModal"
         @delete="openDeleteConfirm"
         @toggle-more="toggleMoreActionMenu"
         @single-command="openSingleCommandConfirm"
@@ -129,6 +134,11 @@ onMounted(() => {
       v-model="detailModalVisible"
       :meter="detailMeter"
       :loading="detailLoading"
+    />
+
+    <DeviceElectricMeterTrendModal
+      v-model="trendModalVisible"
+      :meter="trendMeter"
     />
 
     <DeviceElectricMeterCtModal

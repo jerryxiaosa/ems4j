@@ -332,7 +332,7 @@ CREATE TABLE `energy_electric_meter_power_record`
     `is_deleted`         BIT(1) NOT NULL                         DEFAULT 0 COMMENT '0正常，1删除',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_original_report_id` (`original_report_id`),
-    KEY `idx_record_time` (`record_time`),
+    KEY `idx_meter_record_time` (`meter_id`, `record_time`),
     KEY `idx_create_time` (`create_time`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
@@ -402,9 +402,8 @@ CREATE TABLE `energy_electric_meter_power_consume_record`
     `create_time`            DATETIME NOT NULL COMMENT '平台处理时间',
     `is_deleted`             BIT(1)         DEFAULT b'0',
     PRIMARY KEY (`id`),
-    KEY `idx_meter_id` (`meter_id`),
-    KEY `idx_create_time` (`create_time`),
-    KEY `idx_meter_consume_time` (`meter_consume_time`)
+    KEY `idx_meter_meter_consume_time` (`meter_id`, `meter_consume_time`),
+    KEY `idx_create_time` (`create_time`)
 ) ENGINE = INNODB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = UTF8MB4

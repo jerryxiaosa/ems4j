@@ -8,4 +8,21 @@
           and meter_id = #{meterId}
         order by meter_consume_time desc limit 1
     </select>
+
+    <select id="findTrendRecordList" resultType="info.zhihui.ems.business.billing.entity.ElectricMeterPowerConsumeRecordEntity">
+        select *
+        from energy_electric_meter_power_consume_record
+        where is_deleted = 0
+          and meter_id = #{meterId}
+        <if test="beginTime != null">
+            and meter_consume_time <![CDATA[>=]]> #{beginTime}
+        </if>
+        <if test="endTime != null">
+            and meter_consume_time <![CDATA[<=]]> #{endTime}
+        </if>
+        order by meter_consume_time asc, id asc
+        <if test="limit != null">
+            limit #{limit}
+        </if>
+    </select>
 </mapper>

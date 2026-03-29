@@ -63,6 +63,24 @@ public class ElectricMeterController {
         return ResultUtil.success(electricMeterBiz.getLatestPowerRecord(id));
     }
 
+    @SaCheckPermission("devices:meters:detail")
+    @GetMapping("/{id}/power-trend")
+    @Operation(summary = "获取电表用电趋势")
+    public RestResult<List<ElectricMeterPowerTrendPointVo>> findPowerTrendList(
+            @Parameter(description = "电表ID") @PathVariable Integer id,
+            @Valid @ModelAttribute ElectricMeterPowerTrendQueryVo queryVo) {
+        return ResultUtil.success(electricMeterBiz.findPowerTrendList(id, queryVo));
+    }
+
+    @SaCheckPermission("devices:meters:detail")
+    @GetMapping("/{id}/power-consume-trend")
+    @Operation(summary = "获取电表区间耗电趋势")
+    public RestResult<List<ElectricMeterPowerConsumeTrendPointVo>> findPowerConsumeTrendList(
+            @Parameter(description = "电表ID") @PathVariable Integer id,
+            @Valid @ModelAttribute ElectricMeterPowerTrendQueryVo queryVo) {
+        return ResultUtil.success(electricMeterBiz.findPowerConsumeTrendList(id, queryVo));
+    }
+
     @SaCheckPermission("devices:meters:add")
     @PostMapping
     @Operation(summary = "新增电表")

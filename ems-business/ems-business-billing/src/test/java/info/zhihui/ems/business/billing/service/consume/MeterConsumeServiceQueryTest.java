@@ -3,9 +3,9 @@ package info.zhihui.ems.business.billing.service.consume;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.page.PageMethod;
-import info.zhihui.ems.business.billing.dto.PowerConsumeQueryDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeDetailDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeRecordDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingQueryDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingDetailDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingRecordDto;
 import info.zhihui.ems.business.billing.entity.ElectricMeterBalanceConsumeRecordEntity;
 import info.zhihui.ems.business.billing.entity.ElectricMeterPowerConsumeRecordEntity;
 import info.zhihui.ems.business.billing.enums.ConsumeTypeEnum;
@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
- * 电量消费记录查询功能单元测试
+ * 电表计费记录查询功能单元测试
  *
  * @author jerryxiaosa
  */
@@ -67,9 +67,9 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testQueryPowerConsumes_WithAllConditions() {
+    void testQueryMeterBillings_WithAllConditions() {
         // Given
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setSearchKey("电表")
                 .setSpaceNameLike("房间")
                 .setBeginTime(LocalDateTime.of(2024, 1, 1, 0, 0))
@@ -90,7 +90,7 @@ class MeterConsumeServiceQueryTest {
             when(mockPage.<ElectricMeterBalanceConsumeRecordEntity>doSelectPageInfo(any())).thenReturn(pageInfo);
 
             // When
-            PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+            PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
             // Then
             assertNotNull(result);
@@ -100,7 +100,7 @@ class MeterConsumeServiceQueryTest {
             assertEquals(2, result.getList().size());
 
             // 验证第一条记录
-            PowerConsumeRecordDto firstRecord = result.getList().get(0);
+            MeterBillingRecordDto firstRecord = result.getList().get(0);
             assertEquals("电表001", firstRecord.getMeterName());
             assertEquals("M001", firstRecord.getDeviceNo());
             assertEquals("房间001", firstRecord.getSpaceName());
@@ -112,7 +112,7 @@ class MeterConsumeServiceQueryTest {
             assertEquals(LocalDateTime.of(2024, 1, 15, 10, 30), firstRecord.getConsumeTime());
 
             // 验证第二条记录
-            PowerConsumeRecordDto secondRecord = result.getList().get(1);
+            MeterBillingRecordDto secondRecord = result.getList().get(1);
             assertEquals("电表002", secondRecord.getMeterName());
             assertEquals("M002", secondRecord.getDeviceNo());
             assertEquals("房间002", secondRecord.getSpaceName());
@@ -126,9 +126,9 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testQueryPowerConsumes_WithPagination() {
+    void testQueryMeterBillings_WithPagination() {
         // Given
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto();
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto();
         PageParam pageParam = new PageParam()
                 .setPageNum(1)
                 .setPageSize(1);
@@ -144,7 +144,7 @@ class MeterConsumeServiceQueryTest {
             when(mockPage.<ElectricMeterBalanceConsumeRecordEntity>doSelectPageInfo(any())).thenReturn(pageInfo);
 
             // When
-            PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+            PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
             // Then
             assertNotNull(result);
@@ -156,9 +156,9 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testQueryPowerConsumes_EmptyResult() {
+    void testQueryMeterBillings_EmptyResult() {
         // Given
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setSearchKey("不存在的电表");
         PageParam pageParam = new PageParam()
                 .setPageNum(1)
@@ -175,7 +175,7 @@ class MeterConsumeServiceQueryTest {
             when(mockPage.<ElectricMeterBalanceConsumeRecordEntity>doSelectPageInfo(any())).thenReturn(pageInfo);
 
             // When
-            PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+            PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
             // Then
             assertNotNull(result);
@@ -187,9 +187,9 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testQueryPowerConsumes_OnlyMeterNameCondition() {
+    void testQueryMeterBillings_OnlyMeterNameCondition() {
         // Given
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setSearchKey("电表001");
         PageParam pageParam = new PageParam()
                 .setPageNum(1)
@@ -206,7 +206,7 @@ class MeterConsumeServiceQueryTest {
             when(mockPage.<ElectricMeterBalanceConsumeRecordEntity>doSelectPageInfo(any())).thenReturn(pageInfo);
 
             // When
-            PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+            PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
             // Then
             assertNotNull(result);
@@ -217,7 +217,7 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testGetPowerConsumeDetail_Success() {
+    void testGetMeterBillingDetail_Success() {
         Integer consumeRecordId = 1;
         Integer meterConsumeRecordId = 101;
 
@@ -253,7 +253,7 @@ class MeterConsumeServiceQueryTest {
                 .setIsDeleted(false);
         when(electricMeterPowerConsumeRecordRepository.selectById(meterConsumeRecordId)).thenReturn(powerRecord);
 
-        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(consumeRecordId);
+        MeterBillingDetailDto detailDto = meterConsumeService.getMeterBillingDetail(consumeRecordId);
 
         assertNotNull(detailDto);
         assertEquals(consumeRecordId, detailDto.getId());
@@ -266,16 +266,16 @@ class MeterConsumeServiceQueryTest {
     }
 
     @Test
-    void testGetPowerConsumeDetail_WhenBalanceRecordNotFound_ShouldThrow() {
+    void testGetMeterBillingDetail_WhenBalanceRecordNotFound_ShouldThrow() {
         when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(null);
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(1));
-        assertEquals("电量消费记录不存在", exception.getMessage());
+                () -> meterConsumeService.getMeterBillingDetail(1));
+        assertEquals("电表计费记录不存在", exception.getMessage());
     }
 
     @Test
-    void testGetPowerConsumeDetail_WhenNotElectricConsume_ShouldThrow() {
+    void testGetMeterBillingDetail_WhenNotElectricConsume_ShouldThrow() {
         ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
                 .setId(1)
                 .setConsumeType(0)
@@ -283,12 +283,12 @@ class MeterConsumeServiceQueryTest {
         when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(balanceRecord);
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(1));
-        assertEquals("当前记录不是电量消费记录", exception.getMessage());
+                () -> meterConsumeService.getMeterBillingDetail(1));
+        assertEquals("当前记录不是电表计费记录", exception.getMessage());
     }
 
     @Test
-    void testGetPowerConsumeDetail_WhenMeterConsumeRecordIdNull_ShouldThrow() {
+    void testGetMeterBillingDetail_WhenMeterConsumeRecordIdNull_ShouldThrow() {
         ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
                 .setId(1)
                 .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
@@ -297,12 +297,12 @@ class MeterConsumeServiceQueryTest {
         when(electricMeterBalanceConsumeRecordRepository.selectById(1)).thenReturn(balanceRecord);
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(1));
-        assertEquals("电量消费记录数据异常：缺少电量明细记录", exception.getMessage());
+                () -> meterConsumeService.getMeterBillingDetail(1));
+        assertEquals("电表计费记录数据异常：缺少电量明细记录", exception.getMessage());
     }
 
     @Test
-    void testGetPowerConsumeDetail_WhenPowerRecordNotFound_ShouldThrow() {
+    void testGetMeterBillingDetail_WhenPowerRecordNotFound_ShouldThrow() {
         ElectricMeterBalanceConsumeRecordEntity balanceRecord = new ElectricMeterBalanceConsumeRecordEntity()
                 .setId(1)
                 .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
@@ -312,7 +312,7 @@ class MeterConsumeServiceQueryTest {
         when(electricMeterPowerConsumeRecordRepository.selectById(101)).thenReturn(null);
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(1));
+                () -> meterConsumeService.getMeterBillingDetail(1));
         assertEquals("电量明细记录不存在", exception.getMessage());
     }
 

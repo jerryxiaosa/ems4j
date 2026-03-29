@@ -6,10 +6,14 @@ import info.zhihui.ems.business.device.dto.ElectricMeterSwitchStatusDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterTimeDto;
 import info.zhihui.ems.business.device.dto.ElectricMeterUpdateDto;
 import info.zhihui.ems.business.billing.dto.ElectricMeterLatestPowerRecordDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerConsumeTrendPointDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerTrendPointDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
+import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerConsumeRecordService;
 import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerRecordService;
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.integration.biz.command.enums.CommandSourceEnum;
@@ -40,6 +44,7 @@ public class ElectricMeterBiz {
     private final ElectricMeterInfoService electricMeterInfoService;
     private final ElectricMeterManagerService electricMeterManagerService;
     private final ElectricMeterPowerRecordService electricMeterPowerRecordService;
+    private final ElectricMeterPowerConsumeRecordService electricMeterPowerConsumeRecordService;
     private final SpaceDisplaySupport spaceDisplaySupport;
     private final ElectricMeterWebMapper electricMeterWebMapper;
 
@@ -103,6 +108,40 @@ public class ElectricMeterBiz {
     public ElectricMeterLatestPowerRecordVo getLatestPowerRecord(Integer meterId) {
         electricMeterInfoService.getDetail(meterId);
         return findLatestPowerRecordVo(meterId);
+    }
+
+    /**
+     * 查询电表用电趋势
+     *
+     * @param meterId 电表ID
+     * @param queryVo 查询条件
+     * @return 趋势点列表
+     */
+    public List<ElectricMeterPowerTrendPointVo> findPowerTrendList(Integer meterId, ElectricMeterPowerTrendQueryVo queryVo) {
+        electricMeterInfoService.getDetail(meterId);
+        if (queryVo.getBeginTime().isAfter(queryVo.getEndTime())) {
+            throw new BusinessRuntimeException("开始时间不能晚于结束时间");
+        }
+        List<ElectricMeterPowerTrendPointDto> trendPointDtoList = electricMeterPowerRecordService.findTrendRecordList(
+                meterId, queryVo.getBeginTime(), queryVo.getEndTime());
+        return electricMeterWebMapper.toElectricMeterPowerTrendPointVoList(trendPointDtoList);
+    }
+
+    /**
+     * 查询电表区间耗电趋势
+     *
+     * @param meterId 电表ID
+     * @param queryVo 查询条件
+     * @return 趋势点列表
+     */
+    public List<ElectricMeterPowerConsumeTrendPointVo> findPowerConsumeTrendList(Integer meterId, ElectricMeterPowerTrendQueryVo queryVo) {
+        electricMeterInfoService.getDetail(meterId);
+        if (queryVo.getBeginTime().isAfter(queryVo.getEndTime())) {
+            throw new BusinessRuntimeException("开始时间不能晚于结束时间");
+        }
+        List<ElectricMeterPowerConsumeTrendPointDto> trendPointDtoList = electricMeterPowerConsumeRecordService.findTrendRecordList(
+                meterId, queryVo.getBeginTime(), queryVo.getEndTime());
+        return electricMeterWebMapper.toElectricMeterPowerConsumeTrendPointVoList(trendPointDtoList);
     }
 
     /**

@@ -40,22 +40,22 @@ public class FinanceConsumeController {
         return ResultUtil.success(financeBiz.findAccountConsumePage(queryVo, pageNum, pageSize));
     }
 
-    @SaCheckPermission("finance:meter-consume:page")
-    @GetMapping("/meter-consumes")
-    @Operation(summary = "分页查询电量消费记录")
-    public RestResult<PageResult<PowerConsumeRecordVo>> findPowerConsumePage(
-            @Valid @ModelAttribute PowerConsumeQueryVo queryVo,
+    @SaCheckPermission("finance:meter-billing:page")
+    @GetMapping("/meter-billings")
+    @Operation(summary = "分页查询电表计费记录")
+    public RestResult<PageResult<MeterBillingRecordVo>> findMeterBillingPage(
+            @Valid @ModelAttribute MeterBillingQueryVo queryVo,
             @Parameter(description = "页码", example = "1") @RequestParam(defaultValue = "1") Integer pageNum,
             @Parameter(description = "每页数量", example = "10") @RequestParam(defaultValue = "10") Integer pageSize) {
-        return ResultUtil.success(financeBiz.findPowerConsumePage(queryVo, pageNum, pageSize));
+        return ResultUtil.success(financeBiz.findMeterBillingPage(queryVo, pageNum, pageSize));
     }
 
-    @SaCheckPermission("finance:meter-consume:detail")
-    @GetMapping("/meter-consumes/{id}")
-    @Operation(summary = "查询电量消费记录明细")
-    public RestResult<PowerConsumeDetailVo> getPowerConsumeDetail(
-            @NotNull @Parameter(description = "电量消费记录ID", example = "1") @PathVariable Integer id) {
-        return ResultUtil.success(financeBiz.getPowerConsumeDetail(id));
+    @SaCheckPermission("finance:meter-billing:detail")
+    @GetMapping("/meter-billings/{id}")
+    @Operation(summary = "查询电表计费记录明细")
+    public RestResult<MeterBillingDetailVo> getMeterBillingDetail(
+            @NotNull @Parameter(description = "电表计费记录ID", example = "1") @PathVariable Integer id) {
+        return ResultUtil.success(financeBiz.getMeterBillingDetail(id));
     }
 
     @SaCheckPermission("finance:meter-correction:page")

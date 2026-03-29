@@ -34,6 +34,7 @@ const emit = defineEmits<{
   create: []
   detail: [row: ElectricMeterItem]
   edit: [row: ElectricMeterItem]
+  trend: [row: ElectricMeterItem]
   delete: [row: ElectricMeterItem]
   toggleMore: [row: ElectricMeterItem, event: MouseEvent]
   singleCommand: [row: ElectricMeterItem, action: 'cut' | 'merge']
@@ -53,6 +54,7 @@ const canOpenMoreActionMenu = (row: ElectricMeterItem) => {
     : electricMeterPermissionKeys.enableProtection
 
   return (
+    hasMenuPermission(electricMeterPermissionKeys.delete) ||
     hasMenuPermission(protectionPermissionKey) ||
     (row.onlineStatus === 1 &&
       (hasMenuPermission(commandPermissionKey) ||
@@ -200,6 +202,36 @@ const moreActionCommandLabel = computed(() => {
               <div class="meter-row-actions">
                 <button
                   v-menu-permission="electricMeterPermissionKeys.detail"
+                  class="btn-link btn-link-trend"
+                  type="button"
+                  aria-label="用电趋势"
+                  title="用电趋势"
+                  @click="emit('trend', row)"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2.5 12.5H13.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.3"
+                    />
+                    <path
+                      d="M3.2 10.3L6.1 7.7L8.2 8.8L12.8 4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.6"
+                    />
+                    <circle cx="3.2" cy="10.3" r="1.1" fill="currentColor" />
+                    <circle cx="6.1" cy="7.7" r="1.1" fill="currentColor" />
+                    <circle cx="8.2" cy="8.8" r="1.1" fill="currentColor" />
+                    <circle cx="12.8" cy="4.5" r="1.1" fill="currentColor" />
+                  </svg>
+                </button>
+                <button
+                  v-menu-permission="electricMeterPermissionKeys.detail"
                   class="btn-link"
                   type="button"
                   @click="emit('detail', row)"
@@ -215,22 +247,13 @@ const moreActionCommandLabel = computed(() => {
                   编辑
                 </button>
                 <button
-                  v-menu-permission="electricMeterPermissionKeys.delete"
-                  class="btn-link btn-link-danger"
+                  v-if="canOpenMoreActionMenu(row)"
+                  class="btn-link btn-link-more"
                   type="button"
-                  @click="emit('delete', row)"
+                  @click.stop="emit('toggleMore', row, $event as MouseEvent)"
                 >
-                  删除
+                  ...
                 </button>
-                <div v-if="canOpenMoreActionMenu(row)" class="more-action-wrap">
-                  <button
-                    class="btn-link btn-link-more"
-                    type="button"
-                    @click.stop="emit('toggleMore', row, $event as MouseEvent)"
-                  >
-                    ...
-                  </button>
-                </div>
               </div>
             </td>
           </tr>
@@ -292,6 +315,14 @@ const moreActionCommandLabel = computed(() => {
       @click="emit('setCt', moreActionMenu.row)"
     >
       设置CT
+    </button>
+    <button
+      v-if="hasMenuPermission(electricMeterPermissionKeys.delete)"
+      class="more-action-item more-action-item-danger"
+      type="button"
+      @click="emit('delete', moreActionMenu.row)"
+    >
+      删除
     </button>
   </div>
 </template>
@@ -557,6 +588,7 @@ button:disabled {
 
 .btn-link,
 .btn-link-danger,
+.btn-link-success,
 .btn-link-more {
   padding: 0;
   font-size: var(--es-font-size-sm);
@@ -569,6 +601,25 @@ button:disabled {
 
 .btn-link-danger {
   color: var(--es-color-danger);
+}
+
+.btn-link-success {
+  color: var(--es-color-success-text);
+}
+
+.btn-link-trend {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  color: var(--es-color-success-text);
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.btn-link-trend svg {
+  width: 16px;
+  height: 16px;
 }
 
 .btn-link:hover {
@@ -587,6 +638,15 @@ button:disabled {
 
 .btn-link-danger:hover {
   opacity: 0.85;
+}
+
+.btn-link-success:hover {
+  color: #15803d;
+}
+
+.btn-link-trend:hover {
+  color: #15803d;
+  background: rgb(22 163 74 / 9%);
 }
 
 .more-action-floating-menu {
@@ -618,6 +678,15 @@ button:disabled {
   background: #eff6ff;
 }
 
+.more-action-item-danger {
+  color: var(--es-color-danger);
+}
+
+.more-action-item-danger:hover {
+  color: var(--es-color-danger);
+  background: #fef2f2;
+}
+
 .meter-online-status {
   font-weight: 500;
 }
@@ -643,6 +712,7 @@ button:disabled {
 .btn:focus-visible,
 .btn-link:focus-visible,
 .btn-link-danger:focus-visible,
+.btn-link-success:focus-visible,
 .btn-link-more:focus-visible,
 .more-action-item:focus-visible {
   outline: 2px solid var(--es-color-primary);

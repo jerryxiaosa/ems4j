@@ -74,6 +74,7 @@ Notes:
 | Page | Screenshot |
 |------|------------|
 | Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
+| Power Consumption Trend | ![Power Consumption Trend](resource/images/meter-power-trend.png) |
 | Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
 | Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 

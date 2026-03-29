@@ -244,4 +244,26 @@ class ElectricMeterControllerTest {
                 .andExpect(jsonPath("$.data.powerHigher").value(200.10));
     }
 
+    @Test
+    @DisplayName("获取电表区间耗电趋势")
+    void testFindPowerConsumeTrendList() throws Exception {
+        List<ElectricMeterPowerConsumeTrendPointVo> trendPointVos = List.of(
+                new ElectricMeterPowerConsumeTrendPointVo()
+                        .setBeginRecordTime(LocalDateTime.of(2026, 3, 27, 8, 0, 0))
+                        .setEndRecordTime(LocalDateTime.of(2026, 3, 27, 10, 0, 0))
+                        .setMeterConsumeTime(LocalDateTime.of(2026, 3, 27, 10, 0, 0))
+                        .setConsumePower(new BigDecimal("3.50")));
+        when(electricMeterBiz.findPowerConsumeTrendList(eq(1), any(ElectricMeterPowerTrendQueryVo.class))).thenReturn(trendPointVos);
+
+        mockMvc.perform(get("/v1/device/electric-meters/1/power-consume-trend")
+                        .param("beginTime", "2026-03-27 00:00:00")
+                        .param("endTime", "2026-03-28 23:59:59"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].beginRecordTime").value("2026-03-27 08:00:00"))
+                .andExpect(jsonPath("$.data[0].endRecordTime").value("2026-03-27 10:00:00"))
+                .andExpect(jsonPath("$.data[0].meterConsumeTime").value("2026-03-27 10:00:00"))
+                .andExpect(jsonPath("$.data[0].consumePower").value(3.50));
+    }
+
 }

@@ -14,10 +14,10 @@ simulator:
   replay:
     enabled: true
     start-time: 2026-03-01T17:00:08
-    end-time: 2026-03-18T02:33:18
+    end-time: 2026-03-29T02:33:18
     send-interval-ms: 200
   devices:
-    - device-no: DEV005
+    - device-no: DEV001
       vendor: ACREL
       product-code: ACREL_4G_DIRECT
       access-mode: DIRECT
