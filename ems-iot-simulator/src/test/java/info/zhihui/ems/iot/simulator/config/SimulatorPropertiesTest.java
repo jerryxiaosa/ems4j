@@ -32,7 +32,7 @@ class SimulatorPropertiesTest {
         assertEquals("./.data/iot-simulator-state.json", properties.getRuntime().getPersistenceFile());
         assertEquals(60, properties.getRuntime().getHeartbeatIntervalSeconds());
         assertTrue(properties.getReplay().getEnabled());
-        assertEquals("DEV005", properties.getDevices().get(0).getDeviceNo());
+        assertEquals("DEV001", properties.getDevices().get(0).getDeviceNo());
         assertEquals(VendorEnum.ACREL, properties.getDevices().get(0).getVendor());
         assertEquals("ACREL_4G_DIRECT", properties.getDevices().get(0).getProductCode());
         assertEquals(DeviceAccessModeEnum.DIRECT, properties.getDevices().get(0).getAccessMode());
