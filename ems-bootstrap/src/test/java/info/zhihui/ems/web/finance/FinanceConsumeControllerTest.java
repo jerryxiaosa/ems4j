@@ -68,16 +68,16 @@ class FinanceConsumeControllerTest {
     }
 
     @Test
-    @DisplayName("分页查询电量消费记录")
-    void testFindPowerConsumePage() throws Exception {
-        PageResult<PowerConsumeRecordVo> page = new PageResult<PowerConsumeRecordVo>()
+    @DisplayName("分页查询电表计费记录")
+    void testFindMeterBillingPage() throws Exception {
+        PageResult<MeterBillingRecordVo> page = new PageResult<MeterBillingRecordVo>()
                 .setPageNum(1).setPageSize(5).setTotal(1L)
-                .setList(List.of(new PowerConsumeRecordVo()
+                .setList(List.of(new MeterBillingRecordVo()
                         .setMeterName("1号楼")
                         .setConsumeAmount(new BigDecimal("80"))));
-        when(financeBiz.findPowerConsumePage(any(PowerConsumeQueryVo.class), eq(1), eq(5))).thenReturn(page);
+        when(financeBiz.findMeterBillingPage(any(MeterBillingQueryVo.class), eq(1), eq(5))).thenReturn(page);
 
-        mockMvc.perform(get("/v1/finance/meter-consumes")
+        mockMvc.perform(get("/v1/finance/meter-billings")
                         .param("searchKey", "1号")
                         .param("spaceNameLike", "1号楼")
                         .param("beginTime", LocalDateTime.now().minusDays(2).toString())
@@ -90,16 +90,16 @@ class FinanceConsumeControllerTest {
     }
 
     @Test
-    @DisplayName("分页查询电量消费记录-不传时间条件")
-    void testFindPowerConsumePage_WithoutTimeRange() throws Exception {
-        PageResult<PowerConsumeRecordVo> page = new PageResult<PowerConsumeRecordVo>()
+    @DisplayName("分页查询电表计费记录-不传时间条件")
+    void testFindMeterBillingPage_WithoutTimeRange() throws Exception {
+        PageResult<MeterBillingRecordVo> page = new PageResult<MeterBillingRecordVo>()
                 .setPageNum(1).setPageSize(5).setTotal(1L)
-                .setList(List.of(new PowerConsumeRecordVo()
+                .setList(List.of(new MeterBillingRecordVo()
                         .setMeterName("2号楼")
                         .setConsumeAmount(new BigDecimal("60"))));
-        when(financeBiz.findPowerConsumePage(any(PowerConsumeQueryVo.class), eq(1), eq(5))).thenReturn(page);
+        when(financeBiz.findMeterBillingPage(any(MeterBillingQueryVo.class), eq(1), eq(5))).thenReturn(page);
 
-        mockMvc.perform(get("/v1/finance/meter-consumes")
+        mockMvc.perform(get("/v1/finance/meter-billings")
                         .param("searchKey", "2号")
                         .param("pageNum", "1")
                         .param("pageSize", "5"))
@@ -109,9 +109,9 @@ class FinanceConsumeControllerTest {
     }
 
     @Test
-    @DisplayName("查询电量消费记录明细")
-    void testGetPowerConsumeDetail() throws Exception {
-        PowerConsumeDetailVo detailVo = new PowerConsumeDetailVo()
+    @DisplayName("查询电表计费记录明细")
+    void testGetMeterBillingDetail() throws Exception {
+        MeterBillingDetailVo detailVo = new MeterBillingDetailVo()
                 .setId(1001)
                 .setMeterConsumeRecordId(2001)
                 .setConsumeNo("CONSUME_001")
@@ -119,9 +119,9 @@ class FinanceConsumeControllerTest {
                 .setConsumeAmount(new BigDecimal("50.50"))
                 .setConsumePower(new BigDecimal("100.00"))
                 .setCreateTime(LocalDateTime.now());
-        when(financeBiz.getPowerConsumeDetail(1001)).thenReturn(detailVo);
+        when(financeBiz.getMeterBillingDetail(1001)).thenReturn(detailVo);
 
-        mockMvc.perform(get("/v1/finance/meter-consumes/{id}", 1001))
+        mockMvc.perform(get("/v1/finance/meter-billings/{id}", 1001))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1001))

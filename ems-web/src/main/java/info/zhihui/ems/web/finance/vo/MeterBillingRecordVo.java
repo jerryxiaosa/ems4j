@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(chain = true)
-public class PowerConsumeRecordVo {
+public class MeterBillingRecordVo {
 
     @Schema(description = "记录ID")
     private Integer id;

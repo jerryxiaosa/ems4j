@@ -3,6 +3,8 @@ package info.zhihui.ems.web.device.mapstruct;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.*;
 import info.zhihui.ems.business.billing.dto.ElectricMeterLatestPowerRecordDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerConsumeTrendPointDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerTrendPointDto;
 import info.zhihui.ems.business.device.enums.ElectricSwitchStatusEnum;
 import info.zhihui.ems.business.plan.dto.ElectricPriceTimeDto;
 import info.zhihui.ems.common.enums.*;
@@ -66,6 +68,14 @@ public interface ElectricMeterWebMapper {
     ElectricMeterDetailVo toElectricMeterDetailVo(ElectricMeterBo bo);
 
     ElectricMeterLatestPowerRecordVo toElectricMeterLatestPowerRecordVo(ElectricMeterLatestPowerRecordDto dto);
+
+    ElectricMeterPowerTrendPointVo toElectricMeterPowerTrendPointVo(ElectricMeterPowerTrendPointDto dto);
+
+    List<ElectricMeterPowerTrendPointVo> toElectricMeterPowerTrendPointVoList(List<ElectricMeterPowerTrendPointDto> list);
+
+    ElectricMeterPowerConsumeTrendPointVo toElectricMeterPowerConsumeTrendPointVo(ElectricMeterPowerConsumeTrendPointDto dto);
+
+    List<ElectricMeterPowerConsumeTrendPointVo> toElectricMeterPowerConsumeTrendPointVoList(List<ElectricMeterPowerConsumeTrendPointDto> list);
 
     CanceledMeterVo toCanceledMeterVo(CanceledMeterDto dto);
 

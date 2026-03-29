@@ -803,7 +803,13 @@ class MeterConsumeServiceImplTest {
         assertDoesNotThrow(() -> electricMeterConsumeService.savePowerRecord(testDto));
 
         // Then
-        verify(electricMeterPowerRecordRepository).findRecordList(any(ElectricMeterPowerRecordQo.class));
+        ArgumentCaptor<ElectricMeterPowerRecordQo> qoCaptor = ArgumentCaptor.forClass(ElectricMeterPowerRecordQo.class);
+        verify(electricMeterPowerRecordRepository).findRecordList(qoCaptor.capture());
+        ElectricMeterPowerRecordQo capturedQo = qoCaptor.getValue();
+        assertEquals(1, capturedQo.getMeterId());
+        assertEquals(1, capturedQo.getAccountId());
+        assertEquals(2, capturedQo.getLimit());
+        assertEquals(Boolean.FALSE, capturedQo.getAsc());
         verify(electricMeterPowerConsumeRecordRepository).insert(any(ElectricMeterPowerConsumeRecordEntity.class));
         verify(balanceService).deduct(any(BalanceDto.class));
         verify(lock).unlock();

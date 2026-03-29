@@ -8,11 +8,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 电量消费明细出参
+ * 电表计费明细出参
  */
 @Data
 @Accessors(chain = true)
-public class PowerConsumeDetailVo {
+public class MeterBillingDetailVo {
 
     @Schema(description = "余额消费记录ID")
     private Integer id;

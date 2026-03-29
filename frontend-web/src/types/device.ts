@@ -10,6 +10,23 @@ export interface LatestPowerRecord {
   powerDeepLow?: string
 }
 
+export interface ElectricMeterPowerConsumeTrendPoint {
+  beginRecordTime?: string
+  endRecordTime?: string
+  meterConsumeTime?: string
+  consumePower?: string
+  consumePowerHigher?: string
+  consumePowerHigh?: string
+  consumePowerLow?: string
+  consumePowerLower?: string
+  consumePowerDeepLow?: string
+}
+
+export interface ElectricMeterPowerTrendQuery {
+  beginTime: string
+  endTime: string
+}
+
 export interface DeviceTypeTreeItem {
   id: number
   pid: number

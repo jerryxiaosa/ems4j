@@ -16,7 +16,7 @@ public interface FinanceWebMapper {
 
     AccountConsumeQueryDto toAccountConsumeQueryDto(AccountConsumeQueryVo vo);
 
-    PowerConsumeQueryDto toPowerConsumeQueryDto(PowerConsumeQueryVo vo);
+    MeterBillingQueryDto toMeterBillingQueryDto(MeterBillingQueryVo vo);
 
     MeterCorrectionRecordQueryDto toCorrectionRecordQueryDto(CorrectionRecordQueryVo vo);
 
@@ -25,9 +25,9 @@ public interface FinanceWebMapper {
 
     AccountConsumeRecordVo toAccountConsumeRecordVo(AccountConsumeRecordDto dto);
 
-    PowerConsumeRecordVo toPowerConsumeRecordVo(PowerConsumeRecordDto dto);
+    MeterBillingRecordVo toMeterBillingRecordVo(MeterBillingRecordDto dto);
 
-    PowerConsumeDetailVo toPowerConsumeDetailVo(PowerConsumeDetailDto dto);
+    MeterBillingDetailVo toMeterBillingDetailVo(MeterBillingDetailDto dto);
 
     CorrectionRecordVo toCorrectionRecordVo(MeterCorrectionRecordDto dto);
 
@@ -41,12 +41,12 @@ public interface FinanceWebMapper {
         return copyPage(dtoPage, voList);
     }
 
-    default PageResult<PowerConsumeRecordVo> toPowerConsumeRecordVoPage(PageResult<PowerConsumeRecordDto> dtoPage) {
+    default PageResult<MeterBillingRecordVo> toMeterBillingRecordVoPage(PageResult<MeterBillingRecordDto> dtoPage) {
         if (dtoPage == null) {
             return emptyPage();
         }
-        List<PowerConsumeRecordVo> voList = dtoPage.getList() == null ? Collections.emptyList() :
-                dtoPage.getList().stream().map(this::toPowerConsumeRecordVo).collect(Collectors.toList());
+        List<MeterBillingRecordVo> voList = dtoPage.getList() == null ? Collections.emptyList() :
+                dtoPage.getList().stream().map(this::toMeterBillingRecordVo).collect(Collectors.toList());
         return copyPage(dtoPage, voList);
     }
 

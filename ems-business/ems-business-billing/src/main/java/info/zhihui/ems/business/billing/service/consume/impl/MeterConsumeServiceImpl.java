@@ -244,7 +244,8 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
 
         ElectricMeterPowerRecordQo query = new ElectricMeterPowerRecordQo()
                 .setMeterId(meterPowerRecordEntity.getMeterId())
-                .setLimit(MINIMUM_RECORD_COUNT);
+                .setLimit(MINIMUM_RECORD_COUNT)
+                .setAsc(Boolean.FALSE);
         if (meterPowerRecordEntity.getAccountId() != null) {
             query.setAccountId(meterPowerRecordEntity.getAccountId());
         }
@@ -783,14 +784,15 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     }
 
     /**
-     * 查询电量消费记录
+     * 查询电表计费记录
      *
      * @param queryDto  查询条件
      * @param pageParam 分页参数
-     * @return 电量消费记录分页结果
+     * @return 电表计费记录分页结果
      */
     @Override
-    public PageResult<PowerConsumeRecordDto> findPowerConsumePage(@Valid @NotNull PowerConsumeQueryDto queryDto, @NotNull PageParam pageParam) {
+    public PageResult<MeterBillingRecordDto> findMeterBillingPage(@Valid @NotNull MeterBillingQueryDto queryDto,
+                                                                  @NotNull PageParam pageParam) {
         // 构建查询对象
         ElectricPowerConsumeRecordQo qo = new ElectricPowerConsumeRecordQo()
                 .setConsumeType(ConsumeTypeEnum.ELECTRIC.getCode())
@@ -804,11 +806,11 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
             PageInfo<ElectricMeterBalanceConsumeRecordEntity> pageInfo = page.doSelectPageInfo(() -> electricMeterBalanceConsumeRecordRepository.selectByQo(qo));
 
             // 转换为DTO
-            List<PowerConsumeRecordDto> records = pageInfo.getList().stream()
-                    .map(this::convertToConsumeDto)
+            List<MeterBillingRecordDto> records = pageInfo.getList().stream()
+                    .map(this::convertToMeterBillingRecordDto)
                     .collect(Collectors.toList());
 
-            return new PageResult<PowerConsumeRecordDto>()
+            return new PageResult<MeterBillingRecordDto>()
                     .setPageNum(pageParam.getPageNum())
                     .setPageSize(pageParam.getPageSize())
                     .setTotal(pageInfo.getTotal())
@@ -817,25 +819,25 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     }
 
     /**
-     * 查询电量消费明细
+     * 查询电表计费明细
      *
      * @param id 余额消费记录ID
-     * @return 电量消费明细
+     * @return 电表计费明细
      */
     @Override
-    public PowerConsumeDetailDto getPowerConsumeDetail(@NotNull Integer id) {
+    public MeterBillingDetailDto getMeterBillingDetail(@NotNull Integer id) {
         ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord = electricMeterBalanceConsumeRecordRepository.selectById(id);
         if (balanceConsumeRecord == null) {
-            throw new NotFoundException("电量消费记录不存在");
+            throw new NotFoundException("电表计费记录不存在");
         }
 
         if (!Objects.equals(ConsumeTypeEnum.ELECTRIC.getCode(), balanceConsumeRecord.getConsumeType())) {
-            throw new BusinessRuntimeException("当前记录不是电量消费记录");
+            throw new BusinessRuntimeException("当前记录不是电表计费记录");
         }
 
         Integer meterConsumeRecordId = balanceConsumeRecord.getMeterConsumeRecordId();
         if (meterConsumeRecordId == null) {
-            throw new BusinessRuntimeException("电量消费记录数据异常：缺少电量明细记录");
+            throw new BusinessRuntimeException("电表计费记录数据异常：缺少电量明细记录");
         }
 
         ElectricMeterPowerConsumeRecordEntity powerConsumeRecord = electricMeterPowerConsumeRecordRepository.selectById(meterConsumeRecordId);
@@ -843,7 +845,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
             throw new NotFoundException("电量明细记录不存在");
         }
 
-        return convertToPowerConsumeDetailDto(balanceConsumeRecord, powerConsumeRecord);
+        return convertToMeterBillingDetailDto(balanceConsumeRecord, powerConsumeRecord);
     }
 
     /**
@@ -962,8 +964,8 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     /**
      * 将实体转换为DTO
      */
-    private PowerConsumeRecordDto convertToConsumeDto(ElectricMeterBalanceConsumeRecordEntity entity) {
-        return new PowerConsumeRecordDto()
+    private MeterBillingRecordDto convertToMeterBillingRecordDto(ElectricMeterBalanceConsumeRecordEntity entity) {
+        return new MeterBillingRecordDto()
                 .setId(entity.getId())
                 .setAccountId(entity.getAccountId())
                 .setMeterId(entity.getMeterId())
@@ -999,9 +1001,9 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
                 .setMeterConsumeTime(entity.getMeterConsumeTime());
     }
 
-    private PowerConsumeDetailDto convertToPowerConsumeDetailDto(ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord,
+    private MeterBillingDetailDto convertToMeterBillingDetailDto(ElectricMeterBalanceConsumeRecordEntity balanceConsumeRecord,
                                                                  ElectricMeterPowerConsumeRecordEntity powerConsumeRecord) {
-        return new PowerConsumeDetailDto()
+        return new MeterBillingDetailDto()
                 .setId(balanceConsumeRecord.getId())
                 .setMeterConsumeRecordId(balanceConsumeRecord.getMeterConsumeRecordId())
                 .setConsumeNo(balanceConsumeRecord.getConsumeNo())

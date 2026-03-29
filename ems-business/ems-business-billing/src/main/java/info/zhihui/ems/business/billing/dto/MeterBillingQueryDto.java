@@ -6,13 +6,13 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 电量消费记录查询入参DTO
+ * 电表计费记录查询入参DTO
  *
  * @author jerryxiaosa
  */
 @Data
 @Accessors(chain = true)
-public class PowerConsumeQueryDto {
+public class MeterBillingQueryDto {
 
     /**
      * 搜索关键词（电表名称/设备编号模糊匹配，可选）

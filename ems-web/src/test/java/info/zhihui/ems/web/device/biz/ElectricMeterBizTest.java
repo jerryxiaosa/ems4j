@@ -4,12 +4,19 @@ import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.device.service.ElectricMeterManagerService;
 import info.zhihui.ems.business.billing.dto.ElectricMeterLatestPowerRecordDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerConsumeTrendPointDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerTrendPointDto;
+import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerConsumeRecordService;
 import info.zhihui.ems.business.billing.service.record.ElectricMeterPowerRecordService;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.web.common.dto.SpaceDisplayDto;
 import info.zhihui.ems.web.common.support.SpaceDisplaySupport;
 import info.zhihui.ems.web.device.mapstruct.ElectricMeterWebMapper;
 import info.zhihui.ems.web.device.vo.ElectricMeterDetailVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterLatestPowerRecordVo;
+import info.zhihui.ems.web.device.vo.ElectricMeterPowerConsumeTrendPointVo;
+import info.zhihui.ems.web.device.vo.ElectricMeterPowerTrendPointVo;
+import info.zhihui.ems.web.device.vo.ElectricMeterPowerTrendQueryVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterQueryVo;
 import info.zhihui.ems.web.device.vo.ElectricMeterVo;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +30,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +50,9 @@ class ElectricMeterBizTest {
 
     @Mock
     private ElectricMeterPowerRecordService electricMeterPowerRecordService;
+
+    @Mock
+    private ElectricMeterPowerConsumeRecordService electricMeterPowerConsumeRecordService;
 
     @Mock
     private SpaceDisplaySupport spaceDisplaySupport;
@@ -112,5 +125,73 @@ class ElectricMeterBizTest {
         assertThat(result.getLatestPowerRecord()).isNotNull();
         assertThat(result.getLatestPowerRecord().getPower()).isEqualByComparingTo("123.45");
         assertThat(result.getLatestPowerRecord().getRecordTime()).isEqualTo(LocalDateTime.of(2026, 3, 10, 12, 30, 15));
+    }
+
+    @Test
+    @DisplayName("查询电表趋势_应返回趋势点列表")
+    void testFindPowerTrendList_ShouldReturnTrendPoints() {
+        Integer meterId = 1;
+        LocalDateTime beginTime = LocalDateTime.of(2026, 3, 27, 0, 0, 0);
+        LocalDateTime endTime = LocalDateTime.of(2026, 3, 28, 23, 59, 59);
+        ElectricMeterBo electricMeterBo = new ElectricMeterBo().setId(meterId);
+        ElectricMeterPowerTrendQueryVo queryVo = new ElectricMeterPowerTrendQueryVo()
+                .setBeginTime(beginTime)
+                .setEndTime(endTime);
+        ElectricMeterPowerTrendPointDto trendPointDto = new ElectricMeterPowerTrendPointDto()
+                .setRecordTime(LocalDateTime.of(2026, 3, 27, 8, 30, 0));
+        ElectricMeterPowerTrendPointVo trendPointVo = new ElectricMeterPowerTrendPointVo()
+                .setRecordTime(LocalDateTime.of(2026, 3, 27, 8, 30, 0));
+        when(electricMeterInfoService.getDetail(meterId)).thenReturn(electricMeterBo);
+        when(electricMeterPowerRecordService.findTrendRecordList(meterId, beginTime, endTime))
+                .thenReturn(List.of(trendPointDto));
+        when(electricMeterWebMapper.toElectricMeterPowerTrendPointVoList(List.of(trendPointDto)))
+                .thenReturn(List.of(trendPointVo));
+
+        List<ElectricMeterPowerTrendPointVo> result = electricMeterBiz.findPowerTrendList(meterId, queryVo);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getRecordTime()).isEqualTo(LocalDateTime.of(2026, 3, 27, 8, 30, 0));
+        verify(electricMeterPowerRecordService).findTrendRecordList(meterId, beginTime, endTime);
+    }
+
+    @Test
+    @DisplayName("查询电表趋势_开始时间晚于结束时间应抛异常")
+    void testFindPowerTrendList_WhenBeginTimeAfterEndTime_ShouldThrow() {
+        Integer meterId = 1;
+        ElectricMeterPowerTrendQueryVo queryVo = new ElectricMeterPowerTrendQueryVo()
+                .setBeginTime(LocalDateTime.of(2026, 3, 29, 0, 0, 0))
+                .setEndTime(LocalDateTime.of(2026, 3, 28, 23, 59, 59));
+        when(electricMeterInfoService.getDetail(meterId)).thenReturn(new ElectricMeterBo().setId(meterId));
+
+        assertThatThrownBy(() -> electricMeterBiz.findPowerTrendList(meterId, queryVo))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("开始时间不能晚于结束时间");
+    }
+
+    @Test
+    @DisplayName("查询电表区间耗电趋势_应返回趋势点列表")
+    void testFindPowerConsumeTrendList_ShouldReturnTrendPoints() {
+        Integer meterId = 1;
+        LocalDateTime beginTime = LocalDateTime.of(2026, 3, 27, 0, 0, 0);
+        LocalDateTime endTime = LocalDateTime.of(2026, 3, 28, 23, 59, 59);
+        ElectricMeterBo electricMeterBo = new ElectricMeterBo().setId(meterId);
+        ElectricMeterPowerTrendQueryVo queryVo = new ElectricMeterPowerTrendQueryVo()
+                .setBeginTime(beginTime)
+                .setEndTime(endTime);
+        ElectricMeterPowerConsumeTrendPointDto trendPointDto = new ElectricMeterPowerConsumeTrendPointDto()
+                .setMeterConsumeTime(LocalDateTime.of(2026, 3, 27, 10, 30, 0));
+        ElectricMeterPowerConsumeTrendPointVo trendPointVo = new ElectricMeterPowerConsumeTrendPointVo()
+                .setMeterConsumeTime(LocalDateTime.of(2026, 3, 27, 10, 30, 0));
+        when(electricMeterInfoService.getDetail(meterId)).thenReturn(electricMeterBo);
+        when(electricMeterPowerConsumeRecordService.findTrendRecordList(meterId, beginTime, endTime))
+                .thenReturn(List.of(trendPointDto));
+        when(electricMeterWebMapper.toElectricMeterPowerConsumeTrendPointVoList(List.of(trendPointDto)))
+                .thenReturn(List.of(trendPointVo));
+
+        List<ElectricMeterPowerConsumeTrendPointVo> result = electricMeterBiz.findPowerConsumeTrendList(meterId, queryVo);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMeterConsumeTime()).isEqualTo(LocalDateTime.of(2026, 3, 27, 10, 30, 0));
+        verify(electricMeterPowerConsumeRecordService).findTrendRecordList(meterId, beginTime, endTime);
     }
 }

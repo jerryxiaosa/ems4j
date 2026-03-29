@@ -27,6 +27,23 @@ export interface LatestPowerRecordRaw {
   powerDeepLow?: number | string
 }
 
+export interface ElectricMeterPowerConsumeTrendPointRaw {
+  beginRecordTime?: string
+  endRecordTime?: string
+  meterConsumeTime?: string
+  consumePower?: number | string
+  consumePowerHigher?: number | string
+  consumePowerHigh?: number | string
+  consumePowerLow?: number | string
+  consumePowerLower?: number | string
+  consumePowerDeepLow?: number | string
+}
+
+export interface ElectricMeterPowerTrendQueryRaw {
+  beginTime: string
+  endTime: string
+}
+
 export interface DeviceTypeTreeRaw {
   id?: number | string
   pid?: number | string
@@ -131,6 +148,34 @@ export const getLatestPowerRecordRaw = (id: number) => {
   return requestV1<ApiEnvelope<LatestPowerRecordRaw>>({
     method: 'GET',
     url: `/device/electric-meters/${id}/latest-power-record`
+  })
+}
+
+export const getElectricMeterPowerTrendRaw = (
+  id: number,
+  query: ElectricMeterPowerTrendQueryRaw
+) => {
+  return requestV1<ApiEnvelope<LatestPowerRecordRaw[]>>({
+    method: 'GET',
+    url: `/device/electric-meters/${id}/power-trend`,
+    params: {
+      beginTime: query.beginTime,
+      endTime: query.endTime
+    }
+  })
+}
+
+export const getElectricMeterPowerConsumeTrendRaw = (
+  id: number,
+  query: ElectricMeterPowerTrendQueryRaw
+) => {
+  return requestV1<ApiEnvelope<ElectricMeterPowerConsumeTrendPointRaw[]>>({
+    method: 'GET',
+    url: `/device/electric-meters/${id}/power-consume-trend`,
+    params: {
+      beginTime: query.beginTime,
+      endTime: query.endTime
+    }
   })
 }
 

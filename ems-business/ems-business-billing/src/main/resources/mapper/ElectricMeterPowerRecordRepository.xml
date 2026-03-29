@@ -11,8 +11,23 @@
         <if test="accountId != null">
           and account_id = #{accountId}
         </if>
-        order by record_time desc, id desc
+        <if test="beginTime != null">
+          and record_time <![CDATA[>=]]> #{beginTime}
+        </if>
+        <if test="endTime != null">
+          and record_time <![CDATA[<=]]> #{endTime}
+        </if>
+        <choose>
+            <when test="asc != null and asc">
+                order by record_time asc, id asc
+            </when>
+            <otherwise>
+                order by record_time desc, id desc
+            </otherwise>
+        </choose>
+        <if test="limit != null">
             limit #{limit}
+        </if>
     </select>
 
 </mapper>

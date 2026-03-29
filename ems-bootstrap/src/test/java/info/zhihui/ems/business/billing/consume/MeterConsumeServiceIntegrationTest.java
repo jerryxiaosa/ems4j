@@ -3,9 +3,9 @@ package info.zhihui.ems.business.billing.consume;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import info.zhihui.ems.business.billing.dto.ElectricMeterDetailDto;
 import info.zhihui.ems.business.billing.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeDetailDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeQueryDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeRecordDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingDetailDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingQueryDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingRecordDto;
 import info.zhihui.ems.business.billing.entity.ElectricMeterBalanceConsumeRecordEntity;
 import info.zhihui.ems.business.billing.entity.ElectricMeterPowerConsumeRecordEntity;
 import info.zhihui.ems.business.billing.entity.ElectricMeterPowerRecordEntity;
@@ -490,23 +490,23 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - 参数校验测试")
-    void testFindPowerConsumePage_ValidationTests_ShouldThrowException() {
+    @DisplayName("findMeterBillingPage方法集成测试 - 参数校验测试")
+    void testFindMeterBillingPage_ValidationTests_ShouldThrowException() {
         // 测试1: queryDto为null
         assertThrows(ConstraintViolationException.class, () -> {
-            meterConsumeService.findPowerConsumePage(null, new PageParam().setPageNum(1).setPageSize(10));
+            meterConsumeService.findMeterBillingPage(null, new PageParam().setPageNum(1).setPageSize(10));
         }, "queryDto为null应抛出ConstraintViolationException");
 
         // 测试2: pageParam为null
         assertThrows(ConstraintViolationException.class, () -> {
-            meterConsumeService.findPowerConsumePage(new PowerConsumeQueryDto(), null);
+            meterConsumeService.findMeterBillingPage(new MeterBillingQueryDto(), null);
         }, "pageParam为null应抛出ConstraintViolationException");
 
         // 测试3: 有效参数（不应抛出参数校验异常）
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto().setBeginTime(LocalDateTime.now().minusHours(1)).setEndTime(LocalDateTime.now());
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto().setBeginTime(LocalDateTime.now().minusHours(1)).setEndTime(LocalDateTime.now());
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
         try {
-            meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+            meterConsumeService.findMeterBillingPage(queryDto, pageParam);
         } catch (ConstraintViolationException e) {
             throw new AssertionError("有效参数不应抛出ConstraintViolationException", e);
         } catch (Exception e) {
@@ -515,19 +515,19 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - 正常分页查询测试")
-    void testFindPowerConsumePage_Success() {
+    @DisplayName("findMeterBillingPage方法集成测试 - 正常分页查询测试")
+    void testFindMeterBillingPage_Success() {
         // 准备测试数据
-        prepareTestDataForPowerConsumePage();
+        prepareTestDataForMeterBillingPage();
 
         // 准备查询参数
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1));
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
         // 执行测试
-        PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+        PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
         // 验证分页结果
         assertNotNull(result, "分页查询结果不应为null");
@@ -538,7 +538,7 @@ class MeterConsumeServiceIntegrationTest {
         assertEquals(10, result.getPageSize(), "页大小应为10");
 
         // 验证数据转换的正确性
-        PowerConsumeRecordDto firstRecord = result.getList().get(0);
+        MeterBillingRecordDto firstRecord = result.getList().get(0);
         assertNotNull(firstRecord.getMeterName(), "电表名称不应为null");
         assertNotNull(firstRecord.getDeviceNo(), "电表编号不应为null");
         assertNotNull(firstRecord.getSpaceName(), "空间名称不应为null");
@@ -557,7 +557,7 @@ class MeterConsumeServiceIntegrationTest {
         // 验证electricAccountType字段
         boolean foundQuantityType = false;
         boolean foundMergedType = false;
-        for (PowerConsumeRecordDto record : result.getList()) {
+        for (MeterBillingRecordDto record : result.getList()) {
             if (ElectricAccountTypeEnum.QUANTITY.getCode().equals(record.getElectricAccountType())) {
                 foundQuantityType = true;
             } else if (ElectricAccountTypeEnum.MERGED.getCode().equals(record.getElectricAccountType())) {
@@ -569,13 +569,13 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - 空结果查询测试")
-    void testFindPowerConsumePage_EmptyResult() {
+    @DisplayName("findMeterBillingPage方法集成测试 - 空结果查询测试")
+    void testFindMeterBillingPage_EmptyResult() {
         // 准备测试数据
-        prepareTestDataForPowerConsumePage();
+        prepareTestDataForMeterBillingPage();
 
         // 准备查询参数 - 使用不存在的查询条件
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
                 .setSearchKey("不存在的电表名称")
@@ -583,7 +583,7 @@ class MeterConsumeServiceIntegrationTest {
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
         // 执行测试
-        PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+        PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
         // 验证空结果
         assertNotNull(result, "分页查询结果不应为null");
@@ -595,66 +595,66 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - 查询条件测试")
-    void testFindPowerConsumePage_QueryConditions() {
+    @DisplayName("findMeterBillingPage方法集成测试 - 查询条件测试")
+    void testFindMeterBillingPage_QueryConditions() {
         // 准备测试数据
-        prepareTestDataForPowerConsumePage();
+        prepareTestDataForMeterBillingPage();
 
         // 测试1: 按关键词（电表名称）模糊查询
-        PowerConsumeQueryDto queryDto1 = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto1 = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
                 .setSearchKey("1号楼");
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
-        PageResult<PowerConsumeRecordDto> result1 = meterConsumeService.findPowerConsumePage(queryDto1, pageParam);
+        PageResult<MeterBillingRecordDto> result1 = meterConsumeService.findMeterBillingPage(queryDto1, pageParam);
         assertNotNull(result1, "查询结果不应为null");
         assertEquals(1L, result1.getTotal(), "按电表名称查询应返回1条记录");
         assertEquals("1号楼电表", result1.getList().get(0).getMeterName(), "应该查询到正确的电表");
 
         // 测试2: 按关键词（设备编号）模糊查询
-        PowerConsumeQueryDto queryDto2 = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto2 = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
                 .setSearchKey("EM002");
-        PageResult<PowerConsumeRecordDto> result2 = meterConsumeService.findPowerConsumePage(queryDto2, pageParam);
+        PageResult<MeterBillingRecordDto> result2 = meterConsumeService.findMeterBillingPage(queryDto2, pageParam);
         assertNotNull(result2, "查询结果不应为null");
         assertEquals(1L, result2.getTotal(), "按设备编号查询应返回1条记录");
         assertEquals("2号楼电表", result2.getList().get(0).getMeterName(), "应该查询到正确的电表");
 
         // 测试3: 按空间名称模糊查询
-        PowerConsumeQueryDto queryDto3 = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto3 = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1))
                 .setSpaceNameLike("办公室");
-        PageResult<PowerConsumeRecordDto> result3 = meterConsumeService.findPowerConsumePage(queryDto3, pageParam);
+        PageResult<MeterBillingRecordDto> result3 = meterConsumeService.findMeterBillingPage(queryDto3, pageParam);
         assertNotNull(result3, "查询结果不应为null");
         assertEquals(1L, result3.getTotal(), "按空间名称查询应返回1条记录");
         assertEquals("2号楼办公室", result3.getList().get(0).getSpaceName(), "应该查询到正确的空间");
 
         // 测试4: 按时间范围查询
-        PowerConsumeQueryDto queryDto4 = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto4 = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(2))
                 .setEndTime(LocalDateTime.now().plusYears(1));
-        PageResult<PowerConsumeRecordDto> result4 = meterConsumeService.findPowerConsumePage(queryDto4, pageParam);
+        PageResult<MeterBillingRecordDto> result4 = meterConsumeService.findMeterBillingPage(queryDto4, pageParam);
         assertNotNull(result4, "查询结果不应为null");
         assertEquals(3L, result4.getTotal(), "按时间范围查询应返回3条记录");
 
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - 分页参数测试")
-    void testFindPowerConsumePage_Pagination() {
+    @DisplayName("findMeterBillingPage方法集成测试 - 分页参数测试")
+    void testFindMeterBillingPage_Pagination() {
         // 准备测试数据
-        prepareTestDataForPowerConsumePage();
+        prepareTestDataForMeterBillingPage();
 
         // 测试第一页
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1));
         PageParam firstPageParam = new PageParam().setPageNum(1).setPageSize(2);
 
-        PageResult<PowerConsumeRecordDto> firstPageResult = meterConsumeService.findPowerConsumePage(queryDto, firstPageParam);
+        PageResult<MeterBillingRecordDto> firstPageResult = meterConsumeService.findMeterBillingPage(queryDto, firstPageParam);
 
         // 验证第一页结果
         assertNotNull(firstPageResult, "第一页结果不应为null");
@@ -666,7 +666,7 @@ class MeterConsumeServiceIntegrationTest {
 
         // 测试第二页
         PageParam secondPageParam = new PageParam().setPageNum(2).setPageSize(2);
-        PageResult<PowerConsumeRecordDto> secondPageResult = meterConsumeService.findPowerConsumePage(queryDto, secondPageParam);
+        PageResult<MeterBillingRecordDto> secondPageResult = meterConsumeService.findMeterBillingPage(queryDto, secondPageParam);
 
         // 验证第二页结果
         assertNotNull(secondPageResult, "第二页结果不应为null");
@@ -681,7 +681,7 @@ class MeterConsumeServiceIntegrationTest {
 
         // 测试超出范围的页码
         PageParam thirdPageParam = new PageParam().setPageNum(3).setPageSize(2);
-        PageResult<PowerConsumeRecordDto> thirdPageResult = meterConsumeService.findPowerConsumePage(queryDto, thirdPageParam);
+        PageResult<MeterBillingRecordDto> thirdPageResult = meterConsumeService.findMeterBillingPage(queryDto, thirdPageParam);
 
         assertNotNull(thirdPageResult, "第三页结果不应为null");
         assertNotNull(thirdPageResult.getList(), "第三页数据列表不应为null");
@@ -690,21 +690,21 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPowerConsumePage方法集成测试 - electricAccountType字段验证")
-    void testFindPowerConsumePage_MergedMeasureLogic() {
+    @DisplayName("findMeterBillingPage方法集成测试 - electricAccountType字段验证")
+    void testFindMeterBillingPage_MergedMeasureLogic() {
         // 准备测试数据
-        prepareTestDataForPowerConsumePage();
+        prepareTestDataForMeterBillingPage();
 
         // 查询所有数据
-        PowerConsumeQueryDto queryDto = new PowerConsumeQueryDto()
+        MeterBillingQueryDto queryDto = new MeterBillingQueryDto()
                 .setBeginTime(LocalDateTime.now().minusYears(1))
                 .setEndTime(LocalDateTime.now().plusYears(1));
         PageParam pageParam = new PageParam().setPageNum(1).setPageSize(10);
 
-        PageResult<PowerConsumeRecordDto> result = meterConsumeService.findPowerConsumePage(queryDto, pageParam);
+        PageResult<MeterBillingRecordDto> result = meterConsumeService.findMeterBillingPage(queryDto, pageParam);
 
         // 验证electricAccountType字段
-        for (PowerConsumeRecordDto record : result.getList()) {
+        for (MeterBillingRecordDto record : result.getList()) {
             if ("1号楼电表".equals(record.getMeterName()) || "3号楼智能电表".equals(record.getMeterName())) {
                 assertEquals(ElectricAccountTypeEnum.QUANTITY.getCode(), record.getElectricAccountType(),
                     "QUANTITY类型的电表(" + record.getMeterName() + ")计费类型应为QUANTITY");
@@ -717,17 +717,17 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("getPowerConsumeDetail方法集成测试 - 参数校验测试")
-    void testGetPowerConsumeDetail_Validation_ShouldThrowException() {
-        assertThrows(ConstraintViolationException.class, () -> meterConsumeService.getPowerConsumeDetail(null));
+    @DisplayName("getMeterBillingDetail方法集成测试 - 参数校验测试")
+    void testGetMeterBillingDetail_Validation_ShouldThrowException() {
+        assertThrows(ConstraintViolationException.class, () -> meterConsumeService.getMeterBillingDetail(null));
     }
 
     @Test
-    @DisplayName("getPowerConsumeDetail方法集成测试 - 正常查询测试")
-    void testGetPowerConsumeDetail_Success() {
-        prepareTestDataForPowerConsumeDetail();
+    @DisplayName("getMeterBillingDetail方法集成测试 - 正常查询测试")
+    void testGetMeterBillingDetail_Success() {
+        prepareTestDataForMeterBillingDetail();
 
-        PowerConsumeDetailDto detailDto = meterConsumeService.getPowerConsumeDetail(3001);
+        MeterBillingDetailDto detailDto = meterConsumeService.getMeterBillingDetail(3001);
 
         assertNotNull(detailDto);
         assertEquals(3001, detailDto.getId());
@@ -744,19 +744,19 @@ class MeterConsumeServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("getPowerConsumeDetail方法集成测试 - 记录不存在测试")
-    void testGetPowerConsumeDetail_NotFound_ShouldThrowException() {
-        prepareTestDataForPowerConsumeDetail();
+    @DisplayName("getMeterBillingDetail方法集成测试 - 记录不存在测试")
+    void testGetMeterBillingDetail_NotFound_ShouldThrowException() {
+        prepareTestDataForMeterBillingDetail();
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(999999));
-        assertEquals("电量消费记录不存在", exception.getMessage());
+                () -> meterConsumeService.getMeterBillingDetail(999999));
+        assertEquals("电表计费记录不存在", exception.getMessage());
     }
 
     @Test
-    @DisplayName("getPowerConsumeDetail方法集成测试 - 非电量消费记录测试")
-    void testGetPowerConsumeDetail_NotElectricConsume_ShouldThrowException() {
-        prepareTestDataForPowerConsumeDetail();
+    @DisplayName("getMeterBillingDetail方法集成测试 - 非电量消费记录测试")
+    void testGetMeterBillingDetail_NotElectricConsume_ShouldThrowException() {
+        prepareTestDataForMeterBillingDetail();
 
         ElectricMeterBalanceConsumeRecordEntity nonElectricRecord = new ElectricMeterBalanceConsumeRecordEntity()
                 .setId(3002)
@@ -774,26 +774,26 @@ class MeterConsumeServiceIntegrationTest {
         electricMeterBalanceConsumeRecordRepository.insert(nonElectricRecord);
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(3002));
-        assertEquals("当前记录不是电量消费记录", exception.getMessage());
+                () -> meterConsumeService.getMeterBillingDetail(3002));
+        assertEquals("当前记录不是电表计费记录", exception.getMessage());
     }
 
     @Test
-    @DisplayName("getPowerConsumeDetail方法集成测试 - 明细记录不存在测试")
-    void testGetPowerConsumeDetail_PowerConsumeNotFound_ShouldThrowException() {
-        prepareTestDataForPowerConsumeDetail();
+    @DisplayName("getMeterBillingDetail方法集成测试 - 明细记录不存在测试")
+    void testGetMeterBillingDetail_PowerDetailNotFound_ShouldThrowException() {
+        prepareTestDataForMeterBillingDetail();
 
         electricMeterPowerConsumeRecordRepository.deleteById(4001);
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> meterConsumeService.getPowerConsumeDetail(3001));
+                () -> meterConsumeService.getMeterBillingDetail(3001));
         assertEquals("电量明细记录不存在", exception.getMessage());
     }
 
     /**
      * 准备测试数据到ElectricMeterBalanceConsumeRecordEntity表
      */
-    private void prepareTestDataForPowerConsumePage() {
+    private void prepareTestDataForMeterBillingPage() {
         // 清理现有数据
         electricMeterBalanceConsumeRecordRepository.delete(new QueryWrapper<>());
 
@@ -929,7 +929,7 @@ class MeterConsumeServiceIntegrationTest {
     /**
      * 准备电量消费明细测试数据
      */
-    private void prepareTestDataForPowerConsumeDetail() {
+    private void prepareTestDataForMeterBillingDetail() {
         electricMeterBalanceConsumeRecordRepository.delete(new QueryWrapper<>());
         electricMeterPowerConsumeRecordRepository.delete(new QueryWrapper<>());
 

@@ -1,6 +1,7 @@
 package info.zhihui.ems.business.billing.service.record.impl;
 
 import info.zhihui.ems.business.billing.dto.ElectricMeterLatestPowerRecordDto;
+import info.zhihui.ems.business.billing.dto.ElectricMeterPowerTrendPointDto;
 import info.zhihui.ems.business.billing.entity.ElectricMeterPowerRecordEntity;
 import info.zhihui.ems.business.billing.qo.ElectricMeterPowerRecordQo;
 import info.zhihui.ems.business.billing.repository.ElectricMeterPowerRecordRepository;
@@ -66,6 +67,7 @@ class ElectricMeterPowerRecordServiceImplTest {
         ElectricMeterPowerRecordQo capturedQo = qoCaptor.getValue();
         assertEquals(meterId, capturedQo.getMeterId());
         assertEquals(1, capturedQo.getLimit());
+        assertEquals(Boolean.FALSE, capturedQo.getAsc());
     }
 
     @Test
@@ -77,5 +79,40 @@ class ElectricMeterPowerRecordServiceImplTest {
         ElectricMeterLatestPowerRecordDto result = electricMeterPowerRecordService.findLatestRecord(1001);
 
         assertNull(result);
+    }
+
+    @Test
+    @DisplayName("查询电表趋势应按升序查询并限制1000条")
+    void testFindTrendRecordList_ShouldQueryWithAscAndLimit() {
+        Integer meterId = 1001;
+        LocalDateTime beginTime = LocalDateTime.of(2026, 3, 27, 0, 0, 0);
+        LocalDateTime endTime = LocalDateTime.of(2026, 3, 28, 23, 59, 59);
+        ElectricMeterPowerRecordEntity firstRecord = new ElectricMeterPowerRecordEntity()
+                .setMeterId(meterId)
+                .setRecordTime(LocalDateTime.of(2026, 3, 27, 8, 0, 0))
+                .setPower(new BigDecimal("1000.50"));
+        ElectricMeterPowerRecordEntity secondRecord = new ElectricMeterPowerRecordEntity()
+                .setMeterId(meterId)
+                .setRecordTime(LocalDateTime.of(2026, 3, 28, 9, 30, 0))
+                .setPower(new BigDecimal("1002.75"));
+        when(electricMeterPowerRecordRepository.findRecordList(org.mockito.ArgumentMatchers.any(ElectricMeterPowerRecordQo.class)))
+                .thenReturn(List.of(firstRecord, secondRecord));
+
+        List<ElectricMeterPowerTrendPointDto> result = electricMeterPowerRecordService.findTrendRecordList(
+                meterId, beginTime, endTime);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(firstRecord.getRecordTime(), result.get(0).getRecordTime());
+        assertEquals(secondRecord.getPower(), result.get(1).getPower());
+
+        ArgumentCaptor<ElectricMeterPowerRecordQo> qoCaptor = ArgumentCaptor.forClass(ElectricMeterPowerRecordQo.class);
+        verify(electricMeterPowerRecordRepository).findRecordList(qoCaptor.capture());
+        ElectricMeterPowerRecordQo capturedQo = qoCaptor.getValue();
+        assertEquals(meterId, capturedQo.getMeterId());
+        assertEquals(beginTime, capturedQo.getBeginTime());
+        assertEquals(endTime, capturedQo.getEndTime());
+        assertEquals(1000, capturedQo.getLimit());
+        assertEquals(Boolean.TRUE, capturedQo.getAsc());
     }
 }

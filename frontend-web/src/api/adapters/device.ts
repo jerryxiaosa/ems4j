@@ -3,6 +3,8 @@ import {
   addElectricMeterRaw,
   deleteGatewayRaw,
   deleteElectricMeterRaw,
+  getElectricMeterPowerConsumeTrendRaw,
+  getElectricMeterPowerTrendRaw,
   getElectricMeterDetailRaw,
   getElectricMeterPageRaw,
   getDeviceModelListRaw,
@@ -18,6 +20,10 @@ import {
   updateElectricMeterRaw,
   updateGatewayRaw
 } from '@/api/raw/device'
+import {
+  buildMockElectricMeterPowerConsumeTrend,
+  buildMockElectricMeterPowerTrend
+} from '@/components/devices/electric-meter-trend.mock'
 import type {
   ElectricMeterCtPayload,
   ElectricMeterCreatePayload,
@@ -37,7 +43,8 @@ import type {
   GatewayMeterRaw,
   DeviceTypeTreeRaw,
   GatewayRaw,
-  LatestPowerRecordRaw
+  LatestPowerRecordRaw,
+  ElectricMeterPowerConsumeTrendPointRaw
 } from '@/api/raw/device'
 import { normalizePageResult, unwrapEnvelope } from '@/api/raw/types'
 import type {
@@ -54,6 +61,8 @@ import type {
   GatewayPageQuery,
   GatewayPageResult,
   GatewayUpdatePayload,
+  ElectricMeterPowerConsumeTrendPoint,
+  ElectricMeterPowerTrendQuery,
   LatestPowerRecord
 } from '@/types/device'
 
@@ -122,15 +131,57 @@ const normalizePowerValue = (value: unknown): string | undefined => {
   return undefined
 }
 
+const formatDateTime = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  const text = value.trim()
+  if (!text) {
+    return undefined
+  }
+
+  if (!text.includes('T')) {
+    return text.length >= 19 ? text.slice(0, 19) : text
+  }
+
+  const date = new Date(text)
+  if (Number.isNaN(date.getTime())) {
+    const fallback = text.replace('T', ' ')
+    return fallback.length >= 19 ? fallback.slice(0, 19) : fallback
+  }
+
+  const pad = (num: number) => String(num).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 const normalizeLatestPowerRecord = (raw: LatestPowerRecordRaw): LatestPowerRecord => {
   return {
-    recordTime: (raw.recordTime || '').trim() || undefined,
+    recordTime: formatDateTime(raw.recordTime),
     power: normalizePowerValue(raw.power),
     powerHigher: normalizePowerValue(raw.powerHigher),
     powerHigh: normalizePowerValue(raw.powerHigh),
     powerLow: normalizePowerValue(raw.powerLow),
     powerLower: normalizePowerValue(raw.powerLower),
     powerDeepLow: normalizePowerValue(raw.powerDeepLow)
+  }
+}
+
+const normalizeElectricMeterPowerConsumeTrendPoint = (
+  raw: ElectricMeterPowerConsumeTrendPointRaw
+): ElectricMeterPowerConsumeTrendPoint => {
+  return {
+    beginRecordTime: formatDateTime(raw.beginRecordTime),
+    endRecordTime: formatDateTime(raw.endRecordTime),
+    meterConsumeTime: formatDateTime(raw.meterConsumeTime),
+    consumePower: normalizePowerValue(raw.consumePower),
+    consumePowerHigher: normalizePowerValue(raw.consumePowerHigher),
+    consumePowerHigh: normalizePowerValue(raw.consumePowerHigh),
+    consumePowerLow: normalizePowerValue(raw.consumePowerLow),
+    consumePowerLower: normalizePowerValue(raw.consumePowerLower),
+    consumePowerDeepLow: normalizePowerValue(raw.consumePowerDeepLow)
   }
 }
 
@@ -206,6 +257,44 @@ const flattenDeviceTypeTree = (items: DeviceTypeTreeRaw[]): DeviceTypeTreeItem[]
 export const fetchLatestPowerRecord = async (id: number): Promise<LatestPowerRecord> => {
   const payload = unwrapEnvelope<LatestPowerRecordRaw>(await getLatestPowerRecordRaw(id)) || {}
   return normalizeLatestPowerRecord(payload)
+}
+
+export const fetchElectricMeterPowerTrend = async (
+  id: number,
+  query: ElectricMeterPowerTrendQuery
+): Promise<LatestPowerRecord[]> => {
+  const trendSource = (import.meta.env.VITE_ELECTRIC_METER_TREND_SOURCE || 'api')
+    .trim()
+    .toLowerCase()
+
+  if (trendSource === 'mock') {
+    return buildMockElectricMeterPowerTrend(id, query)
+  }
+
+  const payload =
+    unwrapEnvelope<LatestPowerRecordRaw[]>(await getElectricMeterPowerTrendRaw(id, query)) || []
+
+  return payload.map(normalizeLatestPowerRecord)
+}
+
+export const fetchElectricMeterPowerConsumeTrend = async (
+  id: number,
+  query: ElectricMeterPowerTrendQuery
+): Promise<ElectricMeterPowerConsumeTrendPoint[]> => {
+  const trendSource = (import.meta.env.VITE_ELECTRIC_METER_TREND_SOURCE || 'api')
+    .trim()
+    .toLowerCase()
+
+  if (trendSource === 'mock') {
+    return buildMockElectricMeterPowerConsumeTrend(id, query)
+  }
+
+  const payload =
+    unwrapEnvelope<ElectricMeterPowerConsumeTrendPointRaw[]>(
+      await getElectricMeterPowerConsumeTrendRaw(id, query)
+    ) || []
+
+  return payload.map(normalizeElectricMeterPowerConsumeTrendPoint)
 }
 
 export const fetchDeviceTypeTree = async (): Promise<DeviceTypeTreeItem[]> => {

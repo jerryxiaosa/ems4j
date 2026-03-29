@@ -69,6 +69,18 @@ const buildMenuPayload = () => {
       icon: '',
       hidden: false,
       menuSource: 1
+    },
+    {
+      id: 213,
+      pid: 210,
+      menuName: '删除',
+      menuKey: 'device_management_electric_meter_delete',
+      path: '',
+      sortNum: 3,
+      menuType: 2,
+      icon: '',
+      hidden: false,
+      menuSource: 1
     }
   ]
 }
@@ -148,13 +160,20 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-test('electric meter page smoke flow supports query detail edit save', async ({ page }) => {
+test('electric meter page smoke flow supports query detail trend edit save', async ({ page }) => {
   let meterName = 'A1-101总表'
   const updatedMeterName = 'A1-101总表-已编辑'
   let lastSearchKey = ''
   let meterPageRequestCount = 0
   let updateRequestCount = 0
   let updatePayload = null
+  let trendRequestCount = 0
+
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/device/electric-meters/1/power-consume-trend')) {
+      trendRequestCount += 1
+    }
+  })
 
   await page.route(/\/api\/v1\/users\/current\/menus(?:\?.*)?$/, async (route) => {
     await route.fulfill(envelope(buildMenuPayload()))
@@ -189,6 +208,25 @@ test('electric meter page smoke flow supports query detail edit save', async ({ 
     }
 
     await route.continue()
+  })
+
+  await page.route('**/api/v1/device/electric-meters/1/power-consume-trend?**', async (route) => {
+    await route.fulfill(
+      envelope([
+        {
+          beginRecordTime: '2026-03-27 06:00:00',
+          endRecordTime: '2026-03-27 08:00:00',
+          meterConsumeTime: '2026-03-27 08:00:00',
+          consumePower: 2.6
+        },
+        {
+          beginRecordTime: '2026-03-28 06:00:00',
+          endRecordTime: '2026-03-28 08:00:00',
+          meterConsumeTime: '2026-03-28 08:00:00',
+          consumePower: 3.4
+        }
+      ])
+    )
   })
 
   await page.route('**/api/v1/device/device-models?**', async (route) => {
@@ -262,6 +300,13 @@ test('electric meter page smoke flow supports query detail edit save', async ({ 
 
   const firstRow = page.locator('tbody tr').first()
 
+  if (process.env.SAVE_TREND_ENTRY_SCREENSHOT === 'true') {
+    await firstRow.screenshot({
+      path: process.env.TREND_ENTRY_SCREENSHOT_PATH || '.tmp/electric-meter-trend-entry-smoke.png',
+      animations: 'disabled'
+    })
+  }
+
   await firstRow.getByRole('button', { name: '详情' }).click()
   const detailModal = page.locator('.meter-detail-modal')
   await expect(detailModal).toBeVisible()
@@ -269,6 +314,28 @@ test('electric meter page smoke flow supports query detail edit save', async ({ 
   await expect(detailModal).toContainText('168.40')
   await detailModal.getByRole('button', { name: '关闭' }).click()
   await expect(detailModal).toBeHidden()
+
+  await firstRow.getByRole('button', { name: '用电趋势' }).click()
+  const trendModal = page.locator('.meter-trend-modal')
+  await expect(trendModal).toBeVisible()
+  await expect(trendModal).toContainText('用电趋势')
+  await expect(trendModal).toContainText(meterName)
+  await expect(trendModal).toContainText('EM-A1101-01')
+  await expect.poll(() => trendRequestCount).toBe(1)
+  await expect(trendModal.locator('[data-test="trend-chart"]')).toBeVisible()
+  if (process.env.SAVE_TREND_SCREENSHOT === 'true') {
+    await trendModal.screenshot({
+      path: process.env.TREND_SCREENSHOT_PATH || '.tmp/electric-meter-trend-modal-smoke.png',
+      animations: 'disabled'
+    })
+  }
+  await trendModal.getByRole('button', { name: '关闭' }).click()
+  await expect(trendModal).toBeHidden()
+
+  await firstRow.getByRole('button', { name: '...' }).click()
+  const moreActionMenu = page.locator('.more-action-floating-menu')
+  await expect(moreActionMenu).toBeVisible()
+  await expect(moreActionMenu.getByRole('button', { name: '删除' })).toBeVisible()
 
   await firstRow.getByRole('button', { name: '编辑' }).click()
   const editModal = page.locator('.meter-edit-modal')

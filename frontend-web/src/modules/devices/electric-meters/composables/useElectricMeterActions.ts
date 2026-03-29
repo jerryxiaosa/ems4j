@@ -80,6 +80,9 @@ export const useElectricMeterActions = ({
   const detailMeter = ref<ElectricMeterItem | null>(null)
   const detailLoading = ref(false)
 
+  const trendModalVisible = ref(false)
+  const trendMeter = ref<ElectricMeterItem | null>(null)
+
   const moreActionMenu = ref<ElectricMeterMoreActionMenu | null>(null)
 
   const ctModalVisible = ref(false)
@@ -193,6 +196,12 @@ export const useElectricMeterActions = ({
     } finally {
       detailLoading.value = false
     }
+  }
+
+  const openTrendModal = (row: ElectricMeterItem) => {
+    closeMoreActionMenu()
+    trendMeter.value = { ...row }
+    trendModalVisible.value = true
   }
 
   const toggleMoreActionMenu = (row: ElectricMeterItem, event: MouseEvent) => {
@@ -552,6 +561,8 @@ export const useElectricMeterActions = ({
     detailModalVisible,
     detailMeter,
     detailLoading,
+    trendModalVisible,
+    trendMeter,
     moreActionMenu,
     ctModalVisible,
     ctMeter,
@@ -565,6 +576,7 @@ export const useElectricMeterActions = ({
     openCreateModal,
     openEditModal,
     openDetailModal,
+    openTrendModal,
     toggleMoreActionMenu,
     handleSubmitMeter,
     openDeleteConfirm,

@@ -1,10 +1,13 @@
 import { mount } from '@vue/test-utils'
 import type { ElectricMeterItem } from '@/components/devices/electric-meter.mock'
+import { electricMeterPermissionKeys } from '@/modules/devices/electric-meters/composables/electricMeterShared'
 import DeviceElectricMeterTableSection from '@/modules/devices/electric-meters/components/DeviceElectricMeterTableSection.vue'
+
+const allowedMenuKeys = new Set<string>(Object.values(electricMeterPermissionKeys))
 
 vi.mock('@/composables/usePermission', () => ({
   usePermission: () => ({
-    hasMenuPermission: () => true
+    hasMenuPermission: (menuKey: string) => allowedMenuKeys.has(menuKey)
   })
 }))
 
@@ -44,7 +47,20 @@ const createRow = (overrides: Partial<ElectricMeterItem> = {}): ElectricMeterIte
   ...overrides
 })
 
-const mountComponent = () => {
+const mountComponent = (overrides: {
+  row?: ElectricMeterItem
+  moreActionMenu?: { row: ElectricMeterItem; top: number; left: number } | null
+} = {}) => {
+  const row = overrides.row ?? createRow()
+  const moreActionMenu =
+    overrides.moreActionMenu === undefined
+      ? {
+          row,
+          top: 100,
+          left: 200
+        }
+      : overrides.moreActionMenu
+
   return mount(DeviceElectricMeterTableSection, {
     props: {
       loading: false,
@@ -57,14 +73,10 @@ const mountComponent = () => {
         pageNum: 1,
         pageSize: 10
       },
-      pagedRows: [createRow()],
+      pagedRows: [row],
       selectedIds: [1],
       isAllChecked: true,
-      moreActionMenu: {
-        row: createRow(),
-        top: 100,
-        left: 200
-      }
+      moreActionMenu
     },
     global: {
       directives: {
@@ -86,6 +98,13 @@ const mountComponent = () => {
 }
 
 describe('DeviceElectricMeterTableSection', () => {
+  beforeEach(() => {
+    allowedMenuKeys.clear()
+    Object.values(electricMeterPermissionKeys).forEach((menuKey) => {
+      allowedMenuKeys.add(menuKey)
+    })
+  })
+
   test('testToolbarAndRowButtons_WhenClicked_ShouldEmitExpectedEvents', async () => {
     const wrapper = mountComponent()
     const buttons = wrapper.findAll('button')
@@ -105,14 +124,18 @@ describe('DeviceElectricMeterTableSection', () => {
     await wrapper.find('tbody input[type="checkbox"]').trigger('change')
     expect(wrapper.emitted('selectRow')).toBeTruthy()
 
-    const linkButtons = wrapper.findAll('.btn-link')
-    await linkButtons[0]!.trigger('click')
-    await linkButtons[1]!.trigger('click')
-    await linkButtons[2]!.trigger('click')
+    const actionButtons = wrapper.findAll('.meter-row-actions > button')
+    expect(actionButtons[0]!.attributes('aria-label')).toBe('用电趋势')
+
+    await wrapper.get('button[aria-label="用电趋势"]').trigger('click')
+    await wrapper.get('.meter-row-actions > button:nth-child(2)').trigger('click')
+    await wrapper.get('.meter-row-actions > button:nth-child(3)').trigger('click')
 
     expect(wrapper.emitted('detail')).toHaveLength(1)
     expect(wrapper.emitted('edit')).toHaveLength(1)
-    expect(wrapper.emitted('delete')).toHaveLength(1)
+    expect(wrapper.emitted('trend')).toHaveLength(1)
+    expect(wrapper.text()).not.toContain('用电趋势')
+    expect(wrapper.find('.btn-link-trend svg').exists()).toBe(true)
   })
 
   test('testFloatingMenuAndPagination_WhenTriggered_ShouldEmitExpectedEvents', async () => {
@@ -122,11 +145,29 @@ describe('DeviceElectricMeterTableSection', () => {
     await moreButtons[0]!.trigger('click')
     await moreButtons[1]!.trigger('click')
     await moreButtons[2]!.trigger('click')
+    await moreButtons[3]!.trigger('click')
     await wrapper.get('[data-test="pager"]').trigger('click')
 
     expect(wrapper.emitted('singleCommand')?.[0]?.[1]).toBe('cut')
     expect(wrapper.emitted('singleProtect')?.[0]?.[1]).toBe(true)
     expect(wrapper.emitted('setCt')).toHaveLength(1)
+    expect(wrapper.emitted('delete')).toHaveLength(1)
     expect(wrapper.emitted('pageChange')?.[0]).toEqual([{ pageNum: 2, pageSize: 20 }])
+  })
+
+  test('testMoreActionButton_WhenOnlyDeletePermission_ShouldStillRender', () => {
+    allowedMenuKeys.clear()
+    allowedMenuKeys.add(electricMeterPermissionKeys.delete)
+
+    const wrapper = mountComponent({
+      row: createRow({
+        onlineStatus: 0,
+        onlineStatusName: '离线',
+        protectedModel: false
+      }),
+      moreActionMenu: null
+    })
+
+    expect(wrapper.find('.btn-link-more').exists()).toBe(true)
   })
 })

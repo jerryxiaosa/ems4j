@@ -9,11 +9,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 /**
- * 电量消费查询VO
+ * 电表计费查询VO
  */
 @Data
 @Accessors(chain = true)
-public class PowerConsumeQueryVo {
+public class MeterBillingQueryVo {
 
     @Schema(description = "搜索关键词（匹配电表名称/设备编号）")
     private String searchKey;

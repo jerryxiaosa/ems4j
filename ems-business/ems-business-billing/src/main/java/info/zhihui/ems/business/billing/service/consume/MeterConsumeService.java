@@ -1,9 +1,9 @@
 package info.zhihui.ems.business.billing.service.consume;
 
 import info.zhihui.ems.business.billing.dto.ElectricMeterPowerRecordDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeDetailDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeQueryDto;
-import info.zhihui.ems.business.billing.dto.PowerConsumeRecordDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingDetailDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingQueryDto;
+import info.zhihui.ems.business.billing.dto.MeterBillingRecordDto;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import jakarta.validation.Valid;
@@ -22,11 +22,11 @@ public interface MeterConsumeService {
     /**
      * 查询电表消费记录
      */
-    PageResult<PowerConsumeRecordDto> findPowerConsumePage(@Valid @NotNull PowerConsumeQueryDto queryDto,
+    PageResult<MeterBillingRecordDto> findMeterBillingPage(@Valid @NotNull MeterBillingQueryDto queryDto,
                                                            @NotNull PageParam pageParam);
 
     /**
-     * 查询电量消费明细
+     * 查询电表计费明细
      */
-    PowerConsumeDetailDto getPowerConsumeDetail(@NotNull Integer id);
+    MeterBillingDetailDto getMeterBillingDetail(@NotNull Integer id);
 }
