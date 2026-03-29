@@ -101,6 +101,7 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
+                            <classifier>exec</classifier>
                             <mainClass>info.zhihui.ems.iot.IoT</mainClass>
                         </configuration>
                     </execution>
