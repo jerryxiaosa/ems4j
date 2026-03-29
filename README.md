@@ -71,11 +71,12 @@ docker compose -f deploy/compose/docker-compose.full.yml up -d --build
 
 ### 设备与计费能力
 
-| 页面 | 截图 |
-|------|------|
-| 电表详情 | ![电表详情](resource/images/electric-detail.png) |
+| 页面     | 截图                                             |
+|--------|------------------------------------------------|
+| 电表详情   | ![电表详情](resource/images/electric-detail.png)   |
+| 用电趋势   | ![用电趋势](resource/images/meter-power-trend.png) |
 | 电价方案详情 | ![电价方案详情](resource/images/electirc-detail.png) |
-| 预警方案详情 | ![预警方案详情](resource/images/warn-detial.png) |
+| 预警方案详情 | ![预警方案详情](resource/images/warn-detial.png)     |
 
 ## 预付费模式说明
 
