@@ -27,3 +27,8 @@ CREATE TABLE `iot_device`
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = UTF8MB4
   COLLATE = utf8mb4_unicode_ci COMMENT ='IoT 设备表';
+
+### iot对应的表
+INSERT INTO iot_db.iot_device
+(id, device_no, port_no, meter_address, device_secret, slave_address, product_code, parent_id, last_online_at, create_time, update_time, is_deleted)
+VALUES(1, 'DEV001', NULL, NULL, NULL, 0, 'ACREL_DTSY_1352_4G', NULL, '2026-03-29 15:33:04', '2026-03-29 15:26:25', '2026-03-29 15:33:04', 0);
