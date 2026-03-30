@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.backend.env.profile | quote }}
+  SPRING_DATASOURCE_URL: {{ .Values.backend.env.datasourceUrl | quote }}
+  SPRING_DATASOURCE_USERNAME: {{ .Values.backend.env.datasourceUsername | quote }}
+  SPRING_DATA_REDIS_HOST: {{ .Values.backend.env.redisHost | quote }}
+  SPRING_DATA_REDIS_PORT: {{ .Values.backend.env.redisPort | quote }}
+  SPRING_RABBITMQ_ADDRESSES: {{ .Values.backend.env.rabbitmqAddresses | quote }}

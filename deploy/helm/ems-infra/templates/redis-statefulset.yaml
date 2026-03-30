@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: {{ include "ems-infra.redisFullImage" . }}
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - redis-server --requirepass "$REDIS_PASSWORD"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.redis.storage.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.storage.size | quote }}

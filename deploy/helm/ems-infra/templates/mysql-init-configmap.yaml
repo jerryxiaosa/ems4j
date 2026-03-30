@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-sql
+data:
+  001-ems.sql: |
+{{ required "mysql.initScripts.ems is required" .Values.mysql.initScripts.ems | nindent 4 }}
+  002-menu.sql: |
+{{ required "mysql.initScripts.menu is required" .Values.mysql.initScripts.menu | nindent 4 }}
+  003-example.sql: |
+{{ required "mysql.initScripts.example is required" .Values.mysql.initScripts.example | nindent 4 }}
+  101-iot.sql: |
+{{ required "mysql.initScripts.iot is required" .Values.mysql.initScripts.iot | nindent 4 }}

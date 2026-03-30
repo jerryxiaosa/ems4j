@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+spec:
+  serviceName: rabbitmq
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+        - name: rabbitmq
+          image: {{ include "ems-infra.rabbitmqFullImage" . }}
+          imagePullPolicy: {{ .Values.rabbitmq.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: rabbitmq-secret
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: management
+              containerPort: 15672
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+  volumeClaimTemplates:
+    - metadata:
+        name: rabbitmq-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.rabbitmq.storage.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.rabbitmq.storage.size | quote }}
