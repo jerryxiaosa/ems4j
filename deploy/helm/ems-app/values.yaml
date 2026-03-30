@@ -1,0 +1,39 @@
+global:
+  imagePullSecrets: []
+
+image:
+  registry: "172.22.0.8:8088/ems"
+
+backend:
+  image:
+    repository: "backend"
+    tag: "0.5.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    port: 8080
+    nodePortEnabled: false
+    nodePort: 30081
+  env:
+    profile: "docker"
+    datasourceUrl: "jdbc:mysql://mysql.ems-infra.svc.cluster.local:3306/ems_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true"
+    datasourceUsername: "root"
+    redisHost: "redis.ems-infra.svc.cluster.local"
+    redisPort: "6379"
+    rabbitmqAddresses: "rabbitmq.ems-infra.svc.cluster.local:5672"
+  secret:
+    datasourcePassword: "Ems@123456"
+    redisPassword: "123456"
+    rabbitmqUsername: "emsuser"
+    rabbitmqPassword: "ems@pass"
+    rabbitmqVhost: "ems"
+    jwtSecretKey: "change_me"
+
+frontend:
+  image:
+    repository: "frontend"
+    tag: "0.5.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    nodePort: 30080

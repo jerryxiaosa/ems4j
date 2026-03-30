@@ -1,0 +1,50 @@
+global:
+  imagePullSecrets: []
+
+image:
+  registry: "172.22.0.8:8088/ems"
+
+mysql:
+  image:
+    repository: "mysql"
+    tag: "8.0.29"
+    pullPolicy: IfNotPresent
+  database: "ems_db"
+  rootPassword: "Ems@123456"
+  storage:
+    size: "20Gi"
+    storageClassName: "local-path"
+  service:
+    port: 3306
+  initScripts:
+    ems: ""
+    menu: ""
+    example: ""
+    iot: ""
+
+redis:
+  image:
+    repository: "redis"
+    tag: "6.2"
+    pullPolicy: IfNotPresent
+  password: "123456"
+  storage:
+    size: "5Gi"
+    storageClassName: "local-path"
+  service:
+    port: 6379
+
+rabbitmq:
+  image:
+    repository: "rabbitmq-delayed"
+    tag: "4.1.0"
+    pullPolicy: IfNotPresent
+  username: "emsuser"
+  password: "ems@pass"
+  vhost: "ems"
+  storage:
+    size: "10Gi"
+    storageClassName: "local-path"
+  service:
+    amqpPort: 5672
+    managementPort: 15672
