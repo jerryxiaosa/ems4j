@@ -9,6 +9,7 @@ COPY ems-components ./ems-components
 COPY ems-business ./ems-business
 COPY ems-foundation ./ems-foundation
 COPY ems-iot ./ems-iot
+COPY ems-iot-simulator ./ems-iot-simulator
 COPY ems-mq ./ems-mq
 COPY ems-schedule ./ems-schedule
 COPY ems-web ./ems-web
