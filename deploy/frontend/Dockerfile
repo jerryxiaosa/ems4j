@@ -5,6 +5,7 @@ WORKDIR /build/frontend-web
 RUN corepack enable
 
 COPY frontend-web/package.json frontend-web/pnpm-lock.yaml ./
+ENV COREPACK_INTEGRITY_KEYS=0
 RUN pnpm install --frozen-lockfile
 
 COPY frontend-web ./
