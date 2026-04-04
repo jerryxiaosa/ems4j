@@ -176,7 +176,10 @@ Helm 文档中已经包含：
 
 ```bash
 ### 导入数据库
-mysql -u <user> -p <db> < sql/ems.sql
+mysql -u <user> -p <db> < deploy/mysql/init/001-ems.sql
+mysql -u <user> -p <db> < deploy/mysql/init/002-menu.sql
+mysql -u <user> -p <db> < deploy/mysql/init/003-example.sql
+mysql -u <user> -p <db> < deploy/mysql/init/101-iot.sql
 
 ### 安装RabbitMQ x-delayed-message 插件
 ### @see https://github.com/rabbitmq/rabbitmq-delayed-message-exchange

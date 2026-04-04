@@ -28,3 +28,10 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+          env:
+{{ include "ems-app.timezoneEnv" . | nindent 12 }}
+{{ include "ems-app.javaTimezoneEnv" . | nindent 12 }}
+          volumeMounts:
+{{ include "ems-app.timezoneVolumeMounts" . | nindent 12 }}
+      volumes:
+{{ include "ems-app.timezoneVolumes" . | nindent 8 }}

@@ -26,7 +26,7 @@ export HARBOR=<harbor-host>:<harbor-port>
 
 ## 构建并推送镜像
 ```bash
-export TAG=0.5.1
+export TAG=0.5.2
 docker build -f deploy/backend/Dockerfile -t $HARBOR/ems/backend:$TAG .
 docker build -f deploy/frontend/Dockerfile -t $HARBOR/ems/frontend:$TAG .
 docker build -f deploy/iot/Dockerfile -t $HARBOR/ems/iot:$TAG .
@@ -118,11 +118,13 @@ kubectl logs -n ems-app deploy/iot-simulator --tail=200
 
 ## 说明
 
-- 当前默认镜像版本建议使用 `0.5.1`
+- 当前默认镜像版本建议使用 `0.5.2`
 - 前端镜像中已经带了 `/api` 反向代理，请保持后端 `Service` 名称为 `backend`
 - `iot` 默认使用 `docker,netty` profile，对外提供 HTTP 和 Netty 端口
 - `iot-simulator` 默认使用 `docker` profile，通过集群内 `iot:19500` 连接 `iot`
 - `iot-simulator` 默认会将运行状态写入 `/data/iot-simulator-state.json`
+- 当前 chart 默认统一设置 `TZ=Asia/Shanghai`，并挂载节点的 `/usr/share/zoneinfo/Asia/Shanghai` 到容器 `/etc/localtime`
+- `backend`、`iot`、`iot-simulator` 还会额外下发 `JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Shanghai`
 - 当前 chart 默认使用以下服务名：
   - MySQL：`mysql.ems-infra.svc.cluster.local`
   - Redis：`redis.ems-infra.svc.cluster.local`

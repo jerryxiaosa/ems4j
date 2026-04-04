@@ -23,3 +23,9 @@ spec:
           ports:
             - name: http
               containerPort: 80
+          env:
+{{ include "ems-app.timezoneEnv" . | nindent 12 }}
+          volumeMounts:
+{{ include "ems-app.timezoneVolumeMounts" . | nindent 12 }}
+      volumes:
+{{ include "ems-app.timezoneVolumes" . | nindent 8 }}
