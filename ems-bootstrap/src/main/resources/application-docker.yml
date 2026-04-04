@@ -97,7 +97,7 @@ schedule:
 
 device:
   module:
-    use-real-device: false
+    use-real-device: true
   command:
     retry:
       max-execute-times: 10

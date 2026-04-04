@@ -16,6 +16,7 @@ export interface EnergyTopUpDetailPayload {
   ownerId: number
   ownerName: string
   electricAccountType: number
+  serviceRate: number
   meterId?: number
   meterType?: number
   meterName?: string

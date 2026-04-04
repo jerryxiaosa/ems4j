@@ -34,6 +34,11 @@ const close = () => {
   emit('update:modelValue', false)
 }
 
+const getFractionLength = (source: string) => {
+  const parts = source.split('.')
+  return parts[1]?.length ?? 0
+}
+
 const validate = () => {
   const source = form.serviceRate.trim()
   if (!source) {
@@ -42,8 +47,13 @@ const validate = () => {
   }
 
   const value = Number(source)
-  if (!Number.isFinite(value) || value < 0) {
-    errors.serviceRate = '服务费比例需为大于等于 0 的数字'
+  if (!Number.isFinite(value) || value < 0 || value >= 100) {
+    errors.serviceRate = '服务费比例需为大于等于 0 且小于 100 的数字'
+    return false
+  }
+
+  if (getFractionLength(source) > 6) {
+    errors.serviceRate = '服务费比例最多保留 6 位小数'
     return false
   }
 

@@ -34,8 +34,8 @@ public class ServiceRateServiceImpl implements ServiceRateService {
             throw new BusinessRuntimeException("服务费配置为空");
         }
 
-        if (serviceRate.compareTo(BigDecimal.ZERO) < 0 || serviceRate.compareTo(BigDecimal.ONE) > 0) {
-            throw new BusinessRuntimeException("数据异常，服务费比例需在0%-100%之间");
+        if (serviceRate.compareTo(BigDecimal.ZERO) < 0 || serviceRate.compareTo(BigDecimal.ONE) >= 0) {
+            throw new BusinessRuntimeException("数据异常，服务费比例需在0到1之间，且不能等于1");
         }
 
         return serviceRate;
@@ -49,8 +49,8 @@ public class ServiceRateServiceImpl implements ServiceRateService {
      */
     @Override
     public void updateDefaultServiceRate(BigDecimal defaultServiceRate) {
-        if (defaultServiceRate.compareTo(BigDecimal.ZERO) < 0 || defaultServiceRate.compareTo(BigDecimal.ONE) > 0) {
-            throw new BusinessRuntimeException("服务费比例需在0%-100%之间");
+        if (defaultServiceRate.compareTo(BigDecimal.ZERO) < 0 || defaultServiceRate.compareTo(BigDecimal.ONE) >= 0) {
+            throw new BusinessRuntimeException("服务费比例需在0到1之间，且不能等于1");
         }
 
         ConfigUpdateDto config = new ConfigUpdateDto();

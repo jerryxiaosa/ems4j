@@ -1,0 +1,15 @@
+{{- if .Values.iotSimulator.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iot-simulator-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.iotSimulator.persistence.size }}
+  {{- if .Values.iotSimulator.persistence.storageClassName }}
+  storageClassName: {{ .Values.iotSimulator.persistence.storageClassName | quote }}
+  {{- end }}
+{{- end }}

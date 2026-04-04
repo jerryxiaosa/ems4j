@@ -36,14 +36,31 @@ public class ReplayScheduleService {
      */
     public List<LocalDateTime> buildReplayPoints(LocalDateTime startTime, LocalDateTime endTime,
                                                  LocalDateTime replayCursorTime) {
-        validateHistoryRange(startTime, endTime);
+        LocalDateTime resolvedStartTime = resolveStartTime(startTime);
+        LocalDateTime resolvedEndTime = resolveEndTime(endTime);
+        validateHistoryRange(resolvedStartTime, resolvedEndTime);
         List<LocalDateTime> replayPoints = new ArrayList<>();
-        LocalDateTime currentPointTime = resolveStartPoint(startTime, replayCursorTime);
-        while (!currentPointTime.isAfter(endTime)) {
+        LocalDateTime currentPointTime = resolveStartPoint(resolvedStartTime, replayCursorTime);
+        while (!currentPointTime.isAfter(resolvedEndTime)) {
             replayPoints.add(currentPointTime);
             currentPointTime = currentPointTime.plusHours(1);
         }
         return replayPoints;
+    }
+
+    private LocalDateTime resolveStartTime(LocalDateTime startTime) {
+        if (startTime != null) {
+            return startTime;
+        }
+        LocalDateTime currentTime = LocalDateTime.now(clock);
+        return currentTime.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+    }
+
+    private LocalDateTime resolveEndTime(LocalDateTime endTime) {
+        if (endTime != null) {
+            return endTime;
+        }
+        return LocalDateTime.now(clock).minusSeconds(1);
     }
 
     /**

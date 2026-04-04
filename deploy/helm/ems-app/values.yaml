@@ -7,7 +7,7 @@ image:
 backend:
   image:
     repository: "backend"
-    tag: "0.5.0"
+    tag: "0.5.1"
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -32,8 +32,53 @@ backend:
 frontend:
   image:
     repository: "frontend"
-    tag: "0.5.0"
+    tag: "0.5.1"
     pullPolicy: IfNotPresent
   replicas: 1
   service:
     nodePort: 30080
+
+iot:
+  image:
+    repository: "iot"
+    tag: "0.5.1"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    httpPort: 8880
+    nettyPort: 19500
+    nettyNodePortEnabled: true
+    nettyNodePort: 31950
+  env:
+    profile: "docker,netty"
+    datasourceUrl: "jdbc:mysql://mysql.ems-infra.svc.cluster.local:3306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true"
+    datasourceUsername: "root"
+    reportPushEnabled: "true"
+    reportPushBaseUrl: "http://backend.ems-app.svc.cluster.local:8080"
+    reportPushPath: "/v1/device/energy-reports/standard"
+    reportPushSource: "IOT"
+    port: "8880"
+    nettyPort: "19500"
+    nettyBossThreads: "1"
+    nettyWorkerThreads: "4"
+  secret:
+    datasourcePassword: "Ems@123456"
+
+iotSimulator:
+  image:
+    repository: "iot-simulator"
+    tag: "0.5.1"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  env:
+    profile: "docker"
+    targetHost: "iot"
+    targetPort: "19500"
+    targetConnectTimeoutMs: "5000"
+    targetReconnectIntervalMs: "3000"
+    runtimeHeartbeatIntervalSeconds: "60"
+    runtimePersistenceFile: "/data/iot-simulator-state.json"
+  persistence:
+    enabled: true
+    size: "1Gi"
+    storageClassName: "local-path"

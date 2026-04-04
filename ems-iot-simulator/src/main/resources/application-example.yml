@@ -13,8 +13,6 @@ simulator:
     persistence-file: ./.data/iot-simulator-state.json
   replay:
     enabled: true
-    start-time: 2026-03-01T17:00:08
-    end-time: 2026-03-29T02:33:18
     send-interval-ms: 200
   devices:
     - device-no: DEV001

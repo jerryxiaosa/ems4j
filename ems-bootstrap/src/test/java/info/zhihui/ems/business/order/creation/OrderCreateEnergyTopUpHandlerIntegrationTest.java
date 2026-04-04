@@ -13,13 +13,11 @@ import info.zhihui.ems.business.order.enums.OrderTypeEnum;
 import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.order.repository.OrderRepository;
-import info.zhihui.ems.business.order.service.fee.ServiceRateService;
 import info.zhihui.ems.business.order.service.handler.impl.OrderEnergyTopUpHandler;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import org.junit.jupiter.api.AfterEach;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,16 +54,11 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
     @Autowired
     private OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository;
 
-    @Autowired
-    private ServiceRateService serviceRateService;
-
     private EnergyTopUpDto energyTopUpDto;
     private EnergyOrderCreationInfoDto energyOrderCreationInfoDto;
-    private BigDecimal originServiceRate;
 
     @BeforeEach
     void setUp() {
-        originServiceRate = serviceRateService.getDefaultServiceRate();
         // 初始化测试DTO
         energyTopUpDto = new EnergyTopUpDto()
                 .setAccountId(1)
@@ -74,6 +67,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setOwnerId(1001)
                 .setOwnerName("测试企业")
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setServiceRate(new BigDecimal("0.05"))
                 .setMeterId(200)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表")
@@ -90,11 +84,6 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setThirdPartyUserId("abc")
                 .setOrderAmount(new BigDecimal("100.00"))
                 .setPaymentChannel(PaymentChannelEnum.OFFLINE);
-    }
-
-    @AfterEach
-    void tearDown() {
-        serviceRateService.updateDefaultServiceRate(originServiceRate);
     }
 
 
@@ -155,6 +144,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setOwnerType(OwnerTypeEnum.PERSONAL)
                 .setOwnerId(100)
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setServiceRate(new BigDecimal("0.05"))
                 .setMeterId(200);
 
         EnergyOrderCreationInfoDto invalidOrderInfo1 = new EnergyOrderCreationInfoDto();
@@ -184,6 +174,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
         ServiceFeeDto serviceFee = orderCreateEnergyTopUpHandler.getServiceFee(new ServiceFeeRequestDto()
                 .setOrderOriginalAmount(energyOrderCreationInfoDto.getOrderAmount())
                 .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setServiceRate(new BigDecimal("0.05"))
         );
 
 
@@ -197,10 +188,10 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
     @Test
     @DisplayName("服务费计算测试 - 服务费率为0时服务费应为0")
     void testGetServiceFee_WhenServiceRateIsZero_ShouldReturnZeroServiceAmount() {
-        serviceRateService.updateDefaultServiceRate(BigDecimal.ZERO);
         ServiceFeeDto serviceFee = orderCreateEnergyTopUpHandler.getServiceFee(new ServiceFeeRequestDto()
                 .setOrderOriginalAmount(new BigDecimal("100.00"))
                 .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setServiceRate(BigDecimal.ZERO)
         );
 
         assertNotNull(serviceFee, "服务费结果不应为null");
@@ -212,10 +203,10 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
     @Test
     @DisplayName("服务费计算测试 - 服务费大于0时最小应为0.01")
     void testGetServiceFee_WhenCalculatedAmountLessThanMin_ShouldUseMinServiceAmount() {
-        serviceRateService.updateDefaultServiceRate(new BigDecimal("0.05"));
         ServiceFeeDto serviceFee = orderCreateEnergyTopUpHandler.getServiceFee(new ServiceFeeRequestDto()
                 .setOrderOriginalAmount(new BigDecimal("0.10"))
                 .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setServiceRate(new BigDecimal("0.05"))
         );
 
         assertNotNull(serviceFee, "服务费结果不应为null");
@@ -227,7 +218,6 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
     @Test
     @DisplayName("创建订单测试 - 订单金额过小导致到账金额小于等于0应抛异常")
     void testHandle_WhenOrderAmountTooSmallAfterFee_ShouldThrowException() {
-        serviceRateService.updateDefaultServiceRate(new BigDecimal("0.05"));
         energyOrderCreationInfoDto.setOrderAmount(new BigDecimal("0.01"));
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () ->
@@ -250,6 +240,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setOwnerId(101)
                 .setOwnerName("测试个人")
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setServiceRate(new BigDecimal("0.05"))
                 .setMeterId(201)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表2")
@@ -295,6 +286,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setOwnerId(1001)
                 .setOwnerName("测试企业")
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setServiceRate(new BigDecimal("0.05"))
                 .setMeterId(200)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表")
@@ -321,6 +313,7 @@ class OrderCreateEnergyTopUpHandlerIntegrationTest {
                 .setOwnerId(2001)
                 .setOwnerName("测试企业2")
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+                .setServiceRate(new BigDecimal("0.05"))
                 .setMeterId(201)
                 .setMeterType(MeterTypeEnum.ELECTRIC)
                 .setMeterName("测试电表2")

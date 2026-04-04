@@ -144,7 +144,6 @@ class OrderServiceImplIntegrationTest {
         // Mock微信支付SDK调用
         when(wxMiniProgramPaySdk.getPrepayId(any(), any()))
                 .thenReturn("wx_prepay_id_123456");
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.05"));
 
         // 创建测试订单信息
         EnergyOrderCreationInfoDto orderCreationInfo = new EnergyOrderCreationInfoDto();
@@ -163,6 +162,7 @@ class OrderServiceImplIntegrationTest {
         energyTopUpDto.setOwnerId(2001);
         energyTopUpDto.setOwnerName("测试企业");
         energyTopUpDto.setElectricAccountType(ElectricAccountTypeEnum.QUANTITY);
+        energyTopUpDto.setServiceRate(new BigDecimal("0.12"));
         energyTopUpDto.setMeterId(3001);
         energyTopUpDto.setMeterType(MeterTypeEnum.ELECTRIC);
         energyTopUpDto.setMeterName("测试电表001");
@@ -191,8 +191,8 @@ class OrderServiceImplIntegrationTest {
         assertThat(savedOrder.getThirdPartyUserId()).isEqualTo("wx_openid_test");
         assertThat(savedOrder.getOrderType()).isEqualTo(OrderTypeEnum.ENERGY_TOP_UP);
         assertThat(savedOrder.getOrderAmount()).isEqualByComparingTo("88.88");
-        assertThat(savedOrder.getServiceRate()).isEqualByComparingTo("0.05");
-        assertThat(savedOrder.getServiceAmount()).isEqualByComparingTo("4.44");
+        assertThat(savedOrder.getServiceRate()).isEqualByComparingTo("0.12");
+        assertThat(savedOrder.getServiceAmount()).isEqualByComparingTo("10.66");
         assertThat(savedOrder.getUserPayAmount()).isEqualByComparingTo("88.88");
         assertThat(savedOrder.getCurrency()).isEqualTo("CNY");
         assertThat(savedOrder.getPaymentChannel()).isEqualTo(PaymentChannelEnum.WX_MINI);
@@ -217,7 +217,7 @@ class OrderServiceImplIntegrationTest {
         assertThat(topUpDetail.getMeterName()).isEqualTo("测试电表001");
         assertThat(topUpDetail.getDeviceNo()).isEqualTo("EM001");
         assertThat(topUpDetail.getSpaceId()).isEqualTo(4001);
-        assertThat(topUpDetail.getTopUpAmount()).isEqualByComparingTo("84.44");
+        assertThat(topUpDetail.getTopUpAmount()).isEqualByComparingTo("78.22");
         assertThat(topUpDetail.getCreateTime()).isNotNull();
         assertThat(topUpDetail.getCreateTime()).isEqualTo(savedOrder.getOrderCreateTime());
     }

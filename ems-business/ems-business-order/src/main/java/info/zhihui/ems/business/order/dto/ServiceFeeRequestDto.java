@@ -24,4 +24,9 @@ public class ServiceFeeRequestDto {
      */
     @NotNull(message = "订单金额不能为空")
     private BigDecimal orderOriginalAmount;
+
+    /**
+     * 本次订单服务费比例
+     */
+    private BigDecimal serviceRate;
 }

@@ -98,6 +98,57 @@ services:
     volumes:
       - ../../logs:/app/logs
 
+  iot:
+    build:
+      context: ../..
+      dockerfile: deploy/iot/Dockerfile
+    container_name: ems-iot
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,netty
+      IOT_SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/iot_db?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true
+      IOT_SPRING_DATASOURCE_USERNAME: root
+      IOT_SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Ems@123456}
+      IOT_REPORT_PUSH_ENABLED: true
+      IOT_REPORT_PUSH_BASE_URL: http://backend:8080
+      IOT_REPORT_PUSH_PATH: /v1/device/energy-reports/standard
+      IOT_REPORT_PUSH_SOURCE: IOT
+      IOT_PORT: 8880
+      IOT_NETTY_PORT: 19500
+      TZ: Asia/Shanghai
+    ports:
+      - "${IOT_PORT:-8880}:8880"
+      - "${IOT_NETTY_PORT:-19500}:19500"
+    volumes:
+      - ../../logs:/app/logs
+
+  iot-simulator:
+    build:
+      context: ../..
+      dockerfile: deploy/iot-simulator/Dockerfile
+    container_name: ems-iot-simulator
+    restart: unless-stopped
+    depends_on:
+      iot:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SIMULATOR_TARGET_HOST: iot
+      SIMULATOR_TARGET_PORT: 19500
+      SIMULATOR_RUNTIME_PERSISTENCE_FILE: /app/.data/iot-simulator-state.json
+      TZ: Asia/Shanghai
+    volumes:
+      - iot_simulator_data:/app/.data
+
   frontend:
     build:
       context: ../..
@@ -114,3 +165,4 @@ volumes:
   mysql_data:
   redis_data:
   rabbitmq_data:
+  iot_simulator_data:

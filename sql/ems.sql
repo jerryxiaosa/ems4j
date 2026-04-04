@@ -804,7 +804,7 @@ INSERT INTO sys_config (config_module_name, config_key, config_name, config_valu
 VALUES ('finance', 'service_rate', '默认服务费', '0.1', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('finance', 'wx_pay_config', '微信支付配置', '{}', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('device', 'device_config', '设备配置',
-       '[{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://127.0.0.1:8880"}}]}]',
+       '[{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://iot:8880"}}]}]',
         TRUE, FALSE, '2025-01-02 03:04:05'),
        ('plan', 'electric_price_time', '尖峰平谷深谷时间段配置',
         '[{"start":[0,0,0],"type":4},{"start":[6,0,0],"type":3},{"start":[11,0,0],"type":4},{"start":[13,0,0],"type":3},{"start":[14,0,0],"type":2},{"start":[22,0,0],"type":3}]',

@@ -82,7 +82,7 @@ class OrderControllerTest {
 
         String body = "{" +
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
-                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0,\"serviceRate\":0.12}}";
 
         mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,7 +97,7 @@ class OrderControllerTest {
     void testCreateEnergyTopUpOrder_WhenOrderAmountLessThanOrEqualZero() throws Exception {
         String body = "{" +
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":0,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
-                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0,\"serviceRate\":0.12}}";
 
         mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -114,7 +114,7 @@ class OrderControllerTest {
     void testCreateEnergyTopUpOrder_WhenOrderAmountHasMoreThanTwoFractionDigits() throws Exception {
         String body = "{" +
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100.009,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
-                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0,\"serviceRate\":0.12}}";
 
         mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +131,7 @@ class OrderControllerTest {
     void testCreateEnergyTopUpOrder_WhenRequiredCodeIsNull() throws Exception {
         String body = "{" +
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
-                "\"accountId\":10,\"balanceType\":null,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0}}";
+                "\"accountId\":10,\"balanceType\":null,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":0,\"serviceRate\":0.12}}";
 
         mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,7 +148,7 @@ class OrderControllerTest {
     void testCreateEnergyTopUpOrder_WhenElectricAccountTypeNull() throws Exception {
         String body = "{" +
                 "\"userId\":1,\"userPhone\":\"13800000000\",\"userRealName\":\"张三\",\"thirdPartyUserId\":\"tp-1\",\"orderAmount\":100,\"paymentChannel\":\"WX_MINI\",\"energyTopUp\":{" +
-                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":null}}";
+                "\"accountId\":10,\"balanceType\":1,\"ownerType\":0,\"ownerId\":20,\"ownerName\":\"某企业\",\"electricAccountType\":null,\"serviceRate\":0.12}}";
 
         mockMvc.perform(post("/v1/orders/energy-top-up")
                         .contentType(MediaType.APPLICATION_JSON)
