@@ -31,12 +31,16 @@ spec:
                 secretKeyRef:
                   name: redis-secret
                   key: REDIS_PASSWORD
+{{ include "ems-infra.timezoneEnv" . | nindent 12 }}
           ports:
             - name: redis
               containerPort: 6379
           volumeMounts:
             - name: redis-data
               mountPath: /data
+{{ include "ems-infra.timezoneVolumeMounts" . | nindent 12 }}
+      volumes:
+{{ include "ems-infra.timezoneVolumes" . | nindent 8 }}
   volumeClaimTemplates:
     - metadata:
         name: redis-data

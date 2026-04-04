@@ -21,6 +21,8 @@ spec:
           image: {{ include "ems-app.iotSimulatorFullImage" . }}
           imagePullPolicy: {{ .Values.iotSimulator.image.pullPolicy }}
           env:
+{{ include "ems-app.timezoneEnv" . | nindent 12 }}
+{{ include "ems-app.javaTimezoneEnv" . | nindent 12 }}
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.iotSimulator.env.profile | quote }}
             - name: SIMULATOR_TARGET_HOST
@@ -39,9 +41,14 @@ spec:
           volumeMounts:
             - name: simulator-data
               mountPath: /data
+{{ include "ems-app.timezoneVolumeMounts" . | nindent 12 }}
+          {{- else }}
+          volumeMounts:
+{{ include "ems-app.timezoneVolumeMounts" . | nindent 12 }}
           {{- end }}
-      {{- if .Values.iotSimulator.persistence.enabled }}
       volumes:
+{{ include "ems-app.timezoneVolumes" . | nindent 8 }}
+      {{- if .Values.iotSimulator.persistence.enabled }}
         - name: simulator-data
           persistentVolumeClaim:
             claimName: iot-simulator-data

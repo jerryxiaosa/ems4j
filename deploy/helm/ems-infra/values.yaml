@@ -1,5 +1,6 @@
 global:
   imagePullSecrets: []
+  timezone: "Asia/Shanghai"
 
 image:
   registry: "172.22.0.8:8088/ems"

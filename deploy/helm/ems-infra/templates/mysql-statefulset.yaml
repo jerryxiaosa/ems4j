@@ -32,6 +32,7 @@ spec:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_ROOT_PASSWORD
+{{ include "ems-infra.timezoneEnv" . | nindent 12 }}
           args:
             - --character-set-server=utf8mb4
             - --collation-server=utf8mb4_unicode_ci
@@ -40,10 +41,12 @@ spec:
               mountPath: /var/lib/mysql
             - name: mysql-init
               mountPath: /docker-entrypoint-initdb.d
+{{ include "ems-infra.timezoneVolumeMounts" . | nindent 12 }}
       volumes:
         - name: mysql-init
           configMap:
             name: mysql-init-sql
+{{ include "ems-infra.timezoneVolumes" . | nindent 8 }}
   volumeClaimTemplates:
     - metadata:
         name: mysql-data

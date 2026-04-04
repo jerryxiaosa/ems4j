@@ -24,6 +24,8 @@ spec:
           envFrom:
             - secretRef:
                 name: rabbitmq-secret
+          env:
+{{ include "ems-infra.timezoneEnv" . | nindent 12 }}
           ports:
             - name: amqp
               containerPort: 5672
@@ -32,6 +34,9 @@ spec:
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq
+{{ include "ems-infra.timezoneVolumeMounts" . | nindent 12 }}
+      volumes:
+{{ include "ems-infra.timezoneVolumes" . | nindent 8 }}
   volumeClaimTemplates:
     - metadata:
         name: rabbitmq-data

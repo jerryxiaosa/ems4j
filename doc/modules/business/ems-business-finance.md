@@ -241,4 +241,4 @@
 | 活跃唯一键 | `active_balance_key` 在 `is_deleted=0` 时生效，值为 `balance_relation_id + '_' + balance_type` |
 | 唯一约束 | `uk_energy_account_balance_active_key` 约束同一余额维度仅存在一条“活跃记录” |
 | 查询/扣费防误操作 | `balanceQuery`、`balanceTopUp` 均增加 `is_deleted=0` 条件，避免操作历史软删除记录 |
-| 测试与生产一致性 | `sql/ems.sql` 与 `ems-bootstrap/src/test/resources/h2-schema.sql` 均已同步软删除字段与唯一键策略 |
+| 测试与生产一致性 | `deploy/mysql/init/001-ems.sql` 与 `ems-bootstrap/src/test/resources/h2-schema.sql` 均已同步软删除字段与唯一键策略 |

@@ -176,7 +176,10 @@ The Helm guide already includes:
 
 ```bash
 # import database
-mysql -u <user> -p <db> < sql/ems.sql
+mysql -u <user> -p <db> < deploy/mysql/init/001-ems.sql
+mysql -u <user> -p <db> < deploy/mysql/init/002-menu.sql
+mysql -u <user> -p <db> < deploy/mysql/init/003-example.sql
+mysql -u <user> -p <db> < deploy/mysql/init/101-iot.sql
 
 # install RabbitMQ x-delayed-message plugin
 # @see https://github.com/rabbitmq/rabbitmq-delayed-message-exchange
