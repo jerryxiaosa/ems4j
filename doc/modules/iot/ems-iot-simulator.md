@@ -22,7 +22,7 @@
 
 ## 配置文件
 
-模拟器按 Spring Boot 默认规则读取配置。当前模块内置配置入口是 [application.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application.yml)，并默认激活 `example` profile，因此示例参数实际放在 [application-example.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-example.yml)。
+模拟器按 Spring Boot 默认规则读取配置。当前模块内置配置入口是 [application.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application.yml)，默认激活 `example` profile，因此示例参数放在 [application-example.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-example.yml)。容器场景新增了 [application-docker.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-docker.yml)，通常通过 `SPRING_PROFILES_ACTIVE=docker` 启用。
 
 最小可运行配置示例：
 
@@ -38,8 +38,6 @@ simulator:
     persistence-file: ./.data/iot-simulator-state.json
   replay:
     enabled: true
-    start-time: 2026-02-01T17:00:08
-    end-time: 2026-02-18T02:33:18
     send-interval-ms: 200
   devices:
     - device-no: SIM001
@@ -59,7 +57,7 @@ simulator:
 - `simulator.runtime.heartbeat-interval-seconds`：心跳间隔，单位秒。
 - `simulator.runtime.persistence-file`：本地状态文件路径，默认 `./.data/iot-simulator-state.json`。
 - `simulator.replay.enabled`：是否先执行历史补投。
-- `simulator.replay.start-time` / `simulator.replay.end-time`：历史补投区间，只允许过去时间。
+- `simulator.replay.start-time` / `simulator.replay.end-time`：历史补投区间，只允许过去时间；两者都为空时，会默认补投“本月 1 号 00:00:00 到当前时间前 1 秒”。
 - `simulator.replay.send-interval-ms`：补投时相邻两条数据的发送间隔。
 - `simulator.devices[].device-no`：前端建档后得到的电表编号。
 - `simulator.devices[].meter-address`：协议中的表地址。
@@ -67,9 +65,11 @@ simulator:
 
 注意：
 
-- 当前默认会激活 `example` profile。
-- 如果直接使用仓库内默认配置启动，模拟器会按示例参数连接 `127.0.0.1:19500` 并尝试补投示例数据。
-- 正式联调时建议通过外部配置覆盖默认示例值。
+- 本地 `spring-boot:run` 默认走 `example` profile。
+- `docker compose` 和 Helm 部署默认走 `docker` profile，会连接 `iot:19500`。
+- 如果直接使用仓库内默认示例配置启动，模拟器会按示例参数连接 `127.0.0.1:19500`。
+- 正式联调时建议通过外部配置覆盖 `devices`、目标地址和历史补投参数。
+- 状态文件存在时会优先按 `replayCursorTime` 断点续传；只有删除状态文件或关闭持久化后，才会再次从月初完整补投。
 
 ## 启动方式
 
@@ -77,6 +77,12 @@ simulator:
 
 ```bash
 mvn -pl ems-iot-simulator -am spring-boot:run
+```
+
+容器场景可直接通过环境变量切到 `docker` profile：
+
+```bash
+SPRING_PROFILES_ACTIVE=docker
 ```
 
 打包后启动：
@@ -182,7 +188,7 @@ runReportLoop
       -> runScheduledReport
 ```
 
-1. 历史补投时间点由 [ReplayScheduleService.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleService.java) 生成，规则是 `startTime + N 小时`，并且要求结束时间早于当前时间。
+1. 历史补投时间点由 [ReplayScheduleService.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/ReplayScheduleService.java) 生成，规则是 `startTime + N 小时`。当 `startTime/endTime` 未显式配置时，会回退到“本月 1 号 00:00:00 到当前时间前 1 秒”。
 2. 实时模式的首个时间点由 `resolveFirstLivePoint()` 和 `nextLivePoint()` 计算，锚点是 `SimulatorDeviceRuntime` 创建时记录的 `startupAnchorTime`。
 3. 每个计划点最终都会进入 `runScheduledReport()`：
    - 先调用 [EnergySimulationService.java](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/java/info/zhihui/ems/iot/simulator/service/EnergySimulationService.java) 生成 `EnergySnapshot`
@@ -256,7 +262,7 @@ Acrel4gSocketSession.readLoop
 
 1. 启动 `ems-iot`，确认 Netty 端口已监听。
 2. 在前端建好电表档案，记录 `deviceNo`。
-3. 修改 [application-example.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-example.yml) 中的 `target`、`devices` 和 `replay` 配置，或通过外部配置覆盖默认值。
+3. 本地调试时修改 [application-example.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-example.yml)；容器场景优先修改 [application-docker.yml](/Users/jerry/Workspace/github/ems4j/ems-iot-simulator/src/main/resources/application-docker.yml) 或通过环境变量覆盖。
 4. 启动 `ems-iot-simulator`。
 5. 在 `ems-iot` 侧确认设备注册、心跳和上报日志。
 6. 从 `ems-iot` 侧下发 `拉闸 / 合闸 / 读总电量`，确认模拟器能正常回包。
@@ -281,6 +287,6 @@ mvn -pl ems-iot-simulator -am -DfailIfNoTests=false test -q
 
 ## 持久化说明
 
-- 状态文件默认位置是 `./.data/iot-simulator-state.json`。
+- `example` profile 下状态文件默认位置是 `./.data/iot-simulator-state.json`，`docker` profile 下默认位置是 `/app/.data/iot-simulator-state.json`。
 - 文件中会按 `deviceNo` 保存累计电量、开关状态和补投进度。
 - 进程重启后会从该文件恢复状态，保证总电量继续增长，不会从零开始。

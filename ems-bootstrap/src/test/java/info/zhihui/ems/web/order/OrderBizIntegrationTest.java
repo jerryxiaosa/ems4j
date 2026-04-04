@@ -42,6 +42,7 @@ class OrderBizIntegrationTest {
                 .setOwnerId(1001)
                 .setOwnerName("账户1")
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY.getCode())
+                .setServiceRate(new BigDecimal("0.12"))
                 .setMeterId(30)
                 .setMeterType(MeterTypeEnum.ELECTRIC.getCode())
                 .setMeterName("测试电表")
@@ -74,5 +75,6 @@ class OrderBizIntegrationTest {
         assertThat(detailEntity.getMeterName()).isEqualTo("测试电表");
         assertThat(detailEntity.getDeviceNo()).isEqualTo("EM-0001");
         assertThat(detailEntity.getSpaceId()).isEqualTo(40);
+        assertThat(detailEntity.getTopUpAmount()).isEqualByComparingTo("88.00");
     }
 }

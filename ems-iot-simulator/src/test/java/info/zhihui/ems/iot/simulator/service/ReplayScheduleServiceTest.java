@@ -41,6 +41,16 @@ class ReplayScheduleServiceTest {
                 LocalDateTime.of(2026, 2, 1, 17, 0, 8)));
     }
 
+    @Test
+    void buildReplayPoints_whenRangeIsMissing_shouldDefaultToCurrentMonth() {
+        List<LocalDateTime> replayPoints = replayScheduleService.buildReplayPoints(null, null);
+
+        Assertions.assertFalse(replayPoints.isEmpty());
+        Assertions.assertEquals(LocalDateTime.of(2026, 3, 1, 0, 0, 0), replayPoints.get(0));
+        Assertions.assertEquals(LocalDateTime.of(2026, 3, 24, 10, 0, 0), replayPoints.get(replayPoints.size() - 1));
+        Assertions.assertEquals(563, replayPoints.size());
+    }
+
     private Clock fixedClock() {
         return Clock.fixed(Instant.parse("2026-03-24T10:23:15Z"), ZoneId.of("UTC"));
     }

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iot-config
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.iot.env.profile | quote }}
+  IOT_SPRING_DATASOURCE_URL: {{ .Values.iot.env.datasourceUrl | quote }}
+  IOT_SPRING_DATASOURCE_USERNAME: {{ .Values.iot.env.datasourceUsername | quote }}
+  IOT_REPORT_PUSH_ENABLED: {{ .Values.iot.env.reportPushEnabled | quote }}
+  IOT_REPORT_PUSH_BASE_URL: {{ .Values.iot.env.reportPushBaseUrl | quote }}
+  IOT_REPORT_PUSH_PATH: {{ .Values.iot.env.reportPushPath | quote }}
+  IOT_REPORT_PUSH_SOURCE: {{ .Values.iot.env.reportPushSource | quote }}
+  IOT_PORT: {{ .Values.iot.env.port | quote }}
+  IOT_NETTY_PORT: {{ .Values.iot.env.nettyPort | quote }}
+  IOT_NETTY_BOSS_THREADS: {{ .Values.iot.env.nettyBossThreads | quote }}
+  IOT_NETTY_WORKER_THREADS: {{ .Values.iot.env.nettyWorkerThreads | quote }}

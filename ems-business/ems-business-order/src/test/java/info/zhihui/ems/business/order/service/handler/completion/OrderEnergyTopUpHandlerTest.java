@@ -7,7 +7,6 @@ import info.zhihui.ems.business.order.enums.OrderTypeEnum;
 import info.zhihui.ems.business.order.mapstruct.OrderMapper;
 import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.order.repository.OrderRepository;
-import info.zhihui.ems.business.order.service.fee.ServiceRateService;
 import info.zhihui.ems.business.order.service.handler.impl.OrderEnergyTopUpHandler;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.mq.api.model.MqMessage;
@@ -45,9 +44,6 @@ class OrderEnergyTopUpHandlerTest {
     private OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository;
 
     @Mock
-    private ServiceRateService serviceRateService;
-
-    @Mock
     private SpaceService spaceService;
 
     private OrderEnergyTopUpHandler orderEnergyTopUpHandler;
@@ -58,7 +54,6 @@ class OrderEnergyTopUpHandlerTest {
                 orderMapper,
                 orderRepository,
                 orderDetailEnergyTopUpRepository,
-                serviceRateService,
                 spaceService
         );
     }

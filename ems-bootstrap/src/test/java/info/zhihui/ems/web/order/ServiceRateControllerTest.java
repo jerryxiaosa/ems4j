@@ -61,4 +61,16 @@ class ServiceRateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
+
+    @Test
+    @DisplayName("更新默认服务费率_等于1时应校验失败")
+    void testUpdateDefaultServiceRate_WhenRateEqualsOne_ShouldReturnBadRequest() throws Exception {
+        ServiceRateVo vo = new ServiceRateVo().setDefaultServiceRate(BigDecimal.ONE);
+
+        mockMvc.perform(put("/v1/orders/service-rate/default")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
+    }
 }

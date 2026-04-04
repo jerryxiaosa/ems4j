@@ -3,4 +3,4 @@ name: ems-infra
 description: EMS4J infrastructure stack for single-node K3s
 type: application
 version: 0.1.0
-appVersion: "0.5.0"
+appVersion: "0.5.1"

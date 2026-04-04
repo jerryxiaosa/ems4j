@@ -20,6 +20,16 @@ EMS4J is a Spring Boot multi-module energy management system that supports both 
 
 ## Quick Experience
 
+### Live Demo
+
+Frontend app: `http://119.45.165.253:30080`
+
+Demo credentials:
+- Username: `admin`
+- Password: `Abc123!@#`
+
+### Run Locally
+
 ```bash
 cp deploy/env.example .env
 docker compose -f deploy/compose/docker-compose.full.yml up -d --build
@@ -29,12 +39,8 @@ Default access URLs:
 - Frontend app: `http://127.0.0.1:4173`
 - Backend API docs: `http://127.0.0.1:8080/doc.html`
 
-Default credentials:
-- Username: `admin`
-- Password: `Abc123!@#`
-
 Notes:
-- `docker-compose.full.yml` starts the frontend, backend, MySQL, Redis, and RabbitMQ together
+- `docker-compose.full.yml` starts frontend, backend, iot, iot-simulator, MySQL, Redis, and RabbitMQ together
 - The first startup may take longer because images need to be built and dependencies initialized
 - If you prefer running frontend and backend separately, see the `Development & Deployment` section below
 
@@ -119,7 +125,7 @@ Then start backend and frontend separately:
 ```bash
 # backend
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-*.jar --spring.profiles.active=dev
 
 # frontend
 cd frontend-web
@@ -137,10 +143,36 @@ docker compose -f deploy/compose/docker-compose.full.yml up -d --build
 
 Notes:
 - `deploy/compose/docker-compose.infra.yml`: MySQL / Redis / RabbitMQ only
-- `deploy/compose/docker-compose.full.yml`: backend / frontend / middleware
+- `deploy/compose/docker-compose.full.yml`: backend / frontend / iot / iot-simulator / middleware
 - RabbitMQ image already includes the `x-delayed-message` plugin
+- `iot` uses the `docker,netty` profile by default and listens on `8880` and `19500`
+- `iot-simulator` uses the `docker` profile by default and connects to `iot:19500`
+- `iot-simulator` persists runtime state to `/app/.data/iot-simulator-state.json`
+- If replay start and end times are not configured explicitly, `iot-simulator` replays data from the first day of the current month up to one second before now. If the state file already exists, replay resumes from the saved cursor instead of restarting from month start every time
 
-### Option C: Manual environment setup
+### Option C: Helm / K3s deployment
+
+The project already includes Helm charts for a single-node K3s setup. This is the recommended path when deploying `backend / frontend / iot / iot-simulator / mysql / redis / rabbitmq` together on Kubernetes.
+
+Entry document:
+- [deploy/helm/README.md](/Users/jerry/Workspace/github/ems4j/deploy/helm/README.md)
+
+The current Helm layout includes:
+- `ems-infra`: MySQL, Redis, RabbitMQ
+- `ems-app`: Backend, Frontend, IOT, IOT Simulator
+
+Recommended prerequisites:
+- Harbor or another reachable image registry
+- A K3s cluster with namespaces `ems-infra` and `ems-app`
+- The image pull secret `harbor-pull-secret` in both namespaces
+
+The Helm guide already includes:
+- Image build and push commands
+- Installation commands for `ems-infra` and `ems-app`
+- Post-deployment verification commands
+- Log inspection steps for `iot` and `iot-simulator`
+
+### Option D: Manual environment setup
 
 ```bash
 # import database
@@ -166,7 +198,7 @@ Build and run:
 
 ```bash
 mvn clean package -DskipTests
-java -jar ems-bootstrap/target/ems-0.2.0.jar --spring.profiles.active=dev
+java -jar ems-bootstrap/target/ems-*.jar --spring.profiles.active=dev
 ```
 
 ## Build & Test
@@ -302,7 +334,7 @@ Notes:
 | `ems-iot-simulator` | IoT device simulator, currently supporting Acrel 4G direct meter TCP access, historical replay, live reporting, and basic command responses |
 | `ems-schedule` | Scheduled jobs |
 | `frontend-web` | Vue 3 + TypeScript admin frontend with Vitest unit tests and Playwright smoke tests |
-| `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Docker Compose files, Dockerfiles, init SQL and environment examples for local infrastructure and full deployment orchestration |
+| `deploy` ![TRY IT](https://img.shields.io/badge/TRY%20IT-brightgreen) | Deployment assets including Docker Compose files, Helm charts, Dockerfiles, init SQL, environment examples, and K3s deployment guidance |
 
 Notes:
 - ems-mq-api provides message contracts and base messaging services (infrastructure layer).

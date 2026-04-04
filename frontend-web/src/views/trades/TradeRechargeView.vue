@@ -127,6 +127,15 @@ const parseDecimal = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
+const parseOptionalDecimal = (value: string) => {
+  const source = value.trim()
+  if (!source) {
+    return null
+  }
+  const parsed = Number(source)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 const formatMoney = (value: number) => value.toFixed(2)
 const wait = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -137,9 +146,29 @@ const toPercentDisplay = (ratio: number) => {
   return String(Number((ratio * 100).toFixed(6)))
 }
 
+const getFractionLength = (value: string) => {
+  const parts = value.trim().split('.')
+  return parts[1]?.length ?? 0
+}
+
 const toRatioPayload = (percentText: string) => {
-  const percent = parseDecimal(percentText)
-  return Number((percent / 100).toFixed(8))
+  const source = percentText.trim()
+  if (!source) {
+    return 0
+  }
+
+  const [integerPart, fractionPart = ''] = source.split('.')
+  const digits = `${integerPart}${fractionPart}`.replace(/^0+/, '') || '0'
+  const decimalPlaces = fractionPart.length + 2
+  const paddedDigits = digits.padStart(decimalPlaces + 1, '0')
+  const pointIndex = paddedDigits.length - decimalPlaces
+  const rawRatioText = `${paddedDigits.slice(0, pointIndex)}.${paddedDigits.slice(pointIndex)}`
+  const [ratioIntegerPart, ratioFractionPart = ''] = rawRatioText.split('.')
+  const ratioText = `${ratioIntegerPart}.${ratioFractionPart.slice(0, 8)}`
+    .replace(/\.?0+$/, '')
+    .replace(/^$/, '0')
+
+  return Number(ratioText)
 }
 
 const isNeedMeter = computed(() => {
@@ -541,6 +570,7 @@ const buildEnergyTopUpPayload = async (orderAmount: number) => {
     ownerId: number
     ownerName: string
     electricAccountType: number
+    serviceRate: number
     meterId?: number
     meterType?: number
     meterName?: string
@@ -552,7 +582,8 @@ const buildEnergyTopUpPayload = async (orderAmount: number) => {
     ownerType,
     ownerId,
     ownerName,
-    electricAccountType
+    electricAccountType,
+    serviceRate: toRatioPayload(form.serviceRate)
   }
 
   if (needMeter) {
@@ -631,6 +662,19 @@ const validateSubmit = (): number | null => {
   const orderAmount = parseDecimal(form.payAmount)
   if (orderAmount <= 0) {
     setNotice('error', '请输入付款金额')
+    return null
+  }
+  const serviceRate = parseOptionalDecimal(form.serviceRate)
+  if (serviceRate === null) {
+    setNotice('error', '请输入服务费比例')
+    return null
+  }
+  if (serviceRate < 0 || serviceRate >= 100) {
+    setNotice('error', '服务费比例需为大于等于 0 且小于 100 的数字')
+    return null
+  }
+  if (getFractionLength(form.serviceRate) > 6) {
+    setNotice('error', '服务费比例最多保留 6 位小数')
     return null
   }
   return orderAmount

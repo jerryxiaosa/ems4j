@@ -4,10 +4,15 @@ import info.zhihui.ems.common.enums.BalanceTypeEnum;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.MeterTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
+
+import java.math.BigDecimal;
 
 /**
  * @author jerryxiaosa
@@ -54,6 +59,15 @@ public class EnergyTopUpDto {
      */
     @NotNull(message = "电费计费类型不能为空")
     private ElectricAccountTypeEnum electricAccountType;
+
+    /**
+     * 服务费比例
+     */
+    @NotNull(message = "服务费比例不能为空")
+    @DecimalMin(value = "0", message = "服务费比例需在0到1之间")
+    @DecimalMax(value = "1", inclusive = false, message = "服务费比例需在0到1之间，且不能等于1")
+    @Digits(integer = 1, fraction = 4, message = "服务费比例最多保留4位小数")
+    private BigDecimal serviceRate;
 
     /**
      * 表ID

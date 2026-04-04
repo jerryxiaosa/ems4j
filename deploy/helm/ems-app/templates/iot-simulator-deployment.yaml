@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot-simulator
+spec:
+  replicas: {{ .Values.iotSimulator.replicas }}
+  selector:
+    matchLabels:
+      app: iot-simulator
+  template:
+    metadata:
+      labels:
+        app: iot-simulator
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+        - name: iot-simulator
+          image: {{ include "ems-app.iotSimulatorFullImage" . }}
+          imagePullPolicy: {{ .Values.iotSimulator.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.iotSimulator.env.profile | quote }}
+            - name: SIMULATOR_TARGET_HOST
+              value: {{ .Values.iotSimulator.env.targetHost | quote }}
+            - name: SIMULATOR_TARGET_PORT
+              value: {{ .Values.iotSimulator.env.targetPort | quote }}
+            - name: SIMULATOR_TARGET_CONNECT_TIMEOUT_MS
+              value: {{ .Values.iotSimulator.env.targetConnectTimeoutMs | quote }}
+            - name: SIMULATOR_TARGET_RECONNECT_INTERVAL_MS
+              value: {{ .Values.iotSimulator.env.targetReconnectIntervalMs | quote }}
+            - name: SIMULATOR_RUNTIME_HEARTBEAT_INTERVAL_SECONDS
+              value: {{ .Values.iotSimulator.env.runtimeHeartbeatIntervalSeconds | quote }}
+            - name: SIMULATOR_RUNTIME_PERSISTENCE_FILE
+              value: {{ .Values.iotSimulator.env.runtimePersistenceFile | quote }}
+          {{- if .Values.iotSimulator.persistence.enabled }}
+          volumeMounts:
+            - name: simulator-data
+              mountPath: /data
+          {{- end }}
+      {{- if .Values.iotSimulator.persistence.enabled }}
+      volumes:
+        - name: simulator-data
+          persistentVolumeClaim:
+            claimName: iot-simulator-data
+      {{- end }}

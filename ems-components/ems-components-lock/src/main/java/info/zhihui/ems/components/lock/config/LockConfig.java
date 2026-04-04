@@ -39,7 +39,7 @@ public class LockConfig {
         if (localLockProperties != null && localLockProperties.getMaxSize() > 0) {
             maxSize = localLockProperties.getMaxSize();
         } else {
-            log.warn("localLockProperties.maxSize 未配置或非法，使用默认值: {}", DEFAULT_LOCAL_LOCK_MAX_SIZE);
+            log.warn("localLockProperties.maxSize 使用默认值: {}", DEFAULT_LOCAL_LOCK_MAX_SIZE);
             maxSize = DEFAULT_LOCAL_LOCK_MAX_SIZE;
         }
 

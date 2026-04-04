@@ -6,6 +6,7 @@ import info.zhihui.ems.foundation.integration.concrete.energy.service.EnergyServ
 import info.zhihui.ems.foundation.integration.core.service.DeviceModuleContext;
 
 import info.zhihui.ems.business.device.dto.DeviceStatusSyncRequestDto;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.Objects;
  *
  * @param <T> 设备类型
  */
+@Slf4j
 public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSynchronizer<T> {
 
     private final DeviceModuleContext deviceModuleContext;
@@ -73,10 +75,14 @@ public abstract class BaseOnlineStatusSyncService<T> implements DeviceStatusSync
         }
         EnergyService energyService = deviceModuleContext.getService(EnergyService.class, ownAreaId);
         try {
-            return energyService.isOnline(new BaseElectricDeviceDto()
+            Boolean isOnline = energyService.isOnline(new BaseElectricDeviceDto()
                     .setDeviceId(iotId)
                     .setAreaId(ownAreaId));
+            log.debug("查询设备iotId:{}在线状态成功，在线状态：{}", iotId, isOnline);
+
+            return isOnline;
         } catch (Exception e) {
+            log.warn("查询设备{}在线状态失败：{}", iotId, e.getMessage(), e);
             // 获取在线状态失败，返回 false
             return false;
         }

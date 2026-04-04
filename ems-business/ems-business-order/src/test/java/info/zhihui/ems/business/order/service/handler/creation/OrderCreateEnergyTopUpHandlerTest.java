@@ -11,7 +11,6 @@ import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.order.mapstruct.OrderMapper;
 import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.order.repository.OrderRepository;
-import info.zhihui.ems.business.order.service.fee.ServiceRateService;
 import info.zhihui.ems.business.order.service.handler.impl.OrderEnergyTopUpHandler;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
@@ -57,9 +56,6 @@ class OrderCreateEnergyTopUpHandlerTest {
     @Mock
     private OrderMapper orderMapper;
 
-    @Mock
-    private ServiceRateService serviceRateService;
-
     @InjectMocks
     private OrderEnergyTopUpHandler handler;
 
@@ -79,6 +75,7 @@ class OrderCreateEnergyTopUpHandlerTest {
         businessDetail.setMeterId(100);
         businessDetail.setMeterName("测试电表");
         businessDetail.setDeviceNo("METER001");
+        businessDetail.setServiceRate(new BigDecimal("0.12"));
 
         energyTopUpDto = new EnergyOrderCreationInfoDto();
         energyTopUpDto.setUserId(1);
@@ -121,8 +118,6 @@ class OrderCreateEnergyTopUpHandlerTest {
                     .setOrderStatus(OrderStatusEnum.NOT_PAY)
                     .setOrderAmount(entity.getOrderAmount());
         });
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.05"));
-
         // When
         OrderBo result = handler.createOrder(energyTopUpDto);
 
@@ -158,8 +153,8 @@ class OrderCreateEnergyTopUpHandlerTest {
         assertEquals(new BigDecimal("100.00"), capturedOrder.getOrderAmount(), "订单金额应该正确");
 
         // 服务费相关校验
-        assertEquals(new BigDecimal("0.05"), capturedOrder.getServiceRate().setScale(2, RoundingMode.DOWN), "服务费率应该正确");
-        assertEquals(new BigDecimal("5.00"), capturedOrder.getServiceAmount().setScale(2, RoundingMode.DOWN), "服务费金额应该正确");
+        assertEquals(new BigDecimal("0.12"), capturedOrder.getServiceRate().setScale(2, RoundingMode.DOWN), "服务费率应该使用本次订单传入值");
+        assertEquals(new BigDecimal("12.00"), capturedOrder.getServiceAmount().setScale(2, RoundingMode.DOWN), "服务费金额应该基于本次订单传入费率计算");
         assertEquals(new BigDecimal("100.00"), capturedOrder.getUserPayAmount().setScale(2, RoundingMode.DOWN), "用户实付金额应该正确");
 
         // 支付和状态信息校验
@@ -183,7 +178,7 @@ class OrderCreateEnergyTopUpHandlerTest {
         assertEquals(100, capturedDetail.getMeterId(), "电表ID应该正确");
         assertEquals("测试电表", capturedDetail.getMeterName(), "电表名称应该正确");
         assertEquals("METER001", capturedDetail.getDeviceNo(), "电表编号应该正确");
-        assertEquals(new BigDecimal("95.00"), capturedDetail.getTopUpAmount(), "实际到账金额应该正确");
+        assertEquals(new BigDecimal("88.00"), capturedDetail.getTopUpAmount(), "实际到账金额应该正确");
 
         // 空间相关信息校验
         assertEquals(1, capturedDetail.getSpaceId(), "空间ID应该正确");
@@ -205,7 +200,6 @@ class OrderCreateEnergyTopUpHandlerTest {
             return 1;
         });
         when(orderDetailEnergyTopUpRepository.insert(any(OrderDetailEnergyTopUpEntity.class))).thenReturn(1);
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.05"));
         when(orderMapper.toBo(any(OrderEntity.class))).thenAnswer(invocation -> {
             OrderEntity entity = invocation.getArgument(0);
             return new OrderBo()
@@ -252,6 +246,7 @@ class OrderCreateEnergyTopUpHandlerTest {
     @Test
     void testHandle_WhenServiceRateIsZero_ShouldUseZeroServiceAmount() {
         // Given
+        energyTopUpDto.getEnergyTopUpDto().setServiceRate(BigDecimal.ZERO);
         when(spaceService.getDetail(anyInt())).thenReturn(spaceBo);
         when(orderRepository.insert(any(OrderEntity.class))).thenReturn(1);
         when(orderDetailEnergyTopUpRepository.insert(any(OrderDetailEnergyTopUpEntity.class))).thenReturn(1);
@@ -264,8 +259,6 @@ class OrderCreateEnergyTopUpHandlerTest {
                     .setOrderStatus(OrderStatusEnum.NOT_PAY)
                     .setOrderAmount(entity.getOrderAmount());
         });
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(BigDecimal.ZERO);
-
         // When
         handler.createOrder(energyTopUpDto);
 
@@ -287,6 +280,7 @@ class OrderCreateEnergyTopUpHandlerTest {
     void testHandle_WhenServiceRateIsPositiveAndFeeBelowOneCent_ShouldUseMinimumFee() {
         // Given
         energyTopUpDto.setOrderAmount(new BigDecimal("0.03"));
+        energyTopUpDto.getEnergyTopUpDto().setServiceRate(new BigDecimal("0.01"));
         when(spaceService.getDetail(anyInt())).thenReturn(spaceBo);
         when(orderRepository.insert(any(OrderEntity.class))).thenReturn(1);
         when(orderDetailEnergyTopUpRepository.insert(any(OrderDetailEnergyTopUpEntity.class))).thenReturn(1);
@@ -299,8 +293,6 @@ class OrderCreateEnergyTopUpHandlerTest {
                     .setOrderStatus(OrderStatusEnum.NOT_PAY)
                     .setOrderAmount(entity.getOrderAmount());
         });
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.01"));
-
         // When
         handler.createOrder(energyTopUpDto);
 
@@ -322,7 +314,7 @@ class OrderCreateEnergyTopUpHandlerTest {
     void testHandle_WhenOrderAmountTooSmallAfterMinimumFee_ShouldThrowException() {
         // Given
         energyTopUpDto.setOrderAmount(new BigDecimal("0.01"));
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.05"));
+        energyTopUpDto.getEnergyTopUpDto().setServiceRate(new BigDecimal("0.05"));
 
         // When
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
@@ -338,8 +330,6 @@ class OrderCreateEnergyTopUpHandlerTest {
     void testHandle_WhenSaveOrderFails_ShouldThrowException() {
         // Given
         when(orderRepository.insert(any(OrderEntity.class))).thenThrow(new BusinessRuntimeException("订单保存失败")); // 模拟保存失败
-        when(serviceRateService.getDefaultServiceRate()).thenReturn(new BigDecimal("0.05"));
-
         // When & Then
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> {
             handler.createOrder(energyTopUpDto);
@@ -376,6 +366,20 @@ class OrderCreateEnergyTopUpHandlerTest {
 
         // Then
         assertEquals("订单总金额必须大于0", exception.getMessage());
+        verify(orderRepository, never()).insert(any(OrderEntity.class));
+        verify(orderDetailEnergyTopUpRepository, never()).insert(any(OrderDetailEnergyTopUpEntity.class));
+    }
+
+    @Test
+    void testHandle_WhenServiceRateMissing_ShouldThrowExceptionAndNotPersist() {
+        // Given
+        energyTopUpDto.getEnergyTopUpDto().setServiceRate(null);
+
+        // When
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> handler.createOrder(energyTopUpDto));
+
+        // Then
+        assertEquals("服务费比例不能为空", exception.getMessage());
         verify(orderRepository, never()).insert(any(OrderEntity.class));
         verify(orderDetailEnergyTopUpRepository, never()).insert(any(OrderDetailEnergyTopUpEntity.class));
     }

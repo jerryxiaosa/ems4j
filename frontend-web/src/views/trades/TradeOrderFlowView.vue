@@ -210,7 +210,7 @@ const normalizeOrderRow = (item: OrderPageItem, index: number): OrderFlowRow => 
     beforeBalance: normalizeNumberText(item.beginBalance),
     afterBalance: normalizeNumberText(item.endBalance),
     serviceFee: normalizeNumberText(item.serviceAmount),
-    serviceRate: normalizeNumberText(item.serviceRate),
+    serviceRate: normalizeText(item.serviceRate),
     orderTime: formatDateTime(item.orderCreateTime),
     paymentMethod: paymentMethodLabel,
     paymentMethodCode: paymentCode,

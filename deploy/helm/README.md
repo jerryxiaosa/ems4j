@@ -5,7 +5,7 @@
 ## Chart 划分
 
 - `ems-infra`：部署 MySQL、Redis、RabbitMQ
-- `ems-app`：部署 Backend、Frontend
+- `ems-app`：部署 Backend、Frontend、IOT、IOT Simulator
 
 ## 前置条件
 
@@ -25,6 +25,21 @@ export HARBOR=<harbor-host>:<harbor-port>
 ```
 
 ## 构建并推送镜像
+```bash
+export TAG=0.5.1
+docker build -f deploy/backend/Dockerfile -t $HARBOR/ems/backend:$TAG .
+docker build -f deploy/frontend/Dockerfile -t $HARBOR/ems/frontend:$TAG .
+docker build -f deploy/iot/Dockerfile -t $HARBOR/ems/iot:$TAG .
+docker build -f deploy/iot-simulator/Dockerfile -t $HARBOR/ems/iot-simulator:$TAG .
+docker build -f deploy/rabbitmq/Dockerfile -t $HARBOR/ems/rabbitmq-delayed:$TAG .
+
+docker login $HARBOR
+docker push $HARBOR/ems/backend:$TAG
+docker push $HARBOR/ems/frontend:$TAG
+docker push $HARBOR/ems/iot:$TAG
+docker push $HARBOR/ems/iot-simulator:$TAG
+docker push $HARBOR/ems/rabbitmq-delayed:$TAG
+```
 
 ## 创建命名空间和拉取密钥
 ```bash
@@ -66,15 +81,51 @@ helm upgrade --install ems-app ./deploy/helm/ems-app \
   --set image.registry=$HARBOR/ems
 ```
 
+## 部署后检查
+
+```bash
+kubectl get pods -n ems-infra
+kubectl get pods -n ems-app
+kubectl get svc -n ems-app
+kubectl get pvc -n ems-app
+```
+
+重点确认：
+
+- `ems-infra` 中 `mysql`、`redis`、`rabbitmq` 均为 `Running`
+- `ems-app` 中 `backend`、`frontend`、`iot`、`iot-simulator` 均为 `Running`
+- `frontend` 的 `NodePort` 为 `30080`
+- `iot-netty-nodeport` 的 `NodePort` 为 `31950`
+
+## 查看 IOT 与模拟器日志
+
+```bash
+kubectl logs -n ems-app deploy/iot --tail=200
+kubectl logs -n ems-app deploy/iot-simulator --tail=200
+```
+
+重点观察：
+
+- `iot` 已启动 `8880` 和 `19500`
+- `iot-simulator` 已连接到 `iot:19500`
+- `iot` 已向 `backend` 推送标准能耗上报
+
 ## 访问方式
 
 - 前端：`http://<服务器IP>:30080`
+- IOT 设备接入端口：`<服务器IP>:31950`
 - 如需直接暴露后端，可在 `ems-app/values.yaml` 中打开 backend 的 `NodePort`
 
 ## 说明
 
+- 当前默认镜像版本建议使用 `0.5.1`
 - 前端镜像中已经带了 `/api` 反向代理，请保持后端 `Service` 名称为 `backend`
+- `iot` 默认使用 `docker,netty` profile，对外提供 HTTP 和 Netty 端口
+- `iot-simulator` 默认使用 `docker` profile，通过集群内 `iot:19500` 连接 `iot`
+- `iot-simulator` 默认会将运行状态写入 `/data/iot-simulator-state.json`
 - 当前 chart 默认使用以下服务名：
   - MySQL：`mysql.ems-infra.svc.cluster.local`
   - Redis：`redis.ems-infra.svc.cluster.local`
   - RabbitMQ：`rabbitmq.ems-infra.svc.cluster.local`
+  - IOT：`iot.ems-app.svc.cluster.local`
+  - Backend：`backend.ems-app.svc.cluster.local`

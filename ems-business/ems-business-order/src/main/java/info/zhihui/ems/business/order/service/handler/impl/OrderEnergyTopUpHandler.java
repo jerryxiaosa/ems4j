@@ -13,7 +13,6 @@ import info.zhihui.ems.business.order.enums.OrderTypeEnum;
 import info.zhihui.ems.business.order.mapstruct.OrderMapper;
 import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
 import info.zhihui.ems.business.order.repository.OrderRepository;
-import info.zhihui.ems.business.order.service.fee.ServiceRateService;
 import info.zhihui.ems.business.order.service.handler.completion.OrderCompletionHandler;
 import info.zhihui.ems.business.order.service.handler.creation.BaseOrderCreationHandler;
 import info.zhihui.ems.common.enums.BalanceTypeEnum;
@@ -52,17 +51,14 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
     private final OrderRepository orderRepository;
     private final OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository;
     private final SpaceService spaceService;
-    private final ServiceRateService serviceRateService;
 
     public OrderEnergyTopUpHandler(OrderMapper orderMapper,
                                    OrderRepository orderRepository,
                                    OrderDetailEnergyTopUpRepository orderDetailEnergyTopUpRepository,
-                                   ServiceRateService serviceRateService,
                                    SpaceService spaceService) {
         super(orderMapper);
         this.orderRepository = orderRepository;
         this.orderDetailEnergyTopUpRepository = orderDetailEnergyTopUpRepository;
-        this.serviceRateService = serviceRateService;
         this.spaceService = spaceService;
     }
 
@@ -110,7 +106,8 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
         // 创建订单实体
         ServiceFeeDto serviceFeeInfo = getServiceFee(new ServiceFeeRequestDto()
                 .setOrderOriginalAmount(orderAmount)
-                .setOrderType(this.getOrderType()));
+                .setOrderType(this.getOrderType())
+                .setServiceRate(detail.getServiceRate()));
         BigDecimal topUpAmount = calculateTopUpAmount(orderAmount, serviceFeeInfo.getServiceAmount());
         OrderEntity orderEntity = buildOrderEntity(energyOrderCreationInfoDto, serviceFeeInfo);
         fillOwnerSnapshot(orderEntity, new OrderOwnerSnapshotDto()
@@ -140,7 +137,7 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
      */
     @Override
     public ServiceFeeDto getServiceFee(@Valid @NotNull ServiceFeeRequestDto requestDto) {
-        BigDecimal serviceRate = calculateServiceRate(requestDto.getOrderOriginalAmount());
+        BigDecimal serviceRate = validateServiceRate(requestDto.getServiceRate());
         BigDecimal serviceAmount = calculateServiceAmount(requestDto.getOrderOriginalAmount(), serviceRate);
 
         return new ServiceFeeDto()
@@ -152,17 +149,14 @@ public class OrderEnergyTopUpHandler extends BaseOrderCreationHandler implements
     /**
      * 计算服务费率
      *
-     * @param orderAmount 订单金额
      * @return 服务费率
      */
-    private BigDecimal calculateServiceRate(BigDecimal orderAmount) {
-        if (orderAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
+    private BigDecimal validateServiceRate(BigDecimal serviceRate) {
+        if (serviceRate == null) {
+            throw new BusinessRuntimeException("服务费比例不能为空");
         }
-
-        BigDecimal serviceRate = serviceRateService.getDefaultServiceRate();
         if (serviceRate.compareTo(BigDecimal.ZERO) < 0 || serviceRate.compareTo(BigDecimal.ONE) >= 0) {
-            throw new BusinessRuntimeException("服务费比例需在0%-100%之间，且不能等于100%");
+            throw new BusinessRuntimeException("服务费比例需在0到1之间，且不能等于1");
         }
         return serviceRate;
     }

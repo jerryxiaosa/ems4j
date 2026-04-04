@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot
+spec:
+  replicas: {{ .Values.iot.replicas }}
+  selector:
+    matchLabels:
+      app: iot
+  template:
+    metadata:
+      labels:
+        app: iot
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+        - name: iot
+          image: {{ include "ems-app.iotFullImage" . }}
+          imagePullPolicy: {{ .Values.iot.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.iot.service.httpPort }}
+            - name: netty
+              containerPort: {{ .Values.iot.service.nettyPort }}
+          envFrom:
+            - configMapRef:
+                name: iot-config
+            - secretRef:
+                name: iot-secret

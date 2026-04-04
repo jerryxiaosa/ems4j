@@ -31,7 +31,7 @@ public class ElectricMeterTask {
     private final ElectricMeterManagerService electricMeterManagerService;
 
     /**
-     * 每 10 分钟执行一次电表在线状态全量同步
+     * 每 3 分钟执行一次电表在线状态全量同步
      */
     @Scheduled(cron = "0 */3 * * * ?")
     public void syncOnlineStatus() {

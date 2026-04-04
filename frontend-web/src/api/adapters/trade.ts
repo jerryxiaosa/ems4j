@@ -256,6 +256,15 @@ const normalizeNumberText = (value: unknown): string => {
   return text || '--'
 }
 
+const normalizePercentText = (value: unknown): string => {
+  const parsed = toNumber(value)
+  if (parsed === null) {
+    return normalizeNumberText(value)
+  }
+
+  return (parsed * 100).toFixed(6).replace(/\.?0+$/, '')
+}
+
 const formatDateTime = (value: unknown): string => {
   const text = normalizeText(value)
   if (text === '--') {
@@ -291,7 +300,7 @@ const normalizeOrderItem = (raw: OrderItemRaw): OrderPageItem => {
     beginBalance: raw.beginBalance,
     endBalance: raw.endBalance,
     serviceAmount: raw.serviceAmount,
-    serviceRate: raw.serviceRate,
+    serviceRate: normalizePercentText(raw.serviceRate),
     orderCreateTime: normalizeText(raw.orderCreateTime),
     paymentChannel: raw.paymentChannel,
     paymentChannelName: normalizeText(raw.paymentChannelName),
@@ -317,7 +326,7 @@ const normalizeOrderDetail = (raw: OrderDetailRaw): OrderDetail => {
     orderTypeName: normalizeText(raw.orderTypeName),
     orderAmount: normalizeNumberText(raw.orderAmount),
     currency: normalizeText(raw.currency),
-    serviceRate: normalizeNumberText(raw.serviceRate),
+    serviceRate: normalizePercentText(raw.serviceRate),
     serviceAmount: normalizeNumberText(raw.serviceAmount),
     userPayAmount: normalizeNumberText(raw.userPayAmount),
     paymentChannel: normalizeText(raw.paymentChannel),

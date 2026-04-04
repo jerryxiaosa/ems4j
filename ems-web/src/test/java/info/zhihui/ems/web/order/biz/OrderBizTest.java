@@ -58,8 +58,8 @@ class OrderBizTest {
     @Test
     @DisplayName("创建充值订单_电表归属账户不匹配时应拒绝")
     void testCreateEnergyTopUpOrder_WhenMeterAccountMismatch_ShouldThrowException() {
-        EnergyOrderCreateVo createVo = buildCreateVo();
-        EnergyOrderCreationInfoDto creationInfoDto = buildCreationInfoDto();
+        EnergyOrderCreateVo createVo = buildCreateVo(new BigDecimal("0.12"));
+        EnergyOrderCreationInfoDto creationInfoDto = buildCreationInfoDto(new BigDecimal("0.12"));
         AccountBo accountBo = new AccountBo()
                 .setId(1)
                 .setOwnerId(1001)
@@ -83,8 +83,8 @@ class OrderBizTest {
     @Test
     @DisplayName("创建充值订单_电表充值时应以后端电表信息为准")
     void testCreateEnergyTopUpOrder_WhenElectricMeterTopUp_ShouldUseBackendMeterInfo() {
-        EnergyOrderCreateVo createVo = buildCreateVo();
-        EnergyOrderCreationInfoDto creationInfoDto = buildCreationInfoDto();
+        EnergyOrderCreateVo createVo = buildCreateVo(new BigDecimal("0.12"));
+        EnergyOrderCreationInfoDto creationInfoDto = buildCreationInfoDto(new BigDecimal("0.12"));
         AccountBo accountBo = new AccountBo()
                 .setId(1)
                 .setOwnerId(1001)
@@ -116,7 +116,7 @@ class OrderBizTest {
         verify(orderService).createOrder(creationInfoDto);
     }
 
-    private EnergyOrderCreateVo buildCreateVo() {
+    private EnergyOrderCreateVo buildCreateVo(BigDecimal serviceRate) {
         EnergyTopUpDetailVo detailVo = new EnergyTopUpDetailVo()
                 .setAccountId(1)
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER.getCode())
@@ -124,6 +124,7 @@ class OrderBizTest {
                 .setOwnerId(1001)
                 .setOwnerName("企业A")
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
+                .setServiceRate(serviceRate)
                 .setMeterId(101)
                 .setMeterName("前端电表")
                 .setDeviceNo("FRONT-DEVICE")
@@ -138,7 +139,7 @@ class OrderBizTest {
                 .setEnergyTopUp(detailVo);
     }
 
-    private EnergyOrderCreationInfoDto buildCreationInfoDto() {
+    private EnergyOrderCreationInfoDto buildCreationInfoDto(BigDecimal serviceRate) {
         EnergyTopUpDto topUpDto = new EnergyTopUpDto()
                 .setAccountId(1)
                 .setBalanceType(BalanceTypeEnum.ELECTRIC_METER)
@@ -146,6 +147,7 @@ class OrderBizTest {
                 .setOwnerId(1001)
                 .setOwnerName("企业A")
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
+                .setServiceRate(serviceRate)
                 .setMeterId(101)
                 .setMeterName("前端电表")
                 .setDeviceNo("FRONT-DEVICE")
