@@ -243,33 +243,40 @@ class DailyMeterReportBuilder {
                                   List<OpenMeterEntity> openRecordList,
                                   List<MeterCancelRecordEntity> cancelRecordList) {
         if (!powerConsumeRecordList.isEmpty()) {
+            // 当天存在正常用电时，期初/默认期末先以首尾用电记录为准。
             ElectricMeterPowerConsumeRecordEntity firstPowerConsumeRecordEntity = powerConsumeRecordList.get(0);
             ElectricMeterPowerConsumeRecordEntity lastPowerConsumeRecordEntity = powerConsumeRecordList.get(powerConsumeRecordList.size() - 1);
             copyBeginPowerFromConsumeRecord(reportEntity, firstPowerConsumeRecordEntity);
             copyEndPowerFromConsumeRecord(reportEntity, lastPowerConsumeRecordEntity);
-            return;
-        }
-
-        if (previousReportEntity != null) {
-            copyBeginPowerFromPreviousReport(reportEntity, previousReportEntity);
         } else {
-            OpenMeterEntity firstOpenRecordEntity = firstOrNull(defaultList(openRecordList));
-            if (firstOpenRecordEntity != null) {
-                copyBeginPowerFromOpenRecord(reportEntity, firstOpenRecordEntity);
+            if (previousReportEntity != null) {
+                // 无用电时优先承接前一日报期末，保证零日报能够连续滚动。
+                copyBeginPowerFromPreviousReport(reportEntity, previousReportEntity);
             } else {
-                MeterCancelRecordEntity firstCancelRecordEntity = firstOrNull(cancelRecordList);
-                if (firstCancelRecordEntity != null) {
-                    copyBeginPowerFromCancelRecord(reportEntity, firstCancelRecordEntity);
+                OpenMeterEntity firstOpenRecordEntity = firstOrNull(openRecordList);
+                if (firstOpenRecordEntity != null) {
+                    // 开户首日且没有前序日报时，期初读数直接取开户读数。
+                    copyBeginPowerFromOpenRecord(reportEntity, firstOpenRecordEntity);
+                } else {
+                    MeterCancelRecordEntity firstCancelRecordEntity = firstOrNull(cancelRecordList);
+                    if (firstCancelRecordEntity != null) {
+                        // 只出现销户事实时，期初只能回退到销户快照读数。
+                        copyBeginPowerFromCancelRecord(reportEntity, firstCancelRecordEntity);
+                    }
                 }
             }
         }
 
         MeterCancelRecordEntity lastCancelRecordEntity = lastOrNull(cancelRecordList);
         if (lastCancelRecordEntity != null) {
+            // 销户读数代表当天最终表底，即使白天已有用电记录，期末也必须被销户快照覆盖。
             copyEndPowerFromCancelRecord(reportEntity, lastCancelRecordEntity);
             return;
         }
-        copyEndPowerFromBegin(reportEntity);
+        if (powerConsumeRecordList.isEmpty()) {
+            // 既无用电又无销户时，期末与期初保持一致，形成零变动日报。
+            copyEndPowerFromBegin(reportEntity);
+        }
     }
 
     /**

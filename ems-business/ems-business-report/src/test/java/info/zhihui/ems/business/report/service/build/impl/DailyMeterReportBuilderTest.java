@@ -270,6 +270,38 @@ class DailyMeterReportBuilderTest {
     }
 
     @Test
+    @DisplayName("同账户同天先用电后销户应使用销户读数作为期末")
+    void testBuildDailyMeterReportList_ConsumeThenCancelSameDay_ShouldUseCancelPowerAsEndPower() {
+        MeterCancelRecordEntity cancelRecord = new MeterCancelRecordEntity()
+                .setId(3)
+                .setAccountId(31)
+                .setMeterId(301)
+                .setPower(new BigDecimal("106.00"))
+                .setShowTime(LocalDateTime.of(2026, 4, 6, 18, 0));
+        cancelRecord.setCreateTime(LocalDateTime.of(2026, 4, 6, 18, 1));
+
+        DailyMeterBuildContextDto buildContext = createBaseContext()
+                .setCandidateList(List.of(new DailyMeterCandidateQo().setAccountId(31).setMeterId(301)))
+                .setPowerConsumeRecordList(List.of(
+                        createPowerConsumeRecord(31, 301, LocalDateTime.of(2026, 4, 6, 9, 0),
+                                "100.00", "103.00", "3.00"),
+                        createPowerConsumeRecord(31, 301, LocalDateTime.of(2026, 4, 6, 15, 0),
+                                "103.00", "105.00", "2.00")
+                ))
+                .setCancelRecordList(List.of(cancelRecord))
+                .setAccountOpenRecordList(List.of(createAccountOpenRecord(31, ElectricAccountTypeEnum.QUANTITY.getCode(), "销户企业")));
+
+        List<DailyMeterReportEntity> reportList = dailyMeterReportBuildService.buildDailyMeterReportList(buildContext);
+
+        assertEquals(1, reportList.size());
+        DailyMeterReportEntity reportEntity = reportList.get(0);
+        assertEquals(MeterReportGenerateTypeEnum.CANCEL.getCode(), reportEntity.getGenerateType());
+        assertEquals(0, new BigDecimal("100.00").compareTo(reportEntity.getBeginPower()));
+        assertEquals(0, new BigDecimal("106.00").compareTo(reportEntity.getEndPower()));
+        assertEquals(0, new BigDecimal("5.00").compareTo(reportEntity.getConsumePower()));
+    }
+
+    @Test
     @DisplayName("同天跨账户迁移应生成两条日报且原账户最终销户")
     void testBuildDailyMeterReportList_MigrateAcrossAccount_ShouldBuildCancelAndZeroReports() {
         DailyMeterBuildContextDto buildContext = createBaseContext()
