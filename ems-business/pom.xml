@@ -19,6 +19,7 @@
         <module>ems-business-plan</module>
         <module>ems-business-aggregation</module>
         <module>ems-business-order</module>
+        <module>ems-business-report</module>
     </modules>
 
 </project>

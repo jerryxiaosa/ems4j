@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>info.zhihui</groupId>
-        <artifactId>ems</artifactId>
+        <artifactId>ems-business</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>ems-schedule</artifactId>
+    <artifactId>ems-business-report</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -18,35 +18,19 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starter -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
-        <!-- MQ API 依赖 -->
-        <dependency>
-            <groupId>info.zhihui</groupId>
-            <artifactId>ems-mq-api</artifactId>
-        </dependency>
-
-        <!-- 业务依赖：订单校验服务 -->
-        <dependency>
-            <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-order</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- 业务依赖：设备服务 -->
-        <dependency>
-            <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-device</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-report</artifactId>
-            <version>${project.version}</version>
+            <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
         <dependency>
@@ -54,19 +38,41 @@
             <artifactId>ems-common</artifactId>
         </dependency>
 
-        <!-- Lombok -->
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-components-datasource</artifactId>
         </dependency>
 
-        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-components-lock</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-billing</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-order</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-device</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-account</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

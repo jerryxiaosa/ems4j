@@ -8,10 +8,12 @@ import info.zhihui.ems.business.account.dto.CancelAccountResponseDto;
 import info.zhihui.ems.business.account.dto.OpenAccountDto;
 import info.zhihui.ems.business.account.entity.AccountCancelRecordEntity;
 import info.zhihui.ems.business.account.entity.AccountEntity;
+import info.zhihui.ems.business.account.entity.AccountOpenRecordEntity;
 import info.zhihui.ems.business.account.enums.CleanBalanceTypeEnum;
 import info.zhihui.ems.business.account.mapper.AccountInfoMapper;
 import info.zhihui.ems.business.account.mapper.AccountManagerMapper;
 import info.zhihui.ems.business.account.repository.AccountCancelRecordRepository;
+import info.zhihui.ems.business.account.repository.AccountOpenRecordRepository;
 import info.zhihui.ems.business.account.repository.AccountRepository;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
@@ -82,6 +84,9 @@ class AccountManagerServiceImplTest {
     private AccountRepository repository;
 
     @Mock
+    private AccountOpenRecordRepository accountOpenRecordRepository;
+
+    @Mock
     private ElectricMeterManagerService electricMeterManagerService;
 
     @Mock
@@ -143,6 +148,7 @@ class AccountManagerServiceImplTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
                 .setOwnerId(1)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerName("测试企业")
                 .setMonthlyPayAmount(BigDecimal.valueOf(100))
                 .setWarnPlanId(7)
                 .setElectricMeterList(List.of(new MeterOpenDetailDto()
@@ -188,6 +194,14 @@ class AccountManagerServiceImplTest {
         verify(repository).insert(insertCaptor.capture());
         AccountEntity insertEntity = insertCaptor.getValue();
         assertThat(insertEntity.getWarnPlanId()).isEqualTo(7);
+        ArgumentCaptor<AccountOpenRecordEntity> openRecordCaptor = ArgumentCaptor.forClass(AccountOpenRecordEntity.class);
+        verify(accountOpenRecordRepository).insert(openRecordCaptor.capture());
+        AccountOpenRecordEntity accountOpenRecordEntity = openRecordCaptor.getValue();
+        assertThat(accountOpenRecordEntity.getAccountId()).isEqualTo(1);
+        assertThat(accountOpenRecordEntity.getOwnerId()).isEqualTo(1);
+        assertThat(accountOpenRecordEntity.getOwnerType()).isEqualTo(OwnerTypeEnum.ENTERPRISE.getCode());
+        assertThat(accountOpenRecordEntity.getOwnerName()).isEqualTo(openAccountDto.getOwnerName());
+        assertThat(accountOpenRecordEntity.getElectricAccountType()).isEqualTo(ElectricAccountTypeEnum.MONTHLY.getCode());
         verify(accountConsumeService).monthlyConsume(argThat(monthlyConsumeDto ->
                 "开户联系人".equals(monthlyConsumeDto.getContactName())
                         && "13600000000".equals(monthlyConsumeDto.getContactPhone())));
@@ -205,6 +219,7 @@ class AccountManagerServiceImplTest {
                 .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY)
                 .setOwnerId(1)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerName("测试企业")
                 .setWarnPlanId(1)
                 .setElectricPricePlanId(1)
                 .setElectricMeterList(List.of(new MeterOpenDetailDto()
@@ -388,6 +403,7 @@ class AccountManagerServiceImplTest {
         assertThat(meterOpenDto.getWarnPlanId()).isEqualTo(9);
         assertThat(meterOpenDto.getMeterOpenDetail()).hasSize(1);
         assertThat(meterOpenDto.getMeterOpenDetail().get(0).getMeterId()).isEqualTo(10);
+        verifyNoInteractions(accountOpenRecordRepository);
     }
 
     @Test

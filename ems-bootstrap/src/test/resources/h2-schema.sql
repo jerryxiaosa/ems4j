@@ -27,6 +27,29 @@ CREATE TABLE energy_account
     PRIMARY KEY (id)
 );
 
+DROP TABLE IF EXISTS energy_account_open_record;
+CREATE TABLE energy_account_open_record
+(
+    id                    INTEGER NOT NULL AUTO_INCREMENT,
+    account_id            INTEGER NOT NULL,
+    owner_id              INTEGER          DEFAULT NULL,
+    owner_type            SMALLINT         DEFAULT NULL,
+    owner_name            VARCHAR(50)      DEFAULT NULL,
+    electric_account_type SMALLINT         DEFAULT NULL,
+    open_time             TIMESTAMP        DEFAULT NULL,
+    create_user           INTEGER          DEFAULT NULL,
+    create_user_name      VARCHAR(50)      DEFAULT NULL,
+    create_time           TIMESTAMP        DEFAULT NULL,
+    update_user           INTEGER          DEFAULT NULL,
+    update_user_name      VARCHAR(50)      DEFAULT NULL,
+    update_time           TIMESTAMP        DEFAULT NULL,
+    is_deleted            BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id)
+);
+
+CREATE UNIQUE INDEX uk_energy_account_open_record_account_id ON energy_account_open_record (account_id);
+CREATE INDEX idx_energy_account_open_record_open_time ON energy_account_open_record (open_time);
+
 -- 主体空间租赁关系表
 DROP TABLE IF EXISTS energy_owner_space_rel;
 CREATE TABLE energy_owner_space_rel
@@ -73,6 +96,8 @@ CREATE TABLE energy_open_meter_record
     PRIMARY KEY (id)
 );
 
+CREATE INDEX idx_open_meter_show_time_account_id ON energy_open_meter_record (show_time, account_id);
+
 -- 能耗账户流水表
 DROP TABLE IF EXISTS energy_account_order_flow;
 CREATE TABLE energy_account_order_flow
@@ -90,8 +115,9 @@ CREATE TABLE energy_account_order_flow
 );
 
 CREATE UNIQUE INDEX idx_consume_id ON energy_account_order_flow (consume_id);
-CREATE INDEX idx_create_time ON energy_account_order_flow (create_time);
 CREATE INDEX idx_account_id ON energy_account_order_flow (account_id);
+CREATE INDEX idx_order_flow_create_time_account_balance_relation
+    ON energy_account_order_flow (create_time, account_id, balance_type, balance_relation_id);
 
 -- 阶梯开始记录表
 DROP TABLE IF EXISTS energy_account_meter_step;
@@ -370,7 +396,7 @@ CREATE TABLE energy_electric_meter_power_record
 );
 
 CREATE UNIQUE INDEX uk_original_report_id ON energy_electric_meter_power_record (original_report_id);
-CREATE INDEX idx_record_time ON energy_electric_meter_power_record (record_time);
+CREATE INDEX idx_power_record_time_account_meter ON energy_electric_meter_power_record (record_time, account_id, meter_id);
 CREATE INDEX idx_create_time_power_record ON energy_electric_meter_power_record (create_time);
 
 -- 电表电量关联信息表
@@ -463,6 +489,7 @@ CREATE TABLE energy_meter_cancel_record
 );
 
 CREATE INDEX idx_cancel_no ON energy_meter_cancel_record (cancel_no);
+CREATE INDEX idx_meter_cancel_show_time_account_id ON energy_meter_cancel_record (show_time, account_id);
 
 -- 电表用电消耗数据表
 DROP TABLE IF EXISTS energy_electric_meter_power_consume_record;
@@ -505,6 +532,8 @@ CREATE TABLE energy_electric_meter_power_consume_record
 CREATE INDEX idx_meter_id_consume ON energy_electric_meter_power_consume_record (meter_id);
 CREATE INDEX idx_create_time_consume ON energy_electric_meter_power_consume_record (create_time);
 CREATE INDEX idx_meter_consume_time ON energy_electric_meter_power_consume_record (meter_consume_time);
+CREATE INDEX idx_power_consume_account_time_meter
+    ON energy_electric_meter_power_consume_record (account_id, meter_consume_time, meter_id);
 
 -- 能耗余额消费记录表
 DROP TABLE IF EXISTS energy_electric_meter_balance_consume_record;
@@ -553,8 +582,9 @@ CREATE TABLE energy_electric_meter_balance_consume_record
 CREATE INDEX idx_meter_consume_record_id ON energy_electric_meter_balance_consume_record (meter_consume_record_id);
 CREATE INDEX idx_create_time_balance ON energy_electric_meter_balance_consume_record (create_time);
 CREATE INDEX idx_meter_id_balance ON energy_electric_meter_balance_consume_record (meter_id);
-CREATE INDEX idx_account_id_balance ON energy_electric_meter_balance_consume_record (account_id);
 CREATE INDEX idx_space_id_balance ON energy_electric_meter_balance_consume_record (space_id);
+CREATE INDEX idx_balance_consume_account_time_meter
+    ON energy_electric_meter_balance_consume_record (account_id, meter_consume_time, meter_id);
 
 -- 系统配置表
 DROP TABLE IF EXISTS sys_config;
@@ -623,9 +653,9 @@ CREATE TABLE energy_account_balance_consume_record
 );
 
 CREATE INDEX idx_consume_no_account_balance ON energy_account_balance_consume_record (consume_no);
-CREATE INDEX idx_account_id_account_balance ON energy_account_balance_consume_record (account_id);
 CREATE INDEX idx_create_time_account_balance ON energy_account_balance_consume_record (create_time);
 CREATE INDEX idx_consume_time_account_balance ON energy_account_balance_consume_record (consume_time);
+CREATE INDEX idx_account_balance_consume_account_time ON energy_account_balance_consume_record (account_id, consume_time);
 
 -- 订单事务消息
 DROP TABLE IF EXISTS sys_transaction_message;
@@ -747,6 +777,152 @@ CREATE TABLE order_detail_termination
 
 CREATE UNIQUE INDEX uk_order_detail_account_termination_sn ON order_detail_termination (order_sn);
 CREATE INDEX idx_order_detail_account_termination_cancel_no ON order_detail_termination (cancel_no);
+
+-- 电表日报表
+DROP TABLE IF EXISTS energy_report_daily_meter;
+CREATE TABLE energy_report_daily_meter
+(
+    id                              INTEGER        NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    report_date                     DATE           NOT NULL COMMENT '报表日期',
+    account_id                      INTEGER        NOT NULL COMMENT '账户ID',
+    owner_id                        INTEGER                 DEFAULT NULL COMMENT '主体ID',
+    owner_type                      SMALLINT                DEFAULT NULL COMMENT '主体类型',
+    owner_name                      VARCHAR(50)             DEFAULT NULL COMMENT '主体名称',
+    meter_id                        INTEGER        NOT NULL COMMENT '电表ID',
+    meter_name                      VARCHAR(100)            DEFAULT NULL COMMENT '电表名称',
+    device_no                       VARCHAR(100)            DEFAULT NULL COMMENT '设备编号',
+    space_id                        INTEGER                 DEFAULT NULL COMMENT '空间ID',
+    space_name                      VARCHAR(100)            DEFAULT NULL COMMENT '空间名称',
+    electric_account_type           SMALLINT                DEFAULT NULL COMMENT '电费账户类型',
+    generate_type                   SMALLINT       NOT NULL COMMENT '生成类型',
+    begin_power                     DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初总读数',
+    begin_power_higher              DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初尖读数',
+    begin_power_high                DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初峰读数',
+    begin_power_low                 DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初平读数',
+    begin_power_lower               DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初谷读数',
+    begin_power_deep_low            DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初深谷读数',
+    end_power                       DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末总读数',
+    end_power_higher                DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末尖读数',
+    end_power_high                  DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末峰读数',
+    end_power_low                   DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末平读数',
+    end_power_lower                 DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末谷读数',
+    end_power_deep_low              DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末深谷读数',
+    consume_power                   DECIMAL(20, 8)          DEFAULT NULL COMMENT '总用电量',
+    consume_power_higher            DECIMAL(20, 8)          DEFAULT NULL COMMENT '尖用电量',
+    consume_power_high              DECIMAL(20, 8)          DEFAULT NULL COMMENT '峰用电量',
+    consume_power_low               DECIMAL(20, 8)          DEFAULT NULL COMMENT '平用电量',
+    consume_power_lower             DECIMAL(20, 8)          DEFAULT NULL COMMENT '谷用电量',
+    consume_power_deep_low          DECIMAL(20, 8)          DEFAULT NULL COMMENT '深谷用电量',
+    electric_charge_amount          DECIMAL(20, 8)          DEFAULT NULL COMMENT '总电费',
+    electric_charge_amount_higher   DECIMAL(20, 8)          DEFAULT NULL COMMENT '尖电费',
+    electric_charge_amount_high     DECIMAL(20, 8)          DEFAULT NULL COMMENT '峰电费',
+    electric_charge_amount_low      DECIMAL(20, 8)          DEFAULT NULL COMMENT '平电费',
+    electric_charge_amount_lower    DECIMAL(20, 8)          DEFAULT NULL COMMENT '谷电费',
+    electric_charge_amount_deep_low DECIMAL(20, 8)          DEFAULT NULL COMMENT '深谷电费',
+    display_price_higher            DECIMAL(20, 8)          DEFAULT NULL COMMENT '尖展示单价',
+    display_price_high              DECIMAL(20, 8)          DEFAULT NULL COMMENT '峰展示单价',
+    display_price_low               DECIMAL(20, 8)          DEFAULT NULL COMMENT '平展示单价',
+    display_price_lower             DECIMAL(20, 8)          DEFAULT NULL COMMENT '谷展示单价',
+    display_price_deep_low          DECIMAL(20, 8)          DEFAULT NULL COMMENT '深谷展示单价',
+    correction_pay_amount           DECIMAL(20, 8)          DEFAULT NULL COMMENT '补缴金额',
+    correction_refund_amount        DECIMAL(20, 8)          DEFAULT NULL COMMENT '退费金额',
+    correction_net_amount           DECIMAL(20, 8)          DEFAULT NULL COMMENT '补正净额',
+    begin_balance                   DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初余额',
+    end_balance                     DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末余额',
+    recharge_amount                 DECIMAL(20, 8)          DEFAULT NULL COMMENT '充值金额',
+    create_user                     INTEGER                 DEFAULT NULL,
+    create_user_name                VARCHAR(50)            DEFAULT NULL,
+    create_time                     TIMESTAMP              DEFAULT NULL,
+    update_user                     INTEGER                 DEFAULT NULL,
+    update_user_name                VARCHAR(50)            DEFAULT NULL,
+    update_time                     TIMESTAMP              DEFAULT NULL,
+    is_deleted                      BOOLEAN        NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX uk_energy_report_daily_meter_date_account_meter
+    ON energy_report_daily_meter (report_date, account_id, meter_id);
+CREATE INDEX idx_energy_report_daily_meter_report_date ON energy_report_daily_meter (report_date);
+CREATE INDEX idx_energy_report_daily_meter_account_id ON energy_report_daily_meter (account_id);
+
+-- 账户日报表
+DROP TABLE IF EXISTS energy_report_daily_account;
+CREATE TABLE energy_report_daily_account
+(
+    id                                   INTEGER        NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    report_date                          DATE           NOT NULL COMMENT '报表日期',
+    account_id                           INTEGER        NOT NULL COMMENT '账户ID',
+    owner_id                             INTEGER                 DEFAULT NULL COMMENT '主体ID',
+    owner_type                           SMALLINT                DEFAULT NULL COMMENT '主体类型',
+    owner_name                           VARCHAR(50)             DEFAULT NULL COMMENT '主体名称',
+    electric_account_type                SMALLINT                DEFAULT NULL COMMENT '电费账户类型',
+    meter_count                          INTEGER        NOT NULL DEFAULT 0 COMMENT '电表数量',
+    consume_power                        DECIMAL(20, 8)          DEFAULT NULL COMMENT '总用电量',
+    consume_power_higher                 DECIMAL(20, 8)          DEFAULT NULL COMMENT '尖用电量',
+    consume_power_high                   DECIMAL(20, 8)          DEFAULT NULL COMMENT '峰用电量',
+    consume_power_low                    DECIMAL(20, 8)          DEFAULT NULL COMMENT '平用电量',
+    consume_power_lower                  DECIMAL(20, 8)          DEFAULT NULL COMMENT '谷用电量',
+    consume_power_deep_low               DECIMAL(20, 8)          DEFAULT NULL COMMENT '深谷用电量',
+    electric_charge_amount               DECIMAL(20, 8)          DEFAULT NULL COMMENT '总电费',
+    electric_charge_amount_higher        DECIMAL(20, 8)          DEFAULT NULL COMMENT '尖电费',
+    electric_charge_amount_high          DECIMAL(20, 8)          DEFAULT NULL COMMENT '峰电费',
+    electric_charge_amount_low           DECIMAL(20, 8)          DEFAULT NULL COMMENT '平电费',
+    electric_charge_amount_lower         DECIMAL(20, 8)          DEFAULT NULL COMMENT '谷电费',
+    electric_charge_amount_deep_low      DECIMAL(20, 8)          DEFAULT NULL COMMENT '深谷电费',
+    monthly_charge_amount                DECIMAL(20, 8)          DEFAULT NULL COMMENT '包月费用',
+    correction_pay_amount                DECIMAL(20, 8)          DEFAULT NULL COMMENT '补缴金额',
+    correction_refund_amount             DECIMAL(20, 8)          DEFAULT NULL COMMENT '退费金额',
+    correction_net_amount                DECIMAL(20, 8)          DEFAULT NULL COMMENT '补正净额',
+    recharge_amount                      DECIMAL(20, 8)          DEFAULT NULL COMMENT '充值金额',
+    recharge_service_fee_amount          DECIMAL(20, 8)          DEFAULT NULL COMMENT '充值服务费',
+    total_debit_amount                   DECIMAL(20, 8)          DEFAULT NULL COMMENT '总支出金额',
+    begin_balance                        DECIMAL(20, 8)          DEFAULT NULL COMMENT '期初余额',
+    end_balance                          DECIMAL(20, 8)          DEFAULT NULL COMMENT '期末余额',
+    accumulate_consume_power             DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计用电量',
+    accumulate_electric_charge_amount    DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计电费',
+    accumulate_monthly_charge_amount     DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计包月费用',
+    accumulate_correction_pay_amount     DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计补缴金额',
+    accumulate_correction_refund_amount  DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计退费金额',
+    accumulate_recharge_amount           DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计充值金额',
+    accumulate_recharge_service_fee_amount DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计充值服务费',
+    accumulate_total_debit_amount        DECIMAL(20, 8) NOT NULL DEFAULT 0 COMMENT '累计总支出金额',
+    create_user                          INTEGER                 DEFAULT NULL,
+    create_user_name                     VARCHAR(50)            DEFAULT NULL,
+    create_time                          TIMESTAMP              DEFAULT NULL,
+    update_user                          INTEGER                 DEFAULT NULL,
+    update_user_name                     VARCHAR(50)            DEFAULT NULL,
+    update_time                          TIMESTAMP              DEFAULT NULL,
+    is_deleted                           BOOLEAN        NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX uk_energy_report_daily_account_date_account
+    ON energy_report_daily_account (report_date, account_id);
+CREATE INDEX idx_energy_report_daily_account_report_date ON energy_report_daily_account (report_date);
+CREATE INDEX idx_energy_report_daily_account_account_id ON energy_report_daily_account (account_id);
+
+-- 报表任务日志表
+DROP TABLE IF EXISTS energy_report_job_log;
+CREATE TABLE energy_report_job_log
+(
+    id               INTEGER     NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    trigger_type     SMALLINT    NOT NULL COMMENT '触发方式',
+    start_date       DATE        NOT NULL COMMENT '开始日期',
+    end_date         DATE        NOT NULL COMMENT '结束日期',
+    status           SMALLINT    NOT NULL COMMENT '执行状态',
+    current_report_date DATE              DEFAULT NULL COMMENT '当前处理日期',
+    error_message    VARCHAR(1000)        DEFAULT NULL COMMENT '错误信息',
+    trigger_by       VARCHAR(50)          DEFAULT NULL COMMENT '触发人',
+    finish_time      TIMESTAMP            DEFAULT NULL COMMENT '完成时间',
+    create_user      INTEGER              DEFAULT NULL,
+    create_user_name VARCHAR(50)          DEFAULT NULL,
+    create_time      TIMESTAMP            DEFAULT NULL,
+    update_user      INTEGER              DEFAULT NULL,
+    update_user_name VARCHAR(50)          DEFAULT NULL,
+    update_time      TIMESTAMP            DEFAULT NULL,
+    is_deleted       BOOLEAN     NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id)
+);
+CREATE INDEX idx_energy_report_job_log_date_range ON energy_report_job_log (start_date, end_date);
+CREATE INDEX idx_energy_report_job_log_status ON energy_report_job_log (status);
 
 -- 机构信息表
 DROP TABLE IF EXISTS sys_organization;

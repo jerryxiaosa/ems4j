@@ -4,10 +4,12 @@ import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.*;
 import info.zhihui.ems.business.account.entity.AccountCancelRecordEntity;
 import info.zhihui.ems.business.account.entity.AccountEntity;
+import info.zhihui.ems.business.account.entity.AccountOpenRecordEntity;
 import info.zhihui.ems.business.account.enums.CleanBalanceTypeEnum;
 import info.zhihui.ems.business.account.mapper.AccountInfoMapper;
 import info.zhihui.ems.business.account.mapper.AccountManagerMapper;
 import info.zhihui.ems.business.account.repository.AccountCancelRecordRepository;
+import info.zhihui.ems.business.account.repository.AccountOpenRecordRepository;
 import info.zhihui.ems.business.account.repository.AccountRepository;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.account.service.AccountManagerService;
@@ -72,6 +74,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
     private final AccountManagerMapper mapper;
     private final AccountInfoMapper infoMapper;
     private final AccountRepository repository;
+    private final AccountOpenRecordRepository accountOpenRecordRepository;
     private final AccountCancelRecordRepository cancelRecordRepository;
     private final ElectricMeterManagerService electricMeterManagerService;
     private final ElectricMeterInfoService electricMeterInfoService;
@@ -108,6 +111,7 @@ public class AccountManagerServiceImpl implements AccountManagerService {
             // 处理开户数据，进行开户操作
             AccountBo accountBo = processAccountCreation(openAccountDto);
             log.info("账户创建完成，账户ID: {}", accountBo.getId());
+            saveAccountOpenRecord(accountBo.getId(), openAccountDto);
 
             // 构建电表开户数据
             MeterOpenDto meterOpenDto = buildMeterOpenDto(accountBo, openAccountDto.getElectricMeterList(), openAccountDto.getInheritHistoryPower());
@@ -300,6 +304,17 @@ public class AccountManagerServiceImpl implements AccountManagerService {
                     .setConsumeTime(LocalDateTime.now());
             accountConsumeService.monthlyConsume(monthlyConsumeDto);
         }
+    }
+
+    private void saveAccountOpenRecord(Integer accountId, OpenAccountDto openAccountDto) {
+        AccountOpenRecordEntity accountOpenRecordEntity = new AccountOpenRecordEntity()
+                .setAccountId(accountId)
+                .setOwnerId(openAccountDto.getOwnerId())
+                .setOwnerType(openAccountDto.getOwnerType().getCode())
+                .setOwnerName(openAccountDto.getOwnerName())
+                .setElectricAccountType(openAccountDto.getElectricAccountType().getCode())
+                .setOpenTime(LocalDateTime.now());
+        accountOpenRecordRepository.insert(accountOpenRecordEntity);
     }
 
     /**

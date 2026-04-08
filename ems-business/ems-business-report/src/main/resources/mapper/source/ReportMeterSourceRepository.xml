@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.source.ReportMeterSourceRepository">
+
+    <select id="findDailyPowerRecordAccountIdList" resultType="java.lang.Integer">
+        select distinct account_id
+        from energy_electric_meter_power_record
+        where record_time <![CDATA[>=]]> #{beginTime}
+          and record_time <![CDATA[<]]> #{endTime}
+          and account_id is not null
+          and is_deleted = 0
+    </select>
+
+    <select id="findDailyPowerRecordSnapshotListByAccountIdList" resultType="info.zhihui.ems.business.report.qo.PowerRecordSnapshotSourceQo">
+        select record.id as record_id,
+               record.account_id as account_id,
+               record.meter_id as meter_id,
+               record.meter_name as meter_name,
+               record.device_no as device_no,
+               record.record_time as record_time,
+               relation.owner_id as owner_id,
+               relation.owner_type as owner_type,
+               relation.owner_name as owner_name,
+               relation.space_id as space_id,
+               relation.space_name as space_name,
+               relation.electric_account_type as electric_account_type
+        from energy_electric_meter_power_record record
+        left join energy_electric_meter_power_relation relation
+               on relation.record_id = record.id
+              and relation.is_deleted = 0
+        where record.record_time <![CDATA[>=]]> #{query.beginTime}
+          and record.record_time <![CDATA[<]]> #{query.endTime}
+          and record.account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and record.is_deleted = 0
+        order by record.account_id asc, record.meter_id asc, record.record_time asc, record.id asc
+    </select>
+
+    <select id="findCurrentMeterSnapshotListByAccountIdList" resultType="info.zhihui.ems.business.report.qo.MeterSnapshotSourceQo">
+        select meter.account_id as account_id,
+               meter.id as meter_id,
+               meter.meter_name as meter_name,
+               meter.device_no as device_no,
+               meter.space_id as space_id,
+               space.name as space_name
+        from energy_electric_meter meter
+        left join sys_space space
+               on space.id = meter.space_id
+              and space.is_deleted = 0
+        where meter.account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and meter.is_deleted = 0
+        order by meter.account_id asc, meter.id asc
+    </select>
+
+    <select id="findDailyBalanceConsumeRecordListByAccountIdList" resultType="info.zhihui.ems.business.billing.entity.ElectricMeterBalanceConsumeRecordEntity">
+        select *
+        from energy_electric_meter_balance_consume_record
+        where meter_consume_time <![CDATA[>=]]> #{query.beginTime}
+          and meter_consume_time <![CDATA[<]]> #{query.endTime}
+          and consume_type = #{consumeType}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc, meter_id asc, meter_consume_time asc, id asc
+    </select>
+
+    <select id="findDailyOpenAccountIdList" resultType="java.lang.Integer">
+        select distinct account_id
+        from energy_open_meter_record
+        where show_time <![CDATA[>=]]> #{query.beginTime}
+          and show_time <![CDATA[<]]> #{query.endTime}
+          and meter_type = #{meterType}
+          and account_id is not null
+          and is_deleted = 0
+    </select>
+
+    <select id="findDailyOpenRecordListByAccountIdList" resultType="info.zhihui.ems.business.device.entity.OpenMeterEntity">
+        select *
+        from energy_open_meter_record
+        where show_time <![CDATA[>=]]> #{query.beginTime}
+          and show_time <![CDATA[<]]> #{query.endTime}
+          and meter_type = #{meterType}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc, meter_id asc, show_time asc, id asc
+    </select>
+
+    <select id="findDailyCancelAccountIdList" resultType="java.lang.Integer">
+        select distinct account_id
+        from energy_meter_cancel_record
+        where show_time <![CDATA[>=]]> #{query.beginTime}
+          and show_time <![CDATA[<]]> #{query.endTime}
+          and meter_type = #{meterType}
+          and account_id is not null
+          and is_deleted = 0
+    </select>
+
+    <select id="findDailyCancelRecordListByAccountIdList" resultType="info.zhihui.ems.business.device.entity.MeterCancelRecordEntity">
+        select *
+        from energy_meter_cancel_record
+        where show_time <![CDATA[>=]]> #{query.beginTime}
+          and show_time <![CDATA[<]]> #{query.endTime}
+          and meter_type = #{meterType}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc, meter_id asc, show_time asc, id asc
+    </select>
+
+    <select id="findDailyPowerConsumeRecordListByAccountIdList" resultType="info.zhihui.ems.business.billing.entity.ElectricMeterPowerConsumeRecordEntity">
+        select *
+        from energy_electric_meter_power_consume_record
+        where meter_consume_time <![CDATA[>=]]> #{query.beginTime}
+          and meter_consume_time <![CDATA[<]]> #{query.endTime}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc, meter_id asc, meter_consume_time asc, id asc
+    </select>
+</mapper>
