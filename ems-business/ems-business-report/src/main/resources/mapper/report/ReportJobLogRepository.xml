@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.report.ReportJobLogRepository">
+
+    <update id="updateStatus">
+        update energy_report_job_log
+        set status = #{status},
+            current_report_date = #{currentReportDate}
+        where id = #{id}
+    </update>
+
+    <update id="updateFailure">
+        update energy_report_job_log
+        set status = #{status},
+            current_report_date = #{currentReportDate},
+            error_message = #{errorMessage},
+            finish_time = #{finishTime}
+        where id = #{id}
+    </update>
+
+    <update id="updateSuccess">
+        update energy_report_job_log
+        set status = #{status},
+            finish_time = #{finishTime}
+        where id = #{id}
+    </update>
+</mapper>

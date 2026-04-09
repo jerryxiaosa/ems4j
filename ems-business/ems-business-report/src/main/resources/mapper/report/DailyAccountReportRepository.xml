@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.report.DailyAccountReportRepository">
+
+    <delete id="deleteByReportDate">
+        delete
+        from energy_report_daily_account
+        where report_date = #{reportDate}
+    </delete>
+
+    <select id="findListByReportDate" resultType="info.zhihui.ems.business.report.entity.DailyAccountReportEntity">
+        select *
+        from energy_report_daily_account
+        where report_date = #{reportDate}
+        order by account_id asc
+    </select>
+
+    <select id="findAccountIdListByReportDate" resultType="java.lang.Integer">
+        select account_id
+        from energy_report_daily_account
+        where report_date = #{reportDate}
+        order by account_id asc
+    </select>
+
+    <select id="findListByReportDateAndAccountIdList" resultType="info.zhihui.ems.business.report.entity.DailyAccountReportEntity">
+        select *
+        from energy_report_daily_account
+        where report_date = #{reportDate}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+        order by account_id asc
+    </select>
+
+    <select id="findElectricBillAccountPageList"
+            resultType="info.zhihui.ems.business.report.qo.ElectricBillAccountSummaryQo">
+        select
+            account_id as accountId,
+            max(owner_name) as accountName,
+            max(electric_account_type) as electricAccountType,
+            sum(coalesce(consume_power, 0)) as periodConsumePower,
+            sum(coalesce(electric_charge_amount, 0)) as periodElectricChargeAmount,
+            sum(coalesce(monthly_charge_amount, 0)) as periodMonthlyChargeAmount,
+            sum(coalesce(recharge_amount, 0)) as periodRechargeAmount,
+            sum(coalesce(correction_net_amount, 0)) as periodCorrectionAmount,
+            sum(coalesce(total_debit_amount, 0)) as totalDebitAmount
+        from energy_report_daily_account
+        where report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+        <if test="accountNameLike != null and accountNameLike != ''">
+            and owner_name like concat('%', #{accountNameLike}, '%')
+        </if>
+        group by account_id
+        order by accountName asc, accountId asc
+    </select>
+
+    <select id="getElectricBillAccountSummary"
+            resultType="info.zhihui.ems.business.report.qo.ElectricBillAccountSummaryQo">
+        select
+            account_id as accountId,
+            max(owner_name) as accountName,
+            max(electric_account_type) as electricAccountType,
+            sum(coalesce(consume_power, 0)) as periodConsumePower,
+            sum(coalesce(electric_charge_amount, 0)) as periodElectricChargeAmount,
+            sum(coalesce(monthly_charge_amount, 0)) as periodMonthlyChargeAmount,
+            sum(coalesce(recharge_amount, 0)) as periodRechargeAmount,
+            sum(coalesce(correction_net_amount, 0)) as periodCorrectionAmount,
+            sum(coalesce(total_debit_amount, 0)) as totalDebitAmount
+        from energy_report_daily_account
+        where account_id = #{accountId}
+          and report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+        group by account_id
+    </select>
+
+    <select id="getLatestByAccountIdAndDateRange" resultType="info.zhihui.ems.business.report.entity.DailyAccountReportEntity">
+        select *
+        from energy_report_daily_account
+        where account_id = #{accountId}
+          and report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+        order by report_date desc
+        limit 1
+    </select>
+</mapper>

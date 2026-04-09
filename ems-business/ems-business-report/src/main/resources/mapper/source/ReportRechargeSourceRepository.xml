@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.source.ReportRechargeSourceRepository">
+
+    <sql id="BaseRechargeJoin">
+        from energy_account_order_flow flow
+        inner join purchase_order order_info on order_info.order_sn = flow.consume_id
+    </sql>
+
+    <select id="findDailyMeterRechargeListByAccountIdList" resultType="info.zhihui.ems.business.report.qo.RechargeSourceItemQo">
+        select flow.consume_id as orderSn,
+               flow.account_id as accountId,
+               detail.meter_id as meterId,
+               detail.balance_type as balanceType,
+               flow.amount as amount,
+               order_info.service_amount as serviceAmount,
+               flow.begin_balance as beginBalance,
+               flow.end_balance as endBalance,
+               flow.create_time as createTime
+        <include refid="BaseRechargeJoin"/>
+        inner join order_detail_energy_top_up detail on detail.order_sn = order_info.order_sn
+            and detail.balance_type = flow.balance_type
+            and detail.account_id = flow.account_id
+            and (
+                (detail.balance_type = 0 and flow.balance_relation_id = detail.account_id)
+                or (detail.balance_type = 1 and flow.balance_relation_id = detail.meter_id)
+            )
+        where flow.create_time <![CDATA[>=]]> #{query.beginTime}
+          and flow.create_time <![CDATA[<]]> #{query.endTime}
+          and flow.account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and flow.amount <![CDATA[>]]> 0
+          and order_info.order_type = #{orderType}
+          and order_info.order_status = #{orderStatus}
+          and order_info.is_deleted = 0
+          and detail.balance_type = #{meterBalanceType}
+        order by flow.account_id asc, detail.meter_id asc, flow.create_time asc
+    </select>
+
+    <select id="findDailyAccountRechargeListByAccountIdList" resultType="info.zhihui.ems.business.report.qo.RechargeSourceItemQo">
+        select flow.consume_id as orderSn,
+               flow.account_id as accountId,
+               flow.balance_relation_id as meterId,
+               flow.balance_type as balanceType,
+               flow.amount as amount,
+               order_info.service_amount as serviceAmount,
+               flow.begin_balance as beginBalance,
+               flow.end_balance as endBalance,
+               flow.create_time as createTime
+        <include refid="BaseRechargeJoin"/>
+        where flow.create_time <![CDATA[>=]]> #{query.beginTime}
+          and flow.create_time <![CDATA[<]]> #{query.endTime}
+          and flow.account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and flow.amount <![CDATA[>]]> 0
+          and order_info.order_type = #{orderType}
+          and order_info.order_status = #{orderStatus}
+          and order_info.is_deleted = 0
+        order by flow.account_id asc, flow.create_time asc, flow.consume_id asc
+    </select>
+</mapper>

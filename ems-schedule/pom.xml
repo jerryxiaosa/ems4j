@@ -45,6 +45,12 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
+            <artifactId>ems-business-report</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
             <artifactId>ems-common</artifactId>
         </dependency>
 

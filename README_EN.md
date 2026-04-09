@@ -1,4 +1,4 @@
-# EMS4J
+# EMS4J: Open-Source EMS Management System
 
 [![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)](https://spring.io/projects/spring-boot)
@@ -6,7 +6,7 @@
 
 [中文文档](README.md)
 
-EMS4J is a Spring Boot multi-module energy management system that supports both prepaid operations and energy-consumption analytics. It provides remote device control and multiple billing modes (pay-as-you-go, consolidated, monthly), supports both WeChat Pay and offline payments, and includes peak/off-peak metering, tiered pricing, account management, and financial accounting. It is compatible with multi-protocol device access, and can be adapted to typical scenarios such as campus dormitory prepaid systems and industrial park prepaid systems. The codebase is cleanly structured for easy extension.
+EMS4J is an open-source EMS management system built on a Spring Boot multi-module architecture. It supports prepaid operations, energy-consumption analytics, IoT device access, remote device control, account management, and financial accounting. The system supports multiple billing models such as pay-as-you-go, consolidated billing, and monthly plans, and fits typical scenarios such as campus dormitories and industrial parks.
 **It is also an open-source project for learning complex business modeling and Spring Boot multi-module architecture design.**
 
 ## Features
@@ -15,14 +15,23 @@ EMS4J is a Spring Boot multi-module energy management system that supports both 
 - Billing models (pay-as-you-go / consolidated billing / monthly subscription)
 - Metering and billing (peak/off-peak/valley / tiered rates)
 - Account management (opening / closing / recharge)
+- Daily report snapshots and electric bill reports (daily meter/account snapshots, list and detail queries)
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
+
+## Typical Scenarios
+
+- Dormitory EMS management systems
+- Industrial park EMS management systems
+- Prepaid energy management systems
+- EMS systems with IoT-based remote meter control
+- Java projects that need a reference for multi-module architecture and complex business modeling
 
 ## Quick Experience
 
 ### Live Demo
 
-Frontend app: `http://119.45.165.253:30080`
+Frontend app: [http://119.45.165.253:30080](http://119.45.165.253:30080)
 
 Demo credentials:
 - Username: `admin`
@@ -81,6 +90,7 @@ Notes:
 |------|------------|
 | Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
 | Power Consumption Trend | ![Power Consumption Trend](resource/images/meter-power-trend.png) |
+| Electric Bill Report | ![Electric Bill Report](resource/images/energy-report.png) |
 | Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
 | Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.report.DailyMeterReportRepository">
+
+    <delete id="deleteByReportDate">
+        delete
+        from energy_report_daily_meter
+        where report_date = #{reportDate}
+    </delete>
+
+    <select id="findListByReportDate" resultType="info.zhihui.ems.business.report.entity.DailyMeterReportEntity">
+        select *
+        from energy_report_daily_meter
+        where report_date = #{reportDate}
+        order by account_id asc, meter_id asc
+    </select>
+
+    <select id="findActiveListByReportDateAndAccountIdList" resultType="info.zhihui.ems.business.report.entity.DailyMeterReportEntity">
+        select *
+        from energy_report_daily_meter
+        where report_date = #{reportDate}
+          and generate_type != 2
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+        order by account_id asc, meter_id asc
+    </select>
+
+    <select id="findMeterCountListByAccountIdList"
+            resultType="info.zhihui.ems.business.report.qo.ElectricBillMeterCountQo">
+        select
+            account_id as accountId,
+            count(distinct meter_id) as meterCount
+        from energy_report_daily_meter
+        where report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+        group by account_id
+        order by account_id asc
+    </select>
+
+    <select id="findListByAccountIdAndDateRange" resultType="info.zhihui.ems.business.report.entity.DailyMeterReportEntity">
+        select *
+        from energy_report_daily_meter
+        where account_id = #{accountId}
+          and report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+        order by meter_id asc, report_date asc
+    </select>
+</mapper>

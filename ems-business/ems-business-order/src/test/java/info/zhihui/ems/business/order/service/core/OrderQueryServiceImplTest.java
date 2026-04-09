@@ -1,11 +1,14 @@
 package info.zhihui.ems.business.order.service.core;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.page.PageMethod;
 import info.zhihui.ems.business.order.dto.OrderListDto;
 import info.zhihui.ems.business.order.dto.OrderQueryDto;
 import info.zhihui.ems.business.order.enums.OrderStatusEnum;
 import info.zhihui.ems.business.order.enums.OrderTypeEnum;
 import info.zhihui.ems.business.order.enums.PaymentChannelEnum;
 import info.zhihui.ems.business.order.mapstruct.OrderMapper;
+import info.zhihui.ems.business.order.entity.OrderDetailEnergyTopUpEntity;
 import info.zhihui.ems.business.order.qo.OrderListItemQo;
 import info.zhihui.ems.business.order.qo.OrderQueryQo;
 import info.zhihui.ems.business.order.repository.OrderDetailEnergyTopUpRepository;
@@ -24,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -197,5 +201,37 @@ class OrderQueryServiceImplTest {
                 orderSnList != null
                         && orderSnList.size() == 1
                         && orderSnList.contains("ORDER001")));
+    }
+
+    @Test
+    void testFindOrdersPage_ShouldFillMeterInfoAfterPageScopeClosed() {
+        AtomicBoolean localPagePresentWhenQueryTopUpDetail = new AtomicBoolean(false);
+        List<OrderListItemQo> orderItemQos = List.of(orderItemQo1);
+        OrderListDto topUpOrder = new OrderListDto()
+                .setOrderSn("ORDER001")
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP);
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenAnswer(invocation -> {
+            Page<OrderListItemQo> localPage = PageMethod.getLocalPage();
+            if (localPage != null) {
+                localPage.addAll(orderItemQos);
+                localPage.setTotal(orderItemQos.size());
+            }
+            return orderItemQos;
+        });
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(topUpOrder)));
+        when(orderDetailEnergyTopUpRepository.findByOrderSnList(List.of("ORDER001"))).thenAnswer(invocation -> {
+            localPagePresentWhenQueryTopUpDetail.set(PageMethod.getLocalPage() != null);
+            return List.of(new OrderDetailEnergyTopUpEntity().setOrderSn("ORDER001"));
+        });
+
+        PageResult<OrderListDto> result = orderQueryService.findOrdersPage(queryDto, pageParam);
+
+        assertNotNull(result);
+        assertEquals(1, result.getList().size());
+        assertEquals(false, localPagePresentWhenQueryTopUpDetail.get());
     }
 }

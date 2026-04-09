@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="info.zhihui.ems.business.report.repository.source.ReportAccountSourceRepository">
+
+    <select id="findDailyMonthlyConsumeRecordListByAccountIdList" resultType="info.zhihui.ems.business.billing.entity.AccountBalanceConsumeRecordEntity">
+        select *
+        from energy_account_balance_consume_record
+        where consume_time <![CDATA[>=]]> #{query.beginTime}
+          and consume_time <![CDATA[<]]> #{query.endTime}
+          and consume_type = #{monthlyConsumeType}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc, consume_time asc, id asc
+    </select>
+
+    <select id="findDailyAccountOrderFlowAccountIdList" resultType="java.lang.Integer">
+        select distinct account_id
+        from energy_account_order_flow
+        where create_time <![CDATA[>=]]> #{beginTime}
+          and create_time <![CDATA[<]]> #{endTime}
+    </select>
+
+    <select id="findFullCancelledAccountIdListBeforeTime" resultType="java.lang.Integer">
+        select distinct account_id
+        from energy_account_cancel_record
+        where create_time <![CDATA[<]]> #{beginTime}
+          and full_cancel = true
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+    </select>
+
+    <select id="findDailyAccountOrderFlowListByAccountIdList" resultType="info.zhihui.ems.business.billing.entity.OrderFlowEntity">
+        select *
+        from energy_account_order_flow
+        where create_time <![CDATA[>=]]> #{query.beginTime}
+          and create_time <![CDATA[<]]> #{query.endTime}
+          and balance_type = #{balanceType}
+          and account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+        order by account_id asc, create_time asc, id asc
+    </select>
+
+    <select id="findAccountOpenRecordListByAccountIdList" resultType="info.zhihui.ems.business.account.entity.AccountOpenRecordEntity">
+        select *
+        from energy_account_open_record
+        where account_id in
+        <foreach collection="accountIdList" item="accountId" open="(" separator="," close=")">
+            #{accountId}
+        </foreach>
+          and is_deleted = 0
+        order by account_id asc
+    </select>
+</mapper>

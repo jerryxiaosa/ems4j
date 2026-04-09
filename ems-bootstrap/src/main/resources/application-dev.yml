@@ -107,7 +107,7 @@ schedule:
 device:
   module:
     # 对接真实设备：true；对接模拟数据：false
-    use-real-device: false
+    use-real-device: true
   command:
     retry:
       max-execute-times: 10

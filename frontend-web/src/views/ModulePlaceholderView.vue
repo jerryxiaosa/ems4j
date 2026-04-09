@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const todoRoutePaths = ['/reports/electric-bill', '/reports/daily-electricity']
+const todoRoutePaths = ['/reports/electric-bill']
 const showTodoOnly = computed(() => todoRoutePaths.includes(route.path))
 </script>
 

@@ -1,5 +1,7 @@
 package info.zhihui.ems.foundation.user.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.page.PageMethod;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
@@ -39,6 +41,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -235,6 +238,43 @@ class UserServiceImplTest {
 
         verify(userMapper).queryDtoToQo(mockQueryDto);
         verify(userMapper).pageEntityToPageBo(any());
+    }
+
+    @Test
+    @DisplayName("findUserPage - 填充用户角色时不应继承分页上下文")
+    void testFindUserPage_ShouldFillUserRolesAfterPageScopeClosed() {
+        // Given
+        when(userMapper.queryDtoToQo(mockQueryDto)).thenReturn(mockQueryQo);
+
+        AtomicBoolean localPagePresentWhenQueryUserRoles = new AtomicBoolean(false);
+        List<UserEntity> entityList = List.of(mockEntity);
+        when(userRepository.selectByQo(mockQueryQo)).thenAnswer(invocation -> {
+            Page<UserEntity> localPage = PageMethod.getLocalPage();
+            if (localPage != null) {
+                localPage.addAll(entityList);
+                localPage.setTotal(entityList.size());
+            }
+            return entityList;
+        });
+        when(userMapper.pageEntityToPageBo(any())).thenReturn(new PageResult<UserBo>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(new UserBo().setId(1))));
+        when(userRoleRepository.selectByUserIds(List.of(1))).thenAnswer(invocation -> {
+            localPagePresentWhenQueryUserRoles.set(PageMethod.getLocalPage() != null);
+            return List.of(new UserRoleEntity().setUserId(1).setRoleId(1));
+        });
+        when(roleService.findList(any(RoleQueryDto.class))).thenReturn(List.of(new RoleBo().setId(1).setRoleName("管理员")));
+        when(userMapper.listRoleBoToSimpleBo(any())).thenReturn(List.of(new RoleSimpleBo().setId(1).setRoleName("管理员")));
+
+        // When
+        PageResult<UserBo> result = userService.findUserPage(mockQueryDto, mockPageParam);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getList()).hasSize(1);
+        assertThat(localPagePresentWhenQueryUserRoles.get()).isFalse();
     }
 
     // ==================== findUserList方法测试 ====================
