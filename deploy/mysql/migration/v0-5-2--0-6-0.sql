@@ -206,3 +206,22 @@ ALTER TABLE `energy_electric_meter_balance_consume_record`
 ALTER TABLE `energy_account_balance_consume_record`
     DROP INDEX `idx_account_id`,
     ADD INDEX `idx_account_balance_consume_account_time` (`account_id`, `consume_time`);
+
+-- 调整报表统计菜单显示，并移除“每日用电统计”菜单
+UPDATE `sys_menu`
+SET `is_hidden` = b'0',
+    `update_time` = NOW()
+WHERE `id` = 26;
+
+DELETE FROM `sys_role_menu`
+WHERE `menu_id` = 28;
+
+DELETE FROM `sys_menu_auth`
+WHERE `menu_id` = 28;
+
+DELETE FROM `sys_menu_path`
+WHERE `ancestor_id` = 28
+   OR `descendant_id` = 28;
+
+DELETE FROM `sys_menu`
+WHERE `id` = 28;

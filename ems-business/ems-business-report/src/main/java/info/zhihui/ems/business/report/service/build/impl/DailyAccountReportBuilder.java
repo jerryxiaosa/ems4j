@@ -189,9 +189,11 @@ class DailyAccountReportBuilder {
 
         BigDecimal correctionPayAmount = BigDecimal.ZERO;
         BigDecimal correctionRefundAmount = BigDecimal.ZERO;
+        // 合并计量要通过原始数据计算
         if (Objects.equals(electricAccountType, ElectricAccountTypeEnum.MERGED.getCode())) {
             for (ElectricMeterBalanceConsumeRecordEntity correctionRecordEntity : accountCorrectionRecordList) {
                 BigDecimal consumeAmount = defaultDecimal(correctionRecordEntity.getConsumeAmount());
+                // 从支出的角度来看，补缴>0，退费<0
                 if (consumeAmount.signum() >= 0) {
                     correctionPayAmount = correctionPayAmount.add(consumeAmount);
                 } else {
@@ -199,6 +201,7 @@ class DailyAccountReportBuilder {
                 }
             }
         } else {
+            // 按需使用电表日报处理好的数据进行汇总
             for (DailyMeterReportEntity dailyMeterReportEntity : dailyMeterReportList) {
                 correctionPayAmount = correctionPayAmount.add(defaultDecimal(dailyMeterReportEntity.getCorrectionPayAmount()));
                 correctionRefundAmount = correctionRefundAmount.add(defaultDecimal(dailyMeterReportEntity.getCorrectionRefundAmount()));

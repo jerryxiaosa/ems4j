@@ -15,6 +15,7 @@ EMS4J is an open-source EMS management system built on a Spring Boot multi-modul
 - Billing models (pay-as-you-go / consolidated billing / monthly subscription)
 - Metering and billing (peak/off-peak/valley / tiered rates)
 - Account management (opening / closing / recharge)
+- Daily report snapshots and electric bill reports (daily meter/account snapshots, list and detail queries)
 - Remote control (switch on/off, multi-rate configuration)
 - Financial accounting (bills, transactions, reconciliation)
 
@@ -89,6 +90,7 @@ Notes:
 |------|------------|
 | Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
 | Power Consumption Trend | ![Power Consumption Trend](resource/images/meter-power-trend.png) |
+| Electric Bill Report | ![Electric Bill Report](resource/images/energy-report.png) |
 | Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
 | Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 

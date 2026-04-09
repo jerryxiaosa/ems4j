@@ -15,6 +15,7 @@
 | [ems-business-lease](ems-business-lease.md) | 主体与空间租赁关系、租赁查询、退租校验 |
 | [ems-business-plan](ems-business-plan.md) | 计费方案、费率、尖峰平谷时段 |
 | [ems-business-aggregation](ems-business-aggregation.md) | 跨业务读聚合与应用层编排 |
+| [ems-business-report](ems-business-report.md) | 日报构建、电费报表查询、报表任务日志 |
 
 ## 3. 模块依赖关系
 
@@ -128,6 +129,26 @@
                  +---> ems-business-order
 ```
 
+### 3.8 ems-business-report
+
+```
++----------------------------------+
+|      ems-business-report         |
++----------------------------------+
+                 |
+                 +---> ems-business-account
+                 |
+                 +---> ems-business-device
+                 |
+                 +---> ems-business-billing
+                 |
+                 +---> ems-business-order
+                 |
+                 +---> ems-components-datasource
+                 |
+                 +---> ems-components-lock
+```
+
 ## 4. 各模块核心 Service
 
 | 模块 | Service | 职责 |
@@ -151,3 +172,5 @@
 | device | MeterBalanceChangeService | 电表余额变化后的预警与开关闸处理 |
 | plan | ElectricPricePlanService | 电价方案管理 |
 | plan | WarnPlanService | 预警方案管理 |
+| report | DailyReportBuildService | 日报重算、任务日志维护、按账户批次构建电表/账户日报 |
+| report | ElectricBillReportQueryService | 电费报表列表与详情查询 |

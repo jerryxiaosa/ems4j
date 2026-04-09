@@ -66,6 +66,66 @@ class Acrel4gCommandResponderTest {
     }
 
     @Test
+    void handle_whenReadHigherEnergyCommand_shouldReturnCurrentHigherEnergyAck() {
+        DeviceRuntimeState runtimeState = new DeviceRuntimeState()
+                .setLastHigherEnergy(new BigDecimal("23.45"));
+
+        CommandHandleResult result = responder.handle(runtimeState,
+                buildDownlinkFrame(buildReadCommand(AcrelRegisterMappingEnum.HIGHER_ENERGY)));
+
+        Assertions.assertTrue(result.isHandled());
+        Assertions.assertArrayEquals(expectedReadAck(2345), result.getResponseFrame());
+    }
+
+    @Test
+    void handle_whenReadHighEnergyCommand_shouldReturnCurrentHighEnergyAck() {
+        DeviceRuntimeState runtimeState = new DeviceRuntimeState()
+                .setLastHighEnergy(new BigDecimal("34.56"));
+
+        CommandHandleResult result = responder.handle(runtimeState,
+                buildDownlinkFrame(buildReadCommand(AcrelRegisterMappingEnum.HIGH_ENERGY)));
+
+        Assertions.assertTrue(result.isHandled());
+        Assertions.assertArrayEquals(expectedReadAck(3456), result.getResponseFrame());
+    }
+
+    @Test
+    void handle_whenReadLowEnergyCommand_shouldReturnCurrentLowEnergyAck() {
+        DeviceRuntimeState runtimeState = new DeviceRuntimeState()
+                .setLastLowEnergy(new BigDecimal("45.67"));
+
+        CommandHandleResult result = responder.handle(runtimeState,
+                buildDownlinkFrame(buildReadCommand(AcrelRegisterMappingEnum.LOW_ENERGY)));
+
+        Assertions.assertTrue(result.isHandled());
+        Assertions.assertArrayEquals(expectedReadAck(4567), result.getResponseFrame());
+    }
+
+    @Test
+    void handle_whenReadLowerEnergyCommand_shouldReturnCurrentLowerEnergyAck() {
+        DeviceRuntimeState runtimeState = new DeviceRuntimeState()
+                .setLastLowerEnergy(new BigDecimal("56.78"));
+
+        CommandHandleResult result = responder.handle(runtimeState,
+                buildDownlinkFrame(buildReadCommand(AcrelRegisterMappingEnum.LOWER_ENERGY)));
+
+        Assertions.assertTrue(result.isHandled());
+        Assertions.assertArrayEquals(expectedReadAck(5678), result.getResponseFrame());
+    }
+
+    @Test
+    void handle_whenReadDeepLowEnergyCommand_shouldReturnCurrentDeepLowEnergyAck() {
+        DeviceRuntimeState runtimeState = new DeviceRuntimeState()
+                .setLastDeepLowEnergy(new BigDecimal("67.89"));
+
+        CommandHandleResult result = responder.handle(runtimeState,
+                buildDownlinkFrame(buildReadCommand(AcrelRegisterMappingEnum.DEEP_LOW_ENERGY)));
+
+        Assertions.assertTrue(result.isHandled());
+        Assertions.assertArrayEquals(expectedReadAck(6789), result.getResponseFrame());
+    }
+
+    @Test
     void handle_whenFrameIsNotDownlink_shouldReturnUnhandled() {
         DeviceRuntimeState runtimeState = new DeviceRuntimeState()
                 .setSwitchStatus("ON");
@@ -137,6 +197,18 @@ class Acrel4gCommandResponderTest {
                 (byte) (mapping.getStartRegister() & 0xFF),
                 (byte) ((mapping.getQuantity() >> 8) & 0xFF),
                 (byte) (mapping.getQuantity() & 0xFF)
+        });
+    }
+
+    private byte[] expectedReadAck(int energyValue) {
+        return withCrc(new byte[]{
+                0x01,
+                (byte) ModbusRtuBuilder.FUNCTION_READ,
+                0x04,
+                (byte) ((energyValue >> 24) & 0xFF),
+                (byte) ((energyValue >> 16) & 0xFF),
+                (byte) ((energyValue >> 8) & 0xFF),
+                (byte) (energyValue & 0xFF)
         });
     }
 

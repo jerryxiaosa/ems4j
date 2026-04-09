@@ -3,13 +3,8 @@ import type { RouteRecordRaw } from 'vue-router'
 export const reportRoutes: RouteRecordRaw[] = [
   {
     path: '/reports/electric-bill',
-    component: () => import('@/views/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reports/ElectricBillReportView.vue'),
     meta: { requiresAuth: true, title: '电费报表' }
-  },
-  {
-    path: '/reports/daily-electricity',
-    component: () => import('@/views/ModulePlaceholderView.vue'),
-    meta: { requiresAuth: true, title: '每日用电统计' }
   },
   {
     path: '/reports/monthly-electricity',

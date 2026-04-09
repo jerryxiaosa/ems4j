@@ -15,6 +15,9 @@ import info.zhihui.ems.business.report.entity.ReportJobLogEntity;
 import info.zhihui.ems.business.report.enums.ReportJobStatusEnum;
 import info.zhihui.ems.business.report.enums.ReportTriggerTypeEnum;
 import info.zhihui.ems.business.report.qo.DailyMeterCandidateQo;
+import info.zhihui.ems.business.report.qo.ElectricBillAccountSummaryQo;
+import info.zhihui.ems.business.report.qo.ElectricBillMeterCountQo;
+import info.zhihui.ems.business.report.qo.ElectricBillReportQueryQo;
 import info.zhihui.ems.business.report.qo.MeterSnapshotSourceQo;
 import info.zhihui.ems.business.report.qo.PowerRecordSnapshotSourceQo;
 import info.zhihui.ems.business.report.qo.RechargeSourceItemQo;
@@ -594,6 +597,20 @@ class DailyReportBuildServiceImplTest {
         }
 
         @Override
+        public List<ElectricBillMeterCountQo> findMeterCountListByAccountIdList(LocalDate startDate,
+                                                                                LocalDate endDate,
+                                                                                List<Integer> accountIdList) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<DailyMeterReportEntity> findListByAccountIdAndDateRange(Integer accountId,
+                                                                            LocalDate startDate,
+                                                                            LocalDate endDate) {
+            return Collections.emptyList();
+        }
+
+        @Override
         public List<org.apache.ibatis.executor.BatchResult> insert(Collection<DailyMeterReportEntity> entityList) {
             operationList.add("meter.insert:" + entityList.size());
             return List.of();
@@ -640,6 +657,25 @@ class DailyReportBuildServiceImplTest {
         public List<DailyAccountReportEntity> findListByReportDateAndAccountIdList(LocalDate reportDate, List<Integer> accountIdList) {
             accountIdQueryList.add(new ArrayList<>(accountIdList));
             return previousReportListToReturn;
+        }
+
+        @Override
+        public List<ElectricBillAccountSummaryQo> findElectricBillAccountPageList(ElectricBillReportQueryQo queryQo) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public ElectricBillAccountSummaryQo getElectricBillAccountSummary(Integer accountId,
+                                                                          LocalDate startDate,
+                                                                          LocalDate endDate) {
+            return null;
+        }
+
+        @Override
+        public DailyAccountReportEntity getLatestByAccountIdAndDateRange(Integer accountId,
+                                                                         LocalDate startDate,
+                                                                         LocalDate endDate) {
+            return null;
         }
 
         @Override

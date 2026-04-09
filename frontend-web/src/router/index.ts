@@ -25,6 +25,12 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true, title: '登录' }
   },
   {
+    path: '/preview/electric-bill',
+    name: 'ElectricBillReportPreview',
+    component: () => import('@/views/reports/ElectricBillReportView.vue'),
+    meta: { public: true, title: '电费报表预览' }
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     meta: { requiresAuth: true },

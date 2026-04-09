@@ -6,6 +6,9 @@ import info.zhihui.ems.business.report.entity.ReportJobLogEntity;
 import info.zhihui.ems.business.report.enums.MeterReportGenerateTypeEnum;
 import info.zhihui.ems.business.report.enums.ReportJobStatusEnum;
 import info.zhihui.ems.business.report.enums.ReportTriggerTypeEnum;
+import info.zhihui.ems.business.report.qo.ElectricBillAccountSummaryQo;
+import info.zhihui.ems.business.report.qo.ElectricBillMeterCountQo;
+import info.zhihui.ems.business.report.qo.ElectricBillReportQueryQo;
 import info.zhihui.ems.business.report.repository.report.DailyAccountReportRepository;
 import info.zhihui.ems.business.report.repository.report.DailyMeterReportRepository;
 import info.zhihui.ems.business.report.repository.report.ReportJobLogRepository;
@@ -20,6 +23,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -251,5 +257,129 @@ class DailyReportRepositoryIntegrationTest {
         assertEquals(1, successUpdateCount);
         assertEquals(1, failedUpdateCount);
         assertEquals(ReportJobStatusEnum.FAILED.getCode(), currentStatus);
+    }
+
+    @Test
+    @DisplayName("电费报表账户汇总查询应支持区间聚合与名称过滤")
+    void testDailyAccountReportRepository_ShouldAggregateElectricBillAccountSummary() {
+        dailyAccountReportRepository.insert(List.of(
+                createDailyAccountReportEntity(10, "企业A", 0, LocalDate.of(2026, 4, 5),
+                        new BigDecimal("10.00"), new BigDecimal("12.30"), BigDecimal.ZERO,
+                        new BigDecimal("20.00"), new BigDecimal("1.50"), new BigDecimal("14.80")),
+                createDailyAccountReportEntity(10, "企业A", 0, LocalDate.of(2026, 4, 6),
+                        new BigDecimal("8.50"), new BigDecimal("10.20"), BigDecimal.ZERO,
+                        new BigDecimal("5.00"), new BigDecimal("-0.50"), new BigDecimal("10.70")),
+                createDailyAccountReportEntity(20, "企业B", 1, LocalDate.of(2026, 4, 6),
+                        new BigDecimal("0.00"), BigDecimal.ZERO, new BigDecimal("50.00"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("50.00"))
+        ));
+
+        List<ElectricBillAccountSummaryQo> accountSummaryList = dailyAccountReportRepository.findElectricBillAccountPageList(
+                new ElectricBillReportQueryQo()
+                        .setAccountNameLike("企业A")
+                        .setStartDate(LocalDate.of(2026, 4, 5))
+                        .setEndDate(LocalDate.of(2026, 4, 6))
+        );
+        ElectricBillAccountSummaryQo accountSummary = dailyAccountReportRepository.getElectricBillAccountSummary(
+                20, LocalDate.of(2026, 4, 5), LocalDate.of(2026, 4, 6)
+        );
+
+        assertEquals(1, accountSummaryList.size());
+        assertEquals(10, accountSummaryList.get(0).getAccountId());
+        assertEquals(0, new BigDecimal("18.50").compareTo(accountSummaryList.get(0).getPeriodConsumePower()));
+        assertEquals(0, new BigDecimal("22.50").compareTo(accountSummaryList.get(0).getPeriodElectricChargeAmount()));
+        assertEquals(0, new BigDecimal("25.00").compareTo(accountSummaryList.get(0).getPeriodRechargeAmount()));
+        assertEquals(0, new BigDecimal("1.00").compareTo(accountSummaryList.get(0).getPeriodCorrectionAmount()));
+        assertEquals(0, new BigDecimal("25.50").compareTo(accountSummaryList.get(0).getTotalDebitAmount()));
+
+        assertNotNull(accountSummary);
+        assertEquals(20, accountSummary.getAccountId());
+        assertEquals(0, new BigDecimal("50.00").compareTo(accountSummary.getPeriodMonthlyChargeAmount()));
+    }
+
+    @Test
+    @DisplayName("电费报表电表数量与区间明细查询应返回稳定结果")
+    void testDailyMeterReportRepository_ShouldFindMeterCountAndDateRangeList() {
+        dailyMeterReportRepository.insert(List.of(
+                createDailyMeterReportEntity(10, 100, "设备100", "电表100", LocalDate.of(2026, 4, 5)),
+                createDailyMeterReportEntity(10, 100, "设备100", "电表100", LocalDate.of(2026, 4, 6)),
+                createDailyMeterReportEntity(10, 101, "设备101", "电表101", LocalDate.of(2026, 4, 6)),
+                createDailyMeterReportEntity(20, 200, "设备200", "电表200", LocalDate.of(2026, 4, 6))
+        ));
+        DailyAccountReportEntity latestReport = new DailyAccountReportEntity()
+                .setReportDate(LocalDate.of(2026, 4, 6))
+                .setAccountId(10)
+                .setOwnerName("企业A")
+                .setElectricAccountType(0)
+                .setEndBalance(new BigDecimal("88.80"));
+        latestReport.setCreateTime(LocalDateTime.of(2026, 4, 7, 1, 0));
+        dailyAccountReportRepository.insert(List.of(latestReport));
+
+        List<ElectricBillMeterCountQo> meterCountList = dailyMeterReportRepository.findMeterCountListByAccountIdList(
+                LocalDate.of(2026, 4, 5), LocalDate.of(2026, 4, 6), List.of(10, 20)
+        );
+        List<DailyMeterReportEntity> meterReportList = dailyMeterReportRepository.findListByAccountIdAndDateRange(
+                10, LocalDate.of(2026, 4, 5), LocalDate.of(2026, 4, 6)
+        );
+        DailyAccountReportEntity latestAccountReport = dailyAccountReportRepository.getLatestByAccountIdAndDateRange(
+                10, LocalDate.of(2026, 4, 5), LocalDate.of(2026, 4, 6)
+        );
+
+        Map<Integer, Integer> meterCountMap = meterCountList.stream()
+                .collect(Collectors.toMap(ElectricBillMeterCountQo::getAccountId,
+                        ElectricBillMeterCountQo::getMeterCount,
+                        (left, right) -> right));
+
+        assertEquals(2, meterCountMap.get(10));
+        assertEquals(1, meterCountMap.get(20));
+        assertEquals(3, meterReportList.size());
+        assertEquals(100, meterReportList.get(0).getMeterId());
+        assertEquals(100, meterReportList.get(1).getMeterId());
+        assertEquals(101, meterReportList.get(2).getMeterId());
+        assertNotNull(latestAccountReport);
+        assertEquals(0, new BigDecimal("88.80").compareTo(latestAccountReport.getEndBalance()));
+    }
+
+    private DailyAccountReportEntity createDailyAccountReportEntity(Integer accountId,
+                                                                    String ownerName,
+                                                                    Integer electricAccountType,
+                                                                    LocalDate reportDate,
+                                                                    BigDecimal consumePower,
+                                                                    BigDecimal electricChargeAmount,
+                                                                    BigDecimal monthlyChargeAmount,
+                                                                    BigDecimal rechargeAmount,
+                                                                    BigDecimal correctionNetAmount,
+                                                                    BigDecimal totalDebitAmount) {
+        DailyAccountReportEntity entity = new DailyAccountReportEntity()
+                .setReportDate(reportDate)
+                .setAccountId(accountId)
+                .setOwnerName(ownerName)
+                .setElectricAccountType(electricAccountType)
+                .setConsumePower(consumePower)
+                .setElectricChargeAmount(electricChargeAmount)
+                .setMonthlyChargeAmount(monthlyChargeAmount)
+                .setRechargeAmount(rechargeAmount)
+                .setCorrectionNetAmount(correctionNetAmount)
+                .setTotalDebitAmount(totalDebitAmount);
+        entity.setCreateTime(LocalDateTime.of(2026, 4, 7, 1, 0));
+        return entity;
+    }
+
+    private DailyMeterReportEntity createDailyMeterReportEntity(Integer accountId,
+                                                                Integer meterId,
+                                                                String deviceNo,
+                                                                String meterName,
+                                                                LocalDate reportDate) {
+        DailyMeterReportEntity entity = new DailyMeterReportEntity()
+                .setReportDate(reportDate)
+                .setAccountId(accountId)
+                .setOwnerName("企业")
+                .setMeterId(meterId)
+                .setDeviceNo(deviceNo)
+                .setMeterName(meterName)
+                .setElectricAccountType(0)
+                .setGenerateType(MeterReportGenerateTypeEnum.NORMAL.getCode());
+        entity.setCreateTime(LocalDateTime.of(2026, 4, 7, 1, 0));
+        return entity;
     }
 }

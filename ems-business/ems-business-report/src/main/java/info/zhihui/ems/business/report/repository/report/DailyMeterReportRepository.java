@@ -2,6 +2,7 @@ package info.zhihui.ems.business.report.repository.report;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import info.zhihui.ems.business.report.entity.DailyMeterReportEntity;
+import info.zhihui.ems.business.report.qo.ElectricBillMeterCountQo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -39,4 +40,28 @@ public interface DailyMeterReportRepository extends BaseMapper<DailyMeterReportE
      */
     List<DailyMeterReportEntity> findActiveListByReportDateAndAccountIdList(@Param("reportDate") LocalDate reportDate,
                                                                             @Param("accountIdList") List<Integer> accountIdList);
+
+    /**
+     * 查询账户在统计区间内的去重电表数量。
+     *
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @param accountIdList 账户ID列表
+     * @return 电表数量列表
+     */
+    List<ElectricBillMeterCountQo> findMeterCountListByAccountIdList(@Param("startDate") LocalDate startDate,
+                                                                     @Param("endDate") LocalDate endDate,
+                                                                     @Param("accountIdList") List<Integer> accountIdList);
+
+    /**
+     * 查询单个账户在统计区间内的电表日报列表。
+     *
+     * @param accountId 账户ID
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 电表日报列表
+     */
+    List<DailyMeterReportEntity> findListByAccountIdAndDateRange(@Param("accountId") Integer accountId,
+                                                                 @Param("startDate") LocalDate startDate,
+                                                                 @Param("endDate") LocalDate endDate);
 }

@@ -342,9 +342,12 @@ class DailyMeterReportBuilder {
         BigDecimal correctionPayAmount = BigDecimal.ZERO;
         BigDecimal correctionRefundAmount = BigDecimal.ZERO;
         for (ElectricMeterBalanceConsumeRecordEntity correctionRecordEntity : correctionRecordList) {
-            BigDecimal correctionAmount = defaultDecimal(correctionRecordEntity.getConsumeAmount());
-            correctionPayAmount = correctionPayAmount.add(correctionAmount.max(BigDecimal.ZERO));
-            correctionRefundAmount = correctionRefundAmount.add(correctionAmount.min(BigDecimal.ZERO).abs());
+            BigDecimal consumeAmount = defaultDecimal(correctionRecordEntity.getConsumeAmount());
+            if (consumeAmount.signum() >= 0) {
+                correctionPayAmount = correctionPayAmount.add(consumeAmount);
+            } else {
+                correctionRefundAmount = correctionRefundAmount.add(consumeAmount.abs());
+            }
         }
 
         reportEntity.setCorrectionPayAmount(correctionPayAmount);

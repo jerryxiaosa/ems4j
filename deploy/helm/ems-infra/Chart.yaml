@@ -2,5 +2,5 @@ apiVersion: v2
 name: ems-infra
 description: EMS4J infrastructure stack for single-node K3s
 type: application
-version: 0.1.0
-appVersion: "0.5.2"
+version: 0.6.0
+appVersion: "0.6.0"

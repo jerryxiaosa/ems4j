@@ -9,7 +9,7 @@ image:
 backend:
   image:
     repository: "backend"
-    tag: "0.5.2"
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -34,7 +34,7 @@ backend:
 frontend:
   image:
     repository: "frontend"
-    tag: "0.5.2"
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -43,7 +43,7 @@ frontend:
 iot:
   image:
     repository: "iot"
-    tag: "0.5.2"
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -69,7 +69,7 @@ iot:
 iotSimulator:
   image:
     repository: "iot-simulator"
-    tag: "0.5.2"
+    tag: "0.6.0"
     pullPolicy: IfNotPresent
   replicas: 1
   env:

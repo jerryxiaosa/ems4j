@@ -79,8 +79,10 @@ public class Acrel4gCommandResponder {
         if (isWriteCommand(modbusFrame, AcrelRegisterMappingEnum.CONTROL, RECOVER_COMMAND_DATA)) {
             return new ParsedModbusCommand(CommandTypeEnum.RECOVER, modbusFrame);
         }
-        if (isReadCommand(modbusFrame, AcrelRegisterMappingEnum.TOTAL_ENERGY)) {
-            return new ParsedModbusCommand(CommandTypeEnum.READ_TOTAL_ENERGY, modbusFrame);
+        for (EnergyReadCommandTypeEnum energyReadCommandTypeEnum : EnergyReadCommandTypeEnum.values()) {
+            if (isReadCommand(modbusFrame, energyReadCommandTypeEnum.mappingEnum())) {
+                return new ParsedModbusCommand(energyReadCommandTypeEnum.commandTypeEnum(), modbusFrame);
+            }
         }
         return null;
     }
@@ -93,7 +95,16 @@ public class Acrel4gCommandResponder {
         return switch (parsedModbusCommand.commandTypeEnum()) {
             case CUT_OFF -> handleCutOff(runtimeState, parsedModbusCommand.modbusFrame());
             case RECOVER -> handleRecover(runtimeState, parsedModbusCommand.modbusFrame());
-            case READ_TOTAL_ENERGY -> handleReadTotalEnergy(runtimeState, parsedModbusCommand.modbusFrame());
+            case READ_TOTAL_ENERGY,
+                 READ_HIGHER_ENERGY,
+                 READ_HIGH_ENERGY,
+                 READ_LOW_ENERGY,
+                 READ_LOWER_ENERGY,
+                 READ_DEEP_LOW_ENERGY -> handleReadEnergy(
+                    runtimeState,
+                    parsedModbusCommand.commandTypeEnum(),
+                    parsedModbusCommand.modbusFrame()
+            );
         };
     }
 
@@ -116,13 +127,17 @@ public class Acrel4gCommandResponder {
     }
 
     /**
-     * 处理读总电量命令，按协议整数缩放规则返回当前累计电量。
+     * 处理电量读取命令，按命令类型返回对应累计电量。
      */
-    private CommandHandleResult handleReadTotalEnergy(DeviceRuntimeState runtimeState, byte[] modbusFrame) {
-        log.info("模拟设备收到读总电量命令 deviceNo={} totalEnergy={}",
+    private CommandHandleResult handleReadEnergy(DeviceRuntimeState runtimeState,
+                                                 CommandTypeEnum commandTypeEnum,
+                                                 byte[] modbusFrame) {
+        BigDecimal energyValue = resolveEnergyValue(runtimeState, commandTypeEnum);
+        log.info("模拟设备收到读电量命令 deviceNo={} commandName={} energy={}",
                 resolveDeviceNo(runtimeState),
-                runtimeState.getLastTotalEnergy());
-        return handledResult(buildReadTotalEnergyAck(runtimeState, modbusFrame), CommandTypeEnum.READ_TOTAL_ENERGY);
+                commandTypeEnum.name(),
+                energyValue);
+        return handledResult(buildReadEnergyAck(energyValue, modbusFrame), commandTypeEnum);
     }
 
     /**
@@ -188,18 +203,36 @@ public class Acrel4gCommandResponder {
     /**
      * 为读总电量命令构造 4 字节整数数据应答。
      */
-    private byte[] buildReadTotalEnergyAck(DeviceRuntimeState runtimeState, byte[] modbusFrame) {
-        int totalEnergyValue = scaleEnergy(runtimeState.getLastTotalEnergy());
+    private byte[] buildReadEnergyAck(BigDecimal energyValue, byte[] modbusFrame) {
+        int scaledEnergyValue = scaleEnergy(energyValue);
         byte[] body = new byte[]{
                 modbusFrame[0],
                 (byte) ModbusRtuBuilder.FUNCTION_READ,
                 0x04,
-                (byte) ((totalEnergyValue >> 24) & 0xFF),
-                (byte) ((totalEnergyValue >> 16) & 0xFF),
-                (byte) ((totalEnergyValue >> 8) & 0xFF),
-                (byte) (totalEnergyValue & 0xFF)
+                (byte) ((scaledEnergyValue >> 24) & 0xFF),
+                (byte) ((scaledEnergyValue >> 16) & 0xFF),
+                (byte) ((scaledEnergyValue >> 8) & 0xFF),
+                (byte) (scaledEnergyValue & 0xFF)
         };
         return appendCrc(body);
+    }
+
+    /**
+     * 根据电量读命令类型，从运行态中取出对应的累计电量。
+     */
+    private BigDecimal resolveEnergyValue(DeviceRuntimeState runtimeState, CommandTypeEnum commandTypeEnum) {
+        if (runtimeState == null) {
+            return BigDecimal.ZERO;
+        }
+        return switch (commandTypeEnum) {
+            case READ_TOTAL_ENERGY -> runtimeState.getLastTotalEnergy();
+            case READ_HIGHER_ENERGY -> runtimeState.getLastHigherEnergy();
+            case READ_HIGH_ENERGY -> runtimeState.getLastHighEnergy();
+            case READ_LOW_ENERGY -> runtimeState.getLastLowEnergy();
+            case READ_LOWER_ENERGY -> runtimeState.getLastLowerEnergy();
+            case READ_DEEP_LOW_ENERGY -> runtimeState.getLastDeepLowEnergy();
+            case CUT_OFF, RECOVER -> BigDecimal.ZERO;
+        };
     }
 
     /**
@@ -271,7 +304,37 @@ public class Acrel4gCommandResponder {
     private enum CommandTypeEnum {
         CUT_OFF,
         RECOVER,
-        READ_TOTAL_ENERGY
+        READ_TOTAL_ENERGY,
+        READ_HIGHER_ENERGY,
+        READ_HIGH_ENERGY,
+        READ_LOW_ENERGY,
+        READ_LOWER_ENERGY,
+        READ_DEEP_LOW_ENERGY
+    }
+
+    private enum EnergyReadCommandTypeEnum {
+        TOTAL(CommandTypeEnum.READ_TOTAL_ENERGY, AcrelRegisterMappingEnum.TOTAL_ENERGY),
+        HIGHER(CommandTypeEnum.READ_HIGHER_ENERGY, AcrelRegisterMappingEnum.HIGHER_ENERGY),
+        HIGH(CommandTypeEnum.READ_HIGH_ENERGY, AcrelRegisterMappingEnum.HIGH_ENERGY),
+        LOW(CommandTypeEnum.READ_LOW_ENERGY, AcrelRegisterMappingEnum.LOW_ENERGY),
+        LOWER(CommandTypeEnum.READ_LOWER_ENERGY, AcrelRegisterMappingEnum.LOWER_ENERGY),
+        DEEP_LOW(CommandTypeEnum.READ_DEEP_LOW_ENERGY, AcrelRegisterMappingEnum.DEEP_LOW_ENERGY);
+
+        private final CommandTypeEnum commandTypeEnum;
+        private final AcrelRegisterMappingEnum mappingEnum;
+
+        EnergyReadCommandTypeEnum(CommandTypeEnum commandTypeEnum, AcrelRegisterMappingEnum mappingEnum) {
+            this.commandTypeEnum = commandTypeEnum;
+            this.mappingEnum = mappingEnum;
+        }
+
+        private CommandTypeEnum commandTypeEnum() {
+            return commandTypeEnum;
+        }
+
+        private AcrelRegisterMappingEnum mappingEnum() {
+            return mappingEnum;
+        }
     }
 
     private record ParsedModbusCommand(CommandTypeEnum commandTypeEnum, byte[] modbusFrame) {
