@@ -68,14 +68,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageResult<UserBo> findUserPage(@NotNull @Valid UserQueryDto queryDto, @NotNull PageParam pageParam) {
         UserQueryQo qo = mapper.queryDtoToQo(queryDto);
+        PageResult<UserBo> result;
         try (Page<UserEntity> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
             PageInfo<UserEntity> pageInfo = page.doSelectPageInfo(() -> repository.selectByQo(qo));
-            PageResult<UserBo> result = mapper.pageEntityToPageBo(pageInfo);
-
-            fillUserRoles(result.getList());
-
-            return result;
+            result = mapper.pageEntityToPageBo(pageInfo);
         }
+
+        fillUserRoles(result.getList());
+
+        return result;
     }
 
     /**

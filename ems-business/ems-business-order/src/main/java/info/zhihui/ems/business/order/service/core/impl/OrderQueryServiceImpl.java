@@ -60,13 +60,16 @@ public class OrderQueryServiceImpl implements OrderQueryService {
     @Transactional(readOnly = true)
     public PageResult<OrderListDto> findOrdersPage(@NotNull OrderQueryDto dto, @NotNull PageParam pageParam) {
         OrderQueryQo queryQo = buildOrderQueryQo(dto);
+        PageResult<OrderListDto> pageResult;
 
         try (Page<OrderListItemQo> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
             PageInfo<OrderListItemQo> pageInfo = page.doSelectPageInfo(() -> orderRepository.findList(queryQo));
-            PageResult<OrderListDto> pageResult = orderMapper.pageOrderListItemQoToOrderListDto(pageInfo);
-            fillMeterInfo(pageResult);
-            return pageResult;
+            pageResult = orderMapper.pageOrderListItemQoToOrderListDto(pageInfo);
         }
+
+        fillMeterInfo(pageResult);
+
+        return pageResult;
     }
 
     @Override

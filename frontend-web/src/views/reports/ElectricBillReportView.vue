@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import {
   fetchElectricBillReportDetail,
   fetchElectricBillReportPage
@@ -14,8 +13,6 @@ import type {
   ElectricBillReportPageResult,
   ElectricBillReportQuery
 } from '@/types/report'
-
-const route = useRoute()
 
 const NOTICE_VISIBLE_MS = 3500
 const DAY_IN_MS = 24 * 60 * 60 * 1000
@@ -59,7 +56,6 @@ const queryForm = reactive<ElectricBillReportQuery>({
   pageSize: 10
 })
 
-const isPreviewRoute = computed(() => route.path.startsWith('/preview/'))
 const yesterdayText = computed(() => getYesterdayText())
 
 const clearNoticeTimer = () => {
@@ -187,8 +183,6 @@ onMounted(async () => {
 
 <template>
   <div class="page">
-    <div v-if="isPreviewRoute" class="preview-breadcrumb">能耗预付费系统 / 电费报表</div>
-
     <div v-if="notice.text" class="notice" :class="`notice-${notice.type}`">
       {{ notice.text }}
     </div>
@@ -311,12 +305,6 @@ onMounted(async () => {
 .page {
   display: grid;
   gap: 16px;
-}
-
-.preview-breadcrumb {
-  font-size: var(--es-font-size-md);
-  font-weight: 600;
-  color: var(--es-color-text-primary);
 }
 
 .notice {

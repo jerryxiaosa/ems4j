@@ -1,8 +1,11 @@
 package info.zhihui.ems.business.report.service.query.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.report.bo.ElectricBillReportDetailBo;
+import info.zhihui.ems.business.report.bo.ElectricBillReportPageItemBo;
 import info.zhihui.ems.business.report.dto.ElectricBillReportQueryDto;
 import info.zhihui.ems.business.report.entity.DailyAccountReportEntity;
 import info.zhihui.ems.business.report.entity.DailyMeterReportEntity;
@@ -13,6 +16,8 @@ import info.zhihui.ems.business.report.repository.report.DailyAccountReportRepos
 import info.zhihui.ems.business.report.repository.report.DailyMeterReportRepository;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.exception.NotFoundException;
+import info.zhihui.ems.common.paging.PageParam;
+import info.zhihui.ems.common.paging.PageResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +32,36 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ElectricBillReportQueryServiceImplTest {
+
+    @Test
+    @DisplayName("分页列表应在分页查询结束后再统计电表数量")
+    void testFindPage_ShouldBuildMeterCountAfterPageQuery() {
+        FakeDailyAccountReportRepository accountReportRepository = new FakeDailyAccountReportRepository();
+        FakeDailyMeterReportRepository meterReportRepository = new FakeDailyMeterReportRepository();
+        FakeAccountInfoService accountInfoService = new FakeAccountInfoService();
+        ElectricBillReportQueryServiceImpl service = new ElectricBillReportQueryServiceImpl(
+                accountReportRepository, meterReportRepository, accountInfoService
+        );
+        accountReportRepository.pageListToReturn = List.of(
+                new ElectricBillAccountSummaryQo()
+                        .setAccountId(101)
+                        .setAccountName("企业A")
+                        .setElectricAccountType(ElectricAccountTypeEnum.QUANTITY.getCode())
+        );
+        meterReportRepository.meterCountListToReturn = List.of(
+                new ElectricBillMeterCountQo().setAccountId(101).setMeterCount(2)
+        );
+        ElectricBillReportQueryDto queryDto = new ElectricBillReportQueryDto()
+                .setStartDate(LocalDate.of(2026, 4, 1))
+                .setEndDate(LocalDate.of(2026, 4, 8));
+        PageParam pageParam = new PageParam().setPageNum(2).setPageSize(10);
+
+        PageResult<ElectricBillReportPageItemBo> pageResult = service.findPage(queryDto, pageParam);
+
+        assertThat(pageResult.getList()).hasSize(1);
+        assertThat(pageResult.getList().get(0).getMeterCount()).isEqualTo(2);
+        assertThat(meterReportRepository.localPagePresentWhenQueryMeterCount).isFalse();
+    }
 
     @Test
     @DisplayName("合并计费详情应保留电表单价和电费，仅隐藏充值补正字段")
@@ -250,6 +285,8 @@ class ElectricBillReportQueryServiceImplTest {
     private static class FakeDailyAccountReportRepository extends BaseMapperStub<DailyAccountReportEntity>
             implements DailyAccountReportRepository {
 
+        private List<ElectricBillAccountSummaryQo> pageListToReturn = Collections.emptyList();
+
         private ElectricBillAccountSummaryQo accountSummaryToReturn;
 
         private DailyAccountReportEntity latestReportToReturn;
@@ -277,7 +314,12 @@ class ElectricBillReportQueryServiceImplTest {
 
         @Override
         public List<ElectricBillAccountSummaryQo> findElectricBillAccountPageList(ElectricBillReportQueryQo queryQo) {
-            return Collections.emptyList();
+            com.github.pagehelper.Page<ElectricBillAccountSummaryQo> localPage = PageMethod.getLocalPage();
+            if (localPage != null) {
+                localPage.addAll(pageListToReturn);
+                localPage.setTotal(pageListToReturn.size());
+            }
+            return pageListToReturn;
         }
 
         @Override
@@ -298,7 +340,11 @@ class ElectricBillReportQueryServiceImplTest {
     private static class FakeDailyMeterReportRepository extends BaseMapperStub<DailyMeterReportEntity>
             implements DailyMeterReportRepository {
 
+        private List<ElectricBillMeterCountQo> meterCountListToReturn = Collections.emptyList();
+
         private List<DailyMeterReportEntity> reportListByDateRangeToReturn = new ArrayList<>();
+
+        private boolean localPagePresentWhenQueryMeterCount;
 
         @Override
         public int deleteByReportDate(LocalDate reportDate) {
@@ -320,7 +366,8 @@ class ElectricBillReportQueryServiceImplTest {
         public List<ElectricBillMeterCountQo> findMeterCountListByAccountIdList(LocalDate startDate,
                                                                                 LocalDate endDate,
                                                                                 List<Integer> accountIdList) {
-            return Collections.emptyList();
+            localPagePresentWhenQueryMeterCount = PageMethod.getLocalPage() != null;
+            return meterCountListToReturn;
         }
 
         @Override

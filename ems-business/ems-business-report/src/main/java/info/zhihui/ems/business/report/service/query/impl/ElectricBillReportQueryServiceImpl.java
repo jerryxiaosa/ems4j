@@ -59,29 +59,30 @@ public class ElectricBillReportQueryServiceImpl implements ElectricBillReportQue
                 .setStartDate(query.getStartDate())
                 .setEndDate(query.getEndDate());
 
+        PageInfo<ElectricBillAccountSummaryQo> pageInfo;
         try (Page<ElectricBillAccountSummaryQo> page = PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize())) {
-            PageInfo<ElectricBillAccountSummaryQo> pageInfo =
-                    page.doSelectPageInfo(() -> dailyAccountReportRepository.findElectricBillAccountPageList(queryQo));
-            List<ElectricBillAccountSummaryQo> accountSummaryList = pageInfo.getList();
-            if (CollectionUtils.isEmpty(accountSummaryList)) {
-                return new PageResult<ElectricBillReportPageItemBo>()
-                        .setPageNum(pageInfo.getPageNum())
-                        .setPageSize(pageInfo.getPageSize())
-                        .setTotal(pageInfo.getTotal())
-                        .setList(Collections.emptyList());
-            }
+            pageInfo = page.doSelectPageInfo(() -> dailyAccountReportRepository.findElectricBillAccountPageList(queryQo));
+        }
 
-            Map<Integer, Integer> meterCountMap = buildMeterCountMap(accountSummaryList, query);
-            List<ElectricBillReportPageItemBo> pageItemBoList = new ArrayList<>(accountSummaryList.size());
-            for (ElectricBillAccountSummaryQo accountSummary : accountSummaryList) {
-                pageItemBoList.add(toPageItemBo(accountSummary, meterCountMap));
-            }
+        List<ElectricBillAccountSummaryQo> accountSummaryList = pageInfo.getList();
+        if (CollectionUtils.isEmpty(accountSummaryList)) {
             return new PageResult<ElectricBillReportPageItemBo>()
                     .setPageNum(pageInfo.getPageNum())
                     .setPageSize(pageInfo.getPageSize())
                     .setTotal(pageInfo.getTotal())
-                    .setList(pageItemBoList);
+                    .setList(Collections.emptyList());
         }
+
+        Map<Integer, Integer> meterCountMap = buildMeterCountMap(accountSummaryList, query);
+        List<ElectricBillReportPageItemBo> pageItemBoList = new ArrayList<>(accountSummaryList.size());
+        for (ElectricBillAccountSummaryQo accountSummary : accountSummaryList) {
+            pageItemBoList.add(toPageItemBo(accountSummary, meterCountMap));
+        }
+        return new PageResult<ElectricBillReportPageItemBo>()
+                .setPageNum(pageInfo.getPageNum())
+                .setPageSize(pageInfo.getPageSize())
+                .setTotal(pageInfo.getTotal())
+                .setList(pageItemBoList);
     }
 
     /**
