@@ -42,6 +42,9 @@ public class DeviceOperationVo {
     @Schema(description = "是否执行中")
     private Boolean isRunning;
 
+    @Schema(description = "是否允许重试")
+    private Boolean ensureSuccess;
+
     @Schema(description = "执行次数")
     private Integer executeTimes;
 

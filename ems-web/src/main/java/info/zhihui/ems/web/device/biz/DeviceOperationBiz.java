@@ -108,6 +108,7 @@ public class DeviceOperationBiz {
                 .setCommandTypeName(commandType == null ? null : commandType.getInfo())
                 .setSuccess(commandRecordBo.getSuccess())
                 .setIsRunning(commandRecordBo.getIsRunning())
+                .setEnsureSuccess(commandRecordBo.getEnsureSuccess())
                 .setExecuteTimes(commandRecordBo.getExecuteTimes())
                 .setMaxExecuteTimes(retryProperties.getMaxExecuteTimes())
                 .setOperateUserName(commandRecordBo.getOperateUserName())
