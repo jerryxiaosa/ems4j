@@ -1,24 +1,22 @@
 package info.zhihui.ems.foundation.integration.concrete.energy.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import info.zhihui.ems.common.enums.ElectricPricePeriodEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.model.energy.DailyEnergySlot;
 import info.zhihui.ems.common.model.energy.DatePlanItem;
-import info.zhihui.ems.common.utils.JacksonUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.foundation.integration.concrete.energy.dto.*;
+import info.zhihui.ems.foundation.integration.concrete.energy.dto.platform.DefaultIotHttpRequestConfig;
 import info.zhihui.ems.foundation.integration.concrete.energy.service.EnergyService;
 import info.zhihui.ems.foundation.integration.core.enums.ModuleEnum;
 import info.zhihui.ems.foundation.integration.core.service.DeviceModuleConfigService;
-import info.zhihui.ems.foundation.integration.concrete.energy.dto.platform.DefaultIotHttpRequestConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -33,6 +31,7 @@ import java.util.function.Supplier;
  * @author jerryxiaosa
  */
 @Service
+@Slf4j
 public class DefaultEnergyServiceImpl implements EnergyService {
 
     private final DeviceModuleConfigService deviceModuleConfigService;
@@ -464,9 +463,11 @@ public class DefaultEnergyServiceImpl implements EnergyService {
         try {
             return assertSuccess(action, requestSupplier.get());
         } catch (RestClientResponseException ex) {
-            throw new BusinessRuntimeException(action + "失败：" + resolveHttpErrorMessage(ex));
-        } catch (RestClientException ex) {
-            throw new BusinessRuntimeException(action + "失败：调用IoT接口异常");
+            log.error("RestClient接口调用失败，action={}", action, ex);
+            throw new BusinessRuntimeException(action + "失败：" + ex.getMessage());
+        } catch (Exception ex) {
+            log.error("调用失败，action={}", action, ex);
+            throw new BusinessRuntimeException(action + "失败：" + ex.getMessage());
         }
     }
 
@@ -482,32 +483,6 @@ public class DefaultEnergyServiceImpl implements EnergyService {
             throw new BusinessRuntimeException(action + "失败：" + message);
         }
         return response;
-    }
-
-    /**
-     * 解析 HTTP 异常响应中的业务错误信息。
-     */
-    private String resolveHttpErrorMessage(RestClientResponseException ex) {
-        RestResult<?> errorResult = tryParseErrorBody(ex.getResponseBodyAsString());
-        if (errorResult != null && StringUtils.isNotBlank(errorResult.getMessage())) {
-            return errorResult.getMessage();
-        }
-        return "HTTP状态码:" + ex.getStatusCode().value();
-    }
-
-    /**
-     * 尝试将错误响应体反序列化为统一返回结构。
-     */
-    private RestResult<?> tryParseErrorBody(String body) {
-        if (StringUtils.isBlank(body)) {
-            return null;
-        }
-        try {
-            return JacksonUtil.fromJson(body, new TypeReference<>() {
-            });
-        } catch (Exception ex) {
-            return null;
-        }
     }
 
     /**

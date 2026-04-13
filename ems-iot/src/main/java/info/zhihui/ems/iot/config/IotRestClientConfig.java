@@ -16,12 +16,12 @@ public class IotRestClientConfig {
     /**
      * IoT HTTP 客户端连接超时时间（毫秒）。
      */
-    private static final int IOT_HTTP_CONNECT_TIMEOUT_MS = 1000;
+    private static final int IOT_HTTP_CONNECT_TIMEOUT_MS = 5000;
 
     /**
      * IoT HTTP 客户端读取超时时间（毫秒）。
      */
-    private static final int IOT_HTTP_READ_TIMEOUT_MS = 3000;
+    private static final int IOT_HTTP_READ_TIMEOUT_MS = 10000;
 
     /**
      * IoT 模块统一使用的 RestClient。
