@@ -221,6 +221,9 @@ const getRetryDisabledReason = (row: DeviceOperationItem) => {
   if (row.isRunning === true) {
     return '当前操作正在执行中'
   }
+  if (row.ensureSuccess !== true) {
+    return '当前命令不支持重试'
+  }
   if (
     row.executeTimes !== undefined &&
     row.executeTimes !== null &&
@@ -245,6 +248,9 @@ const getRetryButtonText = (row: DeviceOperationItem) => {
   }
   if (row.isRunning === true) {
     return '执行中'
+  }
+  if (row.ensureSuccess !== true) {
+    return '不可重试'
   }
   if (
     row.executeTimes !== undefined &&

@@ -78,6 +78,9 @@ const retryDisabledReason = computed(() => {
   if (currentDetail.isRunning === true) {
     return '当前操作正在执行中'
   }
+  if (currentDetail.ensureSuccess !== true) {
+    return '当前命令不支持重试'
+  }
   if (
     currentDetail.executeTimes !== undefined &&
     currentDetail.executeTimes !== null &&
@@ -106,6 +109,9 @@ const retryButtonText = computed(() => {
   }
   if (currentDetail.isRunning === true) {
     return '执行中'
+  }
+  if (currentDetail.ensureSuccess !== true) {
+    return '不可重试'
   }
   if (
     currentDetail.executeTimes !== undefined &&

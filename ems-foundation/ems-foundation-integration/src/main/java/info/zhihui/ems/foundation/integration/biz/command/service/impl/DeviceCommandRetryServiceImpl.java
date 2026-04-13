@@ -69,6 +69,9 @@ public class DeviceCommandRetryServiceImpl implements DeviceCommandRetryService 
         if (Boolean.TRUE.equals(commandRecord.getIsRunning())) {
             throw new BusinessRuntimeException("设备命令正在处理中，请稍后重试");
         }
+        if (!Boolean.TRUE.equals(commandRecord.getEnsureSuccess())) {
+            throw new BusinessRuntimeException("当前命令不支持重试");
+        }
         if (commandRecord.getExecuteTimes() != null
                 && commandRecord.getExecuteTimes() >= retryProperties.getMaxExecuteTimes()) {
             throw new BusinessRuntimeException("设备命令已达到最大执行次数，无法重试");

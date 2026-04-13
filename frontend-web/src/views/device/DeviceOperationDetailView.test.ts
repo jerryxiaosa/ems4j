@@ -148,4 +148,22 @@ describe('DeviceOperationDetailView', () => {
 
     expect(labels.slice(-4)).toEqual(['执行状态', '操作状态', '执行次数', '备注'])
   })
+
+  test('testRetryButton_WhenEnsureSuccessFalse_ShouldDisableRetry', async () => {
+    mockedFetchDeviceOperationDetail.mockResolvedValue(
+      createDetail({
+        success: false,
+        ensureSuccess: false
+      })
+    )
+    mockedFetchDeviceOperationExecuteRecordList.mockResolvedValue([])
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    const retryButton = wrapper.get('.page-actions .btn-primary')
+    expect(retryButton.attributes('title')).toBe('当前命令不支持重试')
+    expect(retryButton.attributes()).toHaveProperty('disabled')
+    expect(retryButton.text()).toBe('不可重试')
+  })
 })

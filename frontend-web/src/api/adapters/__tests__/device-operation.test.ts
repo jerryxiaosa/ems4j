@@ -44,6 +44,7 @@ describe('device-operation adapter', () => {
             spaceName: ' 一层配电房 ',
             commandType: 3,
             success: true,
+            ensureSuccess: false,
             operateUserName: ' admin ',
             createTime: '2026-03-16 10:00:00'
           }
@@ -71,6 +72,7 @@ describe('device-operation adapter', () => {
           commandType: 3,
           commandTypeName: '下发尖峰平谷时间段',
           success: true,
+          ensureSuccess: false,
           successName: '成功',
           operateUserName: 'admin',
           createTime: '2026-03-16 10:00:00'
