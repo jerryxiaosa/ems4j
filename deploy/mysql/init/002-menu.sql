@@ -176,7 +176,13 @@ INSERT INTO sys_menu
 VALUES(68, '删除', 'plan_management_warn_plan_delete', 21, 4, '', 1, 2, '', '', 0, 0, 'plan_management_warn_plan_delete', 1, '管理员', '2026-03-12 15:26:06', 1, '管理员', '2026-04-13 16:35:02');
 INSERT INTO sys_menu
 (id, menu_name, menu_key, pid, sort_num, `path`, menu_source, menu_type, icon, remark, is_hidden, is_deleted, active_menu_key, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
+VALUES(69, '更换电表', 'trade_management_electric_recharge_change_meter', 23, 1, '', 1, 2, '', '', 0, 0, 'trade_management_electric_recharge_change_meter', 1, '管理员', '2026-03-12 15:26:06', 1, '管理员', '2026-04-13 23:20:00');
+INSERT INTO sys_menu
+(id, menu_name, menu_key, pid, sort_num, `path`, menu_source, menu_type, icon, remark, is_hidden, is_deleted, active_menu_key, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
 VALUES(70, '电费服务费设置', 'trade_management_electric_recharge_service_fee_setting', 23, 2, '', 1, 2, '', '', 0, 0, 'trade_management_electric_recharge_service_fee_setting', 1, '管理员', '2026-03-12 15:26:06', 1, '管理员', '2026-04-13 16:48:18');
+INSERT INTO sys_menu
+(id, menu_name, menu_key, pid, sort_num, `path`, menu_source, menu_type, icon, remark, is_hidden, is_deleted, active_menu_key, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
+VALUES(71, '确认充值', 'trade_management_electric_recharge_confirm_recharge', 23, 3, '', 1, 2, '', '', 0, 0, 'trade_management_electric_recharge_confirm_recharge', 1, '管理员', '2026-03-12 15:26:06', 1, '管理员', '2026-04-13 23:20:00');
 INSERT INTO sys_menu
 (id, menu_name, menu_key, pid, sort_num, `path`, menu_source, menu_type, icon, remark, is_hidden, is_deleted, active_menu_key, create_user, create_user_name, create_time, update_user, update_user_name, update_time)
 VALUES(72, '详情', 'trade_management_order_flow_detail', 24, 1, '', 1, 2, '', '', 0, 0, 'trade_management_order_flow_detail', 1, '管理员', '2026-03-12 15:26:06', 1, '管理员', '2026-04-13 16:50:21');
