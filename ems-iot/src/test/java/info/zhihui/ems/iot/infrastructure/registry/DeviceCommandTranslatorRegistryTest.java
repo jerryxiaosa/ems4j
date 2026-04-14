@@ -4,6 +4,11 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.iot.domain.model.DeviceCommand;
 import info.zhihui.ems.iot.domain.model.DeviceCommandResult;
 import info.zhihui.ems.iot.enums.DeviceCommandTypeEnum;
+import info.zhihui.ems.iot.enums.ProductEnum;
+import info.zhihui.ems.iot.plugins.acrel.command.translator.dtsy.AcrelDtsy13524gGetDatePlanTranslator;
+import info.zhihui.ems.iot.plugins.acrel.command.translator.dtsy.AcrelDtsy1352GetDatePlanTranslator;
+import info.zhihui.ems.iot.plugins.acrel.command.translator.standard.AcrelGetDatePlanTranslator;
+import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,6 +51,23 @@ class DeviceCommandTranslatorRegistryTest {
 
         Assertions.assertThrows(BusinessRuntimeException.class, () -> registry.resolve("acrel", "P1",
                 DeviceCommandTypeEnum.GET_CT, String.class));
+    }
+
+    @Test
+    void resolve_whenDtsyProductHasSpecificGetDatePlan_shouldReturnSpecificTranslator() {
+        DeviceCommandTranslatorRegistry registry = new DeviceCommandTranslatorRegistry(List.of(
+                new AcrelGetDatePlanTranslator(),
+                new AcrelDtsy1352GetDatePlanTranslator(),
+                new AcrelDtsy13524gGetDatePlanTranslator()
+        ));
+
+        DeviceCommandTranslator<?> dtsyTranslator = registry.resolve("acrel", ProductEnum.ACREL_DTSY_1352.getCode(),
+                DeviceCommandTypeEnum.GET_DATE_PLAN, ModbusRtuRequest.class);
+        DeviceCommandTranslator<?> dtsy4gTranslator = registry.resolve("acrel", ProductEnum.ACREL_DTSY_1352_4G.getCode(),
+                DeviceCommandTypeEnum.GET_DATE_PLAN, ModbusRtuRequest.class);
+
+        Assertions.assertInstanceOf(AcrelDtsy1352GetDatePlanTranslator.class, dtsyTranslator);
+        Assertions.assertInstanceOf(AcrelDtsy13524gGetDatePlanTranslator.class, dtsy4gTranslator);
     }
 
     private static class DefaultTranslator implements DeviceCommandTranslator<String> {

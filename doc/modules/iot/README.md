@@ -16,6 +16,9 @@
 ### 关键通信机制，通道会话与命令下发
 [channel-manager.md](./channel-manager.md)
 
+### HTTP 命令 curl 调试手册
+[command-curl-guide.md](./command-curl-guide.md)
+
 ### 异常与空值处理规则
 [exception-handling-guidelines.md](./exception-handling-guidelines.md)
 
