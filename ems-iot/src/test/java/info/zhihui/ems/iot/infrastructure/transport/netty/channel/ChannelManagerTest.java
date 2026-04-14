@@ -631,4 +631,35 @@ class ChannelManagerTest {
         Assertions.assertEquals(1, session.getAbnormalTimestamps().size());
     }
 
+    @Test
+    void findClientSnapshotList_shouldReturnRegisteredRuntimeSnapshot() {
+        session.setPendingFuture(new CompletableFuture<>());
+        session.getQueue().offer(new PendingTask("dev-1", new byte[]{1}, new CompletableFuture<>(), true));
+        session.getAbnormalTimestamps().addLast(1L);
+
+        List<ChannelClientSnapshot> snapshots = channelManager.findClientSnapshotList();
+
+        Assertions.assertEquals(1, snapshots.size());
+        ChannelClientSnapshot snapshot = snapshots.get(0);
+        Assertions.assertEquals(channel.id().asLongText(), snapshot.getChannelId());
+        Assertions.assertEquals("dev-1", snapshot.getDeviceNo());
+        Assertions.assertEquals(DeviceTypeEnum.ELECTRIC, snapshot.getDeviceType());
+        Assertions.assertTrue(snapshot.isActive());
+        Assertions.assertTrue(snapshot.isPending());
+        Assertions.assertEquals(1, snapshot.getQueueSize());
+        Assertions.assertEquals(1, snapshot.getAbnormalCount());
+        Assertions.assertTrue(snapshot.isOpen());
+        Assertions.assertTrue(snapshot.isRegistered());
+        Assertions.assertTrue(snapshot.isWritable());
+    }
+
+    @Test
+    void getClientSnapshotByDeviceNo_whenDeviceExists_shouldReturnSnapshot() {
+        ChannelClientSnapshot snapshot = channelManager.getClientSnapshotByDeviceNo("dev-1");
+
+        Assertions.assertNotNull(snapshot);
+        Assertions.assertEquals(channel.id().asLongText(), snapshot.getChannelId());
+        Assertions.assertEquals("dev-1", snapshot.getDeviceNo());
+    }
+
 }

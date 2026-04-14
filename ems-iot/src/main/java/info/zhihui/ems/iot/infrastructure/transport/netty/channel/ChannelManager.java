@@ -3,13 +3,18 @@ package info.zhihui.ems.iot.infrastructure.transport.netty.channel;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.util.HexUtil;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoop;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -215,6 +220,33 @@ public class ChannelManager {
         executeInEventLoop(session, () -> closeAndRemoveInLoop(channelId));
     }
 
+    /**
+     * 查询当前在线客户端快照列表。
+     */
+    public List<ChannelClientSnapshot> findClientSnapshotList() {
+        List<ChannelClientSnapshot> snapshots = new ArrayList<>();
+        for (ChannelSession session : sessions.values()) {
+            ChannelClientSnapshot snapshot = toSnapshot(session);
+            if (snapshot != null) {
+                snapshots.add(snapshot);
+            }
+        }
+        return snapshots;
+    }
+
+    /**
+     * 按设备编号查询当前在线客户端快照。
+     *
+     * @param deviceNo 设备编号
+     * @return 运行态快照，不存在时返回 null
+     */
+    public ChannelClientSnapshot getClientSnapshotByDeviceNo(String deviceNo) {
+        if (StringUtils.isBlank(deviceNo)) {
+            return null;
+        }
+        return toSnapshot(getSessionByDeviceNo(deviceNo));
+    }
+
     private void closeAndRemoveInLoop(String channelId) {
         ChannelSession oldSession = sessions.get(channelId);
         removeInLoop(channelId);
@@ -409,6 +441,37 @@ public class ChannelManager {
             }
         }
         return null;
+    }
+
+    private ChannelClientSnapshot toSnapshot(ChannelSession session) {
+        if (session == null) {
+            return null;
+        }
+        Channel channel = session.getChannel();
+        return new ChannelClientSnapshot()
+                .setChannelId(channel == null ? null : channel.id().asLongText())
+                .setDeviceNo(session.getDeviceNo())
+                .setDeviceType(session.getDeviceType())
+                .setActive(channel != null && channel.isActive())
+                .setOpen(channel != null && channel.isOpen())
+                .setRegistered(channel != null && channel.isRegistered())
+                .setWritable(channel != null && channel.isWritable())
+                .setSending(session.getSending().get())
+                .setPending(session.getPendingFuture() != null)
+                .setQueueSize(session.getQueue().size())
+                .setAbnormalCount(session.getAbnormalTimestamps().size())
+                .setRemoteAddress(formatAddress(channel == null ? null : channel.remoteAddress()))
+                .setLocalAddress(formatAddress(channel == null ? null : channel.localAddress()));
+    }
+
+    private String formatAddress(SocketAddress address) {
+        if (address == null) {
+            return null;
+        }
+        if (address instanceof InetSocketAddress inetSocketAddress) {
+            return inetSocketAddress.getHostString() + ":" + inetSocketAddress.getPort();
+        }
+        return address.toString();
     }
 
     /**
