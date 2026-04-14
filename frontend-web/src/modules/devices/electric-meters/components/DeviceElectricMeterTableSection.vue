@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { ElectricMeterItem } from '@/components/devices/electric-meter.mock'
 import { usePermission } from '@/composables/usePermission'
 import {
@@ -124,6 +123,12 @@ const moreActionCommandLabel = computed(() => {
     </div>
 
     <div class="table-wrap">
+      <UiTableStateOverlay
+        :loading="loading"
+        :empty="!loading && !pagedRows.length"
+        :top="46"
+      />
+
       <table class="table meter-table">
         <thead>
           <tr>
@@ -157,16 +162,6 @@ const moreActionCommandLabel = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading">
-            <td colspan="18" class="empty-row">
-              <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-            </td>
-          </tr>
-          <tr v-else-if="!pagedRows.length">
-            <td colspan="18" class="empty-row">
-              <UiEmptyState :min-height="56" />
-            </td>
-          </tr>
           <tr v-for="(row, index) in pagedRows" :key="row.id">
             <td class="checkbox-col sticky-col sticky-col-left sticky-checkbox">
               <input
@@ -403,7 +398,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: scroll visible;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
   scrollbar-gutter: stable;

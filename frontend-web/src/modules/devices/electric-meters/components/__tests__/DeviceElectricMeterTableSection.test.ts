@@ -170,4 +170,82 @@ describe('DeviceElectricMeterTableSection', () => {
 
     expect(wrapper.find('.btn-link-more').exists()).toBe(true)
   })
+
+  test('testEmptyState_WhenNoRows_ShouldRenderCenteredOverlay', () => {
+    const wrapper = mount(DeviceElectricMeterTableSection, {
+      props: {
+        loading: false,
+        total: 0,
+        queryForm: {
+          searchKey: '',
+          onlineStatus: '',
+          status: '',
+          payType: '',
+          pageNum: 1,
+          pageSize: 10
+        },
+        pagedRows: [],
+        selectedIds: [],
+        isAllChecked: false,
+        moreActionMenu: null
+      },
+      global: {
+        directives: {
+          menuPermission: () => undefined
+        },
+        stubs: {
+          CommonPagination: {
+            template: '<div data-test="pager" />'
+          },
+          UiTableStateOverlay: {
+            props: ['loading', 'empty'],
+            template:
+              '<div v-if="loading" data-test="loading-overlay" /><div v-else-if="empty" class="table-empty-overlay"><div data-test="empty" /></div>'
+          }
+        }
+      }
+    })
+
+    expect(wrapper.find('.table-empty-overlay').exists()).toBe(true)
+    expect(wrapper.find('[data-test="empty"]').exists()).toBe(true)
+  })
+
+  test('testLoadingState_WhenLoading_ShouldRenderCenteredOverlay', () => {
+    const wrapper = mount(DeviceElectricMeterTableSection, {
+      props: {
+        loading: true,
+        total: 0,
+        queryForm: {
+          searchKey: '',
+          onlineStatus: '',
+          status: '',
+          payType: '',
+          pageNum: 1,
+          pageSize: 10
+        },
+        pagedRows: [],
+        selectedIds: [],
+        isAllChecked: false,
+        moreActionMenu: null
+      },
+      global: {
+        directives: {
+          menuPermission: () => undefined
+        },
+        stubs: {
+          CommonPagination: {
+            template: '<div data-test="pager" />'
+          },
+          UiTableStateOverlay: {
+            props: ['loading', 'empty'],
+            template:
+              '<div v-if="loading" data-test="loading-overlay" /><div v-else-if="empty" class="table-empty-overlay"><div data-test="empty" /></div>'
+          }
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-test="loading-overlay"]').exists()).toBe(true)
+    expect(wrapper.find('.table-empty-overlay').exists()).toBe(false)
+  })
 })

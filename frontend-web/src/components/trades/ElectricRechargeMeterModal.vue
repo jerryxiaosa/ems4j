@@ -112,7 +112,7 @@ const confirm = () => {
               <tbody>
                 <tr v-if="!filteredMeters.length">
                   <td colspan="7" class="empty-row es-detail-empty-row">
-                    <UiEmptyState :min-height="56" />
+                    <UiEmptyState :min-height="72" />
                   </td>
                 </tr>
                 <tr v-for="(item, index) in filteredMeters" :key="item.id">

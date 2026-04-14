@@ -8,8 +8,7 @@ import {
   updateGateway
 } from '@/api/adapters/device'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import DeviceGatewayDetailModal from '@/components/devices/DeviceGatewayDetailModal.vue'
 import DeviceGatewayEditModal from '@/components/devices/DeviceGatewayEditModal.vue'
 import {
@@ -426,6 +425,12 @@ const handleConfirmDelete = async () => {
         </div>
 
         <div class="table-wrap">
+          <UiTableStateOverlay
+            :loading="loading"
+            :empty="!loading && !pagedRows.length"
+            :top="46"
+          />
+
           <table class="table">
             <thead>
               <tr>
@@ -446,16 +451,6 @@ const handleConfirmDelete = async () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading">
-                <td colspan="10" class="empty-row">
-                  <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-                </td>
-              </tr>
-              <tr v-else-if="!pagedRows.length">
-                <td colspan="10" class="empty-row">
-                  <UiEmptyState :min-height="56" />
-                </td>
-              </tr>
               <tr v-for="(row, index) in pagedRows" :key="row.id">
                 <td class="sticky-col sticky-col-left sticky-index">{{
                   getSerialNumber(index)
@@ -747,8 +742,10 @@ const handleConfirmDelete = async () => {
 }
 
 .table-wrap {
-  min-height: 0;
+  position: relative;
+  min-height: 120px;
   overflow: scroll auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
   scrollbar-gutter: stable;

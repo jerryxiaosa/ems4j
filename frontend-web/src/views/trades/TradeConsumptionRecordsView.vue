@@ -9,8 +9,7 @@ import {
   type MeterConsumePageItem
 } from '@/api/adapters/trade'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import MeterConsumeDetailModal from '@/components/trades/MeterConsumeDetailModal.vue'
 
 type ConsumeTabKey = 'meter' | 'monthly'
@@ -468,18 +467,16 @@ const openMeterDetail = async (row: MeterConsumeRow) => {
 
     <section class="table-card">
       <div class="table-wrap">
-        <div
-          v-if="activeTab === 'meter' && !meterLoading && !meterPagedRows.length"
-          class="table-empty-overlay"
-        >
-          <UiEmptyState :min-height="0" />
-        </div>
-        <div
-          v-if="activeTab === 'monthly' && !monthlyLoading && !monthlyPagedRows.length"
-          class="table-empty-overlay"
-        >
-          <UiEmptyState :min-height="0" />
-        </div>
+        <UiTableStateOverlay
+          v-if="activeTab === 'meter'"
+          :loading="meterLoading"
+          :empty="!meterLoading && !meterPagedRows.length"
+        />
+        <UiTableStateOverlay
+          v-else
+          :loading="monthlyLoading"
+          :empty="!monthlyLoading && !monthlyPagedRows.length"
+        />
 
         <table v-if="activeTab === 'meter'" class="table meter-table">
           <thead>
@@ -500,12 +497,7 @@ const openMeterDetail = async (row: MeterConsumeRow) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="meterLoading">
-              <td colspan="11" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
-            <template v-else>
+            <template v-if="meterPagedRows.length > 0">
               <tr v-for="(row, index) in meterPagedRows" :key="row.id">
                 <td class="sticky-col sticky-col-left sticky-index">{{
                   getMeterSerialNumber(index)
@@ -562,12 +554,7 @@ const openMeterDetail = async (row: MeterConsumeRow) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="monthlyLoading">
-              <td colspan="10" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
-            <template v-else>
+            <template v-if="monthlyPagedRows.length > 0">
               <tr v-for="(row, index) in monthlyPagedRows" :key="row.id">
                 <td class="sticky-col sticky-col-left sticky-monthly-index">{{
                   getMonthlySerialNumber(index)
@@ -961,17 +948,6 @@ const openMeterDetail = async (row: MeterConsumeRow) => {
   padding: 16px 0;
   color: var(--es-color-text-placeholder);
   text-align: center;
-}
-
-.table-empty-overlay {
-  position: absolute;
-  inset: 42px 0 0;
-  display: flex;
-  font-size: var(--es-font-size-sm);
-  color: var(--es-color-text-placeholder);
-  pointer-events: none;
-  align-items: center;
-  justify-content: center;
 }
 
 .meter-table tbody tr:hover td {

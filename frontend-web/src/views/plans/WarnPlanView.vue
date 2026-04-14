@@ -7,8 +7,7 @@ import {
   fetchWarnPlanList,
   updateWarnPlan
 } from '@/api/adapters/plan'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import WarnPlanDetailModal from '@/components/plans/WarnPlanDetailModal.vue'
 import WarnPlanEditModal from '@/components/plans/WarnPlanEditModal.vue'
 import type { WarnPlanFormValue, WarnPlanItem } from '@/types/plan'
@@ -240,6 +239,10 @@ onMounted(() => {
         </div>
 
         <div class="table-wrap">
+          <UiTableStateOverlay
+            :loading="loading"
+            :empty="!loading && !rows.length"
+          />
           <table class="table">
             <thead>
               <tr>
@@ -254,16 +257,6 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading">
-                <td colspan="8" class="empty-row">
-                  <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-                </td>
-              </tr>
-              <tr v-else-if="!rows.length">
-                <td colspan="8" class="empty-row">
-                  <UiEmptyState :min-height="56" />
-                </td>
-              </tr>
               <tr v-for="(row, index) in rows" :key="row.id">
                 <td>{{ getSerialNumber(index) }}</td>
                 <td class="warn-plan-name-cell">{{ row.name }}</td>
@@ -513,7 +506,10 @@ onMounted(() => {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: hidden auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
 }

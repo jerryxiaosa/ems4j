@@ -2,8 +2,7 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { createMenu, fetchMenuDetail, fetchMenuTree, removeMenu, updateMenu } from '@/api/adapters/menu-manage'
 import MenuFormModal from '@/components/system/MenuFormModal.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { SystemMenuFormValue, SystemMenuItem } from '@/modules/system/menus/types'
 
 interface FlattenedMenuRow {
@@ -306,6 +305,10 @@ const getIndentStyle = (depth: number) => ({
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && rows.length === 0"
+        />
         <table class="table">
           <thead>
             <tr>
@@ -317,16 +320,6 @@ const getIndentStyle = (depth: number) => ({
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="5" class="empty-cell">
-                <UiLoadingState />
-              </td>
-            </tr>
-            <tr v-else-if="rows.length === 0">
-              <td colspan="5" class="empty-cell">
-                <UiEmptyState text="暂无数据" />
-              </td>
-            </tr>
             <tr v-for="row in rows" :key="row.id">
               <td>
                 <div class="menu-name-cell" :style="getIndentStyle(row.depth)">
@@ -513,6 +506,8 @@ const getIndentStyle = (depth: number) => ({
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);

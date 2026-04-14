@@ -2,8 +2,7 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import CommonPagination from '@/components/common/CommonPagination.vue'
 import OrganizationPicker from '@/components/common/OrganizationPicker.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import UserDetailModal from '@/components/system/UserDetailModal.vue'
 import UserFormModal from '@/components/system/UserFormModal.vue'
 import UserPasswordModal from '@/components/system/UserPasswordModal.vue'
@@ -152,6 +151,10 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && pagedRows.length === 0"
+        />
         <table class="table">
           <thead>
             <tr>
@@ -167,16 +170,6 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="9" class="empty-cell">
-                <UiLoadingState :size="18" :thickness="2" :min-height="72" />
-              </td>
-            </tr>
-            <tr v-else-if="pagedRows.length === 0">
-              <td colspan="9" class="empty-cell">
-                <UiEmptyState :min-height="72" />
-              </td>
-            </tr>
             <tr v-for="(row, index) in pagedRows" :key="row.id">
               <td>{{ getSerialNumber(index) }}</td>
               <td>{{ row.username || '--' }}</td>
@@ -437,6 +430,8 @@ onBeforeUnmount(() => {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);

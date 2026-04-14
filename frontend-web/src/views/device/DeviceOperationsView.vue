@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { fetchEnumOptionsByKey, type EnumOption } from '@/api/adapters/system'
 import { fetchDeviceOperationPage, retryDeviceOperation } from '@/api/adapters/device-operation'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import DeviceOperationDetailModal from '@/components/devices/DeviceOperationDetailModal.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { DeviceOperationItem, DeviceOperationPageResult } from '@/types/device-operation'
 import {
   loadDeviceOperationFilterOptions,
   resolveDeviceTypeQueryValue
 } from '@/views/device/device-operation-filter'
-
-const router = useRouter()
 
 const commandTypeOptions = ref<EnumOption[]>([])
 const deviceTypeOptions = ref<EnumOption[]>([])
@@ -62,6 +59,8 @@ const operationPage = reactive<DeviceOperationPageResult>({
 })
 const loading = ref(false)
 const retryingIds = ref<number[]>([])
+const detailModalVisible = ref(false)
+const currentDetailOperationId = ref<number | null>(null)
 
 const clearNoticeTimers = () => {
   if (noticeFadeTimer !== null) {
@@ -202,12 +201,16 @@ const handlePageChange = async (payload: { pageNum: number; pageSize: number }) 
 }
 
 const openDetail = (row: DeviceOperationItem) => {
-  router.push({
-    path: '/device-operations/detail',
-    query: {
-      id: String(row.id)
-    }
-  })
+  currentDetailOperationId.value = row.id
+  detailModalVisible.value = true
+}
+
+const closeDetailModal = () => {
+  detailModalVisible.value = false
+}
+
+const handleDetailRetried = async () => {
+  await loadOperationPage()
 }
 
 const isRetrying = (id: number) => {
@@ -243,25 +246,11 @@ const getRetryButtonText = (row: DeviceOperationItem) => {
   if (isRetrying(row.id)) {
     return '重试中'
   }
-  if (row.success === true) {
-    return '已成功'
-  }
-  if (row.isRunning === true) {
-    return '执行中'
-  }
-  if (row.ensureSuccess !== true) {
-    return '不可重试'
-  }
-  if (
-    row.executeTimes !== undefined &&
-    row.executeTimes !== null &&
-    row.maxExecuteTimes !== undefined &&
-    row.maxExecuteTimes !== null &&
-    row.executeTimes >= row.maxExecuteTimes
-  ) {
-    return '已达上限'
-  }
   return '重试'
+}
+
+const shouldShowRetryAction = (row: DeviceOperationItem) => {
+  return isRetrying(row.id) || !getRetryDisabledReason(row)
 }
 
 const handleRetry = async (row: DeviceOperationItem) => {
@@ -394,6 +383,11 @@ onBeforeUnmount(() => {
         <h2 class="table-title">设备操作记录</h2>
       </div>
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && operationPage.list.length === 0"
+          empty-text="暂无设备操作记录"
+        />
         <table>
           <thead>
             <tr>
@@ -410,11 +404,6 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="10" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
             <tr v-for="(row, index) in operationPage.list" :key="`${row.id}-${index}`">
               <td>{{ getSerialNumber(index) }}</td>
               <td>{{ row.deviceNo }}</td>
@@ -440,20 +429,16 @@ onBeforeUnmount(() => {
                 <div class="action-buttons">
                   <button class="btn-link" @click="openDetail(row)">详情</button>
                   <button
+                    v-if="shouldShowRetryAction(row)"
                     class="btn-link"
-                    :class="{ 'btn-link-disabled': !!getRetryDisabledReason(row) || isRetrying(row.id) }"
-                    :disabled="!!getRetryDisabledReason(row) || isRetrying(row.id)"
-                    :title="getRetryDisabledReason(row) || '重试设备操作'"
+                    :class="{ 'btn-link-disabled': isRetrying(row.id) }"
+                    :disabled="isRetrying(row.id)"
+                    :title="isRetrying(row.id) ? '设备操作重试提交中' : '重试设备操作'"
                     @click="handleRetry(row)"
                   >
                     {{ getRetryButtonText(row) }}
                   </button>
                 </div>
-              </td>
-            </tr>
-            <tr v-if="!loading && operationPage.list.length === 0">
-              <td colspan="10" class="empty">
-                <UiEmptyState :min-height="56" text="暂无设备操作记录" />
               </td>
             </tr>
           </tbody>
@@ -468,6 +453,12 @@ onBeforeUnmount(() => {
         @change="handlePageChange"
       />
     </section>
+
+    <DeviceOperationDetailModal
+      v-model="detailModalVisible"
+      :operation-id="currentDetailOperationId"
+      @retried="handleDetailRetried"
+    />
   </div>
 </template>
 
@@ -685,7 +676,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: var(--es-radius-md);
 }

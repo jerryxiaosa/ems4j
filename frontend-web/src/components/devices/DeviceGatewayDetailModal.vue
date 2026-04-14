@@ -98,12 +98,12 @@ const close = () => emit('update:modelValue', false)
               <tbody>
                 <tr v-if="loading">
                   <td colspan="7" class="empty-row es-detail-empty-row">
-                    <UiLoadingState :size="18" :thickness="2" :min-height="56" />
+                    <UiLoadingState :size="18" :thickness="2" :min-height="72" />
                   </td>
                 </tr>
                 <tr v-else-if="!devices.length">
                   <td colspan="7" class="empty-row es-detail-empty-row">
-                    <UiEmptyState :min-height="56" />
+                    <UiEmptyState :min-height="72" />
                   </td>
                 </tr>
                 <tr v-for="(item, index) in devices" :key="item.id">
