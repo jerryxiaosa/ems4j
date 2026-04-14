@@ -60,9 +60,9 @@ public class AcrelSetDatePlanTranslator extends AbstractAcrelCommandTranslator {
             }
             int day = date.getDayOfMonth();
             int month = date.getMonthValue();
-            data[index++] = (byte) dailyPlanId;
-            data[index++] = (byte) day;
             data[index++] = (byte) month;
+            data[index++] = (byte) day;
+            data[index++] = (byte) dailyPlanId;
         }
         return data;
     }
