@@ -2,6 +2,7 @@ package info.zhihui.ems.iot.infrastructure.transport.netty.handler;
 
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -76,6 +77,7 @@ class AbnormalEventHandlerTest {
         private String removedChannelId;
 
         private StubChannelManager(boolean exceeded) {
+            super(new ChannelManagerProperties());
             this.exceeded = exceeded;
         }
 

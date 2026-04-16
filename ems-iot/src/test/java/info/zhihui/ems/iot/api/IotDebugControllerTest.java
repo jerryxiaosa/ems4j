@@ -3,6 +3,7 @@ package info.zhihui.ems.iot.api;
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.iot.api.handler.RuntimeExceptionHandler;
 import info.zhihui.ems.iot.application.IotDebugAppService;
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
@@ -80,7 +81,7 @@ class IotDebugControllerTest {
         private IotClientDetailVo clientDetail;
 
         private StubIotDebugAppService() {
-            super(new ChannelManager(), new EmptyDeviceRegistry());
+            super(new ChannelManager(new ChannelManagerProperties()), new EmptyDeviceRegistry());
         }
 
         @Override

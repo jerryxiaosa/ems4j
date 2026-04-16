@@ -4,6 +4,7 @@ import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
@@ -47,7 +48,7 @@ class NettyDeviceBinderTest {
         ChannelManager channelManager = Mockito.mock(ChannelManager.class);
         NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(
-                new NettyProtocolSession(new EmbeddedChannel(), new ChannelManager()));
+                new NettyProtocolSession(new EmbeddedChannel(), new ChannelManager(new ChannelManagerProperties())));
 
         binder.bind(context, " ");
 
@@ -60,7 +61,7 @@ class NettyDeviceBinderTest {
         ChannelManager channelManager = Mockito.mock(ChannelManager.class);
         NettyDeviceBinder binder = new NettyDeviceBinder(registry, channelManager);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties()));
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
 
         Product product = new Product()

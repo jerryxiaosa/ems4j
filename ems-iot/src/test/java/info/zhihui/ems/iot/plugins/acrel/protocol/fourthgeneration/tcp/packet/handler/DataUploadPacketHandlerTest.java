@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.event.inbound.ProtocolEnergyReportInboundEvent;
@@ -177,7 +178,7 @@ class DataUploadPacketHandlerTest {
     }
 
     private NettyProtocolSession buildSession(EmbeddedChannel channel) {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         ChannelSession session = new ChannelSession()
                 .setDeviceNo("test-device")
                 .setChannel(channel);

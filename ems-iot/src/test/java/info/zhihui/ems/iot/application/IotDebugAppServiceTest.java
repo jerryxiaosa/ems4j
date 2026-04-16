@@ -2,6 +2,7 @@ package info.zhihui.ems.iot.application;
 
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
 import info.zhihui.ems.common.exception.NotFoundException;
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
 import info.zhihui.ems.iot.domain.port.DeviceRegistry;
@@ -23,7 +24,7 @@ class IotDebugAppServiceTest {
 
     @Test
     void testFindClientList_ShouldMapSnapshotAndSortByDeviceNo() {
-        ChannelManager channelManager = new ChannelManager();
+        ChannelManager channelManager = new ChannelManager(new ChannelManagerProperties());
         ChannelSession secondSession = new ChannelSession()
                 .setDeviceNo("dev-2")
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
@@ -52,7 +53,7 @@ class IotDebugAppServiceTest {
 
     @Test
     void testGetClientDetail_WhenDeviceExists_ShouldMergeRuntimeAndDeviceInfo() {
-        ChannelManager channelManager = new ChannelManager();
+        ChannelManager channelManager = new ChannelManager(new ChannelManagerProperties());
         ChannelSession session = new ChannelSession()
                 .setDeviceNo("dev-1")
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
@@ -84,7 +85,7 @@ class IotDebugAppServiceTest {
 
     @Test
     void testGetClientDetail_WhenDeviceMissing_ShouldStillReturnRuntimeInfo() {
-        ChannelManager channelManager = new ChannelManager();
+        ChannelManager channelManager = new ChannelManager(new ChannelManagerProperties());
         ChannelSession session = new ChannelSession()
                 .setDeviceNo("dev-1")
                 .setDeviceType(DeviceTypeEnum.ELECTRIC)
@@ -101,7 +102,8 @@ class IotDebugAppServiceTest {
 
     @Test
     void testGetClientDetail_WhenDeviceNoMissing_ShouldThrowNotFound() {
-        IotDebugAppService iotDebugAppService = new IotDebugAppService(new ChannelManager(), new FixedDeviceRegistry(null, false));
+        IotDebugAppService iotDebugAppService = new IotDebugAppService(
+                new ChannelManager(new ChannelManagerProperties()), new FixedDeviceRegistry(null, false));
 
         Assertions.assertThrows(NotFoundException.class, () -> iotDebugAppService.getClientDetail("missing"));
     }

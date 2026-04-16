@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.session;
 
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelSession;
 import info.zhihui.ems.iot.protocol.port.session.ProtocolSessionKey;
@@ -152,7 +153,7 @@ class NettyProtocolSessionTest {
     }
 
     private NettyProtocolSession buildSession(EmbeddedChannel channel) {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         if (channel != null) {
             ChannelSession session = new ChannelSession()
                     .setDeviceNo("test-device")
