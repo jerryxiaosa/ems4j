@@ -4,14 +4,14 @@
 
 - 避免设备入站异常直接冲击 Netty 线程。
 - 让 API 参数错误、业务错误、系统错误语义清晰。
-- 对 ACK 时序错乱等并发问题保持 fail-fast，而不是静默吞错。
+- 对 ACK 时序错乱、迟到 ACK 等场景保持可观测且不过度中断业务线程。
 
 ## 1. 总原则
 
 1. 外部输入链路默认不抛出未捕获异常（解码/解析/普通上行处理）。
 2. 业务边界允许抛出明确异常类型（`BusinessRuntimeException`、`NotFoundException`、`IllegalArgumentException`）。
 3. 参数错误优先在 Controller 层通过注解校验拦截，减少 500 误判。
-4. ACK 匹配属于特例：发现状态不一致时允许抛异常，优先暴露时序问题。
+4. ACK 匹配属于特例：参数错误要直接暴露，状态不一致则优先返回明确结果，避免把正常时序抖动升级为异常。
 
 ## 2. 分层规则
 
@@ -31,7 +31,7 @@
 - 普通上行处理（心跳/上报）默认“吞异常 + 打日志 + 返回”。
 - 事件发布使用 `ApplicationEventPublisher`，发布失败需捕获并记录，不影响通道线程。
 - 监听器（如 `info.zhihui.ems.iot.listener.ProtocolInboundEventListener`）内部异常应捕获，避免反向影响上行链路。
-- ACK 处理器是特例：调用 `ProtocolCommandTransport.completePending` 时不应静默吞掉状态错误。
+- ACK 处理器是特例：应将 ACK 归还到当前 `ProtocolSession` 对应的连接，而不是只按 `deviceNo` 查找 pending。
 
 ### 2.4 Application / Domain 层
 
@@ -66,7 +66,8 @@
 
 - 应用层参数非法、业务失败、资源不存在。
 - 命令发送前置校验失败（无会话、通道不活跃、队列满）。
-- ACK 关联失败（`completePending` 找不到会话或无挂起命令）需抛 `IllegalStateException`。
+- `completePending` 的参数错误（例如 `deviceNo` 为空）继续抛 `IllegalArgumentException`。
+- `completePending` 找不到会话、无挂起命令、迟到 ACK、重复 ACK 时返回 `false`。
 - 持久化更新未命中（影响行数为 0）需抛异常。
 
 ## 5. 推荐处理流程（入站链路）
@@ -74,20 +75,21 @@
 1. 解码失败：返回 `FrameDecodeResult.reason`，记录日志并结束。
 2. 解析失败：`parser` 返回 `null`，记录日志并结束。
 3. 普通上行处理：捕获异常，记录后结束（必要时做连接治理）。
-4. ACK 回执处理：调用 `completePending`，若状态异常允许抛错并由上层统一感知。
+4. ACK 回执处理：调用 `completePending`，若返回 `false` 说明本次 ACK 未命中有效 pending，记录调试日志后结束。
 5. 事件发布：`publishEvent` 失败仅记录，避免阻断核心处理流程。
 
 ## 6. 当前固定策略（ChannelManager）
 
-- `MAX_QUEUE_SIZE = 5`：单通道待发送队列上限，超限直接失败。
-- `COMMAND_TIMEOUT_MILLIS = 15000`：等待 ACK 超时后失败当前命令并关闭通道。
-- `EVENT_LOOP_WAIT_TIMEOUT_MILLIS = 3000`：跨线程投递 EventLoop 的等待上限。
-- `ABNORMAL_WINDOW_MILLIS = 30000`、`ABNORMAL_MAX_COUNT = 5`：异常频率控制阈值。
+- `maxQueueSize = 5`：单通道待发送队列上限，超限直接失败。
+- `commandTimeoutMillis = 15000`：等待 ACK 超时后失败当前命令并关闭通道。
+- `eventLoopWaitTimeoutMillis = 3000`：跨线程投递 EventLoop 的等待上限。
+- `abnormalWindowMillis = 30000`、`abnormalMaxCount = 5`：异常频率控制阈值。
+- 上述参数均由 `ChannelManagerProperties` 提供默认值；未配置时行为与旧硬编码保持一致。
 
 ## 7. PR 自检清单
 
 - 是否把可预期坏数据留在解析层处理（返回 `null`），而不是抛到 Netty？
 - 是否给 Controller 入参加了必要校验注解？
-- 是否将 ACK 状态错乱保持 fail-fast，而不是 `try/catch` 后静默返回？
+- 是否区分了“参数错误抛异常”和“迟到 ACK / 无 pending 返回 false”这两类语义？
 - 是否校验了 `updateById/deleteById` 的影响行数语义？
 - 日志是否包含 `deviceNo/sessionId/channelId` 等排障字段？

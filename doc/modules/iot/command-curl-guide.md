@@ -1,12 +1,12 @@
 # ems-iot HTTP 命令 curl 调试手册
 
-本文整理 `ems-iot` 当前 `CommandController` 暴露的全部 HTTP 命令，便于本地联调、联机排障和设备命令回归测试。
+本文整理 `ems-iot` 当前 HTTP 调试接口，便于本地联调、联机排障和设备命令回归测试。
 
 ## 1. 适用范围
 
 - 适用模块：`ems-iot`
-- 适用控制器：`/api/commands/**`
-- 适用场景：读取设备参数、下发设备命令、调试电价方案、调试分时电量
+- 适用控制器：`/api/commands/**`、`/api/debug/iot/**`
+- 适用场景：读取设备参数、下发设备命令、调试电价方案、调试分时电量、排查在线客户端运行态
 
 当前 `ems-iot` 开发环境默认 HTTP 端口为 `8880`。如果你的环境通过网关、反向代理或容器服务名访问，请把下文中的 `BASE_URL` 替换成实际地址。
 
@@ -59,7 +59,7 @@ DEVICE_ID=1
 | `4` | 谷 |
 | `5` | 深谷 |
 
-## 3. 命令总览
+## 3. 接口总览
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
@@ -72,6 +72,8 @@ DEVICE_ID=1
 | `GET` | `/api/commands/{deviceId}/date-duration` | 读取指定日期电价方案 |
 | `POST` | `/api/commands/{deviceId}/date-duration` | 下发指定日期电价方案 |
 | `GET` | `/api/commands/{deviceId}/used-power` | 读取分时电量 |
+| `GET` | `/api/debug/iot/clients` | 查询当前在线 IoT 客户端列表 |
+| `GET` | `/api/debug/iot/clients/{deviceNo}` | 按设备编号查询 IoT 客户端详情 |
 
 ## 4. 断闸与合闸
 
@@ -243,16 +245,90 @@ curl -G "${BASE_URL}/api/commands/${DEVICE_ID}/used-power" \
   --data-urlencode "type=5"
 ```
 
-## 9. 常见调试方式
+## 9. 在线客户端调试接口
 
-### 9.1 配合 `jq` 查看响应
+### 9.1 查询在线客户端列表
+
+```bash
+curl -G "${BASE_URL}/api/debug/iot/clients"
+```
+
+返回示例：
+
+```json
+{
+  "success": true,
+  "code": 100001,
+  "message": "成功",
+  "data": [
+    {
+      "channelId": "acde48fffe001122-0001656b-00000001-5159dc33bfccc329-88d7df31",
+      "deviceNo": "dev-1",
+      "deviceType": "ELECTRIC",
+      "active": true,
+      "pending": false,
+      "queueSize": 0,
+      "abnormalCount": 0,
+      "remoteAddress": "127.0.0.1:50932"
+    }
+  ]
+}
+```
+
+### 9.2 按设备编号查询客户端详情
+
+```bash
+curl -G "${BASE_URL}/api/debug/iot/clients/dev-1"
+```
+
+返回示例：
+
+```json
+{
+  "success": true,
+  "code": 100001,
+  "message": "成功",
+  "data": {
+    "channelId": "acde48fffe001122-0001656b-00000001-5159dc33bfccc329-88d7df31",
+    "deviceNo": "dev-1",
+    "deviceType": "ELECTRIC",
+    "active": true,
+    "open": true,
+    "registered": true,
+    "writable": true,
+    "sending": false,
+    "pending": false,
+    "queueSize": 0,
+    "abnormalCount": 0,
+    "remoteAddress": "127.0.0.1:50932",
+    "localAddress": "127.0.0.1:19500",
+    "productCode": "ACREL_DTSY_1352_4G",
+    "accessMode": "DIRECT",
+    "parentId": 1,
+    "portNo": 1,
+    "meterAddress": 1,
+    "lastOnlineAt": "2026-04-17T17:35:12"
+  }
+}
+```
+
+### 9.3 使用建议
+
+- `pending=true` 且 `queueSize > 0`：优先检查 ACK 是否未回、协议解析是否失败、设备是否已经断开。
+- `abnormalCount` 持续增长：优先结合协议解析日志与连接异常日志排查脏数据或错误设备。
+- `active=false/open=false`：说明连接已不可用，通常不应继续下发命令。
+- `deviceNo` 能查到详情但无法补全产品信息：说明连接在线，但设备档案可能不存在或未正确注册。
+
+## 10. 常见调试方式
+
+### 10.1 配合 `jq` 查看响应
 
 ```bash
 curl -s -G "${BASE_URL}/api/commands/${DEVICE_ID}/used-power" \
   --data-urlencode "type=2" | jq
 ```
 
-### 9.2 常见失败排查
+### 10.2 常见失败排查
 
 如果命令执行失败，优先检查：
 
@@ -262,7 +338,14 @@ curl -s -G "${BASE_URL}/api/commands/${DEVICE_ID}/used-power" \
 4. 参数是否越界，例如 `dailyPlanId=3`、`type=6`
 5. 当前环境前面是否挂了网关或认证层；若有，需要补充对应请求头
 
-### 9.3 典型成功响应
+如果在线客户端调试接口返回空列表或详情不存在，优先检查：
+
+1. 对应设备是否已经建立 TCP 连接
+2. `iot` 侧 `ChannelManager` 是否已完成设备绑定
+3. 调试接口查询的 `deviceNo` 是否与实际注册设备编号一致
+4. 连接是否刚刚超时关闭，导致快照已被清理
+
+### 10.3 典型成功响应
 
 读取分时电量成功示例：
 
@@ -292,7 +375,7 @@ curl -s -G "${BASE_URL}/api/commands/${DEVICE_ID}/used-power" \
 }
 ```
 
-## 10. 备注
+## 11. 备注
 
-- 本文示例基于当前代码中的 `CommandController`、`ElectricDurationUpdateVo`、`ElectricDurationVo`、`ElectricDateDurationVo` 和 `ElectricPricePeriodEnum` 整理。
+- 本文示例基于当前代码中的 `CommandController`、`IotDebugController`、`ElectricDurationUpdateVo`、`ElectricDurationVo`、`ElectricDateDurationVo`、`IotClientSimpleVo`、`IotClientDetailVo` 和 `ElectricPricePeriodEnum` 整理。
 - 如果后续 `ems-iot` 新增命令接口，应优先补充本文，再同步更新 [README.md](./README.md) 索引。
