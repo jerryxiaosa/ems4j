@@ -462,6 +462,8 @@ public class DefaultEnergyServiceImpl implements EnergyService {
     private <T> RestResult<T> executeIotCall(String action, Supplier<RestResult<T>> requestSupplier) {
         try {
             return assertSuccess(action, requestSupplier.get());
+        } catch (BusinessRuntimeException ex) {
+            throw ex;
         } catch (RestClientResponseException ex) {
             log.error("RestClient接口调用失败，action={}", action, ex);
             throw new BusinessRuntimeException(action + "失败：" + ex.getMessage());
