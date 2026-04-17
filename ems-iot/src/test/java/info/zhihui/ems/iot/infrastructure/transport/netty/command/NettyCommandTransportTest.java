@@ -1,6 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.command;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import org.junit.jupiter.api.Assertions;
@@ -45,12 +46,14 @@ class NettyCommandTransportTest {
     void testCompletePending_DelegatesToChannelManager() {
         ChannelManager channelManager = Mockito.mock(ChannelManager.class);
         NettyCommandTransport transport = new NettyCommandTransport(channelManager);
+        ProtocolSession session = Mockito.mock(ProtocolSession.class);
         byte[] payload = new byte[]{1};
-        Mockito.when(channelManager.completePending("dev-1", payload)).thenReturn(true);
+        Mockito.when(session.getSessionId()).thenReturn("channel-1");
+        Mockito.when(channelManager.completePendingByChannelId("channel-1", payload)).thenReturn(true);
 
-        boolean result = transport.completePending("dev-1", payload);
+        boolean result = transport.completePending(session, payload);
 
         Assertions.assertTrue(result);
-        Mockito.verify(channelManager).completePending("dev-1", payload);
+        Mockito.verify(channelManager).completePendingByChannelId("channel-1", payload);
     }
 }

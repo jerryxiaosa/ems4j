@@ -2,8 +2,10 @@ package info.zhihui.ems.iot.infrastructure.transport.netty.command;
 
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
 import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +28,10 @@ public class NettyCommandTransport implements ProtocolCommandTransport {
     }
 
     @Override
-    public boolean completePending(String deviceNo, byte[] payload) {
-        return channelManager.completePending(deviceNo, payload);
+    public boolean completePending(ProtocolSession session, byte[] payload) {
+        if (session == null || StringUtils.isBlank(session.getSessionId())) {
+            return false;
+        }
+        return channelManager.completePendingByChannelId(session.getSessionId(), payload);
     }
 }

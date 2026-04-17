@@ -21,4 +21,15 @@ class ChannelSessionTest {
 
         Assertions.assertInstanceOf(ConcurrentLinkedDeque.class, session.getAbnormalTimestamps());
     }
+
+    @Test
+    void toString_shouldNotIncludeRuntimeCollections() {
+        ChannelSession session = new ChannelSession();
+
+        String text = session.toString();
+
+        Assertions.assertFalse(text.contains("queue="));
+        Assertions.assertFalse(text.contains("abnormalTimestamps="));
+        Assertions.assertFalse(text.contains("pendingFuture="));
+    }
 }

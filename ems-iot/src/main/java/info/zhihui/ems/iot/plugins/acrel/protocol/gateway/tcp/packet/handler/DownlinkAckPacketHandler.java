@@ -40,7 +40,7 @@ public class DownlinkAckPacketHandler implements GatewayPacketHandler {
             log.warn("透传应答未绑定网关，session={}", sessionId(context));
             return;
         }
-        commandTransport.completePending(gateway.getDeviceNo(), payload.payload());
+        commandTransport.completePending(context.getSession(), payload.payload());
     }
 
     private String sessionId(ProtocolMessageContext context) {

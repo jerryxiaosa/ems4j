@@ -248,55 +248,7 @@ pnpm test:e2e
 
 ## Module Layered Architecture
 
-```
-+-------------------------------+          +-------------------------------+
-|        ems-bootstrap          |          |           ems-iot             |
-|       (Web Service Entry)     |          |      (IoT Service Standalone) |
-+-------------------------------+          +-------------------------------+
-               |                                          |
-   +-----------+-----------+-----------+                  |
-   |           |           |           |                  |
-+--v-----+ +---v----+ +----v-------+   |                  |
-| ems-web| | ems-mq | |ems-schedule|   |                  |
-|(HTTP   | | (Msg)  | |  (Schedule)|   |                  |
-| API)   | |        | |            |   |                  |
-+--+-----+ +---+----+ +-----+------+   |                  |
-   |           |            |          |                  |
-   +-----------+------------+----------+------------------+
-               |
-+------------------------------------------------------------------+
-|                        ems-business                               |
-|    +------------+  +------------+  +------------+  +------------+ |
-|    |   device   |  |  account   |  |  billing   |  |    order   | |
-|    | (Device Mgmt)| | (Account   |  | (Balance & |  | (Trade &   | |
-|    |            |  |  Mgmt)     |  |  Consume)  |  |  Payment)  | |
-|    +------------+  +------------+  +------------+  +------------+ |
-|    |    lease   |  |    plan    |  | aggregation|                 |
-|    | (Owner &   |  | (Pricing   |  | (Cross-    |                 |
-|    |  Space)    |  |  Plan)     |  | domain)    |                 |
-|    +------------+  +------------+  +------------+                 |
-+------------------------------------------------------------------+
-               |
-   +-----------+-----------+
-   |                       |
-+--v-------------------+  +v-----------------------+
-|    ems-foundation    |  |    ems-components      |
-| +------+ +---------+ |  | +----------+ +------+  |
-| | user | |integrat.| |  | |datasource| | lock |  |
-| +------+ +---------+ |  | +----------+ +------+  |
-| +------+ +---------+ |  | +---------+ +-------+  |
-| | space| | system  | |  | | context | | redis |  |
-| +------+ +---------+ |  | +---------+ +-------+  |
-| +------+ +---------+ |  +------------------------+
-| | org  | | notifi. | |
-| +------+ +---------+ |
-+----------------------+
-               |
-       +-------v-------+
-       |  ems-common   |
-       | (Common Utils)|
-       +---------------+
-```
+![Module Layered Architecture](resource/images/readme-module-architecture.png)
 
 Notes:
 - ems-web can depend on both ems-business and ems-foundation (user/org/space/system, etc.).
@@ -305,23 +257,7 @@ Notes:
 
 ## Data Flow
 
-```
-+----------+    Command Send    +----------+    Protocol Conv   +----------+
-|  ems-web |----------------->|  ems-iot |----------------->|   Device   |
-+----------+                  +----------+                  +----------+
-     ^                              |                              |
-     |                              | Data Report                  |
-     |                              v                              |
-     |                       +----------+                         |
-     +-----------------------| Business |<------------------------+
-        API Result           | Layer    |
-                           +----------+
-                                 |
-                                 v
-                           +----------+
-                           |   MySQL  |
-                           +----------+
-```
+![Data Flow](resource/images/readme-data-flow.png)
 
 ## Module Details
 

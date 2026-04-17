@@ -7,6 +7,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoop;
+import io.netty.util.concurrent.FastThreadLocalThread;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
@@ -75,24 +77,12 @@ public class ChannelManager {
             session = existing;
         }
 
-        // 同设备重连时，必须先移除旧连接，再发布新的 deviceNo 路由，避免旧 ACK 误落到新会话。
-        closePreviousSessionBeforeRebind(session);
-        bindSessionIndexes(session);
-        log.info("绑定通道 {} 到设备No {} 类型 {}", channelId, session.getDeviceNo(), session.getDeviceType());
-    }
-
-    /**
-     * 同设备重连时，先在旧会话所属 EventLoop 中同步移除旧连接，再允许新会话接管 deviceNo 路由。
-     */
-    private void closePreviousSessionBeforeRebind(ChannelSession newSession) {
-        ChannelSession oldSession = findSessionByDeviceNo(newSession.getDeviceNo());
-        if (!shouldClosePreviousSession(newSession, oldSession)) {
-            return;
+        ChannelSession oldSession = findSessionByDeviceNo(session.getDeviceNo());
+        bindSessionIndexes(session, oldSession);
+        if (shouldClosePreviousSession(session, oldSession)) {
+            executeAsyncInEventLoop(oldSession, () -> closeSessionInLoop(oldSession));
         }
-        executeSyncInEventLoop(oldSession, () -> {
-            closeSessionInLoop(oldSession);
-            return null;
-        });
+        log.info("绑定通道 {} 到设备No {} 类型 {}", channelId, session.getDeviceNo(), session.getDeviceType());
     }
 
     /**
@@ -106,16 +96,36 @@ public class ChannelManager {
     }
 
     /**
-     * 同步维护 channelId 和 deviceNo 两张索引，并返回同设备原先绑定的旧会话。
+     * 同步维护 channelId 和 deviceNo 两张索引。
+     * 若覆盖的旧 channelId 不是本次预期替换的旧会话，则说明存在并发竞争留下的僵尸会话，需要兜底清理。
      */
-    private void bindSessionIndexes(ChannelSession session) {
+    private void bindSessionIndexes(ChannelSession session, ChannelSession expectedOldSession) {
         String channelId = session.getChannel().id().asLongText();
         sessions.put(channelId, session);
 
         String deviceNo = session.getDeviceNo();
+        String oldChannelId = deviceNoToChannelId.put(deviceNo, channelId);
+        if (StringUtils.isBlank(oldChannelId) || oldChannelId.equals(channelId)) {
+            return;
+        }
 
-        // 如果已有值，会返回。即为oldChannelId
-         deviceNoToChannelId.put(deviceNo, channelId);
+        String expectedOldChannelId = channelId(expectedOldSession);
+        if (Objects.equals(oldChannelId, expectedOldChannelId)) {
+            return;
+        }
+        cleanupOrphanedSession(oldChannelId, deviceNo);
+    }
+
+    /**
+     * 异步清理并发注册竞争留下的僵尸会话。
+     */
+    private void cleanupOrphanedSession(String orphanedChannelId, String deviceNo) {
+        ChannelSession orphanedSession = findSessionByChannelId(orphanedChannelId);
+        if (orphanedSession == null) {
+            return;
+        }
+        log.warn("检测到并发注册覆盖，清理僵尸会话 channelId={} deviceNo={}", orphanedChannelId, deviceNo);
+        executeAsyncInEventLoop(orphanedSession, () -> closeSessionInLoop(orphanedSession));
     }
 
     /**
@@ -321,10 +331,6 @@ public class ChannelManager {
     private void dispatchNextInLoop(ChannelSession session) {
         assertInEventLoop(session, "派发下一条命令");
         Queue<PendingTask> queue = session.getQueue();
-        if (queue == null) {
-            return;
-        }
-
         // 未在发送时才取队列
         if (session.getSending().compareAndSet(false, true)) {
             PendingTask task = queue.poll();
@@ -393,12 +399,25 @@ public class ChannelManager {
             log.warn("完成下行响应失败：deviceNo为空");
             throw new IllegalArgumentException("deviceNo 不能为空");
         }
-        ChannelSession session;
-        try {
-            session = requireSessionByDeviceNo(deviceNo);
-        } catch (IllegalStateException ex) {
-            log.warn("完成下行响应失败：未找到会话，deviceNo={}", deviceNo);
-            throw ex;
+        ChannelSession session = findSessionByDeviceNo(deviceNo);
+        if (session == null) {
+            log.debug("完成下行响应忽略：未找到会话，deviceNo={}", deviceNo);
+            return false;
+        }
+        return executeSyncInEventLoop(session, () -> completePendingInLoop(session, payload));
+    }
+
+    /**
+     * 按当前连接完成挂起命令，避免重连后旧 ACK 误落到新会话。
+     */
+    public boolean completePendingByChannelId(String channelId, byte[] payload) {
+        if (StringUtils.isBlank(channelId)) {
+            return false;
+        }
+        ChannelSession session = findSessionByChannelId(channelId);
+        if (session == null) {
+            log.debug("完成下行响应忽略：通道不存在，channelId={}", channelId);
+            return false;
         }
         return executeSyncInEventLoop(session, () -> completePendingInLoop(session, payload));
     }
@@ -408,9 +427,11 @@ public class ChannelManager {
      */
     private boolean completePendingInLoop(ChannelSession session, byte[] payload) {
         assertInEventLoop(session, "完成挂起命令");
-        finishPendingSuccessInLoop(session, payload);
-        dispatchNextInLoop(session);
-        return true;
+        boolean finished = finishPendingSuccessInLoop(session, payload);
+        if (finished) {
+            dispatchNextInLoop(session);
+        }
+        return finished;
     }
 
     /**
@@ -418,14 +439,12 @@ public class ChannelManager {
      */
     private void schedulePendingTimeoutInLoop(ChannelSession session, PendingTask task) {
         assertInEventLoop(session, "注册命令超时任务");
-        if (session.getChannel() == null) {
-            return;
-        }
-        session.getChannel().eventLoop().schedule(
+        ScheduledFuture<?> timeoutFuture = session.getChannel().eventLoop().schedule(
                 () -> handlePendingTimeoutInLoop(session, task.deviceNo(), task.future()),
                 properties.getCommandTimeoutMillis(),
                 TimeUnit.MILLISECONDS
         );
+        session.setPendingTimeoutFuture(timeoutFuture);
     }
 
     /**
@@ -458,16 +477,18 @@ public class ChannelManager {
     /**
      * 成功完成当前 pending 命令，并清空发送中状态。
      */
-    private void finishPendingSuccessInLoop(ChannelSession session, byte[] payload) {
+    private boolean finishPendingSuccessInLoop(ChannelSession session, byte[] payload) {
         CompletableFuture<byte[]> future = session.getPendingFuture();
         if (future == null) {
-            log.warn("完成下行响应失败：无挂起任务，deviceNo={} channelId={}",
+            log.debug("完成下行响应忽略：无挂起任务，deviceNo={} channelId={}",
                     session.getDeviceNo(), channelId(session));
-            throw new IllegalStateException("deviceNo " + session.getDeviceNo() + " 无挂起任务");
+            return false;
         }
+        cancelPendingTimeout(session);
         session.setPendingFuture(null);
         future.complete(payload);
         session.getSending().set(false);
+        return true;
     }
 
     /**
@@ -481,6 +502,7 @@ public class ChannelManager {
         if (expectedFuture != null && currentFuture != expectedFuture) {
             return false;
         }
+        cancelPendingTimeout(session);
         session.setPendingFuture(null);
         currentFuture.completeExceptionally(ex);
         session.getSending().set(false);
@@ -614,16 +636,16 @@ public class ChannelManager {
                 .setChannelId(channelId(session))
                 .setDeviceNo(session.getDeviceNo())
                 .setDeviceType(session.getDeviceType())
-                .setActive(channel != null && channel.isActive())
-                .setOpen(channel != null && channel.isOpen())
-                .setRegistered(channel != null && channel.isRegistered())
-                .setWritable(channel != null && channel.isWritable())
+                .setActive(channel.isActive())
+                .setOpen(channel.isOpen())
+                .setRegistered(channel.isRegistered())
+                .setWritable(channel.isWritable())
                 .setSending(session.getSending().get())
                 .setPending(session.getPendingFuture() != null)
                 .setQueueSize(session.getQueue().size())
                 .setAbnormalCount(session.getAbnormalTimestamps().size())
-                .setRemoteAddress(formatAddress(channel == null ? null : channel.remoteAddress()))
-                .setLocalAddress(formatAddress(channel == null ? null : channel.localAddress()));
+                .setRemoteAddress(formatAddress(channel.remoteAddress()))
+                .setLocalAddress(formatAddress(channel.localAddress()));
     }
 
     /**
@@ -663,6 +685,7 @@ public class ChannelManager {
      * 2) 若当前线程不在 EventLoop 中，则投递到 EventLoop，并等待执行结果返回。
      * <p>
      * 注意：该方法阻塞当前线程，等待 EventLoop 执行完成。
+     * 不要从另一个 Netty IO 线程调用此方法，否则会阻塞那个 IO 线程。
      *
      * @param session  会话（用于定位 channel/eventLoop）
      * @param supplier 待执行逻辑
@@ -677,6 +700,10 @@ public class ChannelManager {
         // 如果本身就在netty线程，那么直接处执行
         if (eventLoop.inEventLoop()) {
             return supplier.get();
+        }
+        if (Thread.currentThread() instanceof FastThreadLocalThread) {
+            log.warn("executeSyncInEventLoop 被其他 Netty IO 线程调用，可能阻塞事件循环，targetChannelId={}",
+                    channelId(session));
         }
         // 注意这里的签名是CompletableFuture<T>，实际上是一个结果容器
         CompletableFuture<T> resultFuture = new CompletableFuture<>();
@@ -719,6 +746,17 @@ public class ChannelManager {
                 throw runtimeException;
             }
             throw new IllegalStateException("EventLoop 执行失败", cause);
+        }
+    }
+
+    /**
+     * 取消当前挂起命令的超时任务。
+     */
+    private void cancelPendingTimeout(ChannelSession session) {
+        ScheduledFuture<?> timeoutFuture = session.getPendingTimeoutFuture();
+        if (timeoutFuture != null) {
+            timeoutFuture.cancel(false);
+            session.setPendingTimeoutFuture(null);
         }
     }
 

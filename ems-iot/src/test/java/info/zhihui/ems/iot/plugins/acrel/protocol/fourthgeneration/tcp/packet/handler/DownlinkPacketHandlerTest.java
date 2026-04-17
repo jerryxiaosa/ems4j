@@ -39,11 +39,11 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-1", modbusFrame);
+        Mockito.verify(commandTransport).completePending(context.getSession(), modbusFrame);
     }
 
     @Test
-    void handle_missingSerial_shouldUseChannelDeviceNo() {
+    void handle_missingSerial_shouldCompletePendingBySession() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
@@ -57,7 +57,7 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-2", modbusFrame);
+        Mockito.verify(commandTransport).completePending(session, modbusFrame);
     }
 
     @Test
@@ -75,28 +75,30 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-3", rawPayload);
+        Mockito.verify(commandTransport).completePending(context.getSession(), rawPayload);
     }
 
     @Test
-    void handle_missingDeviceNo_shouldSkip() {
+    void handle_missingDeviceNo_shouldStillCompletePendingBySession() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
                 .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())));
+        byte[] rawPayload = new byte[]{0x09};
+        context.setRawPayload(rawPayload);
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber(" ");
 
         handler.handle(context, message);
 
-        Mockito.verifyNoInteractions(commandTransport);
+        Mockito.verify(commandTransport).completePending(context.getSession(), rawPayload);
     }
 
     @Test
     void handle_whenCompletePendingThrows_shouldPropagate() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
-        Mockito.when(commandTransport.completePending(Mockito.eq("dev-1"), Mockito.any()))
+        Mockito.when(commandTransport.completePending(Mockito.any(), Mockito.any()))
                 .thenThrow(new IllegalStateException("no pending"));
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();

@@ -332,9 +332,8 @@ class ChannelManagerTest {
     }
 
     @Test
-    void completePending_shouldThrowWhenDeviceUnknown() {
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> channelManager.completePending("not-exist", new byte[]{1}));
+    void completePending_shouldReturnFalseWhenDeviceUnknown() {
+        Assertions.assertFalse(channelManager.completePending("not-exist", new byte[]{1}));
     }
 
     @Test
@@ -518,7 +517,80 @@ class ChannelManagerTest {
     }
 
     @Test
-    void register_whenOldSessionCloseBlocked_shouldNotPublishNewMappingBeforeOldRemoved() throws Exception {
+    void register_concurrentRebind_shouldNotLeaveGhostSession() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        DefaultEventLoop loop0 = new DefaultEventLoop();
+        DefaultEventLoop loop1 = new DefaultEventLoop();
+        DefaultEventLoop loop2 = new DefaultEventLoop();
+        CountDownLatch blockerStarted = new CountDownLatch(1);
+        CountDownLatch releaseLoop0 = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            AtomicBoolean c0Active = new AtomicBoolean(true);
+            AtomicBoolean c1Active = new AtomicBoolean(true);
+            AtomicBoolean c2Active = new AtomicBoolean(true);
+            Channel c0 = createTestChannel(DefaultChannelId.newInstance(), loop0, c0Active);
+            Channel c1 = createTestChannel(DefaultChannelId.newInstance(), loop1, c1Active);
+            Channel c2 = createTestChannel(DefaultChannelId.newInstance(), loop2, c2Active);
+
+            manager.register(new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(c0));
+
+            loop0.execute(() -> {
+                blockerStarted.countDown();
+                try {
+                    releaseLoop0.await(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            Assertions.assertTrue(blockerStarted.await(1, TimeUnit.SECONDS));
+
+            Future<?> firstFuture = executor.submit(() -> {
+                manager.register(new ChannelSession()
+                        .setDeviceNo("dev-1")
+                        .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                        .setChannel(c1));
+                return null;
+            });
+            Future<?> secondFuture = executor.submit(() -> {
+                manager.register(new ChannelSession()
+                        .setDeviceNo("dev-1")
+                        .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                        .setChannel(c2));
+                return null;
+            });
+
+            Thread.sleep(300);
+            releaseLoop0.countDown();
+            firstFuture.get(3, TimeUnit.SECONDS);
+            secondFuture.get(3, TimeUnit.SECONDS);
+
+            Field sessionsField = ChannelManager.class.getDeclaredField("sessions");
+            sessionsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, ChannelSession> sessions = (Map<String, ChannelSession>) sessionsField.get(manager);
+
+            long dev1Count = sessions.values().stream()
+                    .filter(currentSession -> "dev-1".equals(currentSession.getDeviceNo()))
+                    .count();
+
+            Assertions.assertEquals(1, dev1Count);
+            Assertions.assertFalse(c0Active.get());
+            Assertions.assertTrue(c1Active.get() ^ c2Active.get());
+        } finally {
+            releaseLoop0.countDown();
+            executor.shutdownNow();
+            loop0.shutdownGracefully().syncUninterruptibly();
+            loop1.shutdownGracefully().syncUninterruptibly();
+            loop2.shutdownGracefully().syncUninterruptibly();
+        }
+    }
+
+    @Test
+    void register_whenOldSessionCloseBlocked_shouldPublishNewMappingImmediately() throws Exception {
         ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         DefaultEventLoop oldEventLoop = new DefaultEventLoop();
         DefaultEventLoop newEventLoop = new DefaultEventLoop();
@@ -558,13 +630,14 @@ class ChannelManagerTest {
             });
 
             Thread.sleep(100);
-            Assertions.assertFalse(registerFuture.isDone());
+            registerFuture.get(1, TimeUnit.SECONDS);
             ChannelClientSnapshot snapshotDuringBlock = manager.getClientSnapshotByDeviceNo("dev-1");
             Assertions.assertNotNull(snapshotDuringBlock);
-            Assertions.assertEquals(oldChannel.id().asLongText(), snapshotDuringBlock.getChannelId());
+            Assertions.assertEquals(newChannel.id().asLongText(), snapshotDuringBlock.getChannelId());
+            Assertions.assertTrue(oldActive.get());
 
             releaseOldEventLoop.countDown();
-            registerFuture.get(1, TimeUnit.SECONDS);
+            oldEventLoop.submit(() -> null).syncUninterruptibly();
 
             ChannelClientSnapshot snapshotAfterRebind = manager.getClientSnapshotByDeviceNo("dev-1");
             Assertions.assertNotNull(snapshotAfterRebind);
@@ -602,7 +675,7 @@ class ChannelManagerTest {
     }
 
     @Test
-    void completePending_whenNoPending_shouldThrow() {
+    void completePending_whenNoPending_shouldReturnFalse() {
         ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel channel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
@@ -611,12 +684,11 @@ class ChannelManagerTest {
                 .setChannel(channel);
         manager.register(localSession);
 
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.completePending("dev-1", new byte[]{1}));
+        Assertions.assertFalse(manager.completePending("dev-1", new byte[]{1}));
     }
 
     @Test
-    void completePending_whenLateAckAfterTimeout_shouldThrow() throws Exception {
+    void completePending_whenLateAckAfterTimeout_shouldReturnFalse() throws Exception {
         ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel localChannel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
@@ -633,8 +705,79 @@ class ChannelManagerTest {
         ExecutionException exception = Assertions.assertThrows(ExecutionException.class,
                 () -> future.get(1, TimeUnit.SECONDS));
         Assertions.assertInstanceOf(TimeoutException.class, exception.getCause());
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.completePending("dev-1", new byte[]{9}));
+        Assertions.assertFalse(manager.completePending("dev-1", new byte[]{9}));
+    }
+
+    @Test
+    void completePending_shouldClearPendingTimeoutFuture() {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        EmbeddedChannel localChannel = new EmbeddedChannel();
+        ChannelSession localSession = new ChannelSession()
+                .setDeviceNo("dev-1")
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                .setChannel(localChannel);
+        manager.register(localSession);
+
+        manager.sendInQueue("dev-1", new byte[]{1});
+
+        Assertions.assertNotNull(localSession.getPendingTimeoutFuture());
+        Assertions.assertTrue(manager.completePending("dev-1", new byte[]{1}));
+        Assertions.assertNull(localSession.getPendingTimeoutFuture());
+    }
+
+    @Test
+    void remove_shouldClearPendingTimeoutFuture() {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        EmbeddedChannel localChannel = new EmbeddedChannel();
+        ChannelSession localSession = new ChannelSession()
+                .setDeviceNo("dev-1")
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                .setChannel(localChannel);
+        manager.register(localSession);
+
+        CompletableFuture<byte[]> future = manager.sendInQueue("dev-1", new byte[]{1});
+
+        Assertions.assertNotNull(localSession.getPendingTimeoutFuture());
+        manager.remove(localChannel.id().asLongText());
+        Assertions.assertNull(localSession.getPendingTimeoutFuture());
+        Assertions.assertTrue(future.isCompletedExceptionally());
+    }
+
+    @Test
+    void completePendingByChannelId_whenOldAckAfterRebind_shouldNotAffectNewPending() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        DefaultEventLoop oldEventLoop = new DefaultEventLoop();
+        DefaultEventLoop newEventLoop = new DefaultEventLoop();
+        try {
+            AtomicBoolean oldActive = new AtomicBoolean(true);
+            AtomicBoolean newActive = new AtomicBoolean(true);
+            Channel oldChannel = createTestChannel(DefaultChannelId.newInstance(), oldEventLoop, oldActive);
+            Channel newChannel = createTestChannel(DefaultChannelId.newInstance(), newEventLoop, newActive);
+
+            ChannelSession oldSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(oldChannel);
+            manager.register(oldSession);
+
+            ChannelSession newSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(newChannel);
+            manager.register(newSession);
+            CompletableFuture<byte[]> newFuture = new CompletableFuture<>();
+            newSession.setPendingFuture(newFuture);
+
+            oldEventLoop.submit(() -> null).syncUninterruptibly();
+            Assertions.assertFalse(manager.completePendingByChannelId(oldChannel.id().asLongText(), new byte[]{1}));
+            Assertions.assertFalse(newFuture.isDone());
+
+            Assertions.assertTrue(manager.completePendingByChannelId(newChannel.id().asLongText(), new byte[]{2}));
+            Assertions.assertArrayEquals(new byte[]{2}, newFuture.get(1, TimeUnit.SECONDS));
+        } finally {
+            oldEventLoop.shutdownGracefully().syncUninterruptibly();
+            newEventLoop.shutdownGracefully().syncUninterruptibly();
+        }
     }
 
     @Test
