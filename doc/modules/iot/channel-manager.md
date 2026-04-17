@@ -30,6 +30,10 @@
 
 调试接口对外暴露的快照对象为 `ChannelClientSnapshot`，用于汇总连接状态、队列长度、异常次数、远端地址等信息。
 
+### 2.1 会话生命周期图
+
+![ChannelSession 生命周期](../../../resource/images/channel-manager-session-lifecycle.png)
+
 ## 3. 发送与 ACK 流程
 
 ### 3.1 发送流程
@@ -64,6 +68,10 @@
 
 当前 ACK 收口键是 `channelId/session`，不是 `deviceNo`。
 这样在设备重连时，旧连接晚到的 ACK 只会命中旧连接自己的 pending，不会误完成新连接上的命令。
+
+### 3.3 单命令状态图
+
+![单命令状态机](../../../resource/images/channel-manager-command-state.png)
 
 ## 4. 重连策略
 
