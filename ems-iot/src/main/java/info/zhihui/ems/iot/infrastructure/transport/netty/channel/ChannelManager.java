@@ -78,6 +78,10 @@ public class ChannelManager {
         }
 
         ChannelSession oldSession = findSessionByDeviceNo(session.getDeviceNo());
+        // @TODO 当前重绑仍是“先发布新 deviceNo 路由，再异步关闭旧连接”。
+        // 若旧会话所在 EventLoop 长时间阻塞，旧 pending / pendingTimeout 可能无法按
+        // commandTimeoutMillis 及时收口；后续需要把“旧状态退休”和“旧通道关闭”拆开处理，
+        // 并在新映射发布前完成旧状态摘除。
         bindSessionIndexes(session, oldSession);
         if (shouldClosePreviousSession(session, oldSession)) {
             executeAsyncInEventLoop(oldSession, () -> closeSessionInLoop(oldSession));
@@ -439,6 +443,10 @@ public class ChannelManager {
      */
     private void schedulePendingTimeoutInLoop(ChannelSession session, PendingTask task) {
         assertInEventLoop(session, "注册命令超时任务");
+        // @TODO 超时任务绑定在当前 session 自己的 EventLoop 上。
+        // 一旦设备重连而旧 EventLoop 又恰好阻塞，旧 pending 的超时回调也会一起滞后；
+        // 后续若要严格保证 commandTimeoutMillis，需要引入可跨重绑摘除的 retiring 状态
+        // 或更独立的 timeout 管理机制。
         ScheduledFuture<?> timeoutFuture = session.getChannel().eventLoop().schedule(
                 () -> handlePendingTimeoutInLoop(session, task.deviceNo(), task.future()),
                 properties.getCommandTimeoutMillis(),
