@@ -1,5 +1,6 @@
 package info.zhihui.ems.web.user.biz;
 
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.foundation.user.bo.UserBo;
@@ -22,6 +23,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserManageBiz {
+
+    private static final String ADMIN_USER_NAME = "admin";
 
     private final UserService userService;
     private final UserManageWebMapper userManageWebMapper;
@@ -111,6 +114,10 @@ public class UserManageBiz {
      * @param id 用户ID
      */
     public void deleteUser(Integer id) {
+        UserBo userBo = userService.getUserInfo(id);
+        if (ADMIN_USER_NAME.equals(userBo.getUserName())) {
+            throw new BusinessRuntimeException("admin账户不允许删除");
+        }
         userService.delete(id);
     }
 

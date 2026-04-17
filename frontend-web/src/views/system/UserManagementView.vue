@@ -18,6 +18,8 @@ const userPermissionKeys = {
   resetPassword: 'system_management_user_management_reset_password'
 } as const
 
+const isProtectedUser = (username?: string) => username === 'admin'
+
 const { notice, noticeFading, setNotice, dispose } = useUserNotice()
 const {
   userRows: pagedRows,
@@ -197,6 +199,7 @@ onBeforeUnmount(() => {
                   编辑
                 </button>
                 <button
+                  v-if="!isProtectedUser(row.username)"
                   v-menu-permission="userPermissionKeys.resetPassword"
                   class="btn-link"
                   type="button"
@@ -205,6 +208,7 @@ onBeforeUnmount(() => {
                   重置密码
                 </button>
                 <button
+                  v-if="!isProtectedUser(row.username)"
                   v-menu-permission="userPermissionKeys.delete"
                   class="btn-link btn-link-danger"
                   type="button"
