@@ -73,27 +73,6 @@ Notes:
 - **Runnable locally, not just a conceptual repository**  
   Includes frontend and backend projects, Docker-based dependencies, SQL bootstrap scripts, and runtime documentation.
 
-## Key Screens
-
-### Core Business Loop
-
-| Page | Screenshot |
-|------|------------|
-| Account Detail | ![Account Detail](resource/images/account-detail.png) |
-| Account Settlement | ![Account Settlement](resource/images/clear-account.png) |
-| Order List | ![Order List](resource/images/order-list.png) |
-| Order Creation | ![Order Creation](resource/images/order-create.png) |
-
-### Device and Billing Capabilities
-
-| Page | Screenshot |
-|------|------------|
-| Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
-| Power Consumption Trend | ![Power Consumption Trend](resource/images/meter-power-trend.png) |
-| Electric Bill Report | ![Electric Bill Report](resource/images/energy-report.png) |
-| Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
-| Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
-
 ## Prepaid Mode Description
 
 The system supports three billing types: pay-as-you-go, consolidated, and monthly. In pay-as-you-go and consolidated modes, balance is deducted based on actual usage. In pay-as-you-go mode, each water/electric meter is settled independently. In consolidated mode, the balance is recharged on one water/electric meter and other meters use that balance. Monthly is settled at a fixed amount per cycle.
@@ -326,6 +305,27 @@ For detailed platform integration solutions, see:
 | [Foundation Module Documentation](doc/modules/foundation/README.md) | Foundation modules documentation (user, organization, space, system, integration) |
 | [IoT Module Documentation](doc/modules/iot/README.md) | IoT module documentation for device access and protocol integration |
 | [Test Guidelines](doc/test-guidelines.md) | Unit and integration test standards and best practices |
+
+## Key Screens
+
+### Core Business Loop
+
+| Page | Screenshot |
+|------|------------|
+| Account Detail | ![Account Detail](resource/images/account-detail.png) |
+| Account Settlement | ![Account Settlement](resource/images/clear-account.png) |
+| Order List | ![Order List](resource/images/order-list.png) |
+| Order Creation | ![Order Creation](resource/images/order-create.png) |
+
+### Device and Billing Capabilities
+
+| Page | Screenshot |
+|------|------------|
+| Meter Detail | ![Meter Detail](resource/images/electric-detail.png) |
+| Power Consumption Trend | ![Power Consumption Trend](resource/images/meter-power-trend.png) |
+| Electric Bill Report | ![Electric Bill Report](resource/images/energy-report.png) |
+| Price Plan Detail | ![Price Plan Detail](resource/images/electirc-detail.png) |
+| Warning Plan Detail | ![Warning Plan Detail](resource/images/warn-detial.png) |
 
 ## Motivation
 
