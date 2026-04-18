@@ -1,4 +1,4 @@
-# EMS4J: Open-Source EMS Management System
+# EMS4J: EMS Management System
 
 [![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)](https://spring.io/projects/spring-boot)

@@ -1,4 +1,4 @@
-# EMS4J：开源 EMS 管理系统
+# EMS4J：EMS能源管理系统
 
 [![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)](https://spring.io/projects/spring-boot)
