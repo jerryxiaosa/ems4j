@@ -81,6 +81,57 @@ helm upgrade --install ems-app ./deploy/helm/ems-app \
   --set image.registry=$HARBOR/ems
 ```
 
+## `ems-app` 版本管理
+
+`ems-app` 默认按以下优先级解析镜像版本：
+
+- `backend.image.tag` / `frontend.image.tag` / `iot.image.tag` / `iotSimulator.image.tag`
+- `global.imageTag`
+- `Chart.yaml` 中的 `appVersion`
+
+常规整体发版时，只需要修改 [deploy/helm/ems-app/Chart.yaml](./ems-app/Chart.yaml) 的 `appVersion`。
+如果四个应用镜像版本一致，不需要再分别修改 `values.yaml` 中的四处 `image.tag`。
+
+例如，将 `appVersion` 从：
+
+```yaml
+appVersion: "0.6.0"
+```
+
+改为：
+
+```yaml
+appVersion: "0.6.1"
+```
+
+即可让 `backend`、`frontend`、`iot`、`iot-simulator` 默认都使用 `0.6.1`。
+
+如果发版时不想改文件，也可以在命令行统一覆盖：
+
+```bash
+helm upgrade --install ems-app ./deploy/helm/ems-app \
+  -n ems-app \
+  --set global.imagePullSecrets[0].name=harbor-pull-secret \
+  --set image.registry=$HARBOR/ems \
+  --set global.imageTag=$TAG
+```
+
+如果只有单个服务要临时覆盖版本，继续使用对应的组件字段即可：
+
+```bash
+helm upgrade --install ems-app ./deploy/helm/ems-app \
+  -n ems-app \
+  --set global.imagePullSecrets[0].name=harbor-pull-secret \
+  --set image.registry=$HARBOR/ems \
+  --set global.imageTag=0.6.1 \
+  --set iot.image.tag=0.6.1-hotfix
+```
+
+建议保持以下约定：
+
+- `Chart.yaml.version`：Helm Chart 自身版本
+- `Chart.yaml.appVersion`：默认应用镜像版本
+
 ## 部署后检查
 
 ```bash

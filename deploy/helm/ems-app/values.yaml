@@ -2,6 +2,8 @@ global:
   imagePullSecrets: []
   timezone: "Asia/Shanghai"
   javaToolOptions: "-Duser.timezone=Asia/Shanghai"
+  # 默认镜像版本。为空时回退到 Chart.yaml 中的 appVersion。
+  imageTag: ""
 
 image:
   registry: "172.22.0.8:8088/ems"
@@ -9,7 +11,8 @@ image:
 backend:
   image:
     repository: "backend"
-    tag: "0.6.0"
+    # 单独覆盖 backend 镜像版本；为空时使用 global.imageTag，再为空时使用 Chart.appVersion。
+    tag: ""
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -34,7 +37,8 @@ backend:
 frontend:
   image:
     repository: "frontend"
-    tag: "0.6.0"
+    # 单独覆盖 frontend 镜像版本；为空时使用 global.imageTag，再为空时使用 Chart.appVersion。
+    tag: ""
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -43,7 +47,8 @@ frontend:
 iot:
   image:
     repository: "iot"
-    tag: "0.6.0"
+    # 单独覆盖 iot 镜像版本；为空时使用 global.imageTag，再为空时使用 Chart.appVersion。
+    tag: ""
     pullPolicy: IfNotPresent
   replicas: 1
   service:
@@ -69,7 +74,8 @@ iot:
 iotSimulator:
   image:
     repository: "iot-simulator"
-    tag: "0.6.0"
+    # 单独覆盖 iot-simulator 镜像版本；为空时使用 global.imageTag，再为空时使用 Chart.appVersion。
+    tag: ""
     pullPolicy: IfNotPresent
   replicas: 1
   env:
