@@ -246,7 +246,7 @@ export const useElectricMeterActions = ({
         await createElectricMeter({
           spaceId: Number(payload.spaceId),
           meterName: payload.meterName.trim(),
-          deviceNo: payload.deviceNo.trim() || undefined,
+          deviceNo: selectedModel.isNb ? payload.deviceNo.trim() || undefined : undefined,
           isCalculate: payload.isCalculate === 'true',
           calculateType: undefined,
           isPrepay: payload.payType === '1',

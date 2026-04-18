@@ -55,6 +55,9 @@ import info.zhihui.ems.mq.api.constant.device.DeviceMqConstant;
 import info.zhihui.ems.mq.api.message.device.DeviceCommandExecuteMessage;
 import info.zhihui.ems.mq.api.model.MqMessage;
 import info.zhihui.ems.mq.api.service.MqService;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -2855,6 +2858,24 @@ class ElectricMeterManagerServiceImplTest {
 
         assertEquals("电表信息重复", exception.getMessage());
         verify(repository, never()).insert(any(ElectricMeterEntity.class));
+    }
+
+    @Test
+    void testCreateDto_WhenGatewayModeDeviceNoBlank_ShouldNotRequireValidation() {
+        ElectricMeterCreateDto dto = new ElectricMeterCreateDto()
+                .setSpaceId(1)
+                .setMeterName("测试电表")
+                .setDeviceNo("")
+                .setIsCalculate(true)
+                .setIsPrepay(false)
+                .setModelId(1)
+                .setGatewayId(1)
+                .setPortNo(2)
+                .setMeterAddress(11);
+        try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = validatorFactory.getValidator();
+            assertTrue(validator.validate(dto).isEmpty());
+        }
     }
 
     @Test

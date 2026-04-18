@@ -64,6 +64,11 @@ const fillForm = (meter: ElectricMeterItem | null) => {
   form.deviceNo = meter.deviceNo || ''
   form.meterAddress = meter.meterAddress
   form.modelId = String(meter.modelId)
+  form.modelName = meter.modelName || ''
+  form.communicateModel = meter.communicateModel || ''
+  form.isNb = meter.communicateModel?.toLowerCase().includes('nb') || meter.communicateModel?.toLowerCase().includes('4g')
+  form.isCt = meter.isCt
+  form.isPrepay = meter.payType === 1
   form.ct = meter.ct || ''
   form.spaceId = meter.spaceId
   form.gatewayId = meter.gatewayId ? String(meter.gatewayId) : ''
@@ -116,14 +121,17 @@ const normalizeCommunicateModelKey = (value: string | undefined) => {
   }
   return source
 }
-const communicateModelKey = computed(() =>
-  normalizeCommunicateModelKey(selectedModel.value?.communicateModel)
-)
+const communicateModelSource = computed(() => selectedModel.value?.communicateModel || form.communicateModel)
+const communicateModelKey = computed(() => normalizeCommunicateModelKey(communicateModelSource.value))
 const showCtField = computed(() => Boolean(selectedModel.value?.isCt))
 const showGatewayFields = computed(() => communicateModelKey.value === 'tcp')
 const showImeiField = computed(() => communicateModelKey.value === 'nb')
+const showEditableDeviceNoField = computed(() => !showGatewayFields.value)
 const canTogglePrepay = computed(() => Boolean(selectedModel.value?.isPrepay))
 const dialogTitle = computed(() => (props.mode === 'create' ? '添加电表' : '编辑电表'))
+const selectedGateway = computed(() =>
+  gatewayOptions.value.find((item) => String(item.id) === String(form.gatewayId))
+)
 const communicateModelText = computed(() => {
   if (communicateModelKey.value === 'tcp') {
     return 'TCP'
@@ -131,7 +139,19 @@ const communicateModelText = computed(() => {
   if (communicateModelKey.value === 'nb') {
     return 'NB'
   }
-  return selectedModel.value?.communicateModel || '—'
+  return communicateModelSource.value || '—'
+})
+const generatedDeviceNoText = computed(() => {
+  if (!showGatewayFields.value) {
+    return form.deviceNo || ''
+  }
+  const gatewayDeviceNo = selectedGateway.value?.deviceNo?.trim()
+  const portNo = form.portNo.trim()
+  const meterAddress = form.meterAddress.trim()
+  if (gatewayDeviceNo && portNo && meterAddress) {
+    return `${gatewayDeviceNo}:${portNo}:${meterAddress}`
+  }
+  return form.deviceNo || '将在选择网关、串口号和电表地址码后自动生成'
 })
 
 const findSpaceNodeById = (
@@ -339,7 +359,7 @@ const validate = () => {
   }
 
   if (!isEditMode.value) {
-    if (!form.deviceNo.trim()) {
+    if (showEditableDeviceNoField.value && !form.deviceNo.trim()) {
       errors.deviceNo = '请输入电表编号'
     }
     if (!form.modelId) {
@@ -388,6 +408,7 @@ const handleSubmit = () => {
 
 const handleModelChange = () => {
   resetErrors()
+  form.deviceNo = ''
   form.ct = ''
   form.gatewayId = ''
   form.portNo = ''
@@ -414,6 +435,42 @@ const getRequiredLabelClass = (required: boolean) => ({
         <div class="modal-body">
           <div class="form-grid single-column">
             <label class="field">
+              <span class="field-label-row">
+                <span :class="['field-label', getRequiredLabelClass(true)]">电表型号</span>
+                <UiLoadingState
+                  v-if="modelOptionsLoading"
+                  inline
+                  :size="14"
+                  :thickness="2"
+                />
+              </span>
+              <select
+                v-model="form.modelId"
+                class="form-select"
+                :class="{ 'is-placeholder': !form.modelId }"
+                :disabled="modelOptionsLoading || isEditMode"
+                @change="handleModelChange"
+              >
+                <option value="">请选择电表型号</option>
+                <option v-for="item in modelOptions" :key="item.id" :value="String(item.id)">
+                  {{ item.modelName }}
+                </option>
+              </select>
+              <span v-if="errors.modelId" class="field-error">{{ errors.modelId }}</span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">通讯模式</span>
+              <input
+                class="form-control"
+                type="text"
+                :value="communicateModelText"
+                disabled
+                readonly
+              />
+            </label>
+
+            <label class="field">
               <span :class="['field-label', getRequiredLabelClass(true)]">电表名称</span>
               <input
                 v-model="form.meterName"
@@ -422,20 +479,6 @@ const getRequiredLabelClass = (required: boolean) => ({
                 placeholder="请输入电表名称"
               />
               <span v-if="errors.meterName" class="field-error">{{ errors.meterName }}</span>
-            </label>
-
-            <label class="field">
-              <span :class="['field-label', getRequiredLabelClass(!isEditMode)]"
-                >电表编号（必须和电表实际编号一致）</span
-              >
-              <input
-                v-model="form.deviceNo"
-                class="form-control"
-                type="text"
-                placeholder="请输入电表编号"
-                :disabled="isEditMode"
-              />
-              <span v-if="errors.deviceNo" class="field-error">{{ errors.deviceNo }}</span>
             </label>
 
             <div ref="spacePickerRef" class="field field-tree-select">
@@ -486,40 +529,18 @@ const getRequiredLabelClass = (required: boolean) => ({
               <span v-if="errors.spaceId" class="field-error">{{ errors.spaceId }}</span>
             </div>
 
-            <label class="field">
-              <span class="field-label-row">
-                <span :class="['field-label', getRequiredLabelClass(true)]">电表型号</span>
-                <UiLoadingState
-                  v-if="modelOptionsLoading"
-                  inline
-                  :size="14"
-                  :thickness="2"
-                />
-              </span>
-              <select
-                v-model="form.modelId"
-                class="form-select"
-                :class="{ 'is-placeholder': !form.modelId }"
-                :disabled="modelOptionsLoading || isEditMode"
-                @change="handleModelChange"
+            <label v-if="showEditableDeviceNoField" class="field">
+              <span :class="['field-label', getRequiredLabelClass(!isEditMode)]"
+                >电表编号（必须和电表实际编号一致）</span
               >
-                <option value="">请选择电表型号</option>
-                <option v-for="item in modelOptions" :key="item.id" :value="String(item.id)">
-                  {{ item.modelName }}
-                </option>
-              </select>
-              <span v-if="errors.modelId" class="field-error">{{ errors.modelId }}</span>
-            </label>
-
-            <label class="field">
-              <span class="field-label">通讯模式</span>
               <input
+                v-model="form.deviceNo"
                 class="form-control"
                 type="text"
-                :value="communicateModelText"
-                disabled
-                readonly
+                placeholder="请输入电表编号"
+                :disabled="isEditMode"
               />
+              <span v-if="errors.deviceNo" class="field-error">{{ errors.deviceNo }}</span>
             </label>
 
             <label v-if="showCtField" class="field">
@@ -593,6 +614,18 @@ const getRequiredLabelClass = (required: boolean) => ({
                 :disabled="isEditMode"
               />
               <span v-if="errors.meterAddress" class="field-error">{{ errors.meterAddress }}</span>
+            </label>
+
+            <label v-if="showGatewayFields" class="field">
+              <span class="field-label">电表编号（系统自动生成）</span>
+              <input
+                class="form-control"
+                type="text"
+                :value="generatedDeviceNoText"
+                disabled
+                readonly
+              />
+              <span class="field-tip">电表编号将自动生成</span>
             </label>
 
             <div class="field">
