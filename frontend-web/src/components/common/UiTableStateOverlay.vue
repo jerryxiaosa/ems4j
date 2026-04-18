@@ -66,6 +66,8 @@ const overlayStyle = computed(() => {
 }
 
 .ui-table-state-overlay.is-loading {
+  pointer-events: auto;
+  cursor: progress;
   background: rgb(255 255 255 / 82%);
   border-radius: 0 0 5px 5px;
 }

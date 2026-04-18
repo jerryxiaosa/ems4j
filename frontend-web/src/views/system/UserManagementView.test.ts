@@ -71,6 +71,7 @@ describe('UserManagementView', () => {
       notice: reactive({ text: '', type: 'info' as const }),
       noticeFading: ref(false),
       setNotice: vi.fn(),
+      clearNoticeTimers: vi.fn(),
       dispose: vi.fn()
     })
 
@@ -119,8 +120,17 @@ describe('UserManagementView', () => {
         pageNum: 1,
         pageSize: 10
       }),
+      appliedFilters: reactive({
+        username: '',
+        realName: '',
+        phone: '',
+        organizationId: '',
+        roleId: ''
+      }),
       syncAppliedFilters: vi.fn(),
       handleOrganizationSelect: vi.fn(),
+      loadOrganizationOptions: vi.fn().mockResolvedValue(undefined),
+      loadRoleOptions: vi.fn().mockResolvedValue(undefined),
       loadUsers: vi.fn().mockResolvedValue(undefined),
       handleSearch: vi.fn(),
       handleReset: vi.fn(),
