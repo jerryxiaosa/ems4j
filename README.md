@@ -73,27 +73,6 @@ docker compose -f deploy/compose/docker-compose.full.yml up -d --build
 - **可直接本地运行和体验**
   提供前后端工程、Docker 依赖环境、数据库脚本和运行说明，不是概念仓库。
 
-## 核心页面预览
-
-### 核心业务闭环
-
-| 页面 | 截图 |
-|------|------|
-| 账户详情 | ![账户详情](resource/images/account-detail.png) |
-| 销户结算 | ![销户结算](resource/images/clear-account.png) |
-| 订单列表 | ![订单列表](resource/images/order-list.png) |
-| 订单创建 | ![订单创建](resource/images/order-create.png) |
-
-### 设备与计费能力
-
-| 页面     | 截图                                             |
-|--------|------------------------------------------------|
-| 电表详情   | ![电表详情](resource/images/electric-detail.png)   |
-| 用电趋势   | ![用电趋势](resource/images/meter-power-trend.png) |
-| 电费报表   | ![电费报表](resource/images/energy-report.png)     |
-| 电价方案详情 | ![电价方案详情](resource/images/electirc-detail.png) |
-| 预警方案详情 | ![预警方案详情](resource/images/warn-detial.png)     |
-
 ## 预付费模式说明
 
 系统支持按需、合并与包月三种计费模式。其中按需与合并模式都是根据实际的使用对余额扣费。按需模式每个水电表独立核算。合并模式是把金额充值在一个水电表上，其他的表都用这个金额。包月按周期固定金额结算。
@@ -327,6 +306,27 @@ pnpm test:e2e
 | [基础模块文档](doc/modules/foundation/README.md) | 基础模块文档（用户、组织、空间、系统、集成） |
 | [IoT 模块文档](doc/modules/iot/README.md) | IoT 模块文档，用于设备接入和协议集成 |
 | [测试指南](doc/test-guidelines.md) | 单元测试和集成测试标准及最佳实践 |
+
+## 核心页面预览
+
+### 核心业务闭环
+
+| 页面 | 截图 |
+|------|------|
+| 账户详情 | ![账户详情](resource/images/account-detail.png) |
+| 销户结算 | ![销户结算](resource/images/clear-account.png) |
+| 订单列表 | ![订单列表](resource/images/order-list.png) |
+| 订单创建 | ![订单创建](resource/images/order-create.png) |
+
+### 设备与计费能力
+
+| 页面     | 截图                                             |
+|--------|------------------------------------------------|
+| 电表详情   | ![电表详情](resource/images/electric-detail.png)   |
+| 用电趋势   | ![用电趋势](resource/images/meter-power-trend.png) |
+| 电费报表   | ![电费报表](resource/images/energy-report.png)     |
+| 电价方案详情 | ![电价方案详情](resource/images/electirc-detail.png) |
+| 预警方案详情 | ![预警方案详情](resource/images/warn-detial.png)     |
 
 ## 动机
 
