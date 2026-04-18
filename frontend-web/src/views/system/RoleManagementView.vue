@@ -3,8 +3,7 @@ import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { createRole, deleteRole, fetchRoleList, updateRole } from '@/api/adapters/role'
 import RoleFormModal from '@/components/system/RoleFormModal.vue'
 import RolePermissionModal from '@/components/system/RolePermissionModal.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { SystemRoleFormValue, SystemRoleItem } from '@/modules/system/roles/types'
 
 const rolePermissionKeys = {
@@ -198,6 +197,10 @@ onMounted(async () => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && roleRows.length === 0"
+        />
         <table class="table">
           <thead>
             <tr>
@@ -208,16 +211,6 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="4" class="empty-cell">
-                <UiLoadingState :size="18" :thickness="2" :min-height="72" />
-              </td>
-            </tr>
-            <tr v-else-if="roleRows.length === 0">
-              <td colspan="4" class="empty-cell">
-                <UiEmptyState :min-height="72" />
-              </td>
-            </tr>
             <tr v-for="(row, index) in roleRows" :key="row.id">
               <td>{{ getSerialNumber(index) }}</td>
               <td>{{ row.name || '--' }}</td>
@@ -391,6 +384,8 @@ onMounted(async () => {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);

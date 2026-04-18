@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp.support;
 
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.domain.model.Device;
 import info.zhihui.ems.iot.domain.model.Product;
@@ -21,7 +22,7 @@ class AcrelGatewayDeviceResolverTest {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayDeviceResolver resolver = new AcrelGatewayDeviceResolver(deviceRegistry);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties()));
         Device device = new Device().setDeviceNo("gw-1");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
         context.setDeviceNo("gw-1");
@@ -46,7 +47,8 @@ class AcrelGatewayDeviceResolverTest {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayDeviceResolver resolver = new AcrelGatewayDeviceResolver(deviceRegistry);
         EmbeddedChannel channel = new EmbeddedChannel();
-        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(new NettyProtocolSession(channel, new ChannelManager()));
+        SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())));
 
         Assertions.assertNull(resolver.resolveGateway(context));
         Mockito.verifyNoInteractions(deviceRegistry);
@@ -57,7 +59,7 @@ class AcrelGatewayDeviceResolverTest {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayDeviceResolver resolver = new AcrelGatewayDeviceResolver(deviceRegistry);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties()));
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "gw-1");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
         Product product = new Product().setCode("P-1");
@@ -75,7 +77,7 @@ class AcrelGatewayDeviceResolverTest {
         DeviceRegistry deviceRegistry = Mockito.mock(DeviceRegistry.class);
         AcrelGatewayDeviceResolver resolver = new AcrelGatewayDeviceResolver(deviceRegistry);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties()));
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "gw-1");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
         Mockito.when(deviceRegistry.getByDeviceNo("gw-1")).thenThrow(new IllegalStateException("fail"));

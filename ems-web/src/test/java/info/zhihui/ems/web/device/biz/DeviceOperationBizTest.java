@@ -68,6 +68,7 @@ class DeviceOperationBizTest {
                 .setSpaceName("101")
                 .setCommandType(CommandTypeEnum.ENERGY_ELECTRIC_TURN_ON)
                 .setSuccess(true)
+                .setEnsureSuccess(false)
                 .setExecuteTimes(2)
                 .setOperateUserName("张三")
                 .setCreateTime(LocalDateTime.of(2026, 3, 16, 12, 0, 0));
@@ -106,6 +107,7 @@ class DeviceOperationBizTest {
         assertThat(operationVo.getDeviceType()).isEqualTo("electricMeter");
         assertThat(operationVo.getCommandType()).isEqualTo(1);
         assertThat(operationVo.getCommandTypeName()).isEqualTo("电表合闸");
+        assertThat(operationVo.getEnsureSuccess()).isFalse();
     }
 
     @Test

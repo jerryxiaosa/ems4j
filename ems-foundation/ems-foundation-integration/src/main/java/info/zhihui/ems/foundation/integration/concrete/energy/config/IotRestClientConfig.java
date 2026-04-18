@@ -21,7 +21,7 @@ public class IotRestClientConfig {
     /**
      * IoT HTTP 客户端读取超时时间（毫秒）。
      */
-    private static final int IOT_HTTP_READ_TIMEOUT_MS = 5000;
+    private static final int IOT_HTTP_READ_TIMEOUT_MS = 10000;
 
     /**
      * 能源模块调用 IoT 接口的统一 RestClient。

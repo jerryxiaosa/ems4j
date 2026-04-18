@@ -289,7 +289,7 @@ describe('useElectricMeterActions', () => {
     expect(mockedCreateElectricMeter).toHaveBeenCalledWith({
       spaceId: 9,
       meterName: 'A1-101总表',
-      deviceNo: 'EM-001',
+      deviceNo: undefined,
       isCalculate: true,
       calculateType: undefined,
       isPrepay: true,
@@ -303,6 +303,38 @@ describe('useElectricMeterActions', () => {
     expect(queryForm.pageNum).toBe(1)
     expect(loadMeterPage).toHaveBeenCalledTimes(1)
     expect(setNotice).toHaveBeenCalledWith('success', '电表添加成功')
+  })
+
+  test('testHandleSubmitMeter_WhenCreateModeNb_ShouldKeepDeviceNo', async () => {
+    mockedCreateElectricMeter.mockResolvedValue(10)
+    const { composable } = createComposable()
+    composable.editMode.value = 'create'
+    const payload = createPayload()
+    payload.modelId = '101'
+    payload.modelName = 'DDSY1352-NB'
+    payload.communicateModel = 'nb'
+    payload.isNb = true
+    payload.isCt = false
+    payload.gatewayId = ''
+    payload.portNo = ''
+    payload.imei = ' 8675309 '
+
+    await composable.handleSubmitMeter(payload)
+
+    expect(mockedCreateElectricMeter).toHaveBeenCalledWith({
+      spaceId: 9,
+      meterName: 'A1-101总表',
+      deviceNo: 'EM-001',
+      isCalculate: true,
+      calculateType: undefined,
+      isPrepay: true,
+      modelId: 101,
+      gatewayId: undefined,
+      portNo: undefined,
+      meterAddress: 11,
+      imei: '8675309',
+      ct: undefined
+    })
   })
 
   test('testHandleSubmitMeter_WhenCreateModelInvalid_ShouldSkipCreate', async () => {

@@ -60,6 +60,22 @@ class DefaultEnergyServiceImplTest {
         }
     }
 
+    @Test
+    void testAddDevice_IotBusinessFailure_ThrowOriginalBusinessMessage() throws IOException {
+        HttpServer httpServer = startMockServer("{\"success\":false,\"message\":\"设备离线\"}");
+        try {
+            DefaultEnergyServiceImpl service = buildService(httpServer);
+            ElectricDeviceAddDto addDto = buildAddDto();
+
+            BusinessRuntimeException exception = Assertions.assertThrows(BusinessRuntimeException.class,
+                    () -> service.addDevice(addDto));
+
+            Assertions.assertEquals("新增设备失败：设备离线", exception.getMessage());
+        } finally {
+            httpServer.stop(0);
+        }
+    }
+
     private DefaultEnergyServiceImpl buildService(HttpServer httpServer) {
         DefaultIotHttpRequestConfig config = new DefaultIotHttpRequestConfig();
         config.setAddressUrl("http://127.0.0.1:" + httpServer.getAddress().getPort());

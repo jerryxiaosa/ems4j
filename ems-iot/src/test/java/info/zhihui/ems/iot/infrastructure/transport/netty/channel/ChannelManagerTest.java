@@ -1,6 +1,7 @@
 package info.zhihui.ems.iot.infrastructure.transport.netty.channel;
 
 import info.zhihui.ems.common.enums.DeviceTypeEnum;
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultChannelId;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class ChannelManagerTest {
@@ -34,7 +37,7 @@ class ChannelManagerTest {
 
     @BeforeEach
     void setUp() {
-        channelManager = new ChannelManager();
+        channelManager = new ChannelManager(new ChannelManagerProperties());
         channel = new EmbeddedChannel();
         session = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -96,7 +99,7 @@ class ChannelManagerTest {
 
     @Test
     void register_whenDeviceNoBlank_shouldNotCorruptExistingMapping() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel sharedChannel = new EmbeddedChannel();
         ChannelSession validSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -153,8 +156,31 @@ class ChannelManagerTest {
     }
 
     @Test
+    void queueShouldHonorConfiguredLimit() {
+        ChannelManagerProperties properties = new ChannelManagerProperties();
+        properties.setMaxQueueSize(1);
+        ChannelManager manager = new ChannelManager(properties);
+        EmbeddedChannel localChannel = new EmbeddedChannel();
+        ChannelSession localSession = new ChannelSession()
+                .setDeviceNo("dev-1")
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                .setChannel(localChannel);
+        manager.register(localSession);
+
+        localSession.getSending().set(true);
+        localSession.setPendingFuture(new CompletableFuture<>());
+
+        CompletableFuture<byte[]> first = manager.sendInQueue("dev-1", new byte[]{1});
+        CompletableFuture<byte[]> second = manager.sendInQueue("dev-1", new byte[]{2});
+
+        Assertions.assertFalse(first.isCompletedExceptionally());
+        Assertions.assertTrue(second.isCompletedExceptionally());
+        Assertions.assertEquals(1, localSession.getQueue().size());
+    }
+
+    @Test
     void queueShouldKeepLimitWhenConcurrentEnqueue() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         DefaultEventLoop eventLoop = new DefaultEventLoop();
         try {
             Channel mockChannel = Mockito.mock(Channel.class);
@@ -208,7 +234,7 @@ class ChannelManagerTest {
 
     @Test
     void queueShouldKeepLimitWhenConcurrentEnqueue_andMappingPointsToWrongSession() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         DefaultEventLoop eventLoop = new DefaultEventLoop();
         try {
             Channel firstChannel = Mockito.mock(Channel.class);
@@ -300,20 +326,19 @@ class ChannelManagerTest {
 
     @Test
     void sendToDevice_shouldThrowWhenDeviceNotFound() {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         Assertions.assertThrows(IllegalStateException.class,
                 () -> manager.sendInQueue("not-exist", new byte[]{1}));
     }
 
     @Test
-    void completePending_shouldThrowWhenDeviceUnknown() {
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> channelManager.completePending("not-exist", new byte[]{1}));
+    void completePending_shouldReturnFalseWhenDeviceUnknown() {
+        Assertions.assertFalse(channelManager.completePending("not-exist", new byte[]{1}));
     }
 
     @Test
     void sendToDevice_whenFirstWriteFails_shouldFailFutureAndContinueQueue() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
 
         AtomicInteger counter = new AtomicInteger();
         EmbeddedChannel failThenSuccess = new EmbeddedChannel(new io.netty.channel.ChannelOutboundHandlerAdapter() {
@@ -344,7 +369,7 @@ class ChannelManagerTest {
 
     @Test
     void timeout_shouldCloseChannelAndClearQueue() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel localChannel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -367,12 +392,6 @@ class ChannelManagerTest {
     }
 
     @Test
-    void sendInQueueWithoutWaiting_shouldCompleteOnWrite() {
-        channelManager.sendInQueueWithoutWaiting("dev-1", new byte[]{1, 2, 3});
-        Assertions.assertNull(session.getPendingFuture());
-    }
-
-    @Test
     void completePending_whenDeviceNoBlank_shouldThrow() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> channelManager.completePending(" ", new byte[]{1}));
@@ -380,7 +399,7 @@ class ChannelManagerTest {
 
     @Test
     void register_whenSameChannelDifferentDevice_shouldUpdateMappingAndRemoveOld() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel channel = new EmbeddedChannel();
         ChannelSession first = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -406,7 +425,7 @@ class ChannelManagerTest {
 
     @Test
     void register_whenRebindToNewChannel_shouldCloseOldChannel() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel firstChannel = new EmbeddedChannel(DefaultChannelId.newInstance());
         ChannelSession first = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -432,7 +451,7 @@ class ChannelManagerTest {
 
     @Test
     void register_whenRebindToNewChannel_shouldFailOldPendingAndQueue() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel firstChannel = new EmbeddedChannel(DefaultChannelId.newInstance());
         ChannelSession first = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -463,7 +482,7 @@ class ChannelManagerTest {
 
     @Test
     void register_whenConcurrentRebindAcrossChannels_shouldNotHang() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel firstChannel = new EmbeddedChannel(DefaultChannelId.newInstance());
         EmbeddedChannel secondChannel = new EmbeddedChannel(DefaultChannelId.newInstance());
 
@@ -498,8 +517,144 @@ class ChannelManagerTest {
     }
 
     @Test
+    void register_concurrentRebind_shouldNotLeaveGhostSession() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        DefaultEventLoop loop0 = new DefaultEventLoop();
+        DefaultEventLoop loop1 = new DefaultEventLoop();
+        DefaultEventLoop loop2 = new DefaultEventLoop();
+        CountDownLatch blockerStarted = new CountDownLatch(1);
+        CountDownLatch releaseLoop0 = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            AtomicBoolean c0Active = new AtomicBoolean(true);
+            AtomicBoolean c1Active = new AtomicBoolean(true);
+            AtomicBoolean c2Active = new AtomicBoolean(true);
+            Channel c0 = createTestChannel(DefaultChannelId.newInstance(), loop0, c0Active);
+            Channel c1 = createTestChannel(DefaultChannelId.newInstance(), loop1, c1Active);
+            Channel c2 = createTestChannel(DefaultChannelId.newInstance(), loop2, c2Active);
+
+            manager.register(new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(c0));
+
+            loop0.execute(() -> {
+                blockerStarted.countDown();
+                try {
+                    releaseLoop0.await(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            Assertions.assertTrue(blockerStarted.await(1, TimeUnit.SECONDS));
+
+            Future<?> firstFuture = executor.submit(() -> {
+                manager.register(new ChannelSession()
+                        .setDeviceNo("dev-1")
+                        .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                        .setChannel(c1));
+                return null;
+            });
+            Future<?> secondFuture = executor.submit(() -> {
+                manager.register(new ChannelSession()
+                        .setDeviceNo("dev-1")
+                        .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                        .setChannel(c2));
+                return null;
+            });
+
+            Thread.sleep(300);
+            releaseLoop0.countDown();
+            firstFuture.get(3, TimeUnit.SECONDS);
+            secondFuture.get(3, TimeUnit.SECONDS);
+
+            Field sessionsField = ChannelManager.class.getDeclaredField("sessions");
+            sessionsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, ChannelSession> sessions = (Map<String, ChannelSession>) sessionsField.get(manager);
+
+            long dev1Count = sessions.values().stream()
+                    .filter(currentSession -> "dev-1".equals(currentSession.getDeviceNo()))
+                    .count();
+
+            Assertions.assertEquals(1, dev1Count);
+            Assertions.assertFalse(c0Active.get());
+            Assertions.assertTrue(c1Active.get() ^ c2Active.get());
+        } finally {
+            releaseLoop0.countDown();
+            executor.shutdownNow();
+            loop0.shutdownGracefully().syncUninterruptibly();
+            loop1.shutdownGracefully().syncUninterruptibly();
+            loop2.shutdownGracefully().syncUninterruptibly();
+        }
+    }
+
+    @Test
+    void register_whenOldSessionCloseBlocked_shouldPublishNewMappingImmediately() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        DefaultEventLoop oldEventLoop = new DefaultEventLoop();
+        DefaultEventLoop newEventLoop = new DefaultEventLoop();
+        CountDownLatch blockerStarted = new CountDownLatch(1);
+        CountDownLatch releaseOldEventLoop = new CountDownLatch(1);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            AtomicBoolean oldActive = new AtomicBoolean(true);
+            AtomicBoolean newActive = new AtomicBoolean(true);
+            Channel oldChannel = createTestChannel(DefaultChannelId.newInstance(), oldEventLoop, oldActive);
+            Channel newChannel = createTestChannel(DefaultChannelId.newInstance(), newEventLoop, newActive);
+
+            ChannelSession oldSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(oldChannel);
+            manager.register(oldSession);
+
+            oldEventLoop.execute(() -> {
+                blockerStarted.countDown();
+                try {
+                    releaseOldEventLoop.await(1, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            Assertions.assertTrue(blockerStarted.await(1, TimeUnit.SECONDS));
+
+            ChannelSession newSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(newChannel);
+
+            Future<?> registerFuture = executor.submit(() -> {
+                manager.register(newSession);
+                return null;
+            });
+
+            Thread.sleep(100);
+            registerFuture.get(1, TimeUnit.SECONDS);
+            ChannelClientSnapshot snapshotDuringBlock = manager.getClientSnapshotByDeviceNo("dev-1");
+            Assertions.assertNotNull(snapshotDuringBlock);
+            Assertions.assertEquals(newChannel.id().asLongText(), snapshotDuringBlock.getChannelId());
+            Assertions.assertTrue(oldActive.get());
+
+            releaseOldEventLoop.countDown();
+            oldEventLoop.submit(() -> null).syncUninterruptibly();
+
+            ChannelClientSnapshot snapshotAfterRebind = manager.getClientSnapshotByDeviceNo("dev-1");
+            Assertions.assertNotNull(snapshotAfterRebind);
+            Assertions.assertEquals(newChannel.id().asLongText(), snapshotAfterRebind.getChannelId());
+            Assertions.assertFalse(oldActive.get());
+            Assertions.assertTrue(newActive.get());
+        } finally {
+            releaseOldEventLoop.countDown();
+            executor.shutdownNow();
+            oldEventLoop.shutdownGracefully().syncUninterruptibly();
+            newEventLoop.shutdownGracefully().syncUninterruptibly();
+        }
+    }
+
+    @Test
     void remove_shouldCompleteQueuedTasks() {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel channel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -520,8 +675,8 @@ class ChannelManagerTest {
     }
 
     @Test
-    void completePending_whenNoPending_shouldThrow() {
-        ChannelManager manager = new ChannelManager();
+    void completePending_whenNoPending_shouldReturnFalse() {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel channel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -529,13 +684,12 @@ class ChannelManagerTest {
                 .setChannel(channel);
         manager.register(localSession);
 
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.completePending("dev-1", new byte[]{1}));
+        Assertions.assertFalse(manager.completePending("dev-1", new byte[]{1}));
     }
 
     @Test
-    void completePending_whenLateAckAfterTimeout_shouldThrow() throws Exception {
-        ChannelManager manager = new ChannelManager();
+    void completePending_whenLateAckAfterTimeout_shouldReturnFalse() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel localChannel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -551,13 +705,84 @@ class ChannelManagerTest {
         ExecutionException exception = Assertions.assertThrows(ExecutionException.class,
                 () -> future.get(1, TimeUnit.SECONDS));
         Assertions.assertInstanceOf(TimeoutException.class, exception.getCause());
-        Assertions.assertThrows(IllegalStateException.class,
-                () -> manager.completePending("dev-1", new byte[]{9}));
+        Assertions.assertFalse(manager.completePending("dev-1", new byte[]{9}));
+    }
+
+    @Test
+    void completePending_shouldClearPendingTimeoutFuture() {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        EmbeddedChannel localChannel = new EmbeddedChannel();
+        ChannelSession localSession = new ChannelSession()
+                .setDeviceNo("dev-1")
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                .setChannel(localChannel);
+        manager.register(localSession);
+
+        manager.sendInQueue("dev-1", new byte[]{1});
+
+        Assertions.assertNotNull(localSession.getPendingTimeoutFuture());
+        Assertions.assertTrue(manager.completePending("dev-1", new byte[]{1}));
+        Assertions.assertNull(localSession.getPendingTimeoutFuture());
+    }
+
+    @Test
+    void remove_shouldClearPendingTimeoutFuture() {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        EmbeddedChannel localChannel = new EmbeddedChannel();
+        ChannelSession localSession = new ChannelSession()
+                .setDeviceNo("dev-1")
+                .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                .setChannel(localChannel);
+        manager.register(localSession);
+
+        CompletableFuture<byte[]> future = manager.sendInQueue("dev-1", new byte[]{1});
+
+        Assertions.assertNotNull(localSession.getPendingTimeoutFuture());
+        manager.remove(localChannel.id().asLongText());
+        Assertions.assertNull(localSession.getPendingTimeoutFuture());
+        Assertions.assertTrue(future.isCompletedExceptionally());
+    }
+
+    @Test
+    void completePendingByChannelId_whenOldAckAfterRebind_shouldNotAffectNewPending() throws Exception {
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
+        DefaultEventLoop oldEventLoop = new DefaultEventLoop();
+        DefaultEventLoop newEventLoop = new DefaultEventLoop();
+        try {
+            AtomicBoolean oldActive = new AtomicBoolean(true);
+            AtomicBoolean newActive = new AtomicBoolean(true);
+            Channel oldChannel = createTestChannel(DefaultChannelId.newInstance(), oldEventLoop, oldActive);
+            Channel newChannel = createTestChannel(DefaultChannelId.newInstance(), newEventLoop, newActive);
+
+            ChannelSession oldSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(oldChannel);
+            manager.register(oldSession);
+
+            ChannelSession newSession = new ChannelSession()
+                    .setDeviceNo("dev-1")
+                    .setDeviceType(DeviceTypeEnum.ELECTRIC)
+                    .setChannel(newChannel);
+            manager.register(newSession);
+            CompletableFuture<byte[]> newFuture = new CompletableFuture<>();
+            newSession.setPendingFuture(newFuture);
+
+            oldEventLoop.submit(() -> null).syncUninterruptibly();
+            Assertions.assertFalse(manager.completePendingByChannelId(oldChannel.id().asLongText(), new byte[]{1}));
+            Assertions.assertFalse(newFuture.isDone());
+
+            Assertions.assertTrue(manager.completePendingByChannelId(newChannel.id().asLongText(), new byte[]{2}));
+            Assertions.assertArrayEquals(new byte[]{2}, newFuture.get(1, TimeUnit.SECONDS));
+        } finally {
+            oldEventLoop.shutdownGracefully().syncUninterruptibly();
+            newEventLoop.shutdownGracefully().syncUninterruptibly();
+        }
     }
 
     @Test
     void timeout_shouldIgnoreStaleTaskAndKeepNewPending() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel localChannel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -583,7 +808,7 @@ class ChannelManagerTest {
 
     @Test
     void sendWithAck_whenMappingStale_shouldRecoverByScan() throws Exception {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         EmbeddedChannel channel = new EmbeddedChannel();
         ChannelSession localSession = new ChannelSession()
                 .setDeviceNo("dev-1")
@@ -606,7 +831,7 @@ class ChannelManagerTest {
 
     @Test
     void recordAbnormal_shouldReturnFalseWhenChannelMissing() {
-        ChannelManager manager = new ChannelManager();
+        ChannelManager manager = new ChannelManager(new ChannelManagerProperties());
         boolean exceeded = manager.recordAbnormal("missing", AbnormalReasonEnum.CRC_INVALID, 1L);
         Assertions.assertFalse(exceeded);
     }
@@ -629,6 +854,88 @@ class ChannelManagerTest {
         channelManager.recordAbnormal(channelId, AbnormalReasonEnum.CRC_INVALID, 1L);
         channelManager.recordAbnormal(channelId, AbnormalReasonEnum.CRC_INVALID, 31_000L);
         Assertions.assertEquals(1, session.getAbnormalTimestamps().size());
+    }
+
+    @Test
+    void findClientSnapshotList_shouldReturnRegisteredRuntimeSnapshot() {
+        session.setPendingFuture(new CompletableFuture<>());
+        session.getQueue().offer(new PendingTask("dev-1", new byte[]{1}, new CompletableFuture<>(), true));
+        session.getAbnormalTimestamps().addLast(1L);
+
+        List<ChannelClientSnapshot> snapshots = channelManager.findClientSnapshotList();
+
+        Assertions.assertEquals(1, snapshots.size());
+        ChannelClientSnapshot snapshot = snapshots.get(0);
+        Assertions.assertEquals(channel.id().asLongText(), snapshot.getChannelId());
+        Assertions.assertEquals("dev-1", snapshot.getDeviceNo());
+        Assertions.assertEquals(DeviceTypeEnum.ELECTRIC, snapshot.getDeviceType());
+        Assertions.assertTrue(snapshot.isActive());
+        Assertions.assertTrue(snapshot.isPending());
+        Assertions.assertEquals(1, snapshot.getQueueSize());
+        Assertions.assertEquals(1, snapshot.getAbnormalCount());
+        Assertions.assertTrue(snapshot.isOpen());
+        Assertions.assertTrue(snapshot.isRegistered());
+        Assertions.assertTrue(snapshot.isWritable());
+    }
+
+    @Test
+    void getClientSnapshotByDeviceNo_whenDeviceExists_shouldReturnSnapshot() {
+        ChannelClientSnapshot snapshot = channelManager.getClientSnapshotByDeviceNo("dev-1");
+
+        Assertions.assertNotNull(snapshot);
+        Assertions.assertEquals(channel.id().asLongText(), snapshot.getChannelId());
+        Assertions.assertEquals("dev-1", snapshot.getDeviceNo());
+    }
+
+    private Channel createTestChannel(DefaultChannelId channelId, DefaultEventLoop eventLoop, AtomicBoolean active) {
+        return (Channel) Proxy.newProxyInstance(
+                Channel.class.getClassLoader(),
+                new Class[]{Channel.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "id" -> channelId;
+                    case "eventLoop" -> eventLoop;
+                    case "isActive", "isOpen", "isRegistered", "isWritable" -> active.get();
+                    case "close" -> {
+                        active.set(false);
+                        yield null;
+                    }
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "equals" -> proxy == args[0];
+                    case "toString" -> "test-channel-" + channelId.asLongText();
+                    default -> defaultValue(method.getReturnType());
+                }
+        );
+    }
+
+    private Object defaultValue(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return null;
+        }
+        if (type == boolean.class) {
+            return false;
+        }
+        if (type == byte.class) {
+            return (byte) 0;
+        }
+        if (type == short.class) {
+            return (short) 0;
+        }
+        if (type == int.class) {
+            return 0;
+        }
+        if (type == long.class) {
+            return 0L;
+        }
+        if (type == float.class) {
+            return 0F;
+        }
+        if (type == double.class) {
+            return 0D;
+        }
+        if (type == char.class) {
+            return '\0';
+        }
+        return null;
     }
 
 }

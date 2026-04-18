@@ -1,17 +1,25 @@
+{{- define "ems-app.defaultImageTag" -}}
+{{- default .Chart.AppVersion .Values.global.imageTag -}}
+{{- end -}}
+
 {{- define "ems-app.backendFullImage" -}}
-{{- printf "%s/%s:%s" .Values.image.registry .Values.backend.image.repository .Values.backend.image.tag -}}
+{{- $tag := default (include "ems-app.defaultImageTag" .) .Values.backend.image.tag -}}
+{{- printf "%s/%s:%s" .Values.image.registry .Values.backend.image.repository $tag -}}
 {{- end -}}
 
 {{- define "ems-app.frontendFullImage" -}}
-{{- printf "%s/%s:%s" .Values.image.registry .Values.frontend.image.repository .Values.frontend.image.tag -}}
+{{- $tag := default (include "ems-app.defaultImageTag" .) .Values.frontend.image.tag -}}
+{{- printf "%s/%s:%s" .Values.image.registry .Values.frontend.image.repository $tag -}}
 {{- end -}}
 
 {{- define "ems-app.iotFullImage" -}}
-{{- printf "%s/%s:%s" .Values.image.registry .Values.iot.image.repository .Values.iot.image.tag -}}
+{{- $tag := default (include "ems-app.defaultImageTag" .) .Values.iot.image.tag -}}
+{{- printf "%s/%s:%s" .Values.image.registry .Values.iot.image.repository $tag -}}
 {{- end -}}
 
 {{- define "ems-app.iotSimulatorFullImage" -}}
-{{- printf "%s/%s:%s" .Values.image.registry .Values.iotSimulator.image.repository .Values.iotSimulator.image.tag -}}
+{{- $tag := default (include "ems-app.defaultImageTag" .) .Values.iotSimulator.image.tag -}}
+{{- printf "%s/%s:%s" .Values.image.registry .Values.iotSimulator.image.repository $tag -}}
 {{- end -}}
 
 {{- define "ems-app.timezoneEnv" -}}

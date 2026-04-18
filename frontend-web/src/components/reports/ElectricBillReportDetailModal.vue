@@ -92,7 +92,7 @@ const meterColumns: MeterColumn[] = [
   { key: 'electricChargeAmountLowText', label: '平电费', width: 96 },
   { key: 'electricChargeAmountLowerText', label: '谷电费', width: 96 },
   { key: 'electricChargeAmountDeepLowText', label: '深谷电费', width: 96 },
-  { key: 'totalConsumePowerText', label: '总电量(kWh)', width: 118, stickyRight: 334 },
+  { key: 'totalConsumePowerText', label: '总电量(kWh)', width: 118, stickyRight: 324 },
   { key: 'totalElectricChargeAmountText', label: '总电费', width: 108, stickyRight: 216 },
   { key: 'totalRechargeAmountText', label: '总充值', width: 108, stickyRight: 108 },
   { key: 'totalCorrectionAmountText', label: '总补正', width: 108, stickyRight: 0 }
@@ -315,6 +315,7 @@ const getColumnClass = (column: MeterColumn) => ({
 }
 
 .table-wrap {
+  position: relative;
   overflow: auto;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
@@ -323,7 +324,8 @@ const getColumnClass = (column: MeterColumn) => ({
 .meter-table {
   width: 100%;
   min-width: 2050px;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .meter-table th,
@@ -353,13 +355,14 @@ const getColumnClass = (column: MeterColumn) => ({
 .meter-table th.is-sticky-right,
 .meter-table td.is-sticky-right {
   position: sticky;
-  z-index: 1;
+  z-index: 2;
   background: #fff;
+  background-clip: padding-box;
 }
 
 .meter-table thead th.is-sticky-left,
 .meter-table thead th.is-sticky-right {
-  z-index: 3;
+  z-index: 4;
   background: var(--es-color-table-header-bg);
 }
 

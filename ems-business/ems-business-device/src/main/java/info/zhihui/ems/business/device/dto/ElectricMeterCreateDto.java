@@ -29,7 +29,6 @@ public class ElectricMeterCreateDto {
     /**
      * 设备编号，设备上报标识
      */
-    @NotBlank(message = "设备编号不能为空")
     private String deviceNo;
 
     /**

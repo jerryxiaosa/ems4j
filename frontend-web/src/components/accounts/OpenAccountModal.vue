@@ -906,12 +906,12 @@ onBeforeUnmount(() => {
                 <tbody>
                   <tr v-if="meterLoading">
                     <td colspan="8" class="empty-row">
-                      <UiLoadingState :size="18" :thickness="2" :min-height="56" />
+                      <UiLoadingState :size="18" :thickness="2" :min-height="72" />
                     </td>
                   </tr>
                   <tr v-else-if="!meterRows.length">
                     <td colspan="8" class="empty-row">
-                      <UiEmptyState :text="meterEmptyText" :min-height="56" />
+                      <UiEmptyState :text="meterEmptyText" :min-height="72" />
                     </td>
                   </tr>
                   <template v-else>

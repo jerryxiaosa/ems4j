@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.packet.handler;
 
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.protocol.port.inbound.SimpleProtocolMessageContext;
 import info.zhihui.ems.iot.infrastructure.transport.netty.session.NettyProtocolSession;
@@ -30,7 +31,7 @@ class DownlinkPacketHandlerTest {
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())));
         byte[] modbusFrame = new byte[]{0x01, 0x02};
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber("dev-1")
@@ -38,15 +39,15 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-1", modbusFrame);
+        Mockito.verify(commandTransport).completePending(context.getSession(), modbusFrame);
     }
 
     @Test
-    void handle_missingSerial_shouldUseChannelDeviceNo() {
+    void handle_missingSerial_shouldCompletePendingBySession() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
-        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager());
+        ProtocolSession session = new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties()));
         session.setAttribute(CommonProtocolSessionKeys.DEVICE_NO, "dev-2");
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext().setSession(session);
         byte[] modbusFrame = new byte[]{0x05, 0x06};
@@ -56,7 +57,7 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-2", modbusFrame);
+        Mockito.verify(commandTransport).completePending(session, modbusFrame);
     }
 
     @Test
@@ -66,7 +67,7 @@ class DownlinkPacketHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel();
         byte[] rawPayload = new byte[]{0x11, 0x22};
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())))
                 .setRawPayload(rawPayload);
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber("dev-3")
@@ -74,33 +75,35 @@ class DownlinkPacketHandlerTest {
 
         handler.handle(context, message);
 
-        Mockito.verify(commandTransport).completePending("dev-3", rawPayload);
+        Mockito.verify(commandTransport).completePending(context.getSession(), rawPayload);
     }
 
     @Test
-    void handle_missingDeviceNo_shouldSkip() {
+    void handle_missingDeviceNo_shouldStillCompletePendingBySession() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())));
+        byte[] rawPayload = new byte[]{0x09};
+        context.setRawPayload(rawPayload);
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber(" ");
 
         handler.handle(context, message);
 
-        Mockito.verifyNoInteractions(commandTransport);
+        Mockito.verify(commandTransport).completePending(context.getSession(), rawPayload);
     }
 
     @Test
     void handle_whenCompletePendingThrows_shouldPropagate() {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
-        Mockito.when(commandTransport.completePending(Mockito.eq("dev-1"), Mockito.any()))
+        Mockito.when(commandTransport.completePending(Mockito.any(), Mockito.any()))
                 .thenThrow(new IllegalStateException("no pending"));
         DownlinkPacketHandler handler = new DownlinkPacketHandler(commandTransport);
         EmbeddedChannel channel = new EmbeddedChannel();
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()));
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())));
         DownlinkAckMessage message = new DownlinkAckMessage()
                 .setSerialNumber("dev-1")
                 .setModbusFrame(new byte[]{0x01, 0x02});

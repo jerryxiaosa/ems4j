@@ -1,8 +1,10 @@
 import {
   fetchElectricMeterPowerConsumeTrend,
-  fetchElectricMeterPowerTrend
+  fetchElectricMeterPowerTrend,
+  removeGateway
 } from '@/api/adapters/device'
 import {
+  deleteGatewayRaw,
   getElectricMeterPowerConsumeTrendRaw,
   getElectricMeterPowerTrendRaw
 } from '@/api/raw/device'
@@ -12,16 +14,19 @@ vi.mock('@/api/raw/device', async () => {
   const actual = await vi.importActual('@/api/raw/device')
   return {
     ...actual,
+    deleteGatewayRaw: vi.fn(),
     getElectricMeterPowerTrendRaw: vi.fn(),
     getElectricMeterPowerConsumeTrendRaw: vi.fn()
   }
 })
 
+const mockedDeleteGatewayRaw = vi.mocked(deleteGatewayRaw)
 const mockedGetElectricMeterPowerTrendRaw = vi.mocked(getElectricMeterPowerTrendRaw)
 const mockedGetElectricMeterPowerConsumeTrendRaw = vi.mocked(getElectricMeterPowerConsumeTrendRaw)
 
 describe('device adapter', () => {
   beforeEach(() => {
+    mockedDeleteGatewayRaw.mockReset()
     mockedGetElectricMeterPowerTrendRaw.mockReset()
     mockedGetElectricMeterPowerConsumeTrendRaw.mockReset()
     vi.unstubAllEnvs()
@@ -129,5 +134,17 @@ describe('device adapter', () => {
       meterConsumeTime: expect.stringMatching(/^2026-03-22 \d{2}:\d{2}:\d{2}$/),
       consumePower: expect.any(String)
     })
+  })
+
+  test('testRemoveGateway_WhenBusinessErrorEnvelopeReturned_ShouldThrowError', async () => {
+    mockedDeleteGatewayRaw.mockResolvedValue({
+      success: false,
+      code: 500001,
+      message: '该网关下还有关联电表，请先处理这些电表后再删除网关'
+    } as never)
+
+    await expect(removeGateway(12)).rejects.toThrow(
+      '该网关下还有关联电表，请先处理这些电表后再删除网关'
+    )
   })
 })

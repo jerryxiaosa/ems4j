@@ -29,6 +29,16 @@ public enum ProductEnum implements CodeEnum<String> {
             false,
             true
     ),
+    ACREL_DDSY_1352_4G(
+            "ACREL_DDSY_1352_4G",
+            "安科瑞单相预付费电表4G",
+            VendorEnum.ACREL.name(),
+            DeviceTypeEnum.ELECTRIC,
+            TransportProtocolEnum.TCP,
+            DeviceAccessModeEnum.DIRECT,
+            false,
+            false
+    ),
     ACREL_DTSY_1352(
             "ACREL_DTSY_1352",
             "安科瑞三相预付费电表",

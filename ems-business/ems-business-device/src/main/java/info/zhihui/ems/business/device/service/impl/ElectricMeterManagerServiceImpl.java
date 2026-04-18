@@ -1189,7 +1189,13 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         }
 
         // 通信模式验证和处理
-        handleCommunicationMode(entity, dto);
+        if (DeviceUtil.isNbCommunicateModel(entity.getCommunicateModel())) {
+            handleNbMode(entity);
+            entity.setDeviceNo(resolveNbCreateDeviceNo(dto));
+        } else {
+            GatewayBo gateway = handleGatewayMode(entity, dto);
+            entity.setDeviceNo(buildGatewayChildDeviceNo(gateway.getDeviceNo(), entity.getPortNo(), entity.getMeterAddress()));
+        }
 
         // 空间验证和设置
         validateAndSetSpace(entity);
@@ -1258,29 +1264,14 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     }
 
     /**
-     * 处理通信模式验证
-     */
-    private void handleCommunicationMode(ElectricMeterEntity entity, ElectricMeterCreateDto dto) {
-        if (DeviceUtil.isNbCommunicateModel(entity.getCommunicateModel())) {
-            handleNbMode(entity, dto);
-        } else {
-            handleNonNbMode(entity, dto);
-        }
-    }
-
-    /**
      * 处理NB模式
      */
-    private void handleNbMode(ElectricMeterEntity entity, ElectricMeterCreateDto dto) {
+    private void handleNbMode(ElectricMeterEntity entity) {
         if (StringUtils.isBlank(entity.getImei())) {
             throw new BusinessRuntimeException("NB模式电表IMEI不能为空");
         }
-        if (dto == null || StringUtils.isBlank(dto.getDeviceNo())) {
-            throw new BusinessRuntimeException("NB模式电表deviceNo不能为空");
-        }
 
         entity.setGatewayId(null);
-        entity.setDeviceNo(dto.getDeviceNo());
 
         List<ElectricMeterBo> repeatList = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setImei(entity.getImei())
@@ -1294,7 +1285,7 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
     /**
      * 处理非NB模式
      */
-    private void handleNonNbMode(ElectricMeterEntity entity, ElectricMeterCreateDto dto) {
+    private GatewayBo handleGatewayMode(ElectricMeterEntity entity, ElectricMeterCreateDto dto) {
         if (entity.getGatewayId() == null) {
             throw new BusinessRuntimeException("非NB模式电表必须绑定网关");
         }
@@ -1309,10 +1300,6 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
 
         GatewayBo gateway = validateGateway(entity);
         entity.setImei("");
-        if (StringUtils.isBlank(gateway.getDeviceNo())) {
-            throw new BusinessRuntimeException("网关deviceNo不能为空");
-        }
-        entity.setDeviceNo(buildGatewayChildDeviceNo(gateway.getDeviceNo(), entity.getPortNo(), entity.getMeterAddress()));
 
         List<ElectricMeterBo> repeatList = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setGatewayId(dto.getGatewayId())
@@ -1322,6 +1309,17 @@ public class ElectricMeterManagerServiceImpl implements ElectricMeterManagerServ
         if (!CollectionUtils.isEmpty(repeatList)) {
             throw new BusinessRuntimeException("电表信息重复");
         }
+        return gateway;
+    }
+
+    /**
+     * 解析 NB 电表创建时使用的 deviceNo。
+     */
+    private String resolveNbCreateDeviceNo(ElectricMeterCreateDto dto) {
+        if (dto == null || StringUtils.isBlank(dto.getDeviceNo())) {
+            throw new BusinessRuntimeException("NB模式电表deviceNo不能为空");
+        }
+        return dto.getDeviceNo();
     }
 
     /**

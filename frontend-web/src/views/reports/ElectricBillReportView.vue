@@ -5,8 +5,7 @@ import {
   fetchElectricBillReportPage
 } from '@/api/adapters/report'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import ElectricBillReportDetailModal from '@/components/reports/ElectricBillReportDetailModal.vue'
 import type {
   ElectricBillReportDetailResult,
@@ -239,6 +238,10 @@ onMounted(async () => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="pageLoading"
+          :empty="!pageLoading && listPage.list.length === 0"
+        />
         <table>
           <thead>
             <tr>
@@ -255,12 +258,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="pageLoading">
-              <td colspan="10" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="72" />
-              </td>
-            </tr>
-            <tr v-for="(row, index) in listPage.list" v-else :key="row.accountId">
+            <tr v-for="(row, index) in listPage.list" :key="row.accountId">
               <td>{{ getSerialNumber(index) }}</td>
               <td class="account-name-cell" :title="row.accountName">{{ row.accountName }}</td>
               <td>{{ row.electricAccountTypeName }}</td>
@@ -272,11 +270,6 @@ onMounted(async () => {
               <td>{{ row.totalDebitAmountText }}</td>
               <td class="actions">
                 <button class="btn-link" @click="openDetail(row.accountId)">详情</button>
-              </td>
-            </tr>
-            <tr v-if="!pageLoading && listPage.list.length === 0">
-              <td colspan="10" class="empty">
-                <UiEmptyState :min-height="72" />
               </td>
             </tr>
           </tbody>
@@ -474,7 +467,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
 }

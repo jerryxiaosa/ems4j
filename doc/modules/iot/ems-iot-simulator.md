@@ -116,48 +116,9 @@ IotSimulator.main
   -> 收到下行命令：解析命令 -> 持久化运行态 -> 回 ACK
 ```
 
-### ASCII 时序图
+### 启动与运行时序图
 
-```text
-+----------------+      +-------------------+      +--------------------+      +------------------------+      +---------------------+      +-----------------------+
-| IotSimulator   |      | Spring Container  |      | SimulatorLifecycle |      | SimulatorDeviceRuntime |      | Acrel4gSocketSession|      | ems-iot(Netty Server) |
-+----------------+      +-------------------+      +--------------------+      +------------------------+      +---------------------+      +-----------------------+
-        |                           |                          |                            |                             |                               |
-        | main()                    |                          |                            |                             |                               |
-        |-------------------------->| create/refresh context   |                            |                             |                               |
-        |                           | bind simulator.*         |                            |                             |                               |
-        |                           | create beans             |                            |                             |                               |
-        |                           |------------------------->| start()                    |                             |                               |
-        |                           |                          | loadStateSnapshot()        |                             |                               |
-        |                           |                          | loadDeviceContexts()       |                             |                               |
-        |                           |                          | create SimulatorDeviceRuntime[]                         |                               |
-        |                           |                          |--------------------------->| start()                     |                               |
-        |                           |                          |                            | ensureConnectedAndRegistered()                             |
-        |                           |                          |                            |---------------------------->| connect()                      |
-        |                           |                          |                            |                             |------------------------------->| TCP connect
-        |                           |                          |                            | sendRegisterFrame()         |                               |
-        |                           |                          |                            |---------------------------->| send(register)                 |
-        |                           |                          |                            |                             |------------------------------->| register
-        |                           |                          |                            | startHeartbeat()            |                               |
-        |                           |                          |                            | runReportLoop()             |                               |
-        |                           |                          |                            | runReplayIfNecessary()      |                               |
-        |                           |                          |                            | runReplayPoint()/runLivePoint()                            |
-        |                           |                          |                            | runScheduledReport()        |                               |
-        |                           |                          |                            |---------------------------->| send(upload/heartbeat)         |
-        |                           |                          |                            |                             |------------------------------->| upload / heartbeat
-        |                           |                          |                            |                             |<-------------------------------| downlink command
-        |                           |                          |                            |<----------------------------| readLoop()/dispatchFrames()
-        |                           |                          |                            | handleInboundFrame()        |                               |
-        |                           |                          |                            | Acrel4gCommandResponder.handle()                          |
-        |                           |                          |                            | persistRuntimeState()       |                               |
-        |                           |                          |                            |---------------------------->| send(ack)                      |
-        |                           |                          |                            |                             |------------------------------->| ack
-        |                           |                          | stop()                     |                             |                               |
-        |                           |------------------------->|                            |                             |                               |
-        |                           |                          |--------------------------->| stop()                      |                               |
-        |                           |                          |                            |---------------------------->| close()                        |
-        |                           |                          |                            |                             |------------------------------->| TCP close
-```
+![ems-iot-simulator 启动与运行时序](../../../resource/images/ems-iot-simulator-sequence.png)
 
 ### 生命周期启动阶段
 

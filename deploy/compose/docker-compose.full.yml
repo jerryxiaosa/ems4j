@@ -145,6 +145,7 @@ services:
       SIMULATOR_TARGET_HOST: iot
       SIMULATOR_TARGET_PORT: 19500
       SIMULATOR_RUNTIME_PERSISTENCE_FILE: /app/.data/iot-simulator-state.json
+      SIMULATOR_REPLAY_ENABLED: false
       TZ: Asia/Shanghai
     volumes:
       - iot_simulator_data:/app/.data

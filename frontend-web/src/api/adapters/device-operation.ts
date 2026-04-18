@@ -190,6 +190,7 @@ const normalizeOperationItem = (raw: DeviceOperationRaw): DeviceOperationItem =>
     commandTypeName: resolveCommandTypeName(raw),
     success,
     isRunning: toBool(raw.isRunning),
+    ensureSuccess: toBool(raw.ensureSuccess),
     successName: resolveSuccessName(success),
     executeTimes: toNumber(raw.executeTimes),
     maxExecuteTimes: toNumber(raw.maxExecuteTimes),

@@ -1,5 +1,6 @@
 package info.zhihui.ems.iot.plugins.acrel.protocol.gateway.tcp;
 
+import info.zhihui.ems.iot.config.ChannelManagerProperties;
 import info.zhihui.ems.iot.infrastructure.transport.netty.channel.ChannelManager;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalReasonEnum;
 import info.zhihui.ems.iot.protocol.event.abnormal.AbnormalEvent;
@@ -29,7 +30,7 @@ class AcrelGatewayTcpInboundHandlerTest {
         EventCaptureHandler capture = new EventCaptureHandler();
         EmbeddedChannel channel = new EmbeddedChannel(capture);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())))
                 .setRawPayload(new byte[]{0x01});
 
         handler.handle(context);
@@ -46,7 +47,7 @@ class AcrelGatewayTcpInboundHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(capture);
         byte[] frame = codec.encode((byte) 0x11, new byte[0]);
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())))
                 .setRawPayload(frame);
 
         handler.handle(context);
@@ -78,7 +79,7 @@ class AcrelGatewayTcpInboundHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(capture);
         byte[] frame = codec.encode((byte) 0x12, new byte[]{0x01});
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())))
                 .setRawPayload(frame);
 
         handler.handle(context);
@@ -97,7 +98,7 @@ class AcrelGatewayTcpInboundHandlerTest {
         EmbeddedChannel channel = new EmbeddedChannel(capture);
         byte[] frame = codec.encode((byte) 0x13, new byte[]{0x01, 0x02});
         SimpleProtocolMessageContext context = new SimpleProtocolMessageContext()
-                .setSession(new NettyProtocolSession(channel, new ChannelManager()))
+                .setSession(new NettyProtocolSession(channel, new ChannelManager(new ChannelManagerProperties())))
                 .setRawPayload(frame);
 
         handler.handle(context);

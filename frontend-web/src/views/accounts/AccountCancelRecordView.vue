@@ -3,8 +3,8 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { fetchCancelDetail, fetchCancelRecordPage } from '@/api/adapters/account'
 import { fetchEnumOptionsByKey, type EnumOption } from '@/api/adapters/system'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
 import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { CancelDetail, CancelRecordPageResult } from '@/types/account'
 
 const cancelRecordPermissionKeys = {
@@ -258,6 +258,10 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && cancelPage.list.length === 0"
+        />
         <table>
           <thead>
             <tr>
@@ -273,11 +277,6 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="9" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
             <tr v-for="(row, index) in cancelPage.list" :key="row.cancelNo ?? `cancel-${index}`">
               <td>{{ getSerialNumber(index) }}</td>
               <td>{{ row.cancelNo || '--' }}</td>
@@ -295,11 +294,6 @@ onBeforeUnmount(() => {
                 >
                   详情
                 </button>
-              </td>
-            </tr>
-            <tr v-if="!loading && cancelPage.list.length === 0">
-              <td colspan="9" class="empty">
-                <UiEmptyState :min-height="56" />
               </td>
             </tr>
           </tbody>
@@ -592,7 +586,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: var(--es-radius-md);
 }
@@ -682,7 +679,7 @@ tbody tr:hover {
   overflow: auto;
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
-  border-radius: 14px;
+  border-radius: 5px;
   box-shadow: var(--es-shadow-floating);
 }
 

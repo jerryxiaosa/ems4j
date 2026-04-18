@@ -23,6 +23,7 @@ export interface DeviceOperationItem {
   commandTypeName: string
   success?: boolean
   isRunning?: boolean
+  ensureSuccess?: boolean
   successName: string
   executeTimes?: number
   maxExecuteTimes?: number

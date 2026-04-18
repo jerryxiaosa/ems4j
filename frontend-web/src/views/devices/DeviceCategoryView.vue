@@ -3,8 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import DeviceCategoryTreeNode from '@/components/devices/DeviceCategoryTreeNode.vue'
 import { fetchDeviceModelPage, fetchDeviceTypeTree } from '@/api/adapters/device'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { DeviceModelItem } from '@/types/device'
 
 interface DeviceCategoryNode {
@@ -362,6 +361,10 @@ onMounted(async () => {
         </div>
 
         <div class="table-wrap">
+          <UiTableStateOverlay
+            :loading="tableLoading"
+            :empty="!tableLoading && !tableRows.length"
+          />
           <table class="table">
             <thead>
               <tr>
@@ -371,17 +374,7 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="tableLoading">
-                <td colspan="3" class="empty-row">
-                  <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-                </td>
-              </tr>
-              <tr v-else-if="!tableRows.length">
-                <td colspan="3" class="empty-row">
-                  <UiEmptyState :min-height="56" />
-                </td>
-              </tr>
-              <template v-else>
+              <template v-if="tableRows.length > 0">
                 <tr v-for="(row, index) in tableRows" :key="row.id">
                   <td>{{ getSerialNumber(index) }}</td>
                   <td>{{ row.manufacturerName || '--' }}</td>
@@ -669,7 +662,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
 }

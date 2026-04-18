@@ -2,8 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { createSpace, deleteSpace, fetchSpaceDetail, fetchSpaceTree, updateSpace } from '@/api/adapters/space-manage'
 import SpaceFormModal from '@/components/system/SpaceFormModal.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import type { SystemSpaceFormValue, SystemSpaceItem } from '@/modules/system/spaces/types'
 
 interface FlattenedSpaceRow {
@@ -281,6 +280,10 @@ onMounted(() => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && rows.length === 0"
+        />
         <table class="table">
           <thead>
             <tr>
@@ -291,16 +294,6 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="4" class="empty-cell">
-                <UiLoadingState text="加载中" />
-              </td>
-            </tr>
-            <tr v-else-if="rows.length === 0">
-              <td colspan="4" class="empty-cell">
-                <UiEmptyState text="暂无数据" />
-              </td>
-            </tr>
             <tr v-for="row in rows" :key="row.id">
               <td>
                 <div class="space-name-cell" :style="getIndentStyle(row.depth)">
@@ -458,6 +451,8 @@ onMounted(() => {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);

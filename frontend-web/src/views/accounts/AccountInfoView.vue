@@ -7,6 +7,7 @@ import OpenAccountModal from '@/components/accounts/OpenAccountModal.vue'
 import CommonPagination from '@/components/common/CommonPagination.vue'
 import UiEmptyState from '@/components/common/UiEmptyState.vue'
 import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import { usePermission } from '@/composables/usePermission'
 import type { EnumOption } from '@/api/adapters/system'
 import type { AccountItem, AccountMeter, AccountPageResult } from '@/types/account'
@@ -1010,6 +1011,10 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && accountPage.list.length === 0"
+        />
         <table>
           <thead>
             <tr>
@@ -1027,11 +1032,6 @@ onBeforeUnmount(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="11" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
             <tr v-for="(row, index) in accountPage.list" :key="row.id ?? `${row.ownerId}-${index}`">
               <td>{{ getSerialNumber(index) }}</td>
               <td>{{ row.ownerName || '--' }}</td>
@@ -1058,11 +1058,6 @@ onBeforeUnmount(() => {
                 >
                   销户
                 </button>
-              </td>
-            </tr>
-            <tr v-if="!loading && accountPage.list.length === 0">
-              <td colspan="11" class="empty">
-                <UiEmptyState :min-height="56" />
               </td>
             </tr>
           </tbody>
@@ -1202,7 +1197,7 @@ onBeforeUnmount(() => {
                     </tr>
                     <tr v-if="accountDetail.meterList.length === 0">
                       <td colspan="9" class="empty">
-                        <UiEmptyState text="暂无开户电表数据" :min-height="56" />
+                        <UiEmptyState text="暂无开户电表数据" :min-height="72" />
                       </td>
                     </tr>
                   </tbody>
@@ -1351,12 +1346,12 @@ onBeforeUnmount(() => {
                     <tbody>
                       <tr v-if="cancelMeterLoading">
                         <td colspan="11" class="empty">
-                          <UiLoadingState :size="18" :thickness="2" :min-height="56" />
+                          <UiLoadingState :size="18" :thickness="2" :min-height="72" />
                         </td>
                       </tr>
                       <tr v-else-if="filteredCancelMeterRows.length === 0">
                         <td colspan="11" class="empty">
-                          <UiEmptyState :min-height="56" />
+                          <UiEmptyState :min-height="72" />
                         </td>
                       </tr>
                       <tr v-else v-for="(row, index) in filteredCancelMeterRows" :key="row.id">
@@ -1841,7 +1836,10 @@ button:disabled {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
+  background: #fff;
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
 }

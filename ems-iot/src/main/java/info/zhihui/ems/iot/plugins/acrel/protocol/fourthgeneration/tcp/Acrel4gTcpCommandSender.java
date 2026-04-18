@@ -9,6 +9,7 @@ import info.zhihui.ems.iot.protocol.modbus.ModbusRtuBuilder;
 import info.zhihui.ems.iot.protocol.modbus.ModbusRtuRequest;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.constant.Acrel4gCommandConstants;
 import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gFrameCodec;
+import info.zhihui.ems.iot.plugins.acrel.protocol.fourthgeneration.tcp.support.Acrel4gDownlinkAckSupport;
 import info.zhihui.ems.iot.protocol.port.outbound.ProtocolCommandTransport;
 import info.zhihui.ems.iot.protocol.port.outbound.DeviceCommandTranslatorResolver;
 import info.zhihui.ems.iot.plugins.acrel.protocol.support.DeviceCommandSupport;
@@ -40,6 +41,7 @@ public class Acrel4gTcpCommandSender {
         byte[] frame = frameCodec.encode(Acrel4gCommandConstants.DOWNLINK, rtuFrame);
 
         CompletableFuture<byte[]> future = commandTransport.sendWithAck(device.getDeviceNo(), frame);
-        return future.thenApply(payload -> translator.parseResponse(command, payload));
+        return future.thenApply(payload -> translator.parseResponse(
+                command, Acrel4gDownlinkAckSupport.adaptResponse(rtuRequest, payload)));
     }
 }

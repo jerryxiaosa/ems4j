@@ -544,11 +544,11 @@ export const createGateway = async (payload: GatewayCreatePayload): Promise<numb
 }
 
 export const updateGateway = async (id: number, payload: GatewayUpdatePayload): Promise<void> => {
-  await updateGatewayRaw(id, payload)
+  await unwrapEnvelope<void>(await updateGatewayRaw(id, payload))
 }
 
 export const removeGateway = async (id: number): Promise<void> => {
-  await deleteGatewayRaw(id)
+  await unwrapEnvelope<void>(await deleteGatewayRaw(id))
 }
 
 export const fetchElectricMeterPage = async (

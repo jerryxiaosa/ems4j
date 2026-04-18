@@ -18,35 +18,9 @@
 - `NettyFrameDecoderProvider`：负责“首包探测 + 解码器链”，`detectTcp` 返回 `ProtocolSignature`，`createDecoders` 返回一组 `ChannelHandler`（可多个）。
 - `ProtocolHandlerRegistry`：按 `ProtocolSignature`（vendor/accessMode/productCode/transportType）路由到 `DeviceProtocolHandler`。
 
-## 3. 插件解码与路由流程（ASCII）
+## 3. 插件解码与路由流程图
 
-```
-TCP Connection
-   |
-   v
-ProtocolFrameDecoder  --NettyFrameDecoderProvider.detectTcp-->  ProtocolSignature (vendor, accessMode, productCode, transportType)
-   |                                     |
-   |                                     v
-   |                            NettyFrameDecoderProvider (由插件提供)
-   |                                     |
-   |                         +-----------+------------+
-   |                         |                        |
-   |                     网关协议                 电表/其他协议
-   |                         |                        |
-   v                         v                        v
-pipeline add:           长度型解码器链           起止符解码器链
-   |                         |                        |
-   +-----------(解帧输出 byte[])----------------------+
-                             |
-                             v
-                 MultiplexTcpHandler (封装 SimpleProtocolMessageContext)
-                             |
-                             v
-           ProtocolHandlerRegistry.resolve(signature) -> 插件 DeviceProtocolHandler
-                             |
-                             v
-                 业务处理 / 事件发布 / ACK 归还 ProtocolCommandTransport (ChannelManager)
-```
+![ems-iot Netty 插件解码与路由流程](../../../resource/images/netty-multi-protocol-routing.png)
 
 ## 4. 分包/粘包处理原则（解码器层解决）
 

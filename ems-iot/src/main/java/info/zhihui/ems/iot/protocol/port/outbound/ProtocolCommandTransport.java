@@ -1,5 +1,7 @@
 package info.zhihui.ems.iot.protocol.port.outbound;
 
+import info.zhihui.ems.iot.protocol.port.session.ProtocolSession;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -19,12 +21,10 @@ public interface ProtocolCommandTransport {
     /**
      * 完成等待中的响应。
      *
-     * @param deviceNo 设备编号
+     * @param session 收到响应报文的当前协议会话
      * @param payload 响应报文
      * @return 是否完成
-     * @throws IllegalArgumentException 设备编号为空
-     * @throws IllegalStateException 未找到会话或无挂起任务
      */
-    boolean completePending(String deviceNo, byte[] payload);
+    boolean completePending(ProtocolSession session, byte[] payload);
 
 }

@@ -8,8 +8,7 @@ import {
 } from '@/api/adapters/trade'
 import { fetchEnumOptionsByKey, type EnumOption } from '@/api/adapters/system'
 import CommonPagination from '@/components/common/CommonPagination.vue'
-import UiEmptyState from '@/components/common/UiEmptyState.vue'
-import UiLoadingState from '@/components/common/UiLoadingState.vue'
+import UiTableStateOverlay from '@/components/common/UiTableStateOverlay.vue'
 import OrderDetailModal from '@/components/trades/OrderDetailModal.vue'
 
 type PayStatusClass = 'success' | 'failed' | 'pending' | 'closed'
@@ -470,6 +469,10 @@ onMounted(async () => {
       </div>
 
       <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && pagedRows.length === 0"
+        />
         <table class="table order-table">
           <thead>
             <tr>
@@ -498,17 +501,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td colspan="17" class="empty">
-                <UiLoadingState :size="18" :thickness="2" :min-height="56" />
-              </td>
-            </tr>
-            <tr v-else-if="pagedRows.length === 0">
-              <td colspan="17" class="empty">
-                <UiEmptyState :min-height="56" />
-              </td>
-            </tr>
-            <template v-else>
+            <template v-if="pagedRows.length > 0">
               <tr v-for="(row, index) in pagedRows" :key="row.id">
                 <td class="sticky-col sticky-col-left sticky-index">{{
                   getSerialNumber(index)
@@ -739,6 +732,8 @@ onMounted(async () => {
 }
 
 .table-wrap {
+  position: relative;
+  min-height: 120px;
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);

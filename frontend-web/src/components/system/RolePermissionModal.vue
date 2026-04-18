@@ -92,15 +92,10 @@ const syncTreeState = () => {
 const applyCheckedKeys = (menuIds: string[]) => {
   resetTreeState()
   const selectedIds = new Set(menuIds)
-  const applyNode = (node: SystemRolePermissionNode) => {
-    if (selectedIds.has(node.id)) {
-      setSubtreeChecked(node, true)
-      return
-    }
-    node.children?.forEach((child) => applyNode(child))
-  }
-
-  permissionTree.value.forEach((node) => applyNode(node))
+  walkTree(permissionTree.value, (node) => {
+    checkedKeys[node.id] = selectedIds.has(node.id)
+    indeterminateKeys[node.id] = false
+  })
   syncTreeState()
 }
 
@@ -138,7 +133,7 @@ const loadData = async () => {
 const collectCheckedIds = (nodes: SystemRolePermissionNode[]): string[] => {
   const result: string[] = []
   walkTree(nodes, (node) => {
-    if (checkedKeys[node.id]) {
+    if (checkedKeys[node.id] || indeterminateKeys[node.id]) {
       result.push(node.id)
     }
   })

@@ -60,7 +60,7 @@ class DownlinkAckPacketHandlerTest {
 
         handler.handle(buildContext(), message);
 
-        Mockito.verify(commandTransport).completePending("gw-1", payload);
+        Mockito.verify(commandTransport).completePending(Mockito.any(), Mockito.eq(payload));
     }
 
     @Test
@@ -69,7 +69,7 @@ class DownlinkAckPacketHandlerTest {
         ProtocolCommandTransport commandTransport = Mockito.mock(ProtocolCommandTransport.class);
         Device gateway = new Device().setDeviceNo("gw-1");
         Mockito.when(deviceResolver.resolveGateway(Mockito.any())).thenReturn(gateway);
-        Mockito.when(commandTransport.completePending(Mockito.eq("gw-1"), Mockito.any()))
+        Mockito.when(commandTransport.completePending(Mockito.any(), Mockito.any()))
                 .thenThrow(new IllegalStateException("no pending"));
         DownlinkAckPacketHandler handler = new DownlinkAckPacketHandler(deviceResolver, commandTransport);
         GatewayTransparentMessage message = new GatewayTransparentMessage("meter-1", new byte[]{0x01});

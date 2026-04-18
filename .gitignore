@@ -43,6 +43,7 @@ logs/
 /docs
 /resources
 /htmlReport
+frontend-web/test-results/
 **/Debug.java
 AGENTS.md
 TODO.md

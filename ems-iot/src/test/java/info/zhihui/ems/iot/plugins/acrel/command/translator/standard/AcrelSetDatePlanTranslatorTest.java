@@ -21,7 +21,7 @@ class AcrelSetDatePlanTranslatorTest {
         AcrelSetDatePlanTranslator translator = new AcrelSetDatePlanTranslator();
         SetDatePlanCommand payload = new SetDatePlanCommand()
                 .setItems(List.of(
-                        new DatePlanItem().setDailyPlanId("1").setDate(MonthDay.of(3, 2)),
+                        new DatePlanItem().setDailyPlanId("1").setDate(MonthDay.of(10, 15)),
                         new DatePlanItem().setDailyPlanId("4").setDate(MonthDay.of(6, 5))
                 ));
         DeviceCommand command = new DeviceCommand()
@@ -37,7 +37,7 @@ class AcrelSetDatePlanTranslatorTest {
         Assertions.assertEquals(6, request.getQuantity());
         byte[] data = request.getData();
         Assertions.assertEquals(12, data.length);
-        Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, Arrays.copyOf(data, 6));
+        Assertions.assertArrayEquals(new byte[]{10, 15, 1, 6, 5, 4}, Arrays.copyOf(data, 6));
         for (int i = 6; i < data.length; i++) {
             Assertions.assertEquals(0, data[i]);
         }
