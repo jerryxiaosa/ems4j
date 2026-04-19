@@ -53,33 +53,9 @@ Notes:
 - The first startup may take longer because images need to be built and dependencies initialized
 - If you prefer running frontend and backend separately, see the `Development & Deployment` section below
 
-## Highlights and Design Focus
+## Development & Deployment
 
-- **A complete prepaid business loop**  
-  Covers account opening, recharge, charging, warnings, account settlement, order payment, and remote control beyond a simple CRUD admin system.
-
-- **Clear multi-module layering**  
-  Built with a Spring Boot multi-module structure where domains such as `device / account / billing / order / lease / plan / aggregation` stay explicit and readable.
-
-- **Useful for studying complex business modeling**  
-  Includes pay-as-you-go, consolidated, and monthly billing models, plus the collaboration between accounts, meters, orders, and accounting flows.
-
-- **Includes the IoT access path, not just the business backend**  
-  The standalone `ems-iot` module covers multi-protocol access, packet parsing, command dispatch, and event publishing.
-
-- **Solid async and idempotency practices**  
-  Covers MQ-based processing, transactional messaging, duplicate report handling, and unique-index-backed protection.
-
-- **Runnable locally, not just a conceptual repository**  
-  Includes frontend and backend projects, Docker-based dependencies, SQL bootstrap scripts, and runtime documentation.
-
-## Prepaid Mode Description
-
-The system supports three billing types: pay-as-you-go, consolidated, and monthly. In pay-as-you-go and consolidated modes, balance is deducted based on actual usage. In pay-as-you-go mode, each water/electric meter is settled independently. In consolidated mode, the balance is recharged on one water/electric meter and other meters use that balance. Monthly is settled at a fixed amount per cycle.
-
-The typical flow is recharge after account opening, usage generates charges and continuously updates the balance, and when the balance is insufficient or reaches the warning threshold it can trigger notifications and remote disconnect. Full account closure will be settled and a settlement order will be generated, resulting in refunds or additional payment.
-
-## Requirements
+### Requirements
 
 | Component | Version | Required |
 |-----------|---------|----------|
@@ -90,8 +66,6 @@ The typical flow is recharge after account opening, usage generates charges and 
 | RabbitMQ | 4.1+    | No |
 | Node.js | 18.18+  | Required for frontend development/build |
 | pnpm | 10.32+  | Required for frontend development/build |
-
-## Development & Deployment
 
 Clone the repository first:
 
