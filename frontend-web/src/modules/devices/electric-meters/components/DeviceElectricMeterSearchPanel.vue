@@ -15,74 +15,67 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <header class="workspace-search">
-    <div class="search-row">
-      <label class="search-item">
-        <span class="search-label-inline">电表名称/编号</span>
-        <input
-          v-model="queryForm.searchKey"
-          class="search-input"
-          type="text"
-          placeholder="请输入电表名称/编号"
-        />
-      </label>
+  <div class="search-row">
+    <label class="search-item">
+      <span class="search-label-inline">电表名称/编号</span>
+      <input
+        v-model="queryForm.searchKey"
+        class="search-input"
+        type="text"
+        placeholder="请输入电表名称/编号"
+      />
+    </label>
 
-      <label class="search-item search-item-secondary">
-        <span class="search-label-inline">在线状态</span>
-        <select
-          v-model="queryForm.onlineStatus"
-          class="search-input search-input-select"
-          :class="{ 'search-input-placeholder': !queryForm.onlineStatus }"
-        >
-          <option value="">请选择</option>
-          <option v-for="item in onlineStatusOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
-      </label>
+    <label class="search-item search-item-secondary">
+      <span class="search-label-inline">在线状态</span>
+      <select
+        v-model="queryForm.onlineStatus"
+        class="search-input search-input-select"
+        :class="{ 'search-input-placeholder': !queryForm.onlineStatus }"
+      >
+        <option value="">请选择</option>
+        <option v-for="item in onlineStatusOptions" :key="item.value" :value="item.value">
+          {{ item.label }}
+        </option>
+      </select>
+    </label>
 
-      <label class="search-item search-item-secondary">
-        <span class="search-label-inline">表计状态</span>
-        <select
-          v-model="queryForm.status"
-          class="search-input search-input-select"
-          :class="{ 'search-input-placeholder': !queryForm.status }"
-        >
-          <option value="">请选择</option>
-          <option v-for="item in meterSwitchStatusOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
-      </label>
+    <label class="search-item search-item-secondary">
+      <span class="search-label-inline">表计状态</span>
+      <select
+        v-model="queryForm.status"
+        class="search-input search-input-select"
+        :class="{ 'search-input-placeholder': !queryForm.status }"
+      >
+        <option value="">请选择</option>
+        <option v-for="item in meterSwitchStatusOptions" :key="item.value" :value="item.value">
+          {{ item.label }}
+        </option>
+      </select>
+    </label>
 
-      <label class="search-item search-item-secondary">
-        <span class="search-label-inline">是否预付费</span>
-        <select
-          v-model="queryForm.payType"
-          class="search-input search-input-select"
-          :class="{ 'search-input-placeholder': !queryForm.payType }"
-        >
-          <option value="">请选择</option>
-          <option v-for="item in booleanSelectOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
-      </label>
+    <label class="search-item search-item-secondary">
+      <span class="search-label-inline">是否预付费</span>
+      <select
+        v-model="queryForm.payType"
+        class="search-input search-input-select"
+        :class="{ 'search-input-placeholder': !queryForm.payType }"
+      >
+        <option value="">请选择</option>
+        <option v-for="item in booleanSelectOptions" :key="item.value" :value="item.value">
+          {{ item.label }}
+        </option>
+      </select>
+    </label>
 
-      <div class="search-actions">
-        <button class="btn btn-primary" type="button" @click="emit('search')">查询</button>
-        <button class="btn btn-secondary" type="button" @click="emit('reset')">重置</button>
-      </div>
+    <div class="search-actions">
+      <button class="btn btn-primary" type="button" @click="emit('search')">查询</button>
+      <button class="btn btn-secondary" type="button" @click="emit('reset')">重置</button>
     </div>
-  </header>
+  </div>
 </template>
 
 <style scoped>
-.workspace-search {
-  padding: 16px;
-  border-bottom: 1px solid var(--es-color-border);
-}
-
 .search-row {
   display: flex;
   flex-wrap: wrap;

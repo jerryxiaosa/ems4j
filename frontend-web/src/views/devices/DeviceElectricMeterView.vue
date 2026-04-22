@@ -91,13 +91,15 @@ onMounted(() => {
       </div>
     </transition>
 
-    <section class="workspace-card">
+    <section class="search-card">
       <DeviceElectricMeterSearchPanel
         :query-form="queryForm"
         @search="handleSearch"
         @reset="handleReset"
       />
+    </section>
 
+    <section class="table-card">
       <DeviceElectricMeterTableSection
         :loading="loading"
         :total="total"
@@ -192,6 +194,8 @@ onMounted(() => {
 <style scoped>
 .page {
   position: relative;
+  display: grid;
+  gap: 16px;
 }
 
 .page-notice {
@@ -243,15 +247,19 @@ onMounted(() => {
   opacity: 0;
 }
 
-.workspace-card {
-  display: grid;
-  min-height: calc(100vh - 146px);
-  overflow: hidden;
+.search-card,
+.table-card {
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
   box-shadow: var(--es-shadow-card);
-  grid-template-rows: auto minmax(0, 1fr);
+  padding: 16px;
+}
+
+.table-card {
+  display: grid;
+  min-height: calc(100vh - 146px);
+  overflow: hidden;
 }
 
 .btn {

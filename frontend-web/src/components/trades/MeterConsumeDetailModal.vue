@@ -284,9 +284,6 @@ const close = () => emit('update:modelValue', false)
 }
 
 .summary-label {
-  font-size: var(--es-font-size-sm);
-  font-weight: 600;
-  color: var(--es-color-text-primary);
   white-space: nowrap;
 }
 

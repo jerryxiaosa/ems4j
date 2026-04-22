@@ -372,130 +372,128 @@ const handleConfirmDelete = async () => {
       </div>
     </transition>
 
-    <section class="workspace-card">
-      <header class="workspace-search">
-        <div class="search-row">
-          <label class="search-item">
-            <span class="search-label-inline">网关名称/编号</span>
-            <input
-              v-model="queryForm.searchKey"
-              class="search-input"
-              type="text"
-              placeholder="请输入网关名称/编号"
-            />
-          </label>
-
-          <label class="search-item search-item-secondary">
-            <span class="search-label-inline">在线状态</span>
-            <select
-              v-model="queryForm.onlineStatus"
-              class="search-input search-input-select"
-              :class="{ 'search-input-placeholder': !queryForm.onlineStatus }"
-            >
-              <option value="">请选择</option>
-              <option
-                v-for="item in gatewayOnlineStatusOptions"
-                :key="item.value"
-                :value="item.value"
-                >{{ item.label }}</option
-              >
-            </select>
-          </label>
-
-          <div class="search-actions">
-            <button class="btn btn-primary" type="button" @click="handleSearch">查询</button>
-            <button class="btn btn-secondary" type="button" @click="handleReset">重置</button>
-          </div>
-        </div>
-      </header>
-
-      <div class="workspace-body">
-        <div class="workspace-head">
-          <h2 class="workspace-title">智能网关</h2>
-          <div class="page-actions">
-            <button
-              v-menu-permission="gatewayPermissionKeys.create"
-              class="btn btn-primary"
-              type="button"
-              @click="openCreateModal"
-            >
-              添加
-            </button>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <UiTableStateOverlay
-            :loading="loading"
-            :empty="!loading && !pagedRows.length"
-            :top="46"
+    <section class="search-card">
+      <div class="search-row">
+        <label class="search-item">
+          <span class="search-label-inline">网关名称/编号</span>
+          <input
+            v-model="queryForm.searchKey"
+            class="search-input"
+            type="text"
+            placeholder="请输入网关名称/编号"
           />
+        </label>
 
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="table-col-index sticky-col sticky-col-left sticky-index">序号</th>
-                <th class="gateway-col-name sticky-col sticky-col-left sticky-name">网关名称</th>
-                <th class="gateway-col-model sticky-col sticky-col-left sticky-model">网关型号</th>
-                <th class="gateway-col-device-no sticky-col sticky-col-left sticky-device-no"
-                  >网关编号</th
-                >
-                <th class="gateway-col-location">所在位置</th>
-                <th class="gateway-col-region">所属区域</th>
-                <th class="gateway-col-sn">网关SN</th>
-                <th class="gateway-col-imei">IMEI</th>
-                <th class="gateway-col-online sticky-col sticky-col-right sticky-online"
-                  >在线状态</th
-                >
-                <th class="gateway-col-action sticky-col sticky-col-right sticky-action">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, index) in pagedRows" :key="row.id">
-                <td class="sticky-col sticky-col-left sticky-index">{{
-                  getSerialNumber(index)
-                }}</td>
-                <td class="sticky-col sticky-col-left sticky-name">{{ row.gatewayName }}</td>
-                <td class="sticky-col sticky-col-left sticky-model">{{ row.modelName }}</td>
-                <td class="sticky-col sticky-col-left sticky-device-no">{{ row.deviceNo }}</td>
-                <td>{{ getSpaceLocation(row) }}</td>
-                <td>{{ getSpaceRegion(row) }}</td>
-                <td>{{ row.sn || '—' }}</td>
-                <td>{{ row.imei || '—' }}</td>
-                <td class="sticky-col sticky-col-right sticky-online">
-                  <span :class="getOnlineStatusClass(row)">
-                    {{ row.onlineStatusName }}
-                  </span>
-                </td>
-                <td class="gateway-col-action sticky-col sticky-col-right sticky-action">
-                  <button
-                    v-menu-permission="gatewayPermissionKeys.detail"
-                    class="btn-link"
-                    type="button"
-                    @click="openDetailModal(row)"
-                  >
-                    详情
-                  </button>
-                  <button
-                    v-menu-permission="gatewayPermissionKeys.edit"
-                    class="btn-link"
-                    type="button"
-                    @click="openEditModal(row)"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    v-menu-permission="gatewayPermissionKeys.delete"
-                    class="btn-link btn-link-danger"
-                    type="button"
-                    @click="openDeleteConfirm(row)"
-                    >删除</button
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <label class="search-item search-item-secondary">
+          <span class="search-label-inline">在线状态</span>
+          <select
+            v-model="queryForm.onlineStatus"
+            class="search-input search-input-select"
+            :class="{ 'search-input-placeholder': !queryForm.onlineStatus }"
+          >
+            <option value="">请选择</option>
+            <option
+              v-for="item in gatewayOnlineStatusOptions"
+              :key="item.value"
+              :value="item.value"
+              >{{ item.label }}</option
+            >
+          </select>
+        </label>
+
+        <div class="search-actions">
+          <button class="btn btn-primary" type="button" @click="handleSearch">查询</button>
+          <button class="btn btn-secondary" type="button" @click="handleReset">重置</button>
         </div>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-toolbar">
+        <h2 class="table-title">智能网关</h2>
+        <div class="page-actions">
+          <button
+            v-menu-permission="gatewayPermissionKeys.create"
+            class="btn btn-primary"
+            type="button"
+            @click="openCreateModal"
+          >
+            添加
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && !pagedRows.length"
+          :top="46"
+        />
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="table-col-index sticky-col sticky-col-left sticky-index">序号</th>
+              <th class="gateway-col-name sticky-col sticky-col-left sticky-name">网关名称</th>
+              <th class="gateway-col-model sticky-col sticky-col-left sticky-model">网关型号</th>
+              <th class="gateway-col-device-no sticky-col sticky-col-left sticky-device-no"
+                >网关编号</th
+              >
+              <th class="gateway-col-location">所在位置</th>
+              <th class="gateway-col-region">所属区域</th>
+              <th class="gateway-col-sn">网关SN</th>
+              <th class="gateway-col-imei">IMEI</th>
+              <th class="gateway-col-online sticky-col sticky-col-right sticky-online"
+                >在线状态</th
+              >
+              <th class="gateway-col-action sticky-col sticky-col-right sticky-action">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, index) in pagedRows" :key="row.id">
+              <td class="sticky-col sticky-col-left sticky-index">{{
+                getSerialNumber(index)
+              }}</td>
+              <td class="sticky-col sticky-col-left sticky-name">{{ row.gatewayName }}</td>
+              <td class="sticky-col sticky-col-left sticky-model">{{ row.modelName }}</td>
+              <td class="sticky-col sticky-col-left sticky-device-no">{{ row.deviceNo }}</td>
+              <td>{{ getSpaceLocation(row) }}</td>
+              <td>{{ getSpaceRegion(row) }}</td>
+              <td>{{ row.sn || '—' }}</td>
+              <td>{{ row.imei || '—' }}</td>
+              <td class="sticky-col sticky-col-right sticky-online">
+                <span :class="getOnlineStatusClass(row)">
+                  {{ row.onlineStatusName }}
+                </span>
+              </td>
+              <td class="gateway-col-action sticky-col sticky-col-right sticky-action">
+                <button
+                  v-menu-permission="gatewayPermissionKeys.detail"
+                  class="btn-link"
+                  type="button"
+                  @click="openDetailModal(row)"
+                >
+                  详情
+                </button>
+                <button
+                  v-menu-permission="gatewayPermissionKeys.edit"
+                  class="btn-link"
+                  type="button"
+                  @click="openEditModal(row)"
+                >
+                  编辑
+                </button>
+                <button
+                  v-menu-permission="gatewayPermissionKeys.delete"
+                  class="btn-link btn-link-danger"
+                  type="button"
+                  @click="openDeleteConfirm(row)"
+                  >删除</button
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <CommonPagination
@@ -547,6 +545,8 @@ const handleConfirmDelete = async () => {
 <style scoped>
 .page {
   position: relative;
+  display: grid;
+  gap: 16px;
 }
 
 .page-notice {
@@ -598,20 +598,13 @@ const handleConfirmDelete = async () => {
   opacity: 0;
 }
 
-.workspace-card {
-  display: grid;
-  min-height: calc(100vh - 146px);
-  overflow: hidden;
+.search-card,
+.table-card {
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
   box-shadow: var(--es-shadow-card);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.workspace-search {
   padding: 16px;
-  border-bottom: 1px solid var(--es-color-border);
 }
 
 .search-row {
@@ -681,14 +674,14 @@ const handleConfirmDelete = async () => {
   flex-shrink: 0;
 }
 
-.workspace-body {
+.table-card {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  min-height: 0;
-  padding: 16px;
+  min-height: calc(100vh - 146px);
+  overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-.workspace-head {
+.table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -696,7 +689,7 @@ const handleConfirmDelete = async () => {
   margin-bottom: 14px;
 }
 
-.workspace-title {
+.table-title {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
@@ -943,8 +936,7 @@ const handleConfirmDelete = async () => {
 }
 
 .pager {
-  padding: 16px;
-  border-top: 1px solid var(--es-color-border);
+  padding: 0 10px;
 }
 
 .modal-mask {

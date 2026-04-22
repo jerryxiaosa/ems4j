@@ -75,9 +75,9 @@ const moreActionCommandLabel = computed(() => {
 </script>
 
 <template>
-  <div class="workspace-body">
-    <div class="workspace-head">
-      <h2 class="workspace-title">智能电表</h2>
+  <div class="table-section">
+    <div class="table-toolbar">
+      <h2 class="table-title">智能电表</h2>
       <div class="page-actions">
         <button
           v-menu-permission="electricMeterPermissionKeys.batchSwitchOn"
@@ -323,14 +323,13 @@ const moreActionCommandLabel = computed(() => {
 </template>
 
 <style scoped>
-.workspace-body {
+.table-section {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
-  padding: 16px;
 }
 
-.workspace-head {
+.table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -338,7 +337,7 @@ const moreActionCommandLabel = computed(() => {
   margin-bottom: 14px;
 }
 
-.workspace-title {
+.table-title {
   margin: 0;
   flex: 0 0 auto;
   font-size: 15px;
@@ -718,7 +717,7 @@ button:disabled {
 }
 
 @media (width <= 1200px) {
-  .workspace-head {
+  .table-toolbar {
     align-items: flex-start;
     flex-direction: column;
   }

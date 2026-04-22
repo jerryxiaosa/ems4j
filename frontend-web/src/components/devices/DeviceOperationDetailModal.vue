@@ -268,7 +268,7 @@ watch(
           </div>
         </div>
 
-        <div class="modal-body">
+        <div class="modal-body main-modal-body">
           <div v-if="notice.text" :class="['notice', `notice-${notice.type}`]">
             {{ notice.text }}
           </div>
@@ -281,7 +281,7 @@ watch(
             <UiEmptyState :text="errorMessage" :min-height="180" />
           </section>
 
-          <template v-else-if="detail">
+          <div v-else-if="detail" class="detail-layout">
             <section class="section-card">
               <h3 class="section-title">基本信息</h3>
               <div class="detail-grid">
@@ -333,11 +333,13 @@ watch(
               </div>
             </section>
 
-            <section class="section-card">
+            <section class="section-card section-card-command">
               <h3 class="section-title">指令详情</h3>
-              <pre class="command-box">{{ commandDataPretty }}</pre>
+              <div class="command-box-wrap">
+                <pre class="command-box">{{ commandDataPretty }}</pre>
+              </div>
             </section>
-          </template>
+          </div>
 
           <section v-else class="section-card">
             <UiEmptyState text="暂无详情数据" :min-height="180" />
@@ -427,12 +429,14 @@ watch(
 }
 
 .operation-detail-modal {
+  display: flex;
+  flex-direction: column;
   width: min(920px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   overflow: hidden;
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
-  border-radius: var(--es-radius-lg);
+  border-radius: 5px;
   box-shadow: var(--es-shadow-floating);
 }
 
@@ -442,7 +446,7 @@ watch(
   overflow: hidden;
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
-  border-radius: var(--es-radius-lg);
+  border-radius: 5px;
   box-shadow: var(--es-shadow-floating);
 }
 
@@ -487,6 +491,22 @@ watch(
   gap: 16px;
 }
 
+.main-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 16px;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .notice {
   padding: 8px 12px;
   font-size: var(--es-font-size-md);
@@ -518,6 +538,13 @@ watch(
   border: 1px solid var(--es-color-border);
   border-radius: var(--es-radius-lg);
   box-shadow: var(--es-shadow-card);
+}
+
+.section-card-command {
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .section-title {
@@ -632,18 +659,26 @@ watch(
   color: var(--es-color-text-secondary);
 }
 
+.command-box-wrap {
+  min-height: 0;
+  max-height: 260px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+  background: #f8fbff;
+  border: 1px solid var(--es-color-border);
+  border-radius: var(--es-radius-md);
+}
+
 .command-box {
   margin: 0;
   min-height: 100px;
-  padding: 12px;
+  padding: 12px 12px 20px;
   font-size: var(--es-font-size-sm);
   color: var(--es-color-text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
-  background: #f8fbff;
-  border: 1px solid var(--es-color-border);
-  border-radius: var(--es-radius-md);
 }
 
 .table-wrap {

@@ -203,97 +203,95 @@ onMounted(() => {
       </div>
     </transition>
 
-    <section class="workspace-card">
-      <header class="workspace-search">
-        <div class="search-row">
-          <label class="search-item">
-            <span class="search-label-inline">方案名称</span>
-            <input
-              v-model="queryForm.name"
-              class="search-input"
-              type="text"
-              placeholder="请输入预警方案名称"
-            />
-          </label>
-
-          <div class="search-actions">
-            <button class="btn btn-primary" type="button" @click="search">查询</button>
-            <button class="btn btn-secondary" type="button" @click="resetQuery">重置</button>
-          </div>
-        </div>
-      </header>
-
-      <div class="workspace-body">
-        <div class="workspace-head">
-          <h2 class="workspace-title">预警方案</h2>
-          <div class="page-actions">
-            <button
-              v-menu-permission="warnPlanPermissionKeys.create"
-              class="btn btn-primary"
-              type="button"
-              @click="openCreateModal"
-            >
-              添加
-            </button>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <UiTableStateOverlay
-            :loading="loading"
-            :empty="!loading && !rows.length"
+    <section class="search-card">
+      <div class="search-row">
+        <label class="search-item">
+          <span class="search-label-inline">方案名称</span>
+          <input
+            v-model="queryForm.name"
+            class="search-input"
+            type="text"
+            placeholder="请输入预警方案名称"
           />
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="table-col-index">序号</th>
-                <th class="warn-plan-col-name">预警方案名称</th>
-                <th class="warn-plan-col-first-level">第一预警余额（元）</th>
-                <th class="warn-plan-col-second-level">第二预警余额（元）</th>
-                <th class="warn-plan-col-auto-close">欠费断闸</th>
-                <th class="warn-plan-col-update-time">创建时间</th>
-                <th class="warn-plan-col-remark">备注</th>
-                <th class="warn-plan-col-action">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, index) in rows" :key="row.id">
-                <td>{{ getSerialNumber(index) }}</td>
-                <td class="warn-plan-name-cell">{{ row.name }}</td>
-                <td>{{ row.firstLevel }}</td>
-                <td>{{ row.secondLevel }}</td>
-                <td>{{ row.autoClose ? '是' : '否' }}</td>
-                <td class="warn-plan-cell-update-time">{{ row.createTime || '--' }}</td>
-                <td class="warn-plan-remark-cell">{{ row.remark || '--' }}</td>
-                <td class="warn-plan-col-action">
-                  <button
-                    v-menu-permission="warnPlanPermissionKeys.detail"
-                    class="btn-link"
-                    type="button"
-                    @click="openDetailModal(row)"
-                  >
-                    详情
-                  </button>
-                  <button
-                    v-menu-permission="warnPlanPermissionKeys.edit"
-                    class="btn-link"
-                    type="button"
-                    @click="openEditModal(row)"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    v-menu-permission="warnPlanPermissionKeys.delete"
-                    class="btn-link btn-link-danger"
-                    type="button"
-                    @click="openDeleteConfirm(row)"
-                    >删除</button
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        </label>
+
+        <div class="search-actions">
+          <button class="btn btn-primary" type="button" @click="search">查询</button>
+          <button class="btn btn-secondary" type="button" @click="resetQuery">重置</button>
         </div>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-toolbar">
+        <h2 class="table-title">预警方案</h2>
+        <div class="page-actions">
+          <button
+            v-menu-permission="warnPlanPermissionKeys.create"
+            class="btn btn-primary"
+            type="button"
+            @click="openCreateModal"
+          >
+            添加
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <UiTableStateOverlay
+          :loading="loading"
+          :empty="!loading && !rows.length"
+        />
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="table-col-index">序号</th>
+              <th class="warn-plan-col-name">预警方案名称</th>
+              <th class="warn-plan-col-first-level">第一预警余额（元）</th>
+              <th class="warn-plan-col-second-level">第二预警余额（元）</th>
+              <th class="warn-plan-col-auto-close">欠费断闸</th>
+              <th class="warn-plan-col-update-time">创建时间</th>
+              <th class="warn-plan-col-remark">备注</th>
+              <th class="warn-plan-col-action">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, index) in rows" :key="row.id">
+              <td>{{ getSerialNumber(index) }}</td>
+              <td class="warn-plan-name-cell">{{ row.name }}</td>
+              <td>{{ row.firstLevel }}</td>
+              <td>{{ row.secondLevel }}</td>
+              <td>{{ row.autoClose ? '是' : '否' }}</td>
+              <td class="warn-plan-cell-update-time">{{ row.createTime || '--' }}</td>
+              <td class="warn-plan-remark-cell">{{ row.remark || '--' }}</td>
+              <td class="warn-plan-col-action">
+                <button
+                  v-menu-permission="warnPlanPermissionKeys.detail"
+                  class="btn-link"
+                  type="button"
+                  @click="openDetailModal(row)"
+                >
+                  详情
+                </button>
+                <button
+                  v-menu-permission="warnPlanPermissionKeys.edit"
+                  class="btn-link"
+                  type="button"
+                  @click="openEditModal(row)"
+                >
+                  编辑
+                </button>
+                <button
+                  v-menu-permission="warnPlanPermissionKeys.delete"
+                  class="btn-link btn-link-danger"
+                  type="button"
+                  @click="openDeleteConfirm(row)"
+                  >删除</button
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -331,6 +329,8 @@ onMounted(() => {
 <style scoped>
 .page {
   position: relative;
+  display: grid;
+  gap: 16px;
 }
 
 .page-notice {
@@ -382,20 +382,13 @@ onMounted(() => {
   opacity: 0;
 }
 
-.workspace-card {
-  display: grid;
-  min-height: calc(100vh - 146px);
-  overflow: hidden;
+.search-card,
+.table-card {
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
   border-radius: 5px;
   box-shadow: var(--es-shadow-card);
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
-.workspace-search {
   padding: 16px;
-  border-bottom: 1px solid var(--es-color-border);
 }
 
 .search-row {
@@ -451,14 +444,14 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.workspace-body {
+.table-card {
   display: grid;
+  min-height: calc(100vh - 146px);
+  overflow: hidden;
   grid-template-rows: auto minmax(0, 1fr);
-  min-height: 0;
-  padding: 16px;
 }
 
-.workspace-head {
+.table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -466,7 +459,7 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 
-.workspace-title {
+.table-title {
   margin: 0;
   font-size: 15px;
   font-weight: 600;

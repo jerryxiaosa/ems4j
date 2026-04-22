@@ -145,9 +145,13 @@
 列表页必须遵循：
 
 - 搜索区与列表区分成两个 card
+- 主列表页禁止再使用单个 `workspace-card` 同时包裹搜索区和列表区
+- 主列表页的 `search-card`、`table-card`、`table-wrap` 统一使用 `5px` 圆角
+- 页面主卡片不要使用 `var(--es-radius-lg)`，`12px` 只保留给少量浮层或组件内部特殊场景
 - 分页使用 [CommonPagination.vue](/Users/jerry/Workspace/github/ems4j/frontend-web/src/components/common/CommonPagination.vue)
 - 空状态与 loading 统一使用 [UiTableStateOverlay.vue](/Users/jerry/Workspace/github/ems4j/frontend-web/src/components/common/UiTableStateOverlay.vue)
 - `table-wrap` 使用 `position: relative`
+- `table-card` 如果内部是“标题工具栏 + 表格/列表主体”两段结构，必须显式写 `grid-template-rows: auto minmax(0, 1fr)`，避免 grid 默认拉伸把标题区撑高
 
 ### 4.2 详情弹窗骨架
 
@@ -171,9 +175,15 @@
 要求：
 
 - 弹窗头部只放标题和关闭类轻操作
+- 详情弹窗外层 `modal-panel` 圆角统一使用 `5px`
 - 业务动作优先放内容区，而不是塞在右上角工具栏
 - 内容主体分 section 组织
 - 详情字段优先用 `es-detail-label` + `es-detail-value-box`
+- 文本框左侧的详情字段标签不额外加粗，不覆盖 `es-detail-label` 的默认字重和颜色
+- 详情弹窗里的长文本、报文、JSON、指令原文等大块内容必须设置独立的滚动容器，优先用“外层容器负责 `max-height + overflow: auto`，内层文本块负责排版”的方式实现局部滚动，不依赖整个弹窗 body 滚动
+- 当详情弹窗同时包含固定信息区和长文本区时，长文本区必须放在“剩余高度”布局里，例如 `grid-template-rows: auto minmax(0, 1fr)`，并显式补 `min-height: 0`
+- 详情弹窗主标题统一使用 `var(--es-font-size-md)` 和 `font-weight: 600`
+- 详情弹窗分区标题统一使用 `14px` 和 `font-weight: 600`
 
 ### 4.3 页面通知
 
@@ -243,6 +253,12 @@
 - 表头使用蓝色标题色和浅蓝背景
 - 金额、电量、数量列尽量右对齐
 - 操作列使用 `btn-link`
+- 主列表页操作列文字样式以 [AccountInfoView.vue](/Users/jerry/Workspace/github/ems4j/frontend-web/src/views/accounts/AccountInfoView.vue) 为准：
+  - 常规动作 `font-weight: 500`
+  - `line-height: 1.2`
+  - 相邻动作间距 `12px`
+  - 危险动作使用 `btn-link-danger`
+  - hover 行为保持轻量，不做加粗或按钮化
 - 超长文本使用省略或 `title`
 - 表格下方统一接 `CommonPagination`
 
