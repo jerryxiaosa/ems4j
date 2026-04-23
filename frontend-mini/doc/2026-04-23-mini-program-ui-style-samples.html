@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMS4J 用户端小程序 UI 风格样张</title>
+  <style>
+    :root {
+      --page-bg: #eef3f9;
+      --text-main: #172033;
+      --text-sub: #667085;
+      --line-soft: rgba(23, 32, 51, 0.08);
+      --shadow-soft: 0 18px 40px rgba(31, 48, 78, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font-sans: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-number: "SF Pro Display", "DIN Alternate", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(circle at top left, rgba(96, 166, 255, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(73, 203, 170, 0.16), transparent 28%),
+        linear-gradient(180deg, #f6f9fc 0%, #eef4f8 100%);
+      color: var(--text-main);
+    }
+
+    .page {
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 40px 28px 72px;
+    }
+
+    .hero {
+      padding: 24px 4px 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(23, 32, 51, 0.05);
+      color: #4b5565;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: 42px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      max-width: 940px;
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .style-list {
+      display: grid;
+      gap: 28px;
+    }
+
+    .style-card {
+      border-radius: 34px;
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.66);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .style-head {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .style-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .style-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(23, 32, 51, 0.06);
+      color: #445066;
+    }
+
+    .style-title {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
+
+    .style-desc {
+      margin: 0;
+      max-width: 920px;
+      color: var(--text-sub);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .palette {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .swatch {
+      display: grid;
+      gap: 6px;
+      width: 96px;
+    }
+
+    .swatch-block {
+      height: 34px;
+      border-radius: 14px;
+      border: 1px solid rgba(23, 32, 51, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    .swatch span {
+      font-size: 12px;
+      color: #637086;
+    }
+
+    .phone-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .phone {
+      position: relative;
+      min-height: 780px;
+      padding: 18px 14px;
+      border-radius: 34px;
+      background: #111827;
+      box-shadow: 0 24px 56px rgba(13, 20, 35, 0.18);
+    }
+
+    .screen {
+      position: relative;
+      min-height: 744px;
+      border-radius: 26px;
+      overflow: hidden;
+      background: var(--screen-bg);
+      color: var(--screen-text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      width: 118px;
+      height: 24px;
+      transform: translateX(-50%);
+      border-radius: 0 0 18px 18px;
+      background: #101826;
+      z-index: 5;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--status-text, rgba(255, 255, 255, 0.9));
+    }
+
+    .content {
+      flex: 1;
+      padding: 18px 18px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .nav-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--screen-text);
+    }
+
+    .section {
+      border-radius: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      padding: 18px;
+    }
+
+    .section.soft {
+      background: var(--card-soft-bg);
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .muted {
+      color: var(--muted-text);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .balance {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      margin-top: 10px;
+      font-family: var(--font-number);
+    }
+
+    .balance small {
+      font-size: 16px;
+      font-weight: 700;
+      opacity: 0.86;
+      margin-bottom: 6px;
+    }
+
+    .balance strong {
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .helper {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted-text);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border-radius: 16px;
+      padding: 0 16px;
+      border: none;
+      background: var(--button-bg);
+      color: var(--button-text);
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: var(--button-shadow);
+    }
+
+    .button.ghost {
+      background: var(--button-ghost-bg);
+      color: var(--button-ghost-text);
+      box-shadow: none;
+      border: 1px solid var(--button-ghost-border);
+    }
+
+    .toggle {
+      display: inline-flex;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 16px;
+      background: var(--toggle-bg);
+    }
+
+    .toggle span {
+      min-width: 64px;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--toggle-text);
+    }
+
+    .toggle span.active {
+      background: var(--toggle-active-bg);
+      color: var(--toggle-active-text);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .chart-shell {
+      margin-top: 16px;
+      border-radius: 20px;
+      background: var(--chart-bg);
+      padding: 14px 12px 10px;
+      border: 1px solid var(--chart-border);
+    }
+
+    .chart-shell svg {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted-text);
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted-text);
+    }
+
+    .input,
+    .select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 48px;
+      border-radius: 16px;
+      padding: 0 16px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--screen-text);
+      font-size: 14px;
+    }
+
+    .amount-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted-text);
+    }
+
+    .amount-bar {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 16px;
+      border-radius: 18px;
+      background: var(--amount-bar-bg);
+    }
+
+    .amount-bar strong {
+      font-size: 20px;
+      font-family: var(--font-number);
+      letter-spacing: -0.03em;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .list-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--list-item-bg);
+      border: 1px solid var(--list-item-border);
+    }
+
+    .list-item h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .list-item p {
+      margin: 8px 0 0;
+      font-size: 13px;
+      color: var(--muted-text);
+      line-height: 1.6;
+    }
+
+    .entry-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 16px;
+      border-radius: 18px;
+      background: var(--entry-bg);
+      border: 1px solid var(--entry-border);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .entry small {
+      color: var(--muted-text);
+      font-weight: 500;
+    }
+
+    .tabbar {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 14px 16px 18px;
+      background: var(--tabbar-bg);
+      border-top: 1px solid var(--tabbar-border);
+    }
+
+    .tab {
+      display: grid;
+      gap: 4px;
+      justify-items: center;
+      font-size: 11px;
+      color: var(--tab-text);
+    }
+
+    .tab .dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 10px;
+      background: var(--tab-icon-bg);
+    }
+
+    .tab.active {
+      color: var(--tab-active-text);
+      font-weight: 700;
+    }
+
+    .tab.active .dot {
+      background: var(--tab-active-bg);
+      box-shadow: 0 10px 20px rgba(25, 42, 70, 0.16);
+    }
+
+    .style-a {
+      --screen-bg: linear-gradient(180deg, #f7fbff 0%, #f3f8fc 36%, #eef4f8 100%);
+      --screen-text: #132033;
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-soft-bg: linear-gradient(180deg, rgba(237, 247, 255, 0.92), rgba(255, 255, 255, 0.9));
+      --card-border: rgba(34, 86, 151, 0.08);
+      --card-shadow: 0 14px 30px rgba(38, 85, 142, 0.08);
+      --chip-bg: rgba(61, 127, 229, 0.1);
+      --chip-text: #2f6fd0;
+      --muted-text: #6a7b91;
+      --button-bg: linear-gradient(135deg, #2f80ed, #35b0db);
+      --button-text: #ffffff;
+      --button-shadow: 0 12px 24px rgba(47, 128, 237, 0.26);
+      --button-ghost-bg: rgba(255, 255, 255, 0.9);
+      --button-ghost-text: #2f6fd0;
+      --button-ghost-border: rgba(47, 128, 237, 0.16);
+      --toggle-bg: rgba(40, 91, 154, 0.08);
+      --toggle-text: #5a6f8a;
+      --toggle-active-bg: #ffffff;
+      --toggle-active-text: #1f4f8b;
+      --chart-bg: linear-gradient(180deg, rgba(232, 245, 255, 0.92), rgba(255, 255, 255, 0.96));
+      --chart-border: rgba(47, 128, 237, 0.08);
+      --input-bg: rgba(255, 255, 255, 0.92);
+      --input-border: rgba(63, 110, 172, 0.12);
+      --amount-bar-bg: linear-gradient(180deg, rgba(239, 247, 255, 1), rgba(255, 255, 255, 0.92));
+      --list-item-bg: rgba(255, 255, 255, 0.92);
+      --list-item-border: rgba(63, 110, 172, 0.08);
+      --entry-bg: rgba(255, 255, 255, 0.92);
+      --entry-border: rgba(63, 110, 172, 0.08);
+      --tabbar-bg: rgba(255, 255, 255, 0.9);
+      --tabbar-border: rgba(28, 61, 109, 0.08);
+      --tab-text: #73839a;
+      --tab-active-text: #235ea9;
+      --tab-icon-bg: rgba(93, 132, 192, 0.1);
+      --tab-active-bg: linear-gradient(135deg, #2f80ed, #52c1d2);
+      --status-text: #1d3b66;
+    }
+
+    .style-b {
+      --screen-bg: linear-gradient(180deg, #fffaf5 0%, #fff7ef 34%, #fff2e7 100%);
+      --screen-text: #2f241f;
+      --card-bg: rgba(255, 252, 248, 0.94);
+      --card-soft-bg: linear-gradient(180deg, rgba(255, 243, 228, 0.96), rgba(255, 250, 244, 0.96));
+      --card-border: rgba(210, 137, 74, 0.12);
+      --card-shadow: 0 16px 34px rgba(196, 133, 78, 0.1);
+      --chip-bg: rgba(242, 153, 74, 0.14);
+      --chip-text: #c76a19;
+      --muted-text: #8b7368;
+      --button-bg: linear-gradient(135deg, #f2994a, #ffb067);
+      --button-text: #ffffff;
+      --button-shadow: 0 14px 28px rgba(242, 153, 74, 0.26);
+      --button-ghost-bg: rgba(255, 248, 240, 0.96);
+      --button-ghost-text: #d47b2a;
+      --button-ghost-border: rgba(235, 149, 72, 0.16);
+      --toggle-bg: rgba(231, 170, 120, 0.14);
+      --toggle-text: #966e4d;
+      --toggle-active-bg: rgba(255, 255, 255, 0.98);
+      --toggle-active-text: #9c5d1f;
+      --chart-bg: linear-gradient(180deg, rgba(255, 245, 233, 1), rgba(255, 253, 250, 0.98));
+      --chart-border: rgba(242, 153, 74, 0.12);
+      --input-bg: rgba(255, 255, 255, 0.92);
+      --input-border: rgba(219, 160, 113, 0.18);
+      --amount-bar-bg: linear-gradient(180deg, rgba(255, 246, 235, 1), rgba(255, 252, 248, 1));
+      --list-item-bg: rgba(255, 252, 248, 0.96);
+      --list-item-border: rgba(219, 160, 113, 0.12);
+      --entry-bg: rgba(255, 252, 248, 0.96);
+      --entry-border: rgba(219, 160, 113, 0.12);
+      --tabbar-bg: rgba(255, 252, 248, 0.94);
+      --tabbar-border: rgba(214, 161, 118, 0.12);
+      --tab-text: #977a68;
+      --tab-active-text: #c76a19;
+      --tab-icon-bg: rgba(237, 171, 110, 0.12);
+      --tab-active-bg: linear-gradient(135deg, #f2994a, #ffbb72);
+      --status-text: #7f5c43;
+    }
+
+    .style-c {
+      --screen-bg: linear-gradient(180deg, #f7fafc 0%, #f2f7fb 32%, #edf3f8 100%);
+      --screen-text: #152234;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-soft-bg: linear-gradient(180deg, rgba(237, 245, 252, 0.98), rgba(255, 255, 255, 0.94));
+      --card-border: rgba(17, 94, 89, 0.09);
+      --card-shadow: 0 14px 30px rgba(12, 43, 71, 0.08);
+      --chip-bg: rgba(20, 184, 166, 0.14);
+      --chip-text: #0d8c80;
+      --muted-text: #6a7a8f;
+      --button-bg: linear-gradient(135deg, #2563eb, #1fb6b7);
+      --button-text: #ffffff;
+      --button-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+      --button-ghost-bg: rgba(255, 255, 255, 0.95);
+      --button-ghost-text: #1b74b7;
+      --button-ghost-border: rgba(37, 99, 235, 0.14);
+      --toggle-bg: rgba(23, 95, 122, 0.08);
+      --toggle-text: #69819b;
+      --toggle-active-bg: #ffffff;
+      --toggle-active-text: #195c93;
+      --chart-bg: linear-gradient(180deg, rgba(239, 247, 253, 1), rgba(255, 255, 255, 0.96));
+      --chart-border: rgba(37, 99, 235, 0.08);
+      --input-bg: rgba(255, 255, 255, 0.94);
+      --input-border: rgba(79, 123, 167, 0.12);
+      --amount-bar-bg: linear-gradient(180deg, rgba(239, 247, 255, 1), rgba(255, 255, 255, 1));
+      --list-item-bg: rgba(255, 255, 255, 0.94);
+      --list-item-border: rgba(79, 123, 167, 0.08);
+      --entry-bg: rgba(255, 255, 255, 0.94);
+      --entry-border: rgba(79, 123, 167, 0.08);
+      --tabbar-bg: rgba(255, 255, 255, 0.92);
+      --tabbar-border: rgba(32, 68, 110, 0.08);
+      --tab-text: #708095;
+      --tab-active-text: #225fb0;
+      --tab-icon-bg: rgba(37, 99, 235, 0.08);
+      --tab-active-bg: linear-gradient(135deg, #2563eb, #22b8a7);
+      --status-text: #234063;
+    }
+
+    .style-d {
+      --screen-bg: linear-gradient(180deg, #f8fcfb 0%, #f2f8f7 34%, #eef4f3 100%);
+      --screen-text: #183028;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --card-soft-bg: linear-gradient(180deg, rgba(236, 248, 244, 0.98), rgba(255, 255, 255, 0.96));
+      --card-border: rgba(43, 118, 103, 0.09);
+      --card-shadow: 0 14px 30px rgba(23, 72, 63, 0.08);
+      --chip-bg: rgba(39, 174, 96, 0.14);
+      --chip-text: #1d8b66;
+      --muted-text: #6e7f79;
+      --button-bg: linear-gradient(135deg, #1fa97a, #56c7a2);
+      --button-text: #ffffff;
+      --button-shadow: 0 14px 28px rgba(31, 169, 122, 0.23);
+      --button-ghost-bg: rgba(255, 255, 255, 0.95);
+      --button-ghost-text: #1f8d74;
+      --button-ghost-border: rgba(31, 169, 122, 0.14);
+      --toggle-bg: rgba(40, 119, 99, 0.08);
+      --toggle-text: #6d837c;
+      --toggle-active-bg: #ffffff;
+      --toggle-active-text: #1f7e6a;
+      --chart-bg: linear-gradient(180deg, rgba(238, 249, 245, 1), rgba(255, 255, 255, 0.97));
+      --chart-border: rgba(31, 169, 122, 0.08);
+      --input-bg: rgba(255, 255, 255, 0.95);
+      --input-border: rgba(77, 139, 123, 0.12);
+      --amount-bar-bg: linear-gradient(180deg, rgba(239, 250, 246, 1), rgba(255, 255, 255, 1));
+      --list-item-bg: rgba(255, 255, 255, 0.95);
+      --list-item-border: rgba(77, 139, 123, 0.08);
+      --entry-bg: rgba(255, 255, 255, 0.95);
+      --entry-border: rgba(77, 139, 123, 0.08);
+      --tabbar-bg: rgba(255, 255, 255, 0.93);
+      --tabbar-border: rgba(30, 82, 71, 0.08);
+      --tab-text: #70817a;
+      --tab-active-text: #1d8b66;
+      --tab-icon-bg: rgba(31, 169, 122, 0.08);
+      --tab-active-bg: linear-gradient(135deg, #1fa97a, #68ceb0);
+      --status-text: #295749;
+    }
+
+    .style-a .style-tag.primary {
+      background: rgba(47, 128, 237, 0.1);
+      color: #2f6fd0;
+    }
+
+    .style-b .style-tag.primary {
+      background: rgba(242, 153, 74, 0.12);
+      color: #cf7424;
+    }
+
+    .style-c .style-tag.primary {
+      background: rgba(37, 99, 235, 0.1);
+      color: #225fb0;
+    }
+
+    .style-d .style-tag.primary {
+      background: rgba(31, 169, 122, 0.12);
+      color: #1d8b66;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted-text);
+    }
+
+    .legend .line {
+      width: 22px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--button-bg);
+    }
+
+    @media (max-width: 1280px) {
+      .phone-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        max-width: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">EMS4J · 用户端小程序 · UI 风格样张</div>
+      <h1>先确认视觉气质，再进入整套高保真。</h1>
+      <p>
+        下面是 4 组围绕“轻运营、偏生活服务”展开的 UI 方向样张。每组都使用同一套信息结构，只改变配色、卡片层次、图表表现和页面氛围。
+        你可以先判断更接近想要的气质，再决定是否直接放大为整套高保真原型。
+      </p>
+    </section>
+
+    <section class="style-list">
+      <article class="style-card style-a">
+        <div class="style-head">
+          <div class="style-meta">
+            <span class="style-tag primary">方案 A</span>
+            <span class="style-tag">清爽生活服务风</span>
+          </div>
+          <h2 class="style-title">轻、净、可信，适合第一版快速落地。</h2>
+          <p class="style-desc">
+            主色使用清亮蓝，辅以少量青绿色。整体气质偏便民缴费、社区服务型小程序，页面有明确的呼吸感，信息密度适中，首屏读取很快。
+          </p>
+          <div class="palette">
+            <div class="swatch"><div class="swatch-block" style="background:#2F80ED"></div><span>#2F80ED</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#35B0DB"></div><span>#35B0DB</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#EEF4F8"></div><span>#EEF4F8</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#172033"></div><span>#172033</span></div>
+          </div>
+        </div>
+        <div class="phone-grid">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <div class="section soft">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">我的账户</div>
+                      <h3 class="nav-title" style="margin-top:4px;">星河家园 2 栋住户账户</h3>
+                    </div>
+                    <div class="chip">共 6 个电表 ></div>
+                  </div>
+                  <div class="balance"><small>¥</small><strong>1,234.56</strong></div>
+                  <div class="helper">按需模式，多表余额合计</div>
+                  <div class="row-between" style="margin-top:14px;">
+                    <div class="muted" style="font-size:13px;">今日可继续查看账单与电表明细</div>
+                    <button class="button">去充值</button>
+                  </div>
+                </div>
+
+                <div class="section">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">近七日趋势</div>
+                      <h3 class="nav-title" style="margin-top:4px;">费用与用电变化</h3>
+                    </div>
+                    <div class="toggle">
+                      <span class="active">电费</span>
+                      <span>电量</span>
+                    </div>
+                  </div>
+                  <div class="chart-shell">
+                    <svg viewBox="0 0 310 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 140C56 136 62 98 96 94C130 90 144 118 178 112C212 106 218 58 254 50C278 46 292 57 300 62V152H20V140Z" fill="rgba(47,128,237,0.14)"/>
+                      <path d="M20 140C56 136 62 98 96 94C130 90 144 118 178 112C212 106 218 58 254 50C278 46 292 57 300 62" stroke="#2F80ED" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="96" cy="94" r="5" fill="#2F80ED"/>
+                      <circle cx="178" cy="112" r="5" fill="#35B0DB"/>
+                      <circle cx="254" cy="50" r="5" fill="#2F80ED"/>
+                    </svg>
+                    <div class="chart-labels"><span>04/17</span><span>04/20</span><span>04/23</span></div>
+                  </div>
+                  <div class="legend"><span class="line"></span>默认展示近七日电费，切换后查看电量。</div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab active"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">充值</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">充值对象</div>
+                  <h3 class="nav-title" style="margin-top:4px;">电表 A · 101 室空调回路</h3>
+                  <div class="helper">当前余额 ¥ 120.50</div>
+                </div>
+                <div class="section">
+                  <div class="field">
+                    <label>选择电表</label>
+                    <div class="select"><span>电表 A · 101 室空调回路</span><span class="muted">▼</span></div>
+                  </div>
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input"><span class="muted">请输入充值金额</span><strong style="font-family:var(--font-number);">¥</strong></div>
+                  </div>
+                  <div class="amount-hint">按需模式下，充值金额将直接进入所选电表余额。</div>
+                  <div class="amount-bar">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">应付金额</div>
+                      <strong>¥ 100.00</strong>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab active"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">我的</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">账户信息</div>
+                  <div class="list" style="margin-top:14px;">
+                    <div class="row-between"><span class="muted">手机号</span><strong>138 1234 5678</strong></div>
+                    <div class="row-between"><span class="muted">所属机构</span><strong>星河家园物业</strong></div>
+                    <div class="row-between"><span class="muted">账户状态</span><span class="chip" style="padding:6px 10px;">正常</span></div>
+                  </div>
+                </div>
+                <div class="entry-list">
+                  <div class="entry"><span>我的订单</span><small>查看充值订单 ></small></div>
+                  <div class="entry"><span>退出登录</span><small>重新切换账号 ></small></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab active"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="style-card style-b">
+        <div class="style-head">
+          <div class="style-meta">
+            <span class="style-tag primary">方案 B</span>
+            <span class="style-tag">清爽服务 + 暖色点缀</span>
+          </div>
+          <h2 class="style-title">更亲和、更生活化，像社区服务与缴费结合体。</h2>
+          <p class="style-desc">
+            以暖米色和橙色做主氛围，蓝色退到辅助位置。卡片更柔软，按钮更像生活服务小程序里的“办事入口”，亲和感更强。
+          </p>
+          <div class="palette">
+            <div class="swatch"><div class="swatch-block" style="background:#F2994A"></div><span>#F2994A</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#FFF2E7"></div><span>#FFF2E7</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#FFF9F3"></div><span>#FFF9F3</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#2F241F"></div><span>#2F241F</span></div>
+          </div>
+        </div>
+        <div class="phone-grid">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <div class="section soft">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">我的账户</div>
+                      <h3 class="nav-title" style="margin-top:4px;">星河家园 2 栋住户账户</h3>
+                    </div>
+                    <div class="chip">共 6 个电表 ></div>
+                  </div>
+                  <div class="balance"><small>¥</small><strong>1,234.56</strong></div>
+                  <div class="helper">按需模式，多表余额合计</div>
+                  <div class="row-between" style="margin-top:14px;">
+                    <div class="muted" style="font-size:13px;">余额充足，可继续查看账单与电表。</div>
+                    <button class="button">去充值</button>
+                  </div>
+                </div>
+
+                <div class="section">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">近七日趋势</div>
+                      <h3 class="nav-title" style="margin-top:4px;">本周费用变化</h3>
+                    </div>
+                    <div class="toggle">
+                      <span class="active">电费</span>
+                      <span>电量</span>
+                    </div>
+                  </div>
+                  <div class="chart-shell">
+                    <svg viewBox="0 0 310 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22 132C53 126 63 88 101 92C136 96 149 116 177 105C212 91 217 61 255 57C279 54 290 63 300 68V152H22V132Z" fill="rgba(242,153,74,0.18)"/>
+                      <path d="M22 132C53 126 63 88 101 92C136 96 149 116 177 105C212 91 217 61 255 57C279 54 290 63 300 68" stroke="#F2994A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="101" cy="92" r="5" fill="#F2994A"/>
+                      <circle cx="177" cy="105" r="5" fill="#FFB067"/>
+                      <circle cx="255" cy="57" r="5" fill="#F2994A"/>
+                    </svg>
+                    <div class="chart-labels"><span>周四</span><span>周日</span><span>今天</span></div>
+                  </div>
+                  <div class="legend"><span class="line"></span>更暖、更像“日常缴费服务”首页。</div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab active"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">充值</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">充值对象</div>
+                  <h3 class="nav-title" style="margin-top:4px;">账户充值</h3>
+                  <div class="helper">当前余额 ¥ 1,234.56</div>
+                </div>
+                <div class="section">
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input"><span class="muted">请输入充值金额</span><strong style="font-family:var(--font-number);">¥</strong></div>
+                  </div>
+                  <div class="amount-hint">充值金额将进入当前账户余额。</div>
+                  <div class="amount-bar">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">应付金额</div>
+                      <strong>¥ 100.00</strong>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+                <div class="section" style="padding:16px;">
+                  <div class="muted" style="font-size:12px;font-weight:700;">提示</div>
+                  <p style="margin:10px 0 0;color:var(--muted-text);font-size:13px;line-height:1.7;">生活服务风格更强调亲和与安心感，适合居民端使用。</p>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab active"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">我的</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">个人信息</div>
+                  <div class="list" style="margin-top:14px;">
+                    <div class="row-between"><span class="muted">手机号</span><strong>138 1234 5678</strong></div>
+                    <div class="row-between"><span class="muted">所属机构</span><strong>星河家园物业</strong></div>
+                    <div class="row-between"><span class="muted">账户状态</span><span class="chip" style="padding:6px 10px;">正常</span></div>
+                  </div>
+                </div>
+                <div class="entry-list">
+                  <div class="entry"><span>我的订单</span><small>查看充值订单 ></small></div>
+                  <div class="entry"><span>退出登录</span><small>返回登录页 ></small></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab active"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="style-card style-c">
+        <div class="style-head">
+          <div class="style-meta">
+            <span class="style-tag primary">方案 C</span>
+            <span class="style-tag">轻账单感 · 更突出数据可信</span>
+          </div>
+          <h2 class="style-title">更理性、更像“个人用能账单中心”。</h2>
+          <p class="style-desc">
+            蓝青双色搭配更冷静，数字信息层级更突出。仍保留生活服务感，但整体更偏数据和账单可信度，适合强调余额、账单与订单。
+          </p>
+          <div class="palette">
+            <div class="swatch"><div class="swatch-block" style="background:#2563EB"></div><span>#2563EB</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#14B8A6"></div><span>#14B8A6</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#EDF3F8"></div><span>#EDF3F8</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#152234"></div><span>#152234</span></div>
+          </div>
+        </div>
+        <div class="phone-grid">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <div class="section">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">账户概览</div>
+                      <h3 class="nav-title" style="margin-top:4px;">星河家园 2 栋住户账户</h3>
+                    </div>
+                    <div class="chip">共 6 个电表 ></div>
+                  </div>
+                  <div class="balance"><small>¥</small><strong>1,234.56</strong></div>
+                  <div class="helper">余额充足，可继续充值与查看账单。</div>
+                  <div class="row-between" style="margin-top:14px;">
+                    <div class="muted" style="font-size:13px;">今天暂无异常提醒</div>
+                    <button class="button">去充值</button>
+                  </div>
+                </div>
+
+                <div class="section soft">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">近七日趋势</div>
+                      <h3 class="nav-title" style="margin-top:4px;">账单走势</h3>
+                    </div>
+                    <div class="toggle">
+                      <span class="active">电费</span>
+                      <span>电量</span>
+                    </div>
+                  </div>
+                  <div class="chart-shell">
+                    <svg viewBox="0 0 310 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="line-c" x1="20" y1="50" x2="300" y2="120" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#2563EB"/>
+                          <stop offset="1" stop-color="#14B8A6"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M20 136C52 130 63 102 101 94C138 86 147 102 178 97C208 92 222 55 256 50C278 47 291 54 300 59V152H20V136Z" fill="rgba(37,99,235,0.12)"/>
+                      <path d="M20 136C52 130 63 102 101 94C138 86 147 102 178 97C208 92 222 55 256 50C278 47 291 54 300 59" stroke="url(#line-c)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="101" cy="94" r="5" fill="#2563EB"/>
+                      <circle cx="178" cy="97" r="5" fill="#1C97D2"/>
+                      <circle cx="256" cy="50" r="5" fill="#14B8A6"/>
+                    </svg>
+                    <div class="chart-labels"><span>04/17</span><span>04/20</span><span>04/23</span></div>
+                  </div>
+                  <div class="legend"><span class="line"></span>更偏账单中心，数值表达更强。</div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab active"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">充值</h3>
+                <div class="section">
+                  <div class="muted" style="font-size:12px;font-weight:700;">充值对象</div>
+                  <h3 class="nav-title" style="margin-top:4px;">账户充值</h3>
+                  <div class="helper">当前余额 ¥ 1,234.56</div>
+                </div>
+                <div class="section soft">
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input"><span class="muted">请输入充值金额</span><strong style="font-family:var(--font-number);">¥</strong></div>
+                  </div>
+                  <div class="amount-bar">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">应付金额</div>
+                      <strong>¥ 100.00</strong>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="row-between"><span class="muted">订单创建后</span><strong>拉起微信支付</strong></div>
+                  <p style="margin:10px 0 0;color:var(--muted-text);font-size:13px;line-height:1.7;">如果更强调金额、订单、支付可信感，可以优先考虑这一版。</p>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab active"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">我的</h3>
+                <div class="section">
+                  <div class="muted" style="font-size:12px;font-weight:700;">个人信息</div>
+                  <div class="list" style="margin-top:14px;">
+                    <div class="row-between"><span class="muted">手机号</span><strong>138 1234 5678</strong></div>
+                    <div class="row-between"><span class="muted">所属机构</span><strong>星河家园物业</strong></div>
+                    <div class="row-between"><span class="muted">账户状态</span><span class="chip" style="padding:6px 10px;">正常</span></div>
+                  </div>
+                </div>
+                <div class="entry-list">
+                  <div class="entry"><span>我的订单</span><small>充值记录与状态 ></small></div>
+                  <div class="entry"><span>退出登录</span><small>安全退出 ></small></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab active"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="style-card style-d">
+        <div class="style-head">
+          <div class="style-meta">
+            <span class="style-tag primary">方案 D</span>
+            <span class="style-tag">柔和账单服务风</span>
+          </div>
+          <h2 class="style-title">保留数据可信感，但整体更柔和、更像贴近日常的生活服务产品。</h2>
+          <p class="style-desc">
+            这版是基于方案 C 往“生活服务”方向再退半步：主色改成更柔和的青绿色，数字仍然清晰，但卡片和气氛没那么冷，更适合长期使用型的小程序。
+          </p>
+          <div class="palette">
+            <div class="swatch"><div class="swatch-block" style="background:#1FA97A"></div><span>#1FA97A</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#56C7A2"></div><span>#56C7A2</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#EEF4F3"></div><span>#EEF4F3</span></div>
+            <div class="swatch"><div class="swatch-block" style="background:#183028"></div><span>#183028</span></div>
+          </div>
+        </div>
+        <div class="phone-grid">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <div class="section soft">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">账户概览</div>
+                      <h3 class="nav-title" style="margin-top:4px;">星河家园 2 栋住户账户</h3>
+                    </div>
+                    <div class="chip">共 6 个电表 ></div>
+                  </div>
+                  <div class="balance"><small>¥</small><strong>1,234.56</strong></div>
+                  <div class="helper">按需模式，多表余额合计</div>
+                  <div class="row-between" style="margin-top:14px;">
+                    <div class="muted" style="font-size:13px;">本周费用平稳，账户可正常使用。</div>
+                    <button class="button">去充值</button>
+                  </div>
+                </div>
+
+                <div class="section">
+                  <div class="row-between">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">近七日趋势</div>
+                      <h3 class="nav-title" style="margin-top:4px;">费用走势</h3>
+                    </div>
+                    <div class="toggle">
+                      <span class="active">电费</span>
+                      <span>电量</span>
+                    </div>
+                  </div>
+                  <div class="chart-shell">
+                    <svg viewBox="0 0 310 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="line-d" x1="30" y1="58" x2="292" y2="126" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#1FA97A"/>
+                          <stop offset="1" stop-color="#56C7A2"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M20 138C52 134 62 101 98 96C131 91 147 111 180 106C213 101 221 69 255 60C276 54 291 61 300 66V152H20V138Z" fill="rgba(31,169,122,0.13)"/>
+                      <path d="M20 138C52 134 62 101 98 96C131 91 147 111 180 106C213 101 221 69 255 60C276 54 291 61 300 66" stroke="url(#line-d)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="98" cy="96" r="5" fill="#1FA97A"/>
+                      <circle cx="180" cy="106" r="5" fill="#36B88B"/>
+                      <circle cx="255" cy="60" r="5" fill="#56C7A2"/>
+                    </svg>
+                    <div class="chart-labels"><span>04/17</span><span>04/20</span><span>04/23</span></div>
+                  </div>
+                  <div class="legend"><span class="line"></span>比方案 C 更柔和，适合“生活服务 + 账单中心”的混合定位。</div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab active"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">充值</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">充值对象</div>
+                  <h3 class="nav-title" style="margin-top:4px;">账户充值</h3>
+                  <div class="helper">当前余额 ¥ 1,234.56</div>
+                </div>
+                <div class="section">
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input"><span class="muted">请输入充值金额</span><strong style="font-family:var(--font-number);">¥</strong></div>
+                  </div>
+                  <div class="amount-hint">金额确认后将拉起微信支付。</div>
+                  <div class="amount-bar">
+                    <div>
+                      <div class="muted" style="font-size:12px;font-weight:700;">应付金额</div>
+                      <strong>¥ 100.00</strong>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="row-between"><span class="muted">体验感受</span><strong>更柔和、没那么“系统”</strong></div>
+                  <p style="margin:10px 0 0;color:var(--muted-text);font-size:13px;line-height:1.7;">如果你觉得方案 C 稍微有点冷，这一版会更接近日常服务类小程序，但仍保持账单可信度。</p>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab active"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="content">
+                <h3 class="nav-title">我的</h3>
+                <div class="section soft">
+                  <div class="muted" style="font-size:12px;font-weight:700;">个人信息</div>
+                  <div class="list" style="margin-top:14px;">
+                    <div class="row-between"><span class="muted">手机号</span><strong>138 1234 5678</strong></div>
+                    <div class="row-between"><span class="muted">所属机构</span><strong>星河家园物业</strong></div>
+                    <div class="row-between"><span class="muted">账户状态</span><span class="chip" style="padding:6px 10px;">正常</span></div>
+                  </div>
+                </div>
+                <div class="entry-list">
+                  <div class="entry"><span>我的订单</span><small>充值记录与状态 ></small></div>
+                  <div class="entry"><span>退出登录</span><small>重新切换账号 ></small></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="dot"></div><span>首页</span></div>
+                <div class="tab"><div class="dot"></div><span>充值</span></div>
+                <div class="tab"><div class="dot"></div><span>账单</span></div>
+                <div class="tab active"><div class="dot"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

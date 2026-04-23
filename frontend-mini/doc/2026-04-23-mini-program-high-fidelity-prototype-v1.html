@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMS4J 用户端小程序高保真原型 V1</title>
+  <style>
+    :root {
+      --blue-700: #2563eb;
+      --blue-600: #3778f5;
+      --teal-500: #14b8a6;
+      --teal-400: #38cfc0;
+      --green-500: #14b86a;
+      --amber-500: #f59e0b;
+      --red-500: #ef4444;
+      --bg-page: #edf3f8;
+      --bg-grad-top: #f7fafc;
+      --text-main: #152234;
+      --text-sub: #6a7a8f;
+      --line-soft: rgba(79, 123, 167, 0.1);
+      --shadow-card: 0 14px 30px rgba(12, 43, 71, 0.08);
+      --shadow-button: 0 14px 28px rgba(37, 99, 235, 0.24);
+      --radius-xl: 26px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --font-sans: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-number: "SF Pro Display", "DIN Alternate", "Helvetica Neue", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.11), transparent 22%),
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.12), transparent 24%),
+        linear-gradient(180deg, var(--bg-grad-top) 0%, var(--bg-page) 100%);
+    }
+
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 34px 28px 80px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      padding: 10px 2px 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      width: fit-content;
+      border-radius: 999px;
+      background: rgba(21, 34, 52, 0.05);
+      color: #53637b;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 44px;
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      color: var(--text-sub);
+      font-size: 16px;
+      line-height: 1.9;
+    }
+
+    .review-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .review-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+      color: #4f6076;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .review-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-700), var(--teal-500));
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0 28px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #235ca8;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(37, 99, 235, 0.08);
+    }
+
+    .section-wrap {
+      display: grid;
+      gap: 30px;
+    }
+
+    .prototype-block {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+      padding: 28px;
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 18px 40px rgba(31, 48, 78, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .block-meta {
+      position: sticky;
+      top: 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .block-tag {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: #225fb0;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .block-title {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+    }
+
+    .block-desc {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .meta-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: #5b6d84;
+      line-height: 1.7;
+    }
+
+    .meta-item::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: 0 0 7px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-700), var(--teal-500));
+      margin-top: 8px;
+    }
+
+    .phones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .phone {
+      position: relative;
+      width: 352px;
+      flex: 0 0 352px;
+      padding: 8px;
+      border-radius: 32px;
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.18);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 112px;
+      height: 20px;
+      transform: translateX(-50%);
+      background: #0e1524;
+      border-radius: 0 0 14px 14px;
+      z-index: 3;
+    }
+
+    .screen {
+      width: 100%;
+      aspect-ratio: 390 / 844;
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent 28%),
+        linear-gradient(180deg, #f7fafc 0%, #f2f7fb 32%, #edf3f8 100%);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #244063;
+      letter-spacing: 0.04em;
+    }
+
+    .app-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 18px 18px 6px;
+      text-align: center;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .sub-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      color: #3b5878;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(37, 99, 235, 0.08);
+    }
+
+    .page-link-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -2px;
+    }
+
+    .page-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      color: #2f629f;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid rgba(37, 99, 235, 0.1);
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 10px 18px 0;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      scrollbar-width: none;
+    }
+
+    .content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card {
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+      box-shadow: var(--shadow-card);
+      padding: 18px;
+    }
+
+    .card.gradient {
+      background:
+        linear-gradient(180deg, rgba(237, 245, 252, 0.98), rgba(255, 255, 255, 0.94));
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-sub);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-head h3 {
+      margin: 5px 0 0;
+      font-size: 18px;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+    }
+
+    .meter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(20, 184, 166, 0.12);
+      color: #0d8c80;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .balance {
+      display: flex;
+      align-items: flex-end;
+      gap: 7px;
+      margin-top: 12px;
+      font-family: var(--font-number);
+    }
+
+    .balance small {
+      font-size: 16px;
+      font-weight: 700;
+      opacity: 0.82;
+      margin-bottom: 5px;
+    }
+
+    .balance strong {
+      font-size: 36px;
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .helper {
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .button {
+      border: none;
+      min-height: 42px;
+      padding: 0 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--blue-700), var(--teal-500));
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: var(--shadow-button);
+    }
+
+    .button.ghost {
+      background: rgba(255, 255, 255, 0.92);
+      color: #235ca8;
+      border: 1px solid rgba(37, 99, 235, 0.12);
+      box-shadow: none;
+    }
+
+    .toggle {
+      display: inline-flex;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 16px;
+      background: rgba(23, 95, 122, 0.08);
+    }
+
+    .toggle button {
+      border: none;
+      background: transparent;
+      min-width: 64px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #69819b;
+      cursor: pointer;
+    }
+
+    .toggle button.active {
+      background: #fff;
+      color: #195c93;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .chart-shell {
+      margin-top: 16px;
+      padding: 14px 12px 10px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(239, 247, 253, 1), rgba(255, 255, 255, 0.96));
+      border: 1px solid rgba(37, 99, 235, 0.08);
+    }
+
+    .chart-shell svg {
+      width: 100%;
+      height: 190px;
+      display: block;
+    }
+
+    .chart-shell.compact svg {
+      height: 154px;
+    }
+
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 11px;
+    }
+
+    .insight-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .mini-stat {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background: rgba(244, 248, 252, 0.88);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+    }
+
+    .mini-stat .label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .mini-stat .value {
+      margin-top: 8px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-family: var(--font-number);
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .input,
+    .select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 50px;
+      padding: 0 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.12);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .fake-caret {
+      color: #7590b4;
+      font-weight: 800;
+    }
+
+    .amount-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 16px;
+      border-radius: 18px;
+      margin-top: 16px;
+      background: linear-gradient(180deg, rgba(239, 247, 255, 1), rgba(255, 255, 255, 1));
+    }
+
+    .amount-bar .amount-label {
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .amount-bar .amount-value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 800;
+      font-family: var(--font-number);
+      letter-spacing: -0.03em;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .info-row .label {
+      color: var(--text-sub);
+    }
+
+    .month-current {
+      border-radius: 22px;
+      padding: 18px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(20, 184, 166, 0.92));
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(37, 99, 235, 0.22);
+    }
+
+    .month-current h3,
+    .month-card h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .month-current p {
+      margin: 8px 0 0;
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .month-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .month-card {
+      padding: 16px 16px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+      box-shadow: var(--shadow-card);
+    }
+
+    .month-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .month-meta .meta-block {
+      display: grid;
+      gap: 4px;
+      color: var(--text-sub);
+      font-size: 12px;
+    }
+
+    .month-meta strong {
+      color: var(--text-main);
+      font-size: 15px;
+      font-family: var(--font-number);
+      letter-spacing: -0.02em;
+    }
+
+    .entry-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+      box-shadow: var(--shadow-card);
+    }
+
+    .entry-left {
+      display: grid;
+      gap: 6px;
+    }
+
+    .entry-left strong {
+      font-size: 15px;
+    }
+
+    .entry-left span {
+      color: var(--text-sub);
+      font-size: 12px;
+    }
+
+    .entry-right {
+      color: #225fb0;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(20, 184, 106, 0.12);
+      color: #0e9960;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-500);
+    }
+
+    .home-card {
+      padding-bottom: 16px;
+    }
+
+    .home-card .card-head {
+      display: block;
+    }
+
+    .home-card .card-head h3 {
+      margin-top: 0;
+      font-size: 17px;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .meter-line {
+      margin-top: 10px;
+    }
+
+    .balance-action-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .balance-action-row .balance {
+      margin-top: 0;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .balance-action-row .button {
+      flex: 0 0 auto;
+    }
+
+    .home-compact-note {
+      margin-top: 8px;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .tabbar {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 14px 16px 18px;
+      border-top: 1px solid rgba(32, 68, 110, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .tab {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #708095;
+    }
+
+    .tab .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .tab.active {
+      color: #225fb0;
+      font-weight: 700;
+    }
+
+    .tab.active .icon {
+      background: linear-gradient(135deg, var(--blue-700), var(--teal-500));
+      box-shadow: 0 10px 20px rgba(25, 42, 70, 0.16);
+    }
+
+    @media (max-width: 1360px) {
+      .prototype-block {
+        grid-template-columns: 1fr;
+      }
+
+      .block-meta {
+        position: static;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        padding: 28px 16px 64px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .prototype-block {
+        padding: 18px;
+      }
+
+      .phones {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">EMS4J · 用户端微信小程序 · 高保真原型 V1</div>
+      <h1>第一轮高保真只验证一件事：方案 C 是否能撑起完整用户端体验。</h1>
+      <p>
+        本轮高保真聚焦 5 个核心页面：首页、充值页（非按需）、充值页（按需）、账单月列表页、我的页。
+        目标不是一次性定稿，而是先确认信息层级、按钮轻重、图表存在感、页面气质是否成立。
+      </p>
+      <div class="review-points">
+        <div class="review-pill"><span class="dot"></span>首页是否足够像“用户端首页”而不是后台面板</div>
+        <div class="review-pill"><span class="dot"></span>充值页是否清晰可信，不像复杂金融产品</div>
+        <div class="review-pill"><span class="dot"></span>账单页是否清楚表达“本月入口 + 历史汇总”</div>
+        <div class="review-pill"><span class="dot"></span>我的页是否足够轻，不显得像管理后台</div>
+      </div>
+      <div class="nav">
+        <a href="#home">首页</a>
+        <a href="#recharge-account">充值（非按需）</a>
+        <a href="#recharge-meter">充值（按需）</a>
+        <a href="#billing">账单月列表</a>
+        <a href="#mine">我的</a>
+      </div>
+    </section>
+
+    <section class="section-wrap">
+      <article class="prototype-block" id="home">
+        <div class="block-meta">
+          <div class="block-tag">首页</div>
+          <h2 class="block-title">账户卡片强势、图表克制，先给用户“安心感”。</h2>
+          <p class="block-desc">
+            首页不再承担太多入口，而是聚焦余额与近七日趋势。顶部卡片承担主视觉，图表卡片承担“最近使用情况”的信息表达，底部由 Tab 接管继续分流。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">去掉“账户概览”，首页第一屏直接给到账户名称。</div>
+            <div class="meta-item">“共 X 个电表 >”单独放到下一行，给账户名称留完整一行空间。</div>
+            <div class="meta-item">图表切换顺序改成“电量在前、电费在后”，默认先看使用电量。</div>
+            <div class="meta-item">一级 Tab 页顶部统一只保留居中标题，不再出现右侧附加标签。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar">
+                <h3 class="app-title">首页</h3>
+              </div>
+              <div class="content">
+                <div class="card gradient home-card">
+                  <div class="card-head">
+                    <div>
+                      <h3>星河家园 2 栋住户账户</h3>
+                    </div>
+                  </div>
+                  <div class="meter-line">
+                    <div class="meter-chip">共 6 个电表 ></div>
+                  </div>
+                  <div class="balance-action-row">
+                    <div class="balance"><small>¥</small><strong>1,234.56</strong></div>
+                    <button class="button">去充值</button>
+                  </div>
+                  <div class="home-compact-note">按需模式，多表余额合计</div>
+                </div>
+
+                <div class="card">
+                  <div class="row-between">
+                    <div>
+                      <div class="card-title">近七日趋势</div>
+                      <h3 style="margin: 5px 0 0; font-size: 18px;">使用趋势</h3>
+                    </div>
+                    <div class="toggle">
+                      <button class="active" type="button">电量</button>
+                      <button type="button">电费</button>
+                    </div>
+                  </div>
+                  <div class="chart-shell compact">
+                    <svg viewBox="0 0 320 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="homeLine" x1="18" y1="60" x2="306" y2="138" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#2563EB" />
+                          <stop offset="1" stop-color="#14B8A6" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M18 142C52 135 67 112 98 98C127 85 149 109 180 103C215 96 224 61 257 53C281 47 295 55 306 64V164H18V142Z" fill="rgba(37,99,235,0.12)" />
+                      <path d="M18 142C52 135 67 112 98 98C127 85 149 109 180 103C215 96 224 61 257 53C281 47 295 55 306 64" stroke="url(#homeLine)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                      <circle cx="98" cy="98" r="5" fill="#2563EB" />
+                      <circle cx="180" cy="103" r="5" fill="#1f90d4" />
+                      <circle cx="257" cy="53" r="5" fill="#14B8A6" />
+                    </svg>
+                    <div class="chart-labels"><span>04/17</span><span>04/20</span><span>04/23</span></div>
+                  </div>
+                  <div class="helper" style="margin-top: 10px;">默认显示近七日使用电量，点击后切换查看近七日电费。</div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab active"><div class="icon"></div><span>首页</span></div>
+                <div class="tab"><div class="icon"></div><span>充值</span></div>
+                <div class="tab"><div class="icon"></div><span>账单</span></div>
+                <div class="tab"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="recharge-account">
+        <div class="block-meta">
+          <div class="block-tag">充值（非按需）</div>
+          <h2 class="block-title">尽量像服务流程，不像“复杂支付产品”。</h2>
+          <p class="block-desc">
+            非按需模式下，充值路径应该非常短：确认对象、输入金额、发起支付。页面不引入固定档位，也不堆过多提示，突出应付金额和主按钮即可。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">充值对象卡片与金额卡片分层，避免信息挤在一起。</div>
+            <div class="meta-item">应付金额固定在底部强提示区域，强化主流程感。</div>
+            <div class="meta-item">视觉语言保持可信和克制，不过度金融化。</div>
+            <div class="meta-item">“我的订单”放在内容区顶部右侧，而不是公共导航区域。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar">
+                <h3 class="app-title">充值</h3>
+              </div>
+              <div class="content">
+                <div class="page-link-row">
+                  <div class="page-link">我的订单 ></div>
+                </div>
+                <div class="card gradient">
+                  <div class="card-title">充值对象</div>
+                  <h3 style="margin: 6px 0 0; font-size: 18px;">星河家园 2 栋住户账户</h3>
+                  <div class="info-grid">
+                    <div class="info-row"><span class="label">账户类型</span><strong>包月计费</strong></div>
+                    <div class="info-row"><span class="label">当前余额</span><strong style="font-family: var(--font-number);">¥ 1,234.56</strong></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input">
+                      <span class="label" style="color:#93a1b3;">请输入充值金额</span>
+                      <strong style="font-family: var(--font-number); color:#225fb0;">¥</strong>
+                    </div>
+                  </div>
+                  <div class="helper">充值金额将直接进入当前账户余额。</div>
+
+                  <div class="amount-bar">
+                    <div>
+                      <div class="amount-label">应付金额</div>
+                      <div class="amount-value">¥ 100.00</div>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="icon"></div><span>首页</span></div>
+                <div class="tab active"><div class="icon"></div><span>充值</span></div>
+                <div class="tab"><div class="icon"></div><span>账单</span></div>
+                <div class="tab"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="recharge-meter">
+        <div class="block-meta">
+          <div class="block-tag">充值（按需）</div>
+          <h2 class="block-title">先选表，再充钱；下拉选择要足够轻，不抢金额输入的注意力。</h2>
+          <p class="block-desc">
+            按需模式下多了一步选表，但页面不应该变复杂。目标还是保持“先选对象，再输入金额”的服务流程感，让用户清楚钱充到了哪一块表。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">下拉框只承担选择，不展开做复杂交互说明。</div>
+            <div class="meta-item">选中电表后的当前余额直接出现在对象卡片内。</div>
+            <div class="meta-item">应付金额区域继续保持统一样式，减少页面心智切换。</div>
+            <div class="meta-item">内容区顶部右侧保留“我的订单”，与非按需充值页保持一致。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar">
+                <h3 class="app-title">充值</h3>
+              </div>
+              <div class="content">
+                <div class="page-link-row">
+                  <div class="page-link">我的订单 ></div>
+                </div>
+                <div class="card">
+                  <div class="field">
+                    <label>请选择充值电表</label>
+                    <div class="select">
+                      <span>电表 A · 101 室空调回路</span>
+                      <span class="fake-caret">▼</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card gradient">
+                  <div class="card-title">当前电表</div>
+                  <h3 style="margin: 6px 0 0; font-size: 18px;">电表 A · 101 室空调回路</h3>
+                  <div class="info-grid">
+                    <div class="info-row"><span class="label">在线状态</span><span class="status-chip">在线</span></div>
+                    <div class="info-row"><span class="label">当前余额</span><strong style="font-family: var(--font-number);">¥ 120.50</strong></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="field">
+                    <label>充值金额</label>
+                    <div class="input">
+                      <span class="label" style="color:#93a1b3;">请输入充值金额</span>
+                      <strong style="font-family: var(--font-number); color:#225fb0;">¥</strong>
+                    </div>
+                  </div>
+                  <div class="helper">充值金额将直接进入所选电表余额。</div>
+                  <div class="amount-bar">
+                    <div>
+                      <div class="amount-label">应付金额</div>
+                      <div class="amount-value">¥ 100.00</div>
+                    </div>
+                    <button class="button">去支付</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="icon"></div><span>首页</span></div>
+                <div class="tab active"><div class="icon"></div><span>充值</span></div>
+                <div class="tab"><div class="icon"></div><span>账单</span></div>
+                <div class="tab"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="billing">
+        <div class="block-meta">
+          <div class="block-tag">账单月列表</div>
+          <h2 class="block-title">先看月，再看日；本月入口单独处理，不强行混成历史月卡片。</h2>
+          <p class="block-desc">
+            账单页的重点是避免“本月为什么没有月汇总”这种误解，所以本月入口单独强化为说明型卡片，历史月份则保持规整的汇总卡片样式。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">本月入口采用整块渐变卡片，与历史月份明显区分。</div>
+            <div class="meta-item">历史月份强调月电量和月电费两个汇总指标。</div>
+            <div class="meta-item">列表信息清晰、规整，避免过多装饰性元素。</div>
+            <div class="meta-item">账单作为一级 Tab 页面，顶部同样只保留居中标题。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar">
+                <h3 class="app-title">账单</h3>
+              </div>
+              <div class="content">
+                <div class="month-current">
+                  <div class="card-title" style="color:rgba(255,255,255,0.76);">本月</div>
+                  <h3 style="margin-top:6px;">查看本月已过去日期数据</h3>
+                  <p>本月暂不提供月汇总，可点击进入查看已过去日期的电量和电费明细。</p>
+                </div>
+
+                <div class="month-list">
+                  <div class="month-card">
+                    <div class="row-between">
+                      <h3>2026 年 03 月</h3>
+                      <div class="sub-action" style="padding:6px 10px;">查看 ></div>
+                    </div>
+                    <div class="month-meta">
+                      <div class="meta-block">
+                        <span>月电量</span>
+                        <strong>628.4 kWh</strong>
+                      </div>
+                      <div class="meta-block">
+                        <span>月电费</span>
+                        <strong>¥ 412.70</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="month-card">
+                    <div class="row-between">
+                      <h3>2026 年 02 月</h3>
+                      <div class="sub-action" style="padding:6px 10px;">查看 ></div>
+                    </div>
+                    <div class="month-meta">
+                      <div class="meta-block">
+                        <span>月电量</span>
+                        <strong>581.2 kWh</strong>
+                      </div>
+                      <div class="meta-block">
+                        <span>月电费</span>
+                        <strong>¥ 389.40</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="month-card">
+                    <div class="row-between">
+                      <h3>2026 年 01 月</h3>
+                      <div class="sub-action" style="padding:6px 10px;">查看 ></div>
+                    </div>
+                    <div class="month-meta">
+                      <div class="meta-block">
+                        <span>月电量</span>
+                        <strong>604.8 kWh</strong>
+                      </div>
+                      <div class="meta-block">
+                        <span>月电费</span>
+                        <strong>¥ 401.35</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="icon"></div><span>首页</span></div>
+                <div class="tab"><div class="icon"></div><span>充值</span></div>
+                <div class="tab active"><div class="icon"></div><span>账单</span></div>
+                <div class="tab"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="mine">
+        <div class="block-meta">
+          <div class="block-tag">我的</div>
+          <h2 class="block-title">保持轻、干净、可操作，不变成后台账户信息页。</h2>
+          <p class="block-desc">
+            “我的”页只承接基础信息、订单入口和退出动作，不放复杂配置。列表项做成轻服务入口，既符合用户端习惯，也能避免页面显得过于单薄。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">账户状态保留，但只做轻展示，不做复杂状态说明。</div>
+            <div class="meta-item">“我的订单”排在第一位，“我的账单”排在第二位。</div>
+            <div class="meta-item">退出登录是明确动作，但弱于“我的订单”入口。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar">
+                <h3 class="app-title">我的</h3>
+              </div>
+              <div class="content">
+                <div class="card gradient">
+                  <div class="card-title">个人信息</div>
+                  <div class="info-grid">
+                    <div class="info-row"><span class="label">手机号</span><strong>138 1234 5678</strong></div>
+                    <div class="info-row"><span class="label">所属机构</span><strong>星河家园物业</strong></div>
+                    <div class="info-row"><span class="label">账户状态</span><span class="status-chip">正常</span></div>
+                  </div>
+                </div>
+
+                <div class="entry-list">
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>我的订单</strong>
+                      <span>查看充值订单与支付状态</span>
+                    </div>
+                    <div class="entry-right">进入 ></div>
+                  </div>
+
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>我的账单</strong>
+                      <span>直接切换到账单首页</span>
+                    </div>
+                    <div class="entry-right">进入 ></div>
+                  </div>
+
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>退出登录</strong>
+                      <span>退出当前小程序登录状态</span>
+                    </div>
+                    <div class="entry-right">退出 ></div>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <div class="tab"><div class="icon"></div><span>首页</span></div>
+                <div class="tab"><div class="icon"></div><span>充值</span></div>
+                <div class="tab"><div class="icon"></div><span>账单</span></div>
+                <div class="tab active"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>
