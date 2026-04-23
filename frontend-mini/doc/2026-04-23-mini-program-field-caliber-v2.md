@@ -5,7 +5,7 @@
 - 适用范围：`frontend-mini` 第一阶段
 - 对应文档：
   - `2026-04-20-mini-program-user-prd.md`
-  - `2026-04-20-mini-program-low-fidelity-prototype.md`
+  - `2026-04-23-mini-program-high-fidelity-prototype-v1.html`
   - `2026-04-23-mini-program-field-caliber-v1.md`
 
 ## 1. 说明
@@ -81,7 +81,7 @@
 |---|---|---|---|---|
 | `month` | `string` | 是 | 当前月份 | 回显查询月份 |
 | `monthLabel` | `string` | 是 | 当前月份展示文案 | 例如：`2026年04月` |
-| `tip` | `string` | 否 | 页面提示文案 | 本月可返回：`本月暂不提供月汇总，可查看已过去日期数据`；月初可返回：`本月数据尚未准备好，请稍后查看` |
+| `tip` | `string` | 否 | 页面提示文案 | 本月可返回：`查看本月数据`；月初可返回：`当月暂无记录` |
 | `list` | `array` | 是 | 按日明细列表 | 无数据时返回空数组 |
 
 ### 3.4 `list` 子项字段

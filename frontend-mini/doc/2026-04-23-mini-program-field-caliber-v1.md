@@ -5,7 +5,7 @@
 - 适用范围：`frontend-mini` 第一阶段
 - 对应文档：
   - `2026-04-20-mini-program-user-prd.md`
-  - `2026-04-20-mini-program-low-fidelity-prototype.md`
+  - `2026-04-23-mini-program-high-fidelity-prototype-v1.html`
   - `2026-04-22-prd-prototype-alignment-checklist.md`
 
 ## 1. 说明
@@ -109,6 +109,7 @@
 | `electricAccountType` | `integer` | 是 | 账户类型 | 取值参见 `ElectricAccountTypeEnum` |
 | `accountName` | `string` | 是 | 账户名称 | 非按需模式展示充值对象时使用 |
 | `accountBalance` | `number` | 是 | 账户余额 | 单位为元 |
+| `serviceFeeRate` | `number` | 是 | 服务费比例 | 由后端返回，用于充值页提示展示 |
 | `selectedMeterId` | `string` | 否 | 默认选中电表 ID | 仅按需模式下返回 |
 | `meterOptionList` | `array` | 否 | 电表选项列表 | 仅按需模式下返回 |
 
@@ -124,6 +125,7 @@
 
 - 第一阶段不返回固定充值档位
 - 不设计 `canRecharge` / `rechargeState` 等状态字段
+- `serviceFeeRate` 建议采用固定比例口径返回，例如：`2.00` 表示 `2.00%`
 - `electricAccountType` 建议按 `ElectricAccountTypeEnum` 返回整型值：
   - `0`：按需计费
   - `1`：包月计费
@@ -139,7 +141,7 @@
 
 ### 5.1 用途
 
-用于“我的订单”页面分页展示充值订单列表。
+用于“充值缴费记录”页面分页展示充值订单列表。
 
 ### 5.2 入参
 
@@ -170,7 +172,7 @@
 ### 5.5 字段说明
 
 - 第一阶段不返回失败原因、关闭原因
-- 订单页当前只展示充值订单
+- 充值缴费记录页当前只展示充值订单
 - 建议复用项目现有 `PageResult` 结构，由前端根据 `pageNum`、`pageSize`、`total` 自行计算上一页 / 下一页是否可用
 
 ## 6. 下一步建议

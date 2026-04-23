@@ -5,7 +5,7 @@
 - 适用范围：`frontend-mini` 第一阶段
 - 对应文档：
   - `2026-04-20-mini-program-user-prd.md`
-  - `2026-04-20-mini-program-low-fidelity-prototype.md`
+  - `2026-04-23-mini-program-high-fidelity-prototype-v1.html`
   - `2026-04-23-mini-program-field-caliber-v1.md`
   - `2026-04-23-mini-program-field-caliber-v2.md`
 
@@ -181,13 +181,17 @@
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `orderSn` | `string` | 是 | 订单号 |
-| `orderAmount` | `number` | 是 | 订单金额 |
+| `orderAmount` | `number` | 是 | 充值金额 | 用户输入的充值金额 |
+| `arrivalAmount` | `number` | 是 | 到账金额 | 实际进入账户或电表的金额 |
+| `serviceFeeAmount` | `number` | 是 | 服务费金额 | 按本次订单计算得到 |
 | `orderPayStopTime` | `string` | 是 | 支付截止时间 |
 
 #### 说明
 
 - 小程序端不需要传用户信息、支付渠道、账户归属等字段
 - 这些字段应由后端基于当前登录用户与账户信息补齐
+- 前端创建订单成功后，先进入确认支付页展示充值金额、到账金额、服务费
+- 用户在确认支付页点击“立即支付”后，再调用 `payment-params` 接口拉起微信支付
 
 ### 4.3.3 获取微信支付参数
 
@@ -331,7 +335,7 @@
 #### 说明
 
 - 我的页第一阶段不单独展示账户名称
-- “我的订单”入口为前端静态入口，不需要单独接口字段支持
+- “充值缴费记录”和“账单记录”入口均为前端静态入口，不需要单独接口字段支持
 
 ## 5. 支付回调说明
 

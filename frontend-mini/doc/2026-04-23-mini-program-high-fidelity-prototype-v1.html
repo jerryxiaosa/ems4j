@@ -268,11 +268,38 @@
       text-align: center;
     }
 
+    .app-bar.secondary {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      justify-content: stretch;
+    }
+
     .app-title {
       margin: 0;
       font-size: 18px;
       font-weight: 800;
       letter-spacing: -0.02em;
+    }
+
+    .app-bar-slot {
+      width: 44px;
+      height: 36px;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(37, 99, 235, 0.08);
+      color: #295892;
+      font-size: 18px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
     }
 
     .sub-action {
@@ -425,6 +452,17 @@
       box-shadow: none;
     }
 
+    .text-link-muted {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      color: #6f82a0;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
     .toggle {
       display: inline-flex;
       gap: 6px;
@@ -559,6 +597,46 @@
       letter-spacing: -0.03em;
     }
 
+    .fee-note {
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(245, 158, 11, 0.08);
+      color: #9a6b08;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .fee-note::before {
+      content: "i";
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.18);
+      color: #9a6b08;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+
+    .confirm-summary {
+      display: grid;
+      gap: 12px;
+    }
+
+    .confirm-divider {
+      height: 1px;
+      background: rgba(79, 123, 167, 0.12);
+      margin: 4px 0;
+    }
+
     .info-grid {
       display: grid;
       gap: 10px;
@@ -670,6 +748,148 @@
       white-space: nowrap;
     }
 
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .state-hero {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      padding: 18px 12px 8px;
+      text-align: center;
+    }
+
+    .state-icon {
+      width: 74px;
+      height: 74px;
+      border-radius: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.18);
+      background: linear-gradient(135deg, var(--green-500), var(--teal-500));
+    }
+
+    .state-icon.fail {
+      background: linear-gradient(135deg, var(--amber-500), var(--red-500));
+      box-shadow: 0 16px 34px rgba(239, 68, 68, 0.18);
+    }
+
+    .state-title {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .state-desc {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .day-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .day-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+      box-shadow: var(--shadow-card);
+    }
+
+    .day-card h4 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .tou-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .group-title {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.08);
+      color: #2e649d;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+
+    .group-title.secondary {
+      margin-top: 18px;
+    }
+
+    .tou-item {
+      padding: 12px 10px;
+      border-radius: 16px;
+      background: rgba(244, 248, 252, 0.9);
+      border: 1px solid rgba(79, 123, 167, 0.06);
+    }
+
+    .tou-item .label {
+      display: block;
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tou-item .value {
+      display: block;
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 800;
+      font-family: var(--font-number);
+      letter-spacing: -0.02em;
+    }
+
+    .section-tip {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(37, 99, 235, 0.08);
+      color: #33679f;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .quick-jump-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-jump {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(37, 99, 235, 0.1);
+      color: #2a5f99;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+    }
+
     .status-chip {
       display: inline-flex;
       align-items: center;
@@ -769,6 +989,64 @@
       box-shadow: 0 10px 20px rgba(25, 42, 70, 0.16);
     }
 
+    .doc-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .doc-card {
+      padding: 20px 22px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.08);
+      box-shadow: var(--shadow-card);
+    }
+
+    .doc-card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .doc-card p {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .state-list,
+    .flow-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .state-item,
+    .flow-item {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(244, 248, 252, 0.94);
+      border: 1px solid rgba(79, 123, 167, 0.06);
+    }
+
+    .state-item strong,
+    .flow-item strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #214976;
+    }
+
+    .flow-path {
+      display: block;
+      margin-top: 8px;
+      color: #3f536d;
+      font-size: 13px;
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
     @media (max-width: 1360px) {
       .prototype-block {
         grid-template-columns: 1fr;
@@ -804,21 +1082,31 @@
       <div class="eyebrow">EMS4J · 用户端微信小程序 · 高保真原型 V1</div>
       <h1>第一轮高保真只验证一件事：方案 C 是否能撑起完整用户端体验。</h1>
       <p>
-        本轮高保真聚焦 5 个核心页面：首页、充值页（非按需）、充值页（按需）、账单月列表页、我的页。
+        本轮高保真已覆盖一级页面与主要二级页面，重点用于评审用户端主路径和二级页信息结构。
         目标不是一次性定稿，而是先确认信息层级、按钮轻重、图表存在感、页面气质是否成立。
       </p>
       <div class="review-points">
         <div class="review-pill"><span class="dot"></span>首页是否足够像“用户端首页”而不是后台面板</div>
         <div class="review-pill"><span class="dot"></span>充值页是否清晰可信，不像复杂金融产品</div>
+        <div class="review-pill"><span class="dot"></span>确认支付页是否把充值金额 / 到账金额 / 服务费讲清楚</div>
         <div class="review-pill"><span class="dot"></span>账单页是否清楚表达“本月入口 + 历史汇总”</div>
+        <div class="review-pill"><span class="dot"></span>二级页面顶部结构是否统一</div>
         <div class="review-pill"><span class="dot"></span>我的页是否足够轻，不显得像管理后台</div>
       </div>
       <div class="nav">
         <a href="#home">首页</a>
         <a href="#recharge-account">充值（非按需）</a>
         <a href="#recharge-meter">充值（按需）</a>
+        <a href="#confirm-pay">确认支付</a>
+        <a href="#pay-result">支付结果</a>
+        <a href="#orders">充值缴费记录</a>
         <a href="#billing">账单月列表</a>
+        <a href="#billing-days">账单日明细</a>
+        <a href="#meters">电表列表</a>
+        <a href="#meter-detail">单表详情</a>
         <a href="#mine">我的</a>
+        <a href="#page-states">页面状态</a>
+        <a href="#core-flows">核心流程</a>
       </div>
     </section>
 
@@ -842,7 +1130,7 @@
             <div class="screen">
               <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
               <div class="app-bar">
-                <h3 class="app-title">首页</h3>
+                <h3 class="app-title">EMS管理系统</h3>
               </div>
               <div class="content">
                 <div class="card gradient home-card">
@@ -907,13 +1195,13 @@
           <div class="block-tag">充值（非按需）</div>
           <h2 class="block-title">尽量像服务流程，不像“复杂支付产品”。</h2>
           <p class="block-desc">
-            非按需模式下，充值路径应该非常短：确认对象、输入金额、发起支付。页面不引入固定档位，也不堆过多提示，突出应付金额和主按钮即可。
+            非按需模式下，充值路径保持简短：确认账户、输入金额、进入确认支付页。页面不引入固定档位，只保留必要的服务费提示，把详细金额构成留到下一页说明。
           </p>
           <div class="meta-list">
-            <div class="meta-item">充值对象卡片与金额卡片分层，避免信息挤在一起。</div>
-            <div class="meta-item">应付金额固定在底部强提示区域，强化主流程感。</div>
+            <div class="meta-item">去掉“充值对象”字样，只保留账户信息本身。</div>
+            <div class="meta-item">充值页只负责输入金额与提示服务费比例，不直接展开费用明细。</div>
+            <div class="meta-item">点击“去支付”后先进入确认支付页，再由用户决定是否拉起微信支付。</div>
             <div class="meta-item">视觉语言保持可信和克制，不过度金融化。</div>
-            <div class="meta-item">“我的订单”放在内容区顶部右侧，而不是公共导航区域。</div>
           </div>
         </div>
         <div class="phones">
@@ -921,14 +1209,10 @@
             <div class="screen">
               <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
               <div class="app-bar">
-                <h3 class="app-title">充值</h3>
+                <h3 class="app-title">充值缴费</h3>
               </div>
               <div class="content">
-                <div class="page-link-row">
-                  <div class="page-link">我的订单 ></div>
-                </div>
                 <div class="card gradient">
-                  <div class="card-title">充值对象</div>
                   <h3 style="margin: 6px 0 0; font-size: 18px;">星河家园 2 栋住户账户</h3>
                   <div class="info-grid">
                     <div class="info-row"><span class="label">账户类型</span><strong>包月计费</strong></div>
@@ -944,14 +1228,11 @@
                       <strong style="font-family: var(--font-number); color:#225fb0;">¥</strong>
                     </div>
                   </div>
-                  <div class="helper">充值金额将直接进入当前账户余额。</div>
+                  <div class="fee-note">收取 2.00% 的服务费</div>
 
-                  <div class="amount-bar">
-                    <div>
-                      <div class="amount-label">应付金额</div>
-                      <div class="amount-value">¥ 100.00</div>
-                    </div>
-                    <button class="button">去支付</button>
+                  <div style="margin-top: 16px;">
+                    <button class="button" style="width: 100%; justify-content: center;">去支付</button>
+                    <a class="text-link-muted" href="javascript:void(0)">充值缴费记录</a>
                   </div>
                 </div>
               </div>
@@ -976,8 +1257,8 @@
           <div class="meta-list">
             <div class="meta-item">下拉框只承担选择，不展开做复杂交互说明。</div>
             <div class="meta-item">选中电表后的当前余额直接出现在对象卡片内。</div>
-            <div class="meta-item">应付金额区域继续保持统一样式，减少页面心智切换。</div>
-            <div class="meta-item">内容区顶部右侧保留“我的订单”，与非按需充值页保持一致。</div>
+            <div class="meta-item">服务费提示保留在金额卡片内部，不提前展开到账金额明细。</div>
+            <div class="meta-item">点击“去支付”后统一进入确认支付页，再拉起微信支付。</div>
           </div>
         </div>
         <div class="phones">
@@ -985,12 +1266,9 @@
             <div class="screen">
               <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
               <div class="app-bar">
-                <h3 class="app-title">充值</h3>
+                <h3 class="app-title">充值缴费</h3>
               </div>
               <div class="content">
-                <div class="page-link-row">
-                  <div class="page-link">我的订单 ></div>
-                </div>
                 <div class="card">
                   <div class="field">
                     <label>请选择充值电表</label>
@@ -1002,7 +1280,6 @@
                 </div>
 
                 <div class="card gradient">
-                  <div class="card-title">当前电表</div>
                   <h3 style="margin: 6px 0 0; font-size: 18px;">电表 A · 101 室空调回路</h3>
                   <div class="info-grid">
                     <div class="info-row"><span class="label">在线状态</span><span class="status-chip">在线</span></div>
@@ -1018,13 +1295,10 @@
                       <strong style="font-family: var(--font-number); color:#225fb0;">¥</strong>
                     </div>
                   </div>
-                  <div class="helper">充值金额将直接进入所选电表余额。</div>
-                  <div class="amount-bar">
-                    <div>
-                      <div class="amount-label">应付金额</div>
-                      <div class="amount-value">¥ 100.00</div>
-                    </div>
-                    <button class="button">去支付</button>
+                  <div class="fee-note">收取 2.00% 的服务费</div>
+                  <div style="margin-top: 16px;">
+                    <button class="button" style="width: 100%; justify-content: center;">去支付</button>
+                    <a class="text-link-muted" href="javascript:void(0)">充值缴费记录</a>
                   </div>
                 </div>
               </div>
@@ -1033,6 +1307,55 @@
                 <div class="tab active"><div class="icon"></div><span>充值</span></div>
                 <div class="tab"><div class="icon"></div><span>账单</span></div>
                 <div class="tab"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="confirm-pay">
+        <div class="block-meta">
+          <div class="block-tag">确认支付</div>
+          <h2 class="block-title">把费用讲清楚，再让用户决定支付。</h2>
+          <p class="block-desc">
+            当充值开始涉及服务费时，直接拉起微信支付会让金额语义变得模糊。确认支付页负责在最后一步清楚展示充值金额、到账金额与服务费，再交由用户发起支付。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">这是二级页面，所以顶部采用“左返回 + 居中标题”的结构。</div>
+            <div class="meta-item">同一页内同时说明充值目标和金额构成，避免用户误解钱充到了哪里。</div>
+            <div class="meta-item">“立即支付”才是真正触发微信支付的动作。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">确认支付</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="card gradient">
+                  <div class="card-title">充值到</div>
+                  <h3 style="margin: 6px 0 0; font-size: 18px;">电表 A · 101 室空调回路</h3>
+                  <div class="helper">按需模式下，本次充值将进入所选电表余额。</div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">费用明细</div>
+                  <div class="confirm-summary" style="margin-top: 10px;">
+                    <div class="info-row"><span class="label">充值金额</span><strong style="font-family: var(--font-number);">¥ 100.00</strong></div>
+                    <div class="confirm-divider"></div>
+                    <div class="info-row"><span class="label">到账金额</span><strong style="font-family: var(--font-number); color:#0d8c80;">¥ 100.00</strong></div>
+                    <div class="info-row"><span class="label">服务费（2.00%）</span><strong style="font-family: var(--font-number);">¥ 2.00</strong></div>
+                  </div>
+                  <div class="fee-note">服务费比例与金额均由后台计算返回，页面仅展示最终结果。</div>
+                </div>
+
+                <div class="card" style="padding: 16px;">
+                  <button class="button" style="width: 100%; justify-content: center;">立即支付</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1062,9 +1385,8 @@
               </div>
               <div class="content">
                 <div class="month-current">
-                  <div class="card-title" style="color:rgba(255,255,255,0.76);">本月</div>
-                  <h3 style="margin-top:6px;">查看本月已过去日期数据</h3>
-                  <p>本月暂不提供月汇总，可点击进入查看已过去日期的电量和电费明细。</p>
+                  <h3 style="margin-top:0;">查看本月数据</h3>
+                  <p>点击进入查看已过去日期的电量和电费明细。</p>
                 </div>
 
                 <div class="month-list">
@@ -1131,6 +1453,362 @@
         </div>
       </article>
 
+      <article class="prototype-block" id="pay-result">
+        <div class="block-meta">
+          <div class="block-tag">支付结果</div>
+          <h2 class="block-title">轻结果页，只反馈状态和下一步去向。</h2>
+          <p class="block-desc">
+            支付结果页不承担金额解释和余额刷新，只做两件事：告诉用户支付是否完成，以及把用户带回充值页或记录页。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">这是二级页面，顶部采用“左返回 + 居中标题”。</div>
+            <div class="meta-item">页面保持轻量，不展示复杂错误原因。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">支付结果</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="card gradient">
+                  <div class="state-hero">
+                    <div class="state-icon">✓</div>
+                    <h3 class="state-title">支付成功</h3>
+                    <p class="state-desc">本次充值缴费已提交成功，可前往充值缴费记录查看订单状态。</p>
+                  </div>
+                </div>
+                <div class="button-row">
+                  <button class="button ghost">返回充值页</button>
+                  <button class="button">查看记录</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">支付结果</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="card gradient">
+                  <div class="state-hero">
+                    <div class="state-icon fail">!</div>
+                    <h3 class="state-title">支付失败</h3>
+                    <p class="state-desc">支付未完成，你可以返回充值页重新发起，也可以进入记录页查看订单状态。</p>
+                  </div>
+                </div>
+                <div class="button-row">
+                  <button class="button ghost">返回充值页</button>
+                  <button class="button">查看记录</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="orders">
+        <div class="block-meta">
+          <div class="block-tag">充值缴费记录</div>
+          <h2 class="block-title">订单页强调结果和分页，不做重详情。</h2>
+          <p class="block-desc">
+            第一阶段的记录页只承担“看充值订单和支付状态”。列表结构要稳，分页操作要直白，不引入失败原因等复杂说明。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">顶部统一使用“左返回 + 居中标题”。</div>
+            <div class="meta-item">分页用“上一页 / 下一页”即可，先保证简单清楚。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">充值缴费记录</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="entry-list">
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>订单 202604230001</strong>
+                      <span>2026-04-23 19:26 · ¥ 100.00</span>
+                    </div>
+                    <div class="entry-right">已支付</div>
+                  </div>
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>订单 202604220018</strong>
+                      <span>2026-04-22 09:12 · ¥ 60.00</span>
+                    </div>
+                    <div class="entry-right">待支付</div>
+                  </div>
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>订单 202604200013</strong>
+                      <span>2026-04-20 13:07 · ¥ 80.00</span>
+                    </div>
+                    <div class="entry-right">支付失败</div>
+                  </div>
+                </div>
+
+                <div class="button-row">
+                  <button class="button ghost">上一页</button>
+                  <button class="button ghost">下一页</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="billing-days">
+        <div class="block-meta">
+          <div class="block-tag">账单日明细</div>
+          <h2 class="block-title">历史月和本月提示态一起看，避免后面返工。</h2>
+          <p class="block-desc">
+            日明细页是账单里信息量最大的二级页。这里同时展示“历史月份正常态”和“本月提示态”，重点评审分时电量、电费和总电费的层级是否清楚。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">返回按钮回到账单月列表页，不直接跳回 Tab 首页。</div>
+            <div class="meta-item">当月页面先给提示，再展示已过去日期的数据。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">2026年03月</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="quick-jump-row">
+                  <div class="quick-jump">月初</div>
+                  <div class="quick-jump">月末</div>
+                </div>
+                <div class="day-list">
+                  <div class="day-card">
+                    <h4>03-31</h4>
+                    <div class="group-title">电量明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电量</span><span class="value">12.4</span></div>
+                      <div class="tou-item"><span class="label">峰电量</span><span class="value">18.6</span></div>
+                      <div class="tou-item"><span class="label">平电量</span><span class="value">15.2</span></div>
+                      <div class="tou-item"><span class="label">谷电量</span><span class="value">9.8</span></div>
+                      <div class="tou-item"><span class="label">深谷电量</span><span class="value">6.3</span></div>
+                      <div class="tou-item"><span class="label">总电量</span><span class="value">62.3</span></div>
+                    </div>
+                    <div class="group-title secondary">电费明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电费</span><span class="value">¥18.60</span></div>
+                      <div class="tou-item"><span class="label">峰电费</span><span class="value">¥21.30</span></div>
+                      <div class="tou-item"><span class="label">平电费</span><span class="value">¥11.40</span></div>
+                      <div class="tou-item"><span class="label">谷电费</span><span class="value">¥5.80</span></div>
+                      <div class="tou-item"><span class="label">深谷电费</span><span class="value">¥2.10</span></div>
+                      <div class="tou-item"><span class="label">总电费</span><span class="value">¥59.20</span></div>
+                    </div>
+                  </div>
+                  <div class="day-card">
+                    <h4>03-30</h4>
+                    <div class="group-title">电量明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电量</span><span class="value">11.8</span></div>
+                      <div class="tou-item"><span class="label">峰电量</span><span class="value">17.1</span></div>
+                      <div class="tou-item"><span class="label">平电量</span><span class="value">14.9</span></div>
+                      <div class="tou-item"><span class="label">谷电量</span><span class="value">8.6</span></div>
+                      <div class="tou-item"><span class="label">深谷电量</span><span class="value">5.7</span></div>
+                      <div class="tou-item"><span class="label">总电量</span><span class="value">58.1</span></div>
+                    </div>
+                    <div class="group-title secondary">电费明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电费</span><span class="value">¥17.80</span></div>
+                      <div class="tou-item"><span class="label">峰电费</span><span class="value">¥19.80</span></div>
+                      <div class="tou-item"><span class="label">平电费</span><span class="value">¥10.90</span></div>
+                      <div class="tou-item"><span class="label">谷电费</span><span class="value">¥4.90</span></div>
+                      <div class="tou-item"><span class="label">深谷电费</span><span class="value">¥1.90</span></div>
+                      <div class="tou-item"><span class="label">总电费</span><span class="value">¥55.30</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">2026年04月</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="quick-jump-row">
+                  <div class="quick-jump">月初</div>
+                  <div class="quick-jump">月末</div>
+                </div>
+                <div class="day-list">
+                  <div class="day-card">
+                    <h4>04-19</h4>
+                    <div class="group-title">电量明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电量</span><span class="value">9.4</span></div>
+                      <div class="tou-item"><span class="label">峰电量</span><span class="value">13.6</span></div>
+                      <div class="tou-item"><span class="label">平电量</span><span class="value">12.2</span></div>
+                      <div class="tou-item"><span class="label">谷电量</span><span class="value">7.8</span></div>
+                      <div class="tou-item"><span class="label">深谷电量</span><span class="value">4.3</span></div>
+                      <div class="tou-item"><span class="label">总电量</span><span class="value">47.3</span></div>
+                    </div>
+                    <div class="group-title secondary">电费明细</div>
+                    <div class="tou-grid">
+                      <div class="tou-item"><span class="label">尖电费</span><span class="value">¥14.20</span></div>
+                      <div class="tou-item"><span class="label">峰电费</span><span class="value">¥16.90</span></div>
+                      <div class="tou-item"><span class="label">平电费</span><span class="value">¥8.30</span></div>
+                      <div class="tou-item"><span class="label">谷电费</span><span class="value">¥4.10</span></div>
+                      <div class="tou-item"><span class="label">深谷电费</span><span class="value">¥1.50</span></div>
+                      <div class="tou-item"><span class="label">总电费</span><span class="value">¥45.00</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">2026年04月</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="quick-jump-row">
+                  <div class="quick-jump">月初</div>
+                  <div class="quick-jump">月末</div>
+                </div>
+                <div class="card gradient">
+                  <div class="state-hero">
+                    <div class="state-icon fail">·</div>
+                    <h3 class="state-title">当月暂无记录</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="meters">
+        <div class="block-meta">
+          <div class="block-tag">电表列表</div>
+          <h2 class="block-title">列表足够清楚，重点是余额和在线状态。</h2>
+          <p class="block-desc">
+            电表列表页不做复杂筛选，先把账户下的电表余额和在线状态讲清楚。每条都是明确的进入详情入口。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">二级页顶部统一为“左返回 + 居中标题”。</div>
+            <div class="meta-item">列表只展示余额和在线状态，不引入近七日数据。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">电表列表</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="entry-list">
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>电表 A · 101 室空调回路</strong>
+                      <span>余额 ¥ 120.50</span>
+                    </div>
+                    <div class="entry-right">在线 ></div>
+                  </div>
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>电表 B · 101 室照明回路</strong>
+                      <span>余额 ¥ 88.20</span>
+                    </div>
+                    <div class="entry-right">在线 ></div>
+                  </div>
+                  <div class="entry">
+                    <div class="entry-left">
+                      <strong>电表 C · 101 室备用回路</strong>
+                      <span>余额 ¥ 0.00</span>
+                    </div>
+                    <div class="entry-right">离线 ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="meter-detail">
+        <div class="block-meta">
+          <div class="block-tag">单表详情</div>
+          <h2 class="block-title">不放电费，只把余额和分时电量讲清楚。</h2>
+          <p class="block-desc">
+            单表详情页不再承载最近趋势或摘要，重点放在当前余额、在线状态以及尖峰平谷深谷电量和总电量上，保持信息聚焦。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">返回按钮回到电表列表页。</div>
+            <div class="meta-item">顶部先给单表基础信息，再给分时电量指标。</div>
+          </div>
+        </div>
+        <div class="phones">
+          <div class="phone">
+            <div class="screen">
+              <div class="status-bar"><span>9:41</span><span>5G · 100%</span></div>
+              <div class="app-bar secondary">
+                <div class="back-button">‹</div>
+                <h3 class="app-title">电表详情</h3>
+                <div class="app-bar-slot"></div>
+              </div>
+              <div class="content">
+                <div class="card gradient">
+                  <h3 style="margin: 0; font-size: 18px;">电表 A · 101 室空调回路</h3>
+                  <div class="info-grid">
+                    <div class="info-row"><span class="label">在线状态</span><span class="status-chip">在线</span></div>
+                    <div class="info-row"><span class="label">当前余额</span><strong style="font-family: var(--font-number);">¥ 120.50</strong></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">分时电量</div>
+                  <div class="tou-grid" style="margin-top: 12px;">
+                    <div class="tou-item"><span class="label">尖电量</span><span class="value">12.4</span></div>
+                    <div class="tou-item"><span class="label">峰电量</span><span class="value">18.6</span></div>
+                    <div class="tou-item"><span class="label">平电量</span><span class="value">15.2</span></div>
+                    <div class="tou-item"><span class="label">谷电量</span><span class="value">9.8</span></div>
+                    <div class="tou-item"><span class="label">深谷电量</span><span class="value">6.3</span></div>
+                    <div class="tou-item"><span class="label">总电量</span><span class="value">62.3</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
       <article class="prototype-block" id="mine">
         <div class="block-meta">
           <div class="block-tag">我的</div>
@@ -1140,8 +1818,8 @@
           </p>
           <div class="meta-list">
             <div class="meta-item">账户状态保留，但只做轻展示，不做复杂状态说明。</div>
-            <div class="meta-item">“我的订单”排在第一位，“我的账单”排在第二位。</div>
-            <div class="meta-item">退出登录是明确动作，但弱于“我的订单”入口。</div>
+            <div class="meta-item">“充值缴费记录”排在第一位，“账单记录”排在第二位。</div>
+            <div class="meta-item">退出登录是明确动作，但弱于“充值缴费记录”入口。</div>
           </div>
         </div>
         <div class="phones">
@@ -1164,7 +1842,7 @@
                 <div class="entry-list">
                   <div class="entry">
                     <div class="entry-left">
-                      <strong>我的订单</strong>
+                      <strong>充值缴费记录</strong>
                       <span>查看充值订单与支付状态</span>
                     </div>
                     <div class="entry-right">进入 ></div>
@@ -1172,7 +1850,7 @@
 
                   <div class="entry">
                     <div class="entry-left">
-                      <strong>我的账单</strong>
+                      <strong>账单记录</strong>
                       <span>直接切换到账单首页</span>
                     </div>
                     <div class="entry-right">进入 ></div>
@@ -1192,6 +1870,190 @@
                 <div class="tab"><div class="icon"></div><span>充值</span></div>
                 <div class="tab"><div class="icon"></div><span>账单</span></div>
                 <div class="tab active"><div class="icon"></div><span>我的</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="page-states">
+        <div class="block-meta">
+          <div class="block-tag">说明</div>
+          <h2 class="block-title">页面状态补充</h2>
+          <p class="block-desc">
+            高保真重点展示正常主路径，但页面状态和空态仍然保留在同一份文档里，避免后续只看视觉稿时丢掉流程判断。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">首页采用“摘要优先、图表独立兜底”的分层加载方式。</div>
+            <div class="meta-item">充值页只有正常态和表单态，不再额外设计“不可充值”业务分支。</div>
+            <div class="meta-item">账单页保留本月无记录、历史月可查看、列表异常等关键状态说明。</div>
+          </div>
+        </div>
+        <div class="doc-grid">
+          <div class="doc-card">
+            <h3>首页状态</h3>
+            <div class="state-list">
+              <div class="state-item">
+                <strong>正常态</strong>
+                <p>展示账户名称、共 X 个电表、当前余额、去充值，以及近七日电量/电费切换图表。</p>
+              </div>
+              <div class="state-item">
+                <strong>加载态</strong>
+                <p>账户名称、余额和图表都显示骨架或占位信息；图表区域可独立加载，不阻塞顶部账户卡片渲染。</p>
+              </div>
+              <div class="state-item">
+                <strong>空数据态</strong>
+                <p>余额正常展示，图表区域提示“暂无近七日数据”，不影响继续充值或进入账单、电表页面。</p>
+              </div>
+              <div class="state-item">
+                <strong>异常态</strong>
+                <p>首页摘要接口失败时展示整页重试；仅图表接口失败时，只在图表卡片内提示失败并支持重新加载。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>充值与支付状态</h3>
+            <div class="state-list">
+              <div class="state-item">
+                <strong>非按需模式</strong>
+                <p>直接展示账户名称、当前余额和自定义金额输入，点击“去支付”进入确认支付页。</p>
+              </div>
+              <div class="state-item">
+                <strong>按需模式</strong>
+                <p>先通过下拉框选择电表，再展示当前电表余额和金额输入；未选电表前，主按钮保持不可点击。</p>
+              </div>
+              <div class="state-item">
+                <strong>金额异常态</strong>
+                <p>当金额为 0、空值或非法格式时，仅做表单级提示，并禁用“去支付”按钮。</p>
+              </div>
+              <div class="state-item">
+                <strong>确认支付页</strong>
+                <p>展示充值金额、到账金额、服务费，用户点击“立即支付”后再拉起微信支付。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>记录与账单状态</h3>
+            <div class="state-list">
+              <div class="state-item">
+                <strong>充值缴费记录</strong>
+                <p>支持正常态、空数据态、加载态和异常态；列表页支持上一页/下一页等分页操作。</p>
+              </div>
+              <div class="state-item">
+                <strong>账单月列表</strong>
+                <p>账单 Tab 默认进入月列表页，本月保留入口但不展示月汇总；历史月份展示月电量和月电费汇总。</p>
+              </div>
+              <div class="state-item">
+                <strong>本月按日页</strong>
+                <p>只展示已过去日期的数据；若当月暂无任何记录，则显示“当月暂无记录”空态，不额外附带说明文字。</p>
+              </div>
+              <div class="state-item">
+                <strong>账单日明细页</strong>
+                <p>单日卡片分成“电量明细”和“电费明细”两组，并提供“月初 / 月末”快速跳转，减少长列表查找成本。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>电表状态</h3>
+            <div class="state-list">
+              <div class="state-item">
+                <strong>电表列表页</strong>
+                <p>展示账户下电表余额和在线状态；支持正常态、单电表态、空数据态和异常态。</p>
+              </div>
+              <div class="state-item">
+                <strong>单表详情页</strong>
+                <p>重点展示在线状态、当前余额、尖峰平谷深谷电量和总电量；不再承载电费或最近数据摘要。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="prototype-block" id="core-flows">
+        <div class="block-meta">
+          <div class="block-tag">说明</div>
+          <h2 class="block-title">核心流程原型</h2>
+          <p class="block-desc">
+            流程说明继续贴在高保真文档里，方便评审时同时判断页面跳转和返回路径，不需要再单独翻低保真。
+          </p>
+          <div class="meta-list">
+            <div class="meta-item">一级 Tab 页面只保留居中标题；二级页面统一采用“左返回 + 居中标题”。</div>
+            <div class="meta-item">支付结果页返回统一回到充值缴费页，不按来源分流。</div>
+            <div class="meta-item">账单日明细返回到账单月列表页，单表详情返回到电表列表页。</div>
+          </div>
+        </div>
+        <div class="doc-grid">
+          <div class="doc-card">
+            <h3>登录流程</h3>
+            <div class="flow-list">
+              <div class="flow-item">
+                <strong>标准路径</strong>
+                <span class="flow-path">登录页
+-> 登录成功
+-> 首页</span>
+              </div>
+              <div class="flow-item">
+                <strong>受限路径</strong>
+                <span class="flow-path">登录页
+-> 登录成功但账户不可正常使用
+-> 引导页</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>充值支付流程</h3>
+            <div class="flow-list">
+              <div class="flow-item">
+                <strong>充值主路径</strong>
+                <span class="flow-path">首页 / 充值 Tab
+-> 充值缴费页
+->（按需模式先选电表）
+-> 确认支付页
+-> 发起微信支付
+-> 支付结果页</span>
+              </div>
+              <div class="flow-item">
+                <strong>记录入口</strong>
+                <span class="flow-path">充值缴费页
+-> 充值缴费记录
+
+我的页
+-> 充值缴费记录</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>账单查看流程</h3>
+            <div class="flow-list">
+              <div class="flow-item">
+                <strong>账单主路径</strong>
+                <span class="flow-path">账单 Tab
+-> 账单月列表页
+-> 历史月份按日页 / 本月按日页</span>
+              </div>
+              <div class="flow-item">
+                <strong>我的页快捷入口</strong>
+                <span class="flow-path">我的页
+-> 账单记录
+-> 直接切换到账单 Tab 首页</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <h3>电表查看流程</h3>
+            <div class="flow-list">
+              <div class="flow-item">
+                <strong>首页入口</strong>
+                <span class="flow-path">首页
+-> 共 X 个电表 >
+-> 电表列表页
+-> 单表详情页</span>
               </div>
             </div>
           </div>
