@@ -66,4 +66,12 @@ describe('page design consistency', () => {
     expect(userManagementSource).toMatch(/\.btn-link,\s*\.btn-link-danger\s*\{[\s\S]*line-height:\s*1\.2;/)
     expect(userManagementSource).toMatch(/\.btn-link-danger:hover\s*\{[\s\S]*opacity:\s*0\.85;/)
   })
+
+  test('testRechargeConfirmModal_ShouldUseWideLabelColumnForLongAmountLabels', () => {
+    const rechargeConfirmSource = readViewSource('../components/trades/ElectricRechargeConfirmModal.vue')
+
+    expect(rechargeConfirmSource).toContain('服务费金额（元）')
+    expect(rechargeConfirmSource).toMatch(/\.detail-item\s*\{[\s\S]*grid-template-columns:\s*120px minmax\(0,\s*1fr\);/)
+    expect(rechargeConfirmSource).toMatch(/\.detail-item\s*\{[\s\S]*gap:\s*8px;/)
+  })
 })

@@ -180,6 +180,7 @@
 - 内容主体分 section 组织
 - 详情字段优先用 `es-detail-label` + `es-detail-value-box`
 - 文本框左侧的详情字段标签不额外加粗，不覆盖 `es-detail-label` 的默认字重和颜色
+- 详情弹窗中如果字段标签包含金额、编号、方案名称等较长文案，标签列宽不要低于 `120px`，标签和值之间的间距不要小于 `8px`
 - 详情弹窗里的长文本、报文、JSON、指令原文等大块内容必须设置独立的滚动容器，优先用“外层容器负责 `max-height + overflow: auto`，内层文本块负责排版”的方式实现局部滚动，不依赖整个弹窗 body 滚动
 - 当详情弹窗同时包含固定信息区和长文本区时，长文本区必须放在“剩余高度”布局里，例如 `grid-template-rows: auto minmax(0, 1fr)`，并显式补 `min-height: 0`
 - 详情弹窗主标题统一使用 `var(--es-font-size-md)` 和 `font-weight: 600`

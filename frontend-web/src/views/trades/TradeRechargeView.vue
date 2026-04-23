@@ -661,7 +661,7 @@ const validateSubmit = (): number | null => {
   }
   const orderAmount = parseDecimal(form.payAmount)
   if (orderAmount <= 0) {
-    setNotice('error', '请输入付款金额')
+    setNotice('error', '请输入充值金额')
     return null
   }
   const serviceRate = parseOptionalDecimal(form.serviceRate)
@@ -828,12 +828,12 @@ onMounted(() => {
         <section class="form-card">
           <div class="form-grid">
             <label class="form-field">
-              <span class="field-label search-label-required">付款金额（元）</span>
+              <span class="field-label search-label-required">充值金额（元）</span>
               <input
                 v-model="form.payAmount"
                 class="form-control"
                 type="text"
-                placeholder="请输入付款金额"
+                placeholder="请输入充值金额"
               />
             </label>
             <label class="form-field">
@@ -885,7 +885,9 @@ onMounted(() => {
       v-model="confirmModalVisible"
       :meter-name="selectedMeter?.meterName || '--'"
       :meter-device-no="selectedMeter?.deviceNo || '--'"
-      :amount-text="rechargeAmountText"
+      :recharge-amount-text="rechargeAmountText"
+      :sale-amount-text="saleAmount || '--'"
+      :service-fee-amount-text="serviceFeeAmount || '--'"
       :submitting="submitting"
       @confirm="handleConfirmSubmit"
     />
