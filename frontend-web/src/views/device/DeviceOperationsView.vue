@@ -504,7 +504,7 @@ onBeforeUnmount(() => {
   padding: 16px;
   background: var(--es-color-bg-elevated);
   border: 1px solid var(--es-color-border);
-  border-radius: var(--es-radius-lg);
+  border-radius: 5px;
   box-shadow: var(--es-shadow-card);
 }
 
@@ -681,7 +681,7 @@ button:disabled {
   overflow: auto;
   background: #fff;
   border: 1px solid var(--es-color-border);
-  border-radius: var(--es-radius-md);
+  border-radius: 5px;
 }
 
 table {

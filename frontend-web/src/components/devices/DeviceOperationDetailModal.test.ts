@@ -150,4 +150,40 @@ describe('DeviceOperationDetailModal', () => {
     expect(mockedRetryDeviceOperation).toHaveBeenCalledWith(20)
     expect(wrapper.text()).toContain('设备操作重试失败')
   })
+
+  test('testRenderCommandSection_WhenCommandDataIsLong_ShouldUseRemainingHeightLayout', async () => {
+    mockedFetchDeviceOperationDetail.mockResolvedValue({
+      id: 21,
+      deviceIotId: 'iot-21',
+      deviceNo: 'EM-021',
+      deviceName: '测试电表',
+      deviceType: 'electricMeter',
+      deviceTypeName: '电表',
+      spaceName: 'A-104',
+      commandType: 5,
+      commandTypeName: '设置CT变比',
+      commandSource: 1,
+      commandSourceName: '用户命令',
+      commandData: '{"payload":"' + 'x'.repeat(4000) + '"}',
+      success: false,
+      isRunning: false,
+      successName: '失败',
+      successTime: '--',
+      lastExecuteTime: '2026-04-14 13:00:00',
+      ensureSuccess: true,
+      executeTimes: 1,
+      maxExecuteTimes: 3,
+      operateUserName: '赵六',
+      createTime: '2026-04-14 12:50:00',
+      remark: '--'
+    })
+    mockedFetchDeviceOperationExecuteRecordList.mockResolvedValue([])
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.find('.detail-layout').exists()).toBe(true)
+    expect(wrapper.find('.section-card-command').exists()).toBe(true)
+    expect(wrapper.find('.command-box-wrap').exists()).toBe(true)
+  })
 })

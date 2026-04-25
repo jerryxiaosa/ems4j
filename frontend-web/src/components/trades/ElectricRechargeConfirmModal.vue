@@ -3,7 +3,9 @@ const props = defineProps<{
   modelValue: boolean
   meterName: string
   meterDeviceNo: string
-  amountText: string
+  rechargeAmountText: string
+  saleAmountText: string
+  serviceFeeAmountText: string
   submitting?: boolean
 }>()
 
@@ -32,7 +34,7 @@ const handleConfirm = () => {
     <div v-if="modelValue" class="modal-mask" @click.self.prevent>
       <div class="modal-panel">
         <div class="modal-head">
-          <h3 class="modal-title">请确认充值的电表</h3>
+          <h3 class="modal-title">请确认充值的信息</h3>
           <button class="icon-btn" type="button" :disabled="submitting" @click="close">关闭</button>
         </div>
 
@@ -50,7 +52,17 @@ const handleConfirm = () => {
           <div class="detail-grid">
             <div class="detail-item">
               <span class="detail-label es-detail-label">充值金额（元）</span>
-              <span class="detail-value es-detail-value-box">{{ amountText }}</span>
+              <span class="detail-value es-detail-value-box">{{ rechargeAmountText }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label es-detail-label">售电金额（元）</span>
+              <span class="detail-value es-detail-value-box">{{ saleAmountText }}</span>
+            </div>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label es-detail-label">服务费金额（元）</span>
+              <span class="detail-value es-detail-value-box">{{ serviceFeeAmountText }}</span>
             </div>
           </div>
         </div>
@@ -142,8 +154,8 @@ const handleConfirm = () => {
 
 .detail-item {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 2px;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
 }
 
