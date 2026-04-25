@@ -95,16 +95,16 @@ helm upgrade --install ems-app ./deploy/helm/ems-app \
 例如，将 `appVersion` 从：
 
 ```yaml
-appVersion: "0.6.0"
+appVersion: "a.b.c"
 ```
 
 改为：
 
 ```yaml
-appVersion: "0.6.1"
+appVersion: "x.y.z"
 ```
 
-即可让 `backend`、`frontend`、`iot`、`iot-simulator` 默认都使用 `0.6.1`。
+即可让 `backend`、`frontend`、`iot`、`iot-simulator` 默认都使用 `x.y.z`。
 
 如果发版时不想改文件，也可以在命令行统一覆盖：
 
@@ -123,8 +123,8 @@ helm upgrade --install ems-app ./deploy/helm/ems-app \
   -n ems-app \
   --set global.imagePullSecrets[0].name=harbor-pull-secret \
   --set image.registry=$HARBOR/ems \
-  --set global.imageTag=0.6.1 \
-  --set iot.image.tag=0.6.1-hotfix
+  --set global.imageTag=x.y.z \
+  --set iot.image.tag=x.y.z-hotfix
 ```
 
 建议保持以下约定：
