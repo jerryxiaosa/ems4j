@@ -1,0 +1,22 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "EMS4J",
+    "navigationBarBackgroundColor": "#EDF3F8",
+    "backgroundColor": "#EDF3F8"
+  }
+}

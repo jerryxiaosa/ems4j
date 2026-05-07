@@ -1,0 +1,25 @@
+{
+  "name": "ems4j-frontend-mini",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-5000720260410001",
+    "@dcloudio/uni-components": "3.0.0-5000720260410001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-5000720260410001",
+    "vue": "3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "3.4.28",
+    "@dcloudio/vite-plugin-uni": "3.0.0-5000720260410001",
+    "@vue/tsconfig": "^0.5.1",
+    "sass": "^1.77.8",
+    "typescript": "^5.5.4",
+    "vite": "5.2.8",
+    "vue-tsc": "^2.1.6"
+  }
+}

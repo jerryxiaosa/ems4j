@@ -1,0 +1,15 @@
+{
+  "name": "EMS4J Mini",
+  "appid": "__UNI__EMS4J",
+  "description": "EMS4J 微信小程序样式验证工程",
+  "versionName": "0.0.1",
+  "versionCode": "1",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "wx47855794def766d0",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  }
+}
