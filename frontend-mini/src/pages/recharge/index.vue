@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
+const rechargeAmount = ref('')
+
 const handleBack = () => {
   uni.redirectTo({
     url: '/pages/home/index'
@@ -8,6 +12,14 @@ const handleBack = () => {
 const goHome = () => {
   uni.redirectTo({
     url: '/pages/home/index'
+  })
+}
+
+const goPayConfirm = () => {
+  const amount = rechargeAmount.value || '200'
+
+  uni.navigateTo({
+    url: `/pages/pay-confirm/index?amount=${encodeURIComponent(amount)}`
   })
 }
 </script>
@@ -24,27 +36,15 @@ const goHome = () => {
 
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
-        <view class="balance-card">
-          <image class="balance-illustration" src="/static/stitch/pay-illustration.png" mode="aspectFit" />
-
-          <view class="balance-content">
-            <view class="account-pill">
-              <view class="apartment-icon">
-                <view></view>
-              </view>
+        <view class="meter-card">
+          <image class="meter-hero" src="/static/stitch/pay-confirm-hero.jpg" mode="aspectFill" />
+          <view class="meter-info">
+            <view class="community-row">
+              <view class="community-icon">EB</view>
               <text>星河家园 2 栋住户账户</text>
-              <view class="pill-chevron"></view>
             </view>
-
-            <view class="balance-info">
-              <view class="balance-label-row">
-                <text>当前余额 (元)</text>
-                <view class="eye-icon">
-                  <view></view>
-                </view>
-              </view>
-              <text class="balance-value">¥ 1,234.56</text>
-            </view>
+            <text class="room-text">1 单元 101 室</text>
+            <text class="meter-no">电表编号：01234567890123456789</text>
           </view>
         </view>
 
@@ -52,7 +52,13 @@ const goHome = () => {
           <text class="section-title">充值金额</text>
           <view class="amount-input-wrap">
             <text class="currency-mark">¥</text>
-            <input class="amount-input" type="number" placeholder="请输入充值金额" placeholder-class="amount-placeholder" />
+            <input
+              v-model="rechargeAmount"
+              class="amount-input"
+              type="number"
+              placeholder="请输入充值金额"
+              placeholder-class="amount-placeholder"
+            />
             <text class="amount-unit">元</text>
           </view>
           <text class="form-tip">账户充值后，余额可用于电费扣缴和相关服务。</text>
@@ -74,7 +80,7 @@ const goHome = () => {
     </scroll-view>
 
     <view class="pay-bar">
-      <button class="pay-button">
+      <button class="pay-button" @click="goPayConfirm">
         <text>去支付</text>
       </button>
     </view>
@@ -114,8 +120,8 @@ const goHome = () => {
   max-width: 100%;
   height: 100vh;
   overflow: hidden;
-  color: #152234;
-  background: #f5f7fd;
+  color: #06133d;
+  background: linear-gradient(180deg, #f6faff 0%, #ffffff 100%);
 }
 
 .page-header {
@@ -125,10 +131,9 @@ const goHome = () => {
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  height: design-rpx(72);
-  padding: design-rpx(28) design-rpx(16) 0;
-  background: #ffffff;
-  border-bottom: design-rpx(0.5) solid #e7e7f3;
+  height: design-rpx(86);
+  padding: design-rpx(34) design-rpx(20) 0;
+  background: transparent;
 }
 
 .back-button,
@@ -144,18 +149,18 @@ const goHome = () => {
 }
 
 .back-chevron {
-  width: design-rpx(13);
-  height: design-rpx(13);
-  border-bottom: design-rpx(2.5) solid #152234;
-  border-left: design-rpx(2.5) solid #152234;
+  width: design-rpx(14);
+  height: design-rpx(14);
+  border-bottom: design-rpx(2.5) solid #06133d;
+  border-left: design-rpx(2.5) solid #06133d;
   transform: rotate(45deg);
 }
 
 .page-title {
   position: absolute;
   left: 50%;
-  color: #152234;
-  font-size: design-rpx(18);
+  color: #06133d;
+  font-size: design-rpx(20);
   font-weight: 700;
   line-height: 1;
   transform: translateX(-50%);
@@ -167,114 +172,78 @@ const goHome = () => {
 }
 
 .content-stack {
-  padding: design-rpx(16) design-rpx(16) design-rpx(184);
+  padding: design-rpx(16) design-rpx(22) design-rpx(184);
 }
 
-.balance-card {
+.meter-card {
   position: relative;
-  min-height: design-rpx(220);
-  padding: design-rpx(40) design-rpx(24) design-rpx(58);
+  min-height: design-rpx(138);
   overflow: hidden;
-  background: linear-gradient(90deg, #5a91f0 0%, #82adfa 100%);
-  border-radius: design-rpx(16);
-  box-shadow: 0 design-rpx(10) design-rpx(26) rgba(47, 112, 230, 0.18);
+  background: #eef6ff;
+  border-radius: design-rpx(20);
+  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
 }
 
-.balance-illustration {
+.meter-hero {
   position: absolute;
-  right: design-rpx(-118);
-  bottom: design-rpx(-124);
+  inset: 0;
   z-index: 1;
-  width: design-rpx(408);
-  height: design-rpx(408);
-  opacity: 0.92;
+  width: 100%;
+  height: 100%;
+  opacity: 0.96;
 }
 
-.balance-content {
-  position: relative;
+.meter-card::after {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  background: linear-gradient(90deg, rgba(238, 246, 255, 0.96) 0%, rgba(238, 246, 255, 0.84) 43%, rgba(238, 246, 255, 0.08) 100%);
+  content: "";
 }
 
-.account-pill {
+.meter-info {
+  position: relative;
+  z-index: 3;
+  padding: design-rpx(22) design-rpx(16);
+}
+
+.community-row {
   display: flex;
   align-items: center;
-  gap: design-rpx(8);
-  width: design-rpx(292);
-  max-width: design-rpx(292);
-  height: design-rpx(34);
-  padding: 0 design-rpx(12);
-  margin-bottom: design-rpx(32);
-  color: #ffffff;
-  font-size: design-rpx(14);
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999rpx;
+  gap: design-rpx(10);
+  color: #06133d;
+  font-size: design-rpx(16);
+  font-weight: 700;
 }
 
-.apartment-icon {
-  position: relative;
-  width: design-rpx(14);
-  height: design-rpx(14);
-  border: design-rpx(1.5) solid #ffffff;
-  border-radius: design-rpx(2);
-}
-
-.apartment-icon view {
-  position: absolute;
-  right: design-rpx(3);
-  bottom: 0;
-  left: design-rpx(3);
-  height: design-rpx(5);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.pill-chevron {
-  width: design-rpx(7);
-  height: design-rpx(7);
-  border-right: design-rpx(1.5) solid #ffffff;
-  border-bottom: design-rpx(1.5) solid #ffffff;
-  transform: rotate(45deg) translateY(design-rpx(-2));
-}
-
-.balance-info {
-  color: #ffffff;
-}
-
-.balance-label-row {
+.community-icon {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: design-rpx(8);
-  margin-bottom: design-rpx(8);
-  font-size: design-rpx(14);
-  font-weight: 600;
-  opacity: 0.92;
-}
-
-.eye-icon {
-  position: relative;
-  width: design-rpx(18);
-  height: design-rpx(12);
-  border: design-rpx(1.5) solid rgba(255, 255, 255, 0.9);
-  border-radius: 999rpx;
-}
-
-.eye-icon view {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: design-rpx(5);
-  height: design-rpx(5);
-  background: #ffffff;
-  border-radius: 999rpx;
-  transform: translate(-50%, -50%);
-}
-
-.balance-value {
-  display: block;
-  font-size: design-rpx(36);
+  justify-content: center;
+  width: design-rpx(20);
+  height: design-rpx(20);
+  color: #ffffff;
+  font-size: design-rpx(9);
   font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: design-rpx(-1);
+  background: linear-gradient(135deg, #3a8bff 0%, #1768f2 100%);
+  border-radius: design-rpx(5);
+}
+
+.room-text {
+  display: block;
+  margin-top: design-rpx(18);
+  color: #06133d;
+  font-size: design-rpx(20);
+  font-weight: 800;
+}
+
+.meter-no {
+  display: block;
+  margin-top: design-rpx(14);
+  color: #8a97ac;
+  font-size: design-rpx(13);
+  font-weight: 500;
 }
 
 .form-card,
