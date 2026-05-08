@@ -11,7 +11,7 @@ page {
   min-height: 100%;
   color: #152234;
   background: linear-gradient(180deg, #edf3f8 0%, #ffffff 100%);
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
 view,
@@ -20,6 +20,15 @@ button,
 image,
 scroll-view {
   box-sizing: border-box;
+}
+
+view,
+text,
+button,
+scroll-view,
+input,
+textarea {
+  font-family: inherit;
 }
 
 button {

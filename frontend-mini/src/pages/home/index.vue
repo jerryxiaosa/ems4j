@@ -28,16 +28,24 @@ const summaryCards = [
     value: '3,268',
     unit: 'kWh',
     trend: '较上月 12.5%',
-    trendClass: 'is-up'
+    trendClass: 'is-up',
+    waveSrc: '/static/icons/summary-wave-usage.svg'
   },
   {
     label: '上月总电费',
     value: '¥ 2,186.40',
     unit: '',
     trend: '较上月 8.3%',
-    trendClass: 'is-down'
+    trendClass: 'is-down',
+    waveSrc: '/static/icons/summary-wave-cost.svg'
   }
 ]
+
+const goRecharge = () => {
+  uni.navigateTo({
+    url: '/pages/recharge/index'
+  })
+}
 </script>
 
 <template>
@@ -75,7 +83,7 @@ const summaryCards = [
               <text>1,234.56</text>
             </view>
           </view>
-          <button class="recharge-button">
+          <button class="recharge-button" @click="goRecharge">
             <text>去充值</text>
             <view class="arrow-line"></view>
           </button>
@@ -166,6 +174,7 @@ const summaryCards = [
             <view class="trend-arrow"></view>
             <text>{{ item.trend }}</text>
           </view>
+          <image class="summary-wave" :src="item.waveSrc" mode="scaleToFill" />
         </view>
       </view>
 
@@ -578,6 +587,7 @@ const summaryCards = [
 }
 
 .summary-card {
+  position: relative;
   min-height: design-rpx(124);
   padding: design-rpx(16);
   overflow: hidden;
@@ -592,6 +602,8 @@ const summaryCards = [
 }
 
 .summary-head {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: design-rpx(10);
@@ -633,6 +645,8 @@ const summaryCards = [
 }
 
 .summary-value {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: baseline;
   gap: design-rpx(3);
@@ -649,6 +663,8 @@ const summaryCards = [
 }
 
 .summary-trend {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: design-rpx(4);
@@ -677,6 +693,17 @@ const summaryCards = [
 
 .summary-trend.is-down .trend-arrow {
   border-top: design-rpx(8) solid #14b86a;
+}
+
+.summary-wave {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: design-rpx(34);
+  opacity: 0.1;
 }
 
 .recent-card {

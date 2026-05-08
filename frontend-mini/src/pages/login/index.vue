@@ -4,6 +4,12 @@ const handleLogin = () => {
     url: '/pages/home/index'
   })
 }
+
+const handleUserAgreement = () => {
+  uni.navigateTo({
+    url: '/pages/account-error/index'
+  })
+}
 </script>
 
 <template>
@@ -48,7 +54,7 @@ const handleLogin = () => {
       <view class="agreement-row">
         <view class="checked-circle"></view>
         <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link">《用户协议》</text>
+        <text class="agreement-link" @click="handleUserAgreement">《用户协议》</text>
         <text class="agreement-text">和</text>
         <text class="agreement-link">《隐私政策》</text>
       </view>
@@ -191,7 +197,7 @@ const handleLogin = () => {
   align-items: center;
   min-height: 0;
   margin-top: 0;
-  padding: design-rpx(36) design-rpx(24) design-rpx(26);
+  padding: design-rpx(20) design-rpx(24) design-rpx(26);
   background: rgba(255, 255, 255, 0.92);
   border: design-rpx(0.5) solid rgba(255, 255, 255, 0.5);
   border-radius: design-rpx(40) design-rpx(40) 0 0;
