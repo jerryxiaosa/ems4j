@@ -31,6 +31,12 @@ const handleBack = () => {
   })
 }
 
+const goPaySuccess = () => {
+  uni.redirectTo({
+    url: '/pages/pay-success/index'
+  })
+}
+
 onLoad((query) => {
   const amount = query?.amount
 
@@ -111,7 +117,7 @@ onLoad((query) => {
     </scroll-view>
 
     <view class="pay-bar">
-      <button class="pay-button">
+      <button class="pay-button" @click="goPaySuccess">
         <text>立即支付</text>
       </button>
     </view>
@@ -225,7 +231,7 @@ onLoad((query) => {
   gap: design-rpx(10);
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .community-icon {
@@ -246,8 +252,8 @@ onLoad((query) => {
   display: block;
   margin-top: design-rpx(18);
   color: #06133d;
-  font-size: design-rpx(20);
-  font-weight: 800;
+  font-size: design-rpx(18);
+  font-weight: 700;
 }
 
 .meter-no {
@@ -270,8 +276,8 @@ onLoad((query) => {
   display: block;
   margin-bottom: design-rpx(18);
   color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 800;
+  font-size: design-rpx(16);
+  font-weight: 700;
 }
 
 .wechat-row {
@@ -313,7 +319,7 @@ onLoad((query) => {
 .wechat-title {
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .wechat-balance {
@@ -357,12 +363,12 @@ onLoad((query) => {
   margin-top: design-rpx(18);
   color: #8a97ac;
   font-size: design-rpx(15);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .amount-row text:last-child {
   color: #06133d;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .label-with-info {
@@ -379,7 +385,7 @@ onLoad((query) => {
   height: design-rpx(16);
   color: #8a97ac;
   font-size: design-rpx(11);
-  font-weight: 800;
+  font-weight: 700;
   border: design-rpx(1.5) solid #a3adc0;
   border-radius: 999rpx;
 }
@@ -393,12 +399,12 @@ onLoad((query) => {
 .total-row {
   color: #06133d;
   font-size: design-rpx(18);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .total-row text:last-child {
   color: #06133d;
-  font-size: design-rpx(28);
+  font-size: design-rpx(26);
   letter-spacing: design-rpx(1);
 }
 

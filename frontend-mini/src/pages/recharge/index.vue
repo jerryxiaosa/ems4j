@@ -22,6 +22,12 @@ const goPayConfirm = () => {
     url: `/pages/pay-confirm/index?amount=${encodeURIComponent(amount)}`
   })
 }
+
+const goPayRecord = () => {
+  uni.navigateTo({
+    url: '/pages/pay-record/index'
+  })
+}
 </script>
 
 <template>
@@ -72,7 +78,7 @@ const goPayConfirm = () => {
           </view>
         </view>
 
-        <view class="record-link">
+        <view class="record-link" @click="goPayRecord">
           <text>充值缴费记录</text>
           <view class="record-chevron"></view>
         </view>
@@ -213,7 +219,7 @@ const goPayConfirm = () => {
   gap: design-rpx(10);
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .community-icon {
@@ -234,8 +240,8 @@ const goPayConfirm = () => {
   display: block;
   margin-top: design-rpx(18);
   color: #06133d;
-  font-size: design-rpx(20);
-  font-weight: 800;
+  font-size: design-rpx(18);
+  font-weight: 700;
 }
 
 .meter-no {
@@ -280,8 +286,8 @@ const goPayConfirm = () => {
 
 .currency-mark {
   color: #152234;
-  font-size: design-rpx(24);
-  font-weight: 700;
+  font-size: design-rpx(22);
+  font-weight: 600;
 }
 
 .amount-input {
@@ -290,7 +296,7 @@ const goPayConfirm = () => {
   height: 100%;
   color: #152234;
   font-size: design-rpx(20);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .amount-placeholder {
@@ -330,7 +336,7 @@ const goPayConfirm = () => {
   margin-top: design-rpx(2);
   color: #2563eb;
   font-size: design-rpx(13);
-  font-weight: 800;
+  font-weight: 700;
   border: design-rpx(1.5) solid #2563eb;
   border-radius: 999rpx;
 }
@@ -349,7 +355,7 @@ const goPayConfirm = () => {
   margin-bottom: design-rpx(6);
   color: #152234;
   font-size: design-rpx(14);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .notice-desc {
@@ -393,13 +399,14 @@ const goPayConfirm = () => {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: design-rpx(54);
+  height: design-rpx(56);
   color: #ffffff;
-  font-size: design-rpx(18);
+  font-size: design-rpx(20);
   font-weight: 700;
-  background: linear-gradient(90deg, #004ac6 0%, #2563eb 100%);
-  border-radius: design-rpx(12);
-  box-shadow: 0 design-rpx(6) design-rpx(18) rgba(0, 74, 198, 0.28);
+  letter-spacing: design-rpx(1);
+  background: linear-gradient(90deg, #1677ff 0%, #0068ff 100%);
+  border-radius: 999rpx;
+  box-shadow: 0 design-rpx(8) design-rpx(22) rgba(22, 119, 255, 0.28);
 }
 
 .tabbar {
