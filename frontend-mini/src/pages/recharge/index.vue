@@ -392,37 +392,4 @@ const goPayRecord = () => {
   box-shadow: 0 design-rpx(8) design-rpx(22) rgba(22, 119, 255, 0.28);
 }
 
-.tabbar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: space-between;
-  padding: design-rpx(12) design-rpx(24) design-rpx(24);
-  background: rgba(255, 255, 255, 0.96);
-  border-top: design-rpx(0.5) solid #e7e7f3;
-}
-
-.tab-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: design-rpx(6);
-  min-width: design-rpx(42);
-  color: #6a7a8f;
-  font-size: design-rpx(10);
-  font-weight: 600;
-}
-
-.tab-item.is-active {
-  color: #2563eb;
-  font-weight: 800;
-}
-
-.tab-icon-image {
-  width: design-rpx(24);
-  height: design-rpx(24);
-}
 </style>

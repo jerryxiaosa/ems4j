@@ -240,8 +240,7 @@ const goRecharge = () => {
 .recent-title,
 .recent-sub,
 .recent-amount,
-.more-link,
-.tab-item {
+.more-link {
   display: block;
 }
 
@@ -754,38 +753,4 @@ const goRecharge = () => {
   color: #6a7a8f;
 }
 
-.tabbar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: space-between;
-  padding: design-rpx(12) design-rpx(24) design-rpx(24);
-  background: rgba(255, 255, 255, 0.94);
-  border-top: design-rpx(0.5) solid #e7e7f3;
-  backdrop-filter: blur(#{design-rpx(10)});
-}
-
-.tab-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: design-rpx(6);
-  min-width: design-rpx(42);
-  font-size: design-rpx(10);
-  font-weight: 600;
-  color: #6a7a8f;
-}
-
-.tab-item.is-active {
-  color: #2563eb;
-  font-weight: 800;
-}
-
-.tab-icon-image {
-  width: design-rpx(24);
-  height: design-rpx(24);
-}
 </style>
