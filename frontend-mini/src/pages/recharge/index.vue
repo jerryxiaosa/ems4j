@@ -46,7 +46,9 @@ const goPayRecord = () => {
           <image class="meter-hero" src="/static/stitch/pay-confirm-hero.jpg" mode="aspectFill" />
           <view class="meter-info">
             <view class="community-row">
-              <view class="community-icon">EB</view>
+              <view class="community-icon">
+                <image class="community-icon-image" src="/static/icons/account-house-white.svg" mode="aspectFit" />
+              </view>
               <text>星河家园 2 栋住户账户</text>
             </view>
             <text class="room-text">1 单元 101 室</text>
@@ -229,11 +231,13 @@ const goPayRecord = () => {
   justify-content: center;
   width: design-rpx(20);
   height: design-rpx(20);
-  color: #ffffff;
-  font-size: design-rpx(9);
-  font-weight: 800;
   background: linear-gradient(135deg, #3a8bff 0%, #1768f2 100%);
   border-radius: design-rpx(5);
+}
+
+.community-icon-image {
+  width: design-rpx(14);
+  height: design-rpx(14);
 }
 
 .room-text {

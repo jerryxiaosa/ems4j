@@ -25,6 +25,12 @@
       }
     },
     {
+      "path": "pages/meter-recharge/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/pay-confirm/index",
       "style": {
         "navigationStyle": "custom"

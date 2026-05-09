@@ -64,7 +64,6 @@ const goRecharge = () => {
           <view class="hero-meta">
             <view class="hero-meta-item">
               <text>星河家园 2 栋住户账户</text>
-              <view class="chevron down"></view>
             </view>
             <view class="hero-meta-item">
               <text>共 6 个电表</text>
