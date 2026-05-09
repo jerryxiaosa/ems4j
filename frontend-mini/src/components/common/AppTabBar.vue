@@ -1,18 +1,13 @@
 <script setup lang="ts">
-type TabKey = 'home' | 'recharge' | 'billing' | 'profile'
+import { appTabItems, type AppTabKey, type AppTabItem } from './appTabItems'
 
 const props = defineProps<{
-  active: TabKey
+  active: AppTabKey
 }>()
 
-const tabs: Array<{ key: TabKey; label: string; icon: string; url?: string }> = [
-  { key: 'home', label: '首页', icon: 'home', url: '/pages/home/index' },
-  { key: 'recharge', label: '充值', icon: 'recharge', url: '/pages/recharge/index' },
-  { key: 'billing', label: '账单', icon: 'billing', url: '/pages/billing/index' },
-  { key: 'profile', label: '我的', icon: 'profile' }
-]
+const getTabIcon = (tab: AppTabItem) => (tab.key === props.active ? tab.icon.active : tab.icon.default)
 
-const handleTabClick = (tab: (typeof tabs)[number]) => {
+const handleTabClick = (tab: AppTabItem) => {
   if (tab.key === props.active) {
     return
   }
@@ -34,12 +29,12 @@ const handleTabClick = (tab: (typeof tabs)[number]) => {
 <template>
   <view class="app-tabbar">
     <view
-      v-for="tab in tabs"
+      v-for="tab in appTabItems"
       :key="tab.key"
       :class="['app-tab-item', tab.key === active ? 'is-active' : '']"
       @click="handleTabClick(tab)"
     >
-      <view :class="['app-tab-icon', `is-${tab.icon}`]"></view>
+      <image class="app-tab-icon" :src="getTabIcon(tab)" mode="aspectFit" />
       <text class="app-tab-label">{{ tab.label }}</text>
     </view>
   </view>
@@ -85,114 +80,8 @@ const handleTabClick = (tab: (typeof tabs)[number]) => {
 }
 
 .app-tab-icon {
-  position: relative;
   width: design-rpx(30);
   height: design-rpx(30);
-  color: currentColor;
-}
-
-.app-tab-icon::before,
-.app-tab-icon::after {
-  position: absolute;
-  box-sizing: border-box;
-  content: "";
-}
-
-.is-home::before {
-  top: design-rpx(9);
-  left: design-rpx(6);
-  width: design-rpx(18);
-  height: design-rpx(15);
-  border: design-rpx(2.2) solid currentColor;
-  border-top: 0;
-  border-radius: design-rpx(3);
-}
-
-.is-home::after {
-  top: design-rpx(4);
-  left: design-rpx(6);
-  width: design-rpx(18);
-  height: design-rpx(18);
-  border-top: design-rpx(2.2) solid currentColor;
-  border-left: design-rpx(2.2) solid currentColor;
-  border-radius: design-rpx(2);
-  transform: rotate(45deg);
-}
-
-.is-recharge::before {
-  top: design-rpx(2);
-  left: design-rpx(8);
-  width: design-rpx(15);
-  height: design-rpx(26);
-  background: currentColor;
-  clip-path: polygon(62% 0, 7% 54%, 42% 54%, 26% 100%, 96% 41%, 58% 41%);
-}
-
-.is-recharge::after {
-  top: design-rpx(5);
-  left: design-rpx(10);
-  width: design-rpx(11);
-  height: design-rpx(20);
-  background: #ffffff;
-  clip-path: polygon(58% 8%, 24% 49%, 56% 49%, 44% 79%, 78% 38%, 48% 38%);
-}
-
-.is-billing::before {
-  top: design-rpx(3);
-  left: design-rpx(4);
-  width: design-rpx(19);
-  height: design-rpx(23);
-  border: design-rpx(2.2) solid currentColor;
-  border-radius: design-rpx(4);
-  background-image:
-    linear-gradient(currentColor, currentColor),
-    linear-gradient(currentColor, currentColor),
-    linear-gradient(currentColor, currentColor);
-  background-repeat: no-repeat;
-  background-position:
-    design-rpx(4) design-rpx(6),
-    design-rpx(4) design-rpx(12),
-    design-rpx(4) design-rpx(18);
-  background-size:
-    design-rpx(10) design-rpx(2),
-    design-rpx(10) design-rpx(2),
-    design-rpx(8) design-rpx(2);
-}
-
-.is-billing::after {
-  right: design-rpx(1);
-  bottom: design-rpx(2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(14);
-  height: design-rpx(14);
-  border: design-rpx(2.2) solid currentColor;
-  border-radius: 50%;
-  color: currentColor;
-  font-size: design-rpx(9);
-  font-weight: 600;
-  line-height: 1;
-  content: "¥";
-}
-
-.is-profile::before {
-  top: design-rpx(2);
-  left: 50%;
-  width: design-rpx(12);
-  height: design-rpx(12);
-  border: design-rpx(2.2) solid currentColor;
-  border-radius: 50%;
-  transform: translateX(-50%);
-}
-
-.is-profile::after {
-  right: design-rpx(4);
-  bottom: design-rpx(3);
-  left: design-rpx(4);
-  height: design-rpx(12);
-  border: design-rpx(2.2) solid currentColor;
-  border-radius: design-rpx(10) design-rpx(10) design-rpx(3) design-rpx(3);
 }
 
 .app-tab-label {
