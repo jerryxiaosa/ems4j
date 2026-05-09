@@ -31,6 +31,12 @@
       }
     },
     {
+      "path": "pages/billing/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/pay-confirm/index",
       "style": {
         "navigationStyle": "custom"

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppTabBar from '@/components/common/AppTabBar.vue'
+
 const DESIGN_WIDTH_PX = 390
 const MINI_PROGRAM_WIDTH_RPX = 750
 const toRpx = (px: number) => Number(((px * MINI_PROGRAM_WIDTH_RPX) / DESIGN_WIDTH_PX).toFixed(1))
@@ -46,6 +48,7 @@ const goRecharge = () => {
     url: '/pages/recharge/index'
   })
 }
+
 </script>
 
 <template>
@@ -197,24 +200,7 @@ const goRecharge = () => {
       </view>
     </scroll-view>
 
-    <view class="tabbar">
-      <view class="tab-item is-active">
-        <image class="tab-icon-image" src="/static/icons/tab-home-active.svg" mode="aspectFit" />
-        <text>首页</text>
-      </view>
-      <view class="tab-item">
-        <image class="tab-icon-image" src="/static/icons/tab-recharge.svg" mode="aspectFit" />
-        <text>充值</text>
-      </view>
-      <view class="tab-item">
-        <image class="tab-icon-image" src="/static/icons/tab-bills.svg" mode="aspectFit" />
-        <text>账单</text>
-      </view>
-      <view class="tab-item">
-        <image class="tab-icon-image" src="/static/icons/tab-profile.svg" mode="aspectFit" />
-        <text>我的</text>
-      </view>
-    </view>
+    <AppTabBar active="home" />
   </view>
 </template>
 

@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppTabBar from '@/components/common/AppTabBar.vue'
 
 const rechargeAmount = ref('')
 
 const handleBack = () => {
-  uni.redirectTo({
-    url: '/pages/home/index'
-  })
-}
-
-const goHome = () => {
   uni.redirectTo({
     url: '/pages/home/index'
   })
@@ -28,6 +23,7 @@ const goPayRecord = () => {
     url: '/pages/pay-record/index'
   })
 }
+
 </script>
 
 <template>
@@ -93,24 +89,7 @@ const goPayRecord = () => {
       </button>
     </view>
 
-    <view class="tabbar">
-      <view class="tab-item" @click="goHome">
-        <image class="tab-icon-image" src="/static/icons/tab-home.svg" mode="aspectFit" />
-        <text>首页</text>
-      </view>
-      <view class="tab-item is-active">
-        <image class="tab-icon-image" src="/static/icons/tab-recharge-active.svg" mode="aspectFit" />
-        <text>充值</text>
-      </view>
-      <view class="tab-item">
-        <image class="tab-icon-image" src="/static/icons/tab-bills.svg" mode="aspectFit" />
-        <text>账单</text>
-      </view>
-      <view class="tab-item">
-        <image class="tab-icon-image" src="/static/icons/tab-profile.svg" mode="aspectFit" />
-        <text>我的</text>
-      </view>
-    </view>
+    <AppTabBar active="recharge" />
   </view>
 </template>
 
