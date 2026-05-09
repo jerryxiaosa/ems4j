@@ -1,28 +1,31 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import TrendLineChart from '@/components/chart/TrendLineChart.vue'
 
-const DESIGN_WIDTH_PX = 390
-const MINI_PROGRAM_WIDTH_RPX = 750
-const toRpx = (px: number) => Number(((px * MINI_PROGRAM_WIDTH_RPX) / DESIGN_WIDTH_PX).toFixed(1))
+type TrendType = 'usage' | 'cost'
 
-const chartLines = [20, 40, 60, 80]
-const trendSegments = [
-  { left: toRpx(0), top: toRpx(109), width: toRpx(53), rotate: -25 },
-  { left: toRpx(50), top: toRpx(86), width: toRpx(48), rotate: -17 },
-  { left: toRpx(95), top: toRpx(73), width: toRpx(55), rotate: -38 },
-  { left: toRpx(145), top: toRpx(41), width: toRpx(44), rotate: 23 },
-  { left: toRpx(184), top: toRpx(57), width: toRpx(48), rotate: 24 },
-  { left: toRpx(228), top: toRpx(77), width: toRpx(50), rotate: -31 }
-]
-const trendDots = [
-  { left: toRpx(0), top: toRpx(109) },
-  { left: toRpx(50), top: toRpx(86) },
-  { left: toRpx(95), top: toRpx(73) },
-  { left: toRpx(145), top: toRpx(41) },
-  { left: toRpx(184), top: toRpx(57) },
-  { left: toRpx(228), top: toRpx(77) },
-  { left: toRpx(270), top: toRpx(53) }
-]
+const activeTrendType = ref<TrendType>('usage')
+
+const trendCategories = ['5/6', '5/7', '5/8', '5/9', '5/10', '5/11', '5/12']
+const trendDataMap: Record<TrendType, { label: string; seriesName: string; unit: string; max: number; values: number[] }> = {
+  usage: {
+    label: '电量',
+    seriesName: '电量',
+    unit: 'kWh',
+    max: 600,
+    values: [180, 260, 320, 480, 410, 300, 420]
+  },
+  cost: {
+    label: '电费',
+    seriesName: '电费',
+    unit: '元',
+    max: 420,
+    values: [126, 182, 224, 336, 287, 210, 294]
+  }
+}
+const trendTypes: TrendType[] = ['usage', 'cost']
+const activeTrend = computed(() => trendDataMap[activeTrendType.value])
 
 const summaryCards = [
   {
@@ -49,6 +52,9 @@ const goRecharge = () => {
   })
 }
 
+const switchTrendType = (trendType: TrendType) => {
+  activeTrendType.value = trendType
+}
 </script>
 
 <template>
@@ -99,58 +105,26 @@ const goRecharge = () => {
             <text class="title-underline"></text>
           </view>
           <view class="segment">
-            <text class="segment-item is-active">电量</text>
-            <text class="segment-item">电费</text>
+            <text
+              v-for="trendType in trendTypes"
+              :key="trendType"
+              :class="['segment-item', activeTrendType === trendType ? 'is-active' : '']"
+              @click="switchTrendType(trendType)"
+            >
+              {{ trendDataMap[trendType].label }}
+            </text>
           </view>
         </view>
 
         <view class="chart-wrap">
-          <view class="axis-labels">
-            <text>kWh</text>
-            <text>600</text>
-            <text>450</text>
-            <text>300</text>
-            <text>150</text>
-            <text>0</text>
-          </view>
-          <view class="chart-canvas">
-            <view
-              v-for="line in chartLines"
-              :key="line"
-              class="chart-grid-line"
-              :style="{ top: `${line}%` }"
-            ></view>
-            <view
-              v-for="segment in trendSegments"
-              :key="`${segment.left}-${segment.top}`"
-              class="chart-line"
-              :style="{
-                left: `${segment.left}rpx`,
-                top: `${segment.top}rpx`,
-                width: `${segment.width}rpx`,
-                transform: `rotate(${segment.rotate}deg)`
-              }"
-            ></view>
-            <view
-              v-for="point in trendDots"
-              :key="`${point.left}-${point.top}`"
-              class="chart-point"
-              :style="{ left: `${point.left}rpx`, top: `${point.top}rpx` }"
-            ></view>
-            <view class="chart-tip">
-              <text class="tip-date">5月12日</text>
-              <text class="tip-value">320 kWh</text>
-            </view>
-          </view>
-          <view class="x-axis">
-            <text>5/6</text>
-            <text>5/7</text>
-            <text>5/8</text>
-            <text>5/9</text>
-            <text>5/10</text>
-            <text>5/11</text>
-            <text>5/12</text>
-          </view>
+          <TrendLineChart
+            canvas-id="homeTrendChart"
+            :categories="trendCategories"
+            :values="activeTrend.values"
+            :series-name="activeTrend.seriesName"
+            :unit="activeTrend.unit"
+            :max="activeTrend.max"
+          />
         </view>
       </view>
 
@@ -262,7 +236,7 @@ const goRecharge = () => {
   min-height: 0;
   width: 100%;
   height: auto;
-  padding: 0 design-rpx(16) design-rpx(60);
+  padding: 0 design-rpx(16) design-rpx(84);
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -695,7 +669,7 @@ const goRecharge = () => {
 }
 
 .recent-card {
-  margin-bottom: design-rpx(14);
+  margin-bottom: design-rpx(30);
 }
 
 .more-link {

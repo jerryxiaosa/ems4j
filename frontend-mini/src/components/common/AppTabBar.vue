@@ -56,7 +56,7 @@ const handleTabClick = (tab: AppTabItem) => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: design-rpx(6) design-rpx(30) calc(env(safe-area-inset-bottom) + #{design-rpx(8)});
+  padding: design-rpx(8) design-rpx(30) calc(env(safe-area-inset-bottom) + #{design-rpx(4)});
   background: rgba(255, 255, 255, 0.96);
   border-top: design-rpx(0.5) solid #e7e7f3;
   backdrop-filter: blur(#{design-rpx(10)});
