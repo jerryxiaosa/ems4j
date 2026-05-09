@@ -229,19 +229,21 @@ const goRecharge = () => {
 }
 
 .home-page {
+  display: flex;
+  flex-direction: column;
   width: 750rpx;
   max-width: 100%;
-  min-height: 100vh;
-  padding-bottom: design-rpx(74);
+  height: 100vh;
   background: linear-gradient(180deg, #edf3f8 0%, #ffffff 100%);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .home-header {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-start;
   align-items: center;
-  padding: design-rpx(18) design-rpx(16) design-rpx(12);
+  padding: calc(env(safe-area-inset-top) + #{design-rpx(48)}) design-rpx(16) design-rpx(12);
 }
 
 .home-title,
@@ -272,9 +274,11 @@ const goRecharge = () => {
 }
 
 .home-scroll {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: calc(100vh - #{design-rpx(112)});
-  padding: 0 design-rpx(16);
+  height: auto;
+  padding: 0 design-rpx(16) design-rpx(88);
   box-sizing: border-box;
   overflow-x: hidden;
 }
