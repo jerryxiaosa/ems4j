@@ -205,7 +205,7 @@ const openBillDetail = () => {
 }
 
 .content-stack {
-  padding: design-rpx(16) design-rpx(22) design-rpx(116);
+  padding: design-rpx(16) design-rpx(22) design-rpx(88);
 }
 
 .filter-segment {

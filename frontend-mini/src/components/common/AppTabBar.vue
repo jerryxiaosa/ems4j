@@ -56,7 +56,7 @@ const handleTabClick = (tab: AppTabItem) => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: design-rpx(10) design-rpx(30) calc(env(safe-area-inset-bottom) + #{design-rpx(18)});
+  padding: design-rpx(6) design-rpx(30) calc(env(safe-area-inset-bottom) + #{design-rpx(8)});
   background: rgba(255, 255, 255, 0.96);
   border-top: design-rpx(0.5) solid #e7e7f3;
   backdrop-filter: blur(#{design-rpx(10)});
@@ -66,22 +66,22 @@ const handleTabClick = (tab: AppTabItem) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: design-rpx(7);
-  min-width: design-rpx(48);
+  gap: design-rpx(3);
+  min-width: design-rpx(44);
   color: #535a6a;
-  font-size: design-rpx(15);
-  font-weight: 500;
+  font-size: design-rpx(12);
+  font-weight: 400;
   line-height: 1;
 }
 
 .app-tab-item.is-active {
   color: #1677ff;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .app-tab-icon {
-  width: design-rpx(30);
-  height: design-rpx(30);
+  width: design-rpx(26);
+  height: design-rpx(26);
 }
 
 .app-tab-label {

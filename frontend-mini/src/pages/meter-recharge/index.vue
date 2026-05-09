@@ -255,7 +255,7 @@ const selectMeter = (meter: MeterOption) => {
 }
 
 .content-stack {
-  padding: design-rpx(16) design-rpx(22) design-rpx(184);
+  padding: design-rpx(16) design-rpx(22) design-rpx(156);
 }
 
 .account-card {
@@ -612,7 +612,7 @@ const selectMeter = (meter: MeterOption) => {
 .pay-bar {
   position: fixed;
   right: 0;
-  bottom: design-rpx(82);
+  bottom: design-rpx(54);
   left: 0;
   z-index: 48;
   padding: design-rpx(16);

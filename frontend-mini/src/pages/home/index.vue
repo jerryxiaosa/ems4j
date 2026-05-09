@@ -262,7 +262,7 @@ const goRecharge = () => {
   min-height: 0;
   width: 100%;
   height: auto;
-  padding: 0 design-rpx(16) design-rpx(88);
+  padding: 0 design-rpx(16) design-rpx(60);
   box-sizing: border-box;
   overflow-x: hidden;
 }
