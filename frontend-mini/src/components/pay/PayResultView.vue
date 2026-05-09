@@ -115,14 +115,14 @@ const handleSecondary = () => {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  height: design-rpx(118);
+  height: design-rpx(86);
   padding-top: design-rpx(34);
 }
 
 .page-title {
   color: #06133d;
-  font-size: design-rpx(21);
-  font-weight: 800;
+  font-size: design-rpx(20);
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -131,7 +131,7 @@ const handleSecondary = () => {
   flex: 1;
   flex-direction: column;
   align-items: center;
-  padding-top: design-rpx(118);
+  padding-top: design-rpx(150);
 }
 
 .result-visual {
@@ -269,7 +269,7 @@ const handleSecondary = () => {
   margin-top: design-rpx(18);
   color: #6f7d95;
   font-size: design-rpx(15);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .action-panel {
@@ -284,20 +284,23 @@ const handleSecondary = () => {
   justify-content: center;
   width: 100%;
   height: design-rpx(56);
-  font-size: design-rpx(18);
-  font-weight: 700;
   border-radius: 999rpx;
 }
 
 .primary-button {
   color: #ffffff;
+  font-size: design-rpx(20);
+  font-weight: 700;
+  letter-spacing: design-rpx(1);
   background: linear-gradient(90deg, #1677ff 0%, #0068ff 100%);
-  box-shadow: 0 design-rpx(8) design-rpx(22) rgba(22, 119, 255, 0.26);
+  box-shadow: 0 design-rpx(8) design-rpx(22) rgba(22, 119, 255, 0.28);
 }
 
 .secondary-button {
   margin-top: design-rpx(22);
   color: #1677ff;
+  font-size: design-rpx(18);
+  font-weight: 700;
   background: rgba(255, 255, 255, 0.72);
   border: design-rpx(1) solid rgba(22, 119, 255, 0.24);
 }

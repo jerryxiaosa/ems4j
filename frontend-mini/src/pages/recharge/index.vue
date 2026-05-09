@@ -262,7 +262,7 @@ const goPayRecord = () => {
 
 .form-card {
   padding: design-rpx(20);
-  border-radius: design-rpx(16);
+  border-radius: design-rpx(20);
 }
 
 .section-title {

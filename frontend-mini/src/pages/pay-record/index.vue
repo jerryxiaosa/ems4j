@@ -190,7 +190,7 @@ const handleBack = () => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 800;
+  font-weight: 700;
   transform: translateX(-50%);
 }
 
@@ -246,7 +246,7 @@ const handleBack = () => {
   margin-bottom: design-rpx(12);
   background: rgba(255, 255, 255, 0.88);
   border: design-rpx(0.5) solid #e7edf6;
-  border-radius: design-rpx(16);
+  border-radius: design-rpx(20);
   box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.045);
 }
 
@@ -353,7 +353,7 @@ const handleBack = () => {
   overflow: hidden;
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 800;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -407,7 +407,7 @@ const handleBack = () => {
   flex-shrink: 0;
   color: #5f6f99;
   font-size: design-rpx(13);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .payment-text.is-fail {

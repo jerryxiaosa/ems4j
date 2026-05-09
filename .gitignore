@@ -45,6 +45,7 @@ logs/
 /htmlReport
 frontend-web/test-results/
 frontend-mini/doc/
+frontend-mini/DESIGN.md
 **/Debug.java
 AGENTS.md
 TODO.md
