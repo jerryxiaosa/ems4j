@@ -66,22 +66,6 @@ const openBillDetail = () => {
         <view class="summary-card">
           <view class="summary-item">
             <view class="summary-head">
-              <view class="summary-icon money-icon">
-                <text>¥</text>
-              </view>
-              <text>总支出（元）</text>
-            </view>
-            <view class="summary-value cost-value">
-              <text class="currency">¥</text>
-              <text>12,345.56</text>
-            </view>
-            <view class="summary-accent cost-accent"></view>
-          </view>
-
-          <view class="summary-divider"></view>
-
-          <view class="summary-item">
-            <view class="summary-head">
               <view class="summary-icon energy-icon">
                 <image class="summary-icon-image" src="/static/icons/energy.svg" mode="aspectFit" />
               </view>
@@ -91,6 +75,22 @@ const openBillDetail = () => {
               <text>1,544.63</text>
             </view>
             <view class="summary-accent usage-accent"></view>
+          </view>
+
+          <view class="summary-divider"></view>
+
+          <view class="summary-item">
+            <view class="summary-head">
+              <view class="summary-icon money-icon">
+                <text>¥</text>
+              </view>
+              <text>总电费（元）</text>
+            </view>
+            <view class="summary-value cost-value">
+              <text class="currency">¥</text>
+              <text>12,345.56</text>
+            </view>
+            <view class="summary-accent cost-accent"></view>
           </view>
         </view>
 
@@ -107,8 +107,8 @@ const openBillDetail = () => {
             <view class="bill-metrics">
               <view class="metric-block">
                 <view class="metric-copy">
-                  <text class="metric-label">支出金额</text>
-                  <text class="metric-value">¥ {{ bill.amount ?? '--' }}</text>
+                  <text class="metric-label">用电量</text>
+                  <text class="metric-value">{{ bill.usage ?? '--' }} kWh</text>
                 </view>
               </view>
 
@@ -116,8 +116,8 @@ const openBillDetail = () => {
 
               <view class="metric-block">
                 <view class="metric-copy">
-                  <text class="metric-label">用电量</text>
-                  <text class="metric-value">{{ bill.usage ?? '--' }} kWh</text>
+                  <text class="metric-label">电费</text>
+                  <text class="metric-value">¥ {{ bill.amount ?? '--' }}</text>
                 </view>
               </view>
 
@@ -349,14 +349,14 @@ const openBillDetail = () => {
   flex-direction: column;
   box-sizing: border-box;
   width: 100%;
-  gap: design-rpx(4);
+  gap: design-rpx(12);
 }
 
 .bill-card {
   box-sizing: border-box;
   width: 100%;
   padding: design-rpx(16);
-  background: transparent;
+  background: #ffffff;
   border: design-rpx(1) solid rgba(219, 228, 242, 0.72);
   border-radius: design-rpx(20);
 }

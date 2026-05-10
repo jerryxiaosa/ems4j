@@ -241,7 +241,7 @@ const switchTrendType = (trendType: TrendType) => {
   flex: 1;
   min-height: 0;
   width: 100%;
-  height: auto;
+  height: 0;
   padding: 0 design-rpx(16) design-rpx(84);
   box-sizing: border-box;
   overflow-x: hidden;
@@ -458,7 +458,6 @@ const switchTrendType = (trendType: TrendType) => {
 
 .chart-wrap {
   position: relative;
-  height: design-rpx(219);
   margin-top: design-rpx(24);
   transform: translateX(design-rpx(-14));
 }
