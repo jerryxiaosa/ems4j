@@ -127,16 +127,6 @@ const selectMeter = (meter: MeterOption) => {
           <text class="form-tip">账户充值后，余额可用于电费扣缴和相关服务。</text>
         </view>
 
-        <view class="notice-card">
-          <view class="notice-icon">
-            <view></view>
-          </view>
-          <view class="notice-copy">
-            <text class="notice-title">温馨提示</text>
-            <text class="notice-desc">账户充值后，余额可用于电费扣缴和相关服务。</text>
-          </view>
-        </view>
-
         <view class="record-link" @click="goPayRecord">
           <text>充值缴费记录</text>
           <view class="record-chevron"></view>
@@ -388,8 +378,7 @@ const selectMeter = (meter: MeterOption) => {
   font-weight: 700;
 }
 
-.form-card,
-.notice-card {
+.form-card {
   margin-top: design-rpx(16);
   background: #ffffff;
   border: design-rpx(0.5) solid #e7e7f3;
@@ -536,60 +525,6 @@ const selectMeter = (meter: MeterOption) => {
   line-height: 1.5;
 }
 
-.notice-card {
-  display: flex;
-  gap: design-rpx(12);
-  padding: design-rpx(16);
-  background: #f5f9ff;
-  border-radius: design-rpx(12);
-}
-
-.notice-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(20);
-  height: design-rpx(20);
-  margin-top: design-rpx(2);
-  color: #2563eb;
-  font-size: design-rpx(13);
-  font-weight: 700;
-  border: design-rpx(1.5) solid #2563eb;
-  border-radius: 999rpx;
-}
-
-.notice-icon view {
-  display: none;
-}
-
-.notice-icon::after {
-  content: "i";
-}
-
-.notice-copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.notice-title,
-.notice-desc {
-  display: block;
-}
-
-.notice-title {
-  margin-bottom: design-rpx(6);
-  color: #152234;
-  font-size: design-rpx(14);
-  font-weight: 600;
-}
-
-.notice-desc {
-  color: #8a97ac;
-  font-size: design-rpx(12);
-  line-height: 1.55;
-}
-
 .record-link {
   display: flex;
   align-items: center;
@@ -612,7 +547,7 @@ const selectMeter = (meter: MeterOption) => {
 .pay-bar {
   position: fixed;
   right: 0;
-  bottom: design-rpx(54);
+  bottom: calc(env(safe-area-inset-bottom) + #{design-rpx(54)});
   left: 0;
   z-index: 48;
   padding: design-rpx(16);

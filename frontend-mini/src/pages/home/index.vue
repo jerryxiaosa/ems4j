@@ -52,6 +52,12 @@ const goRecharge = () => {
   })
 }
 
+const goPayRecord = () => {
+  uni.navigateTo({
+    url: '/pages/pay-record/index'
+  })
+}
+
 const switchTrendType = (trendType: TrendType) => {
   activeTrendType.value = trendType
 }
@@ -157,7 +163,7 @@ const switchTrendType = (trendType: TrendType) => {
       <view class="card recent-card">
         <view class="card-head compact">
           <text class="card-title">最近充值缴费</text>
-          <text class="more-link">查看全部›</text>
+          <text class="more-link" @click="goPayRecord">查看全部›</text>
         </view>
         <view class="recent-row">
           <view class="recent-icon">
@@ -452,7 +458,7 @@ const switchTrendType = (trendType: TrendType) => {
 
 .chart-wrap {
   position: relative;
-  height: design-rpx(224);
+  height: design-rpx(219);
   margin-top: design-rpx(24);
   transform: translateX(design-rpx(-14));
 }

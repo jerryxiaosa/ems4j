@@ -8,7 +8,7 @@ const props = withDefaults(
     categories: string[]
     values: number[]
     seriesName: string
-    unit: string
+    unit?: string
     color?: string
     widthRpx?: number
     heightRpx?: number
@@ -16,8 +16,8 @@ const props = withDefaults(
   }>(),
   {
     color: '#004AC6',
-    widthRpx: 626,
-    heightRpx: 431
+    widthRpx: 646,
+    heightRpx: 421
   }
 )
 
@@ -51,7 +51,7 @@ const findMaxValue = () => {
 }
 
 const buildChartOptions = () => ({
-  type: 'line',
+  type: 'mix',
   context: uni.createCanvasContext(props.canvasId, componentInstance?.proxy),
   canvasId: props.canvasId,
   width: chartWidthPx.value,
@@ -60,6 +60,14 @@ const buildChartOptions = () => ({
   series: [
     {
       name: props.seriesName,
+      type: 'column',
+      data: props.values,
+      color: 'rgba(0, 74, 198, 0.12)',
+      disableLegend: true
+    },
+    {
+      name: props.seriesName,
+      type: 'line',
       data: props.values,
       color: props.color,
       pointShape: 'circle'
@@ -104,6 +112,17 @@ const buildChartOptions = () => ({
     ]
   },
   extra: {
+    mix: {
+      column: {
+        width: 8,
+        barBorderCircle: true,
+        seriesGap: 0,
+        categoryGap: 6
+      },
+      line: {
+        width: 2.5
+      }
+    },
     line: {
       type: 'curve',
       width: 2.5,
@@ -143,6 +162,14 @@ const updateChart = () => {
     series: [
       {
         name: props.seriesName,
+        type: 'column',
+        data: props.values,
+        color: 'rgba(0, 74, 198, 0.12)',
+        disableLegend: true
+      },
+      {
+        name: props.seriesName,
+        type: 'line',
         data: props.values,
         color: props.color,
         pointShape: 'circle'
@@ -171,7 +198,6 @@ watch(
 
 <template>
   <view class="trend-line-chart-wrap" :style="canvasStyle">
-    <text class="chart-unit">{{ unit }}</text>
     <canvas
       class="trend-line-chart"
       :canvas-id="canvasId"
@@ -186,17 +212,6 @@ watch(
 <style scoped lang="scss">
 .trend-line-chart-wrap {
   position: relative;
-}
-
-.chart-unit {
-  position: absolute;
-  top: -24rpx;
-  left: 0;
-  z-index: 2;
-  color: #6a7a8f;
-  font-size: 20rpx;
-  font-weight: 500;
-  line-height: 1;
 }
 
 .trend-line-chart {

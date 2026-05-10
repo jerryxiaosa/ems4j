@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import AppTabBar from '@/components/common/AppTabBar.vue'
+
+const filterOptions = ['全部', '本年', '近6月', '近3月']
+const activeFilter = ref(filterOptions[0])
+
 const recordList = [
   {
     status: 'success',
@@ -68,6 +74,10 @@ const handleBack = () => {
     url: '/pages/recharge/index'
   })
 }
+
+const selectFilter = (filter: string) => {
+  activeFilter.value = filter
+}
 </script>
 
 <template>
@@ -80,59 +90,59 @@ const handleBack = () => {
       <view class="header-placeholder"></view>
     </view>
 
-    <view class="filter-row">
-      <button class="filter-button time-button">
-        <text>全部时间</text>
-        <view class="down-chevron"></view>
-      </button>
-    </view>
-
     <scroll-view class="record-scroll" scroll-y enhanced show-scrollbar="false">
-      <view class="record-list">
-        <view v-for="record in recordList" :key="record.orderNo" class="record-card">
-          <view class="record-summary">
-            <view class="record-status">
-              <view :class="['status-icon', record.status === 'success' ? 'is-success' : 'is-fail']">
-                <view v-if="record.status === 'success'" class="check-mark"></view>
-                <view v-else class="cross-mark">
-                  <view></view>
-                  <view></view>
+      <view class="content-stack">
+        <view class="filter-segment">
+          <button
+            v-for="filter in filterOptions"
+            :key="filter"
+            :class="['filter-item', activeFilter === filter ? 'is-active' : '']"
+            @click="selectFilter(filter)"
+          >
+            <text>{{ filter }}</text>
+          </button>
+        </view>
+
+        <view class="record-list">
+          <view v-for="record in recordList" :key="record.orderNo" class="record-card">
+            <view class="record-summary">
+              <view class="record-status">
+                <view :class="['status-icon', record.status === 'success' ? 'is-success' : 'is-fail']">
+                  <view v-if="record.status === 'success'" class="check-mark"></view>
+                  <view v-else class="cross-mark">
+                    <view></view>
+                    <view></view>
+                  </view>
                 </view>
+                <text class="status-title">{{ record.status === 'success' ? '支付成功' : '支付失败' }}</text>
               </view>
-              <text class="status-title">{{ record.status === 'success' ? '支付成功' : '支付失败' }}</text>
+              <view class="record-amount">
+                <text class="amount-text">¥ {{ record.amount }}</text>
+              </view>
             </view>
-            <view class="record-amount">
-              <text class="amount-text">¥ {{ record.amount }}</text>
+            <view class="record-detail">
+              <view class="room-row">
+                <text class="room-title">{{ record.room }}</text>
+                <text :class="['payment-text', record.status === 'fail' ? 'is-fail' : '']">{{ record.payment }}</text>
+              </view>
+              <view class="record-meta-line">
+                <text class="record-meta-label">电表编号：</text>
+                <text class="record-meta-value">{{ record.meterNo }}</text>
+              </view>
+              <view class="record-meta-line">
+                <text class="record-meta-label">订单编号：</text>
+                <text class="record-meta-value">{{ record.orderNo }}</text>
+              </view>
+              <text class="record-time">{{ record.time }}</text>
             </view>
-          </view>
-          <view class="record-detail">
-            <view class="room-row">
-              <text class="room-title">{{ record.room }}</text>
-              <text :class="['payment-text', record.status === 'fail' ? 'is-fail' : '']">{{ record.payment }}</text>
-            </view>
-            <view class="record-meta-line">
-              <text class="record-meta-label">电表编号：</text>
-              <text class="record-meta-value">{{ record.meterNo }}</text>
-            </view>
-            <view class="record-meta-line">
-              <text class="record-meta-label">订单编号：</text>
-              <text class="record-meta-value">{{ record.orderNo }}</text>
-            </view>
-            <text class="record-time">{{ record.time }}</text>
           </view>
         </view>
+
+        <text class="end-text">没有更多了</text>
       </view>
     </scroll-view>
 
-    <view class="pagination-bar">
-      <button class="page-button previous-button">
-        <text>上一页</text>
-      </button>
-      <text class="page-number">1 / 5</text>
-      <button class="page-button next-button">
-        <text>下一页</text>
-      </button>
-    </view>
+    <AppTabBar active="recharge" />
   </view>
 </template>
 
@@ -194,56 +204,54 @@ const handleBack = () => {
   transform: translateX(-50%);
 }
 
-.filter-row {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: flex-start;
-  padding: design-rpx(12) design-rpx(22) design-rpx(12);
-}
-
-.filter-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: design-rpx(10);
-  min-width: design-rpx(72);
-  height: design-rpx(42);
-  padding: 0 design-rpx(16);
-  color: #06133d;
-  font-size: design-rpx(15);
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.86);
-  border: design-rpx(0.5) solid #e3eaf5;
-  border-radius: design-rpx(16);
-  box-shadow: 0 design-rpx(6) design-rpx(18) rgba(6, 19, 61, 0.04);
-}
-
-.time-button {
-  min-width: design-rpx(94);
-}
-
-.down-chevron {
-  width: design-rpx(8);
-  height: design-rpx(8);
-  border-right: design-rpx(2) solid #06133d;
-  border-bottom: design-rpx(2) solid #06133d;
-  transform: rotate(45deg) translateY(design-rpx(-2));
-}
-
 .record-scroll {
   flex: 1;
   min-height: 0;
 }
 
+.content-stack {
+  padding: design-rpx(16) design-rpx(22) design-rpx(88);
+}
+
+.filter-segment {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: design-rpx(4);
+  padding: design-rpx(4);
+  background: #eef4fb;
+  border-radius: design-rpx(18);
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: design-rpx(36);
+  color: #5d6f8c;
+  font-size: design-rpx(14);
+  font-weight: 600;
+  line-height: 1;
+  border-radius: design-rpx(14);
+}
+
+.filter-item.is-active {
+  color: #1677ff;
+  background: #ffffff;
+  box-shadow: 0 design-rpx(4) design-rpx(12) rgba(6, 19, 61, 0.06);
+}
+
 .record-list {
-  padding: design-rpx(2) design-rpx(22) design-rpx(100);
+  display: flex;
+  flex-direction: column;
+  gap: design-rpx(12);
+  margin-top: design-rpx(16);
 }
 
 .record-card {
+  box-sizing: border-box;
+  width: 100%;
   min-height: design-rpx(142);
   padding: design-rpx(16) design-rpx(18);
-  margin-bottom: design-rpx(12);
   background: rgba(255, 255, 255, 0.88);
   border: design-rpx(0.5) solid #e7edf6;
   border-radius: design-rpx(20);
@@ -328,9 +336,9 @@ const handleBack = () => {
 .status-title {
   flex: 1;
   min-width: 0;
-  color: #06133d;
+  color: #152234;
   font-size: design-rpx(16);
-  font-weight: 800;
+  font-weight: 700;
   line-height: design-rpx(26);
 }
 
@@ -351,9 +359,9 @@ const handleBack = () => {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: #06133d;
+  color: #152234;
   font-size: design-rpx(16);
-  font-weight: 700;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -361,9 +369,9 @@ const handleBack = () => {
 .record-meta-line,
 .record-time {
   margin-top: design-rpx(7);
-  color: #5f6f99;
+  color: #7b879a;
   font-size: design-rpx(13);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.15;
 }
 
@@ -397,15 +405,15 @@ const handleBack = () => {
 }
 
 .amount-text {
-  color: #06133d;
+  color: #152234;
   font-size: design-rpx(16);
-  font-weight: 800;
+  font-weight: 700;
   line-height: design-rpx(26);
 }
 
 .payment-text {
   flex-shrink: 0;
-  color: #5f6f99;
+  color: #7b879a;
   font-size: design-rpx(13);
   font-weight: 500;
 }
@@ -414,45 +422,13 @@ const handleBack = () => {
   color: #ff3b45;
 }
 
-.pagination-bar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: design-rpx(14) design-rpx(48) design-rpx(22);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, #ffffff 30%);
+.end-text {
+  display: block;
+  margin-top: design-rpx(22);
+  color: #a1acbd;
+  font-size: design-rpx(12);
+  font-weight: 500;
+  text-align: center;
 }
 
-.page-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(92);
-  height: design-rpx(36);
-  font-size: design-rpx(15);
-  font-weight: 700;
-  border-radius: 999rpx;
-}
-
-.previous-button {
-  color: #1677ff;
-  background: rgba(255, 255, 255, 0.82);
-  border: design-rpx(1) solid rgba(22, 119, 255, 0.5);
-}
-
-.next-button {
-  color: #ffffff;
-  background: linear-gradient(90deg, #1677ff 0%, #0068ff 100%);
-  box-shadow: 0 design-rpx(6) design-rpx(16) rgba(22, 119, 255, 0.22);
-}
-
-.page-number {
-  color: #06133d;
-  font-size: design-rpx(15);
-  font-weight: 800;
-}
 </style>

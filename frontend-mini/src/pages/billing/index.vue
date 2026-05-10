@@ -13,7 +13,7 @@ const filterOptions = ['全部', '本年', '近6月', '近3月']
 const activeFilter = ref(filterOptions[0])
 
 const billMonths: BillMonth[] = [
-  { month: '2024年12月', tag: '本月' },
+  { month: '2024年12月', tag: '本月结算中' },
   { month: '2024年11月', amount: '1,534.45', usage: '215.43' },
   { month: '2024年10月', amount: '1,856.23', usage: '263.12' },
   { month: '2024年9月', amount: '1,245.33', usage: '198.67' },
@@ -66,8 +66,8 @@ const openBillDetail = () => {
         <view class="summary-card">
           <view class="summary-item">
             <view class="summary-head">
-              <view class="summary-icon wallet-icon">
-                <view class="wallet-body"></view>
+              <view class="summary-icon money-icon">
+                <text>¥</text>
               </view>
               <text>总支出（元）</text>
             </view>
@@ -83,7 +83,7 @@ const openBillDetail = () => {
           <view class="summary-item">
             <view class="summary-head">
               <view class="summary-icon energy-icon">
-                <view class="bolt-shape"></view>
+                <image class="summary-icon-image" src="/static/icons/energy.svg" mode="aspectFit" />
               </view>
               <text>总用电量（kWh）</text>
             </view>
@@ -99,15 +99,13 @@ const openBillDetail = () => {
         <view class="bill-list">
           <view v-for="bill in billMonths" :key="bill.month" class="bill-card" @click="openBillDetail">
             <view class="month-row">
+              <view class="month-bill-icon"></view>
               <text class="month-title">{{ bill.month }}</text>
               <text v-if="bill.tag" class="month-tag">{{ bill.tag }}</text>
             </view>
 
             <view class="bill-metrics">
               <view class="metric-block">
-                <view class="metric-icon wallet-icon small">
-                  <view class="wallet-body"></view>
-                </view>
                 <view class="metric-copy">
                   <text class="metric-label">支出金额</text>
                   <text class="metric-value">¥ {{ bill.amount ?? '--' }}</text>
@@ -117,9 +115,6 @@ const openBillDetail = () => {
               <view class="card-divider"></view>
 
               <view class="metric-block">
-                <view class="metric-icon energy-icon small">
-                  <view class="bolt-shape"></view>
-                </view>
                 <view class="metric-copy">
                   <text class="metric-label">用电量</text>
                   <text class="metric-value">{{ bill.usage ?? '--' }} kWh</text>
@@ -237,7 +232,9 @@ const openBillDetail = () => {
 
 .summary-card {
   display: flex;
+  box-sizing: border-box;
   align-items: stretch;
+  width: 100%;
   margin-top: design-rpx(16);
   padding: design-rpx(20) design-rpx(16) design-rpx(18);
   background: #ffffff;
@@ -274,44 +271,30 @@ const openBillDetail = () => {
   justify-content: center;
   width: design-rpx(22);
   height: design-rpx(22);
-  border-radius: design-rpx(8);
-}
-
-.wallet-icon {
-  background: #eaf3ff;
-}
-
-.wallet-body {
-  position: relative;
-  width: design-rpx(13);
-  height: design-rpx(10);
-  border: design-rpx(1.8) solid #1677ff;
-  border-radius: design-rpx(3);
-}
-
-.wallet-body::after {
-  position: absolute;
-  top: 50%;
-  right: design-rpx(-1);
-  width: design-rpx(5);
-  height: design-rpx(4);
-  background: #eaf3ff;
-  border: design-rpx(1.4) solid #1677ff;
-  border-right: 0;
-  border-radius: design-rpx(3) 0 0 design-rpx(3);
-  content: "";
-  transform: translateY(-50%);
+  color: #ffffff;
+  font-size: design-rpx(12);
+  font-weight: 800;
+  border-radius: 999rpx;
 }
 
 .energy-icon {
-  background: #fff3e4;
+  background: #2563eb;
+  box-shadow: 0 design-rpx(4) design-rpx(10) rgba(37, 99, 235, 0.2);
 }
 
-.bolt-shape {
-  width: design-rpx(9);
+.money-icon {
+  background: #14b86a;
+  box-shadow: 0 design-rpx(4) design-rpx(10) rgba(20, 184, 106, 0.2);
+}
+
+.summary-icon text {
+  display: block;
+  line-height: 1;
+}
+
+.summary-icon-image {
+  width: design-rpx(14);
   height: design-rpx(14);
-  background: #ff9f1c;
-  clip-path: polygon(55% 0, 12% 56%, 48% 56%, 35% 100%, 88% 40%, 52% 40%);
 }
 
 .summary-value {
@@ -329,11 +312,11 @@ const openBillDetail = () => {
 }
 
 .cost-value {
-  color: #1677ff;
+  color: #152234;
 }
 
 .usage-value {
-  color: #ff9f1c;
+  color: #152234;
 }
 
 .summary-accent {
@@ -346,11 +329,11 @@ const openBillDetail = () => {
 }
 
 .cost-accent {
-  background: linear-gradient(90deg, #1677ff 0%, rgba(22, 119, 255, 0) 100%);
+  background: linear-gradient(90deg, #14b86a 0%, rgba(20, 184, 106, 0) 100%);
 }
 
 .usage-accent {
-  background: linear-gradient(90deg, #ff9f1c 0%, rgba(255, 159, 28, 0) 100%);
+  background: linear-gradient(90deg, #2563eb 0%, rgba(37, 99, 235, 0) 100%);
 }
 
 .year-title {
@@ -364,21 +347,54 @@ const openBillDetail = () => {
 .bill-list {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
   gap: design-rpx(4);
 }
 
 .bill-card {
+  box-sizing: border-box;
+  width: 100%;
   padding: design-rpx(16);
-  background: #ffffff;
+  background: transparent;
   border: design-rpx(1) solid rgba(219, 228, 242, 0.72);
   border-radius: design-rpx(20);
-  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.045);
 }
 
 .month-row {
   display: flex;
   align-items: center;
   gap: design-rpx(8);
+}
+
+.month-bill-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: design-rpx(18);
+  height: design-rpx(18);
+  background: rgba(22, 119, 255, 0.06);
+  border: design-rpx(1.2) solid rgba(22, 119, 255, 0.5);
+  border-radius: design-rpx(5);
+}
+
+.month-bill-icon::before,
+.month-bill-icon::after {
+  position: absolute;
+  left: design-rpx(4);
+  height: design-rpx(1.2);
+  background: rgba(22, 119, 255, 0.55);
+  border-radius: 999rpx;
+  content: "";
+}
+
+.month-bill-icon::before {
+  top: design-rpx(6);
+  width: design-rpx(9);
+}
+
+.month-bill-icon::after {
+  top: design-rpx(11);
+  width: design-rpx(6);
 }
 
 .month-title {
@@ -409,15 +425,7 @@ const openBillDetail = () => {
 .metric-block {
   display: flex;
   align-items: center;
-  gap: design-rpx(8);
   min-width: 0;
-}
-
-.metric-icon.small {
-  flex-shrink: 0;
-  width: design-rpx(28);
-  height: design-rpx(28);
-  border-radius: design-rpx(10);
 }
 
 .metric-copy {
@@ -429,7 +437,7 @@ const openBillDetail = () => {
 
 .metric-label {
   color: #7b879a;
-  font-size: design-rpx(11);
+  font-size: design-rpx(12);
   font-weight: 500;
   line-height: 1;
 }
