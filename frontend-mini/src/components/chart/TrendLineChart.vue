@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, onMounted, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import UCharts from '@qiun/ucharts'
+
+type ChartInstance = UCharts & {
+  stopAnimation?: () => void
+}
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +25,7 @@ const props = withDefaults(
   }
 )
 
-let chart: UCharts | null = null
+let chart: ChartInstance | null = null
 
 const componentInstance = getCurrentInstance()
 
@@ -151,46 +155,25 @@ const renderChart = () => {
   chart = new UCharts(buildChartOptions())
 }
 
-const updateChart = () => {
-  if (!chart) {
-    renderChart()
-    return
-  }
-
-  chart.updateData({
-    categories: props.categories,
-    series: [
-      {
-        name: props.seriesName,
-        type: 'column',
-        data: props.values,
-        color: 'rgba(0, 74, 198, 0.12)',
-        disableLegend: true
-      },
-      {
-        name: props.seriesName,
-        type: 'line',
-        data: props.values,
-        color: props.color,
-        pointShape: 'circle'
-      }
-    ],
-    yAxis: buildChartOptions().yAxis
-  })
-}
-
-const handleTouchStart = (event: unknown) => {
-  chart?.showToolTip(event)
+const rebuildChart = () => {
+  chart?.stopAnimation?.()
+  chart = null
+  renderChart()
 }
 
 onMounted(() => {
   nextTick(renderChart)
 })
 
+onBeforeUnmount(() => {
+  chart?.stopAnimation?.()
+  chart = null
+})
+
 watch(
   () => [props.categories, props.values, props.seriesName, props.unit, props.color, props.max],
   () => {
-    nextTick(updateChart)
+    nextTick(rebuildChart)
   },
   { deep: true }
 )
@@ -203,8 +186,6 @@ watch(
       :canvas-id="canvasId"
       :id="canvasId"
       :style="canvasStyle"
-      @touchstart="handleTouchStart"
-      @touchmove="handleTouchStart"
     ></canvas>
   </view>
 </template>
