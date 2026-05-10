@@ -190,7 +190,7 @@ onLoad((query) => {
 }
 
 .content-stack {
-  padding: design-rpx(16) design-rpx(22) design-rpx(128);
+  padding: design-rpx(16) design-rpx(22) design-rpx(156);
 }
 
 .meter-card {
@@ -414,7 +414,8 @@ onLoad((query) => {
   justify-content: center;
   flex-wrap: wrap;
   gap: design-rpx(4);
-  margin-top: design-rpx(22);
+  margin-top: design-rpx(10);
+  margin-bottom: design-rpx(18);
   color: #8a97ac;
   font-size: design-rpx(13);
 }
@@ -448,11 +449,12 @@ onLoad((query) => {
 .pay-bar {
   position: fixed;
   right: 0;
-  bottom: 0;
+  bottom: calc(env(safe-area-inset-bottom) + #{design-rpx(54)});
   left: 0;
-  z-index: 40;
-  padding: design-rpx(16) design-rpx(22) design-rpx(24);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, #ffffff 28%);
+  z-index: 48;
+  padding: design-rpx(16);
+  background: #ffffff;
+  border-top: design-rpx(0.5) solid #e7e7f3;
 }
 
 .pay-button {

@@ -32,10 +32,11 @@ const selectFilter = (filter: string) => {
   activeFilter.value = filter
 }
 
-const openBillDetail = () => {
-  uni.showToast({
-    title: '账单明细待接入',
-    icon: 'none'
+const openBillDetail = (bill: BillMonth) => {
+  const isEmptyBill = !bill.amount && !bill.usage
+
+  uni.navigateTo({
+    url: `/pages/billing-detail/index?month=${encodeURIComponent(bill.month)}&empty=${isEmptyBill ? '1' : '0'}`
   })
 }
 </script>
@@ -97,7 +98,7 @@ const openBillDetail = () => {
         <text class="year-title">2024年</text>
 
         <view class="bill-list">
-          <view v-for="bill in billMonths" :key="bill.month" class="bill-card" @click="openBillDetail">
+          <view v-for="bill in billMonths" :key="bill.month" class="bill-card" @click="openBillDetail(bill)">
             <view class="month-row">
               <view class="month-bill-icon"></view>
               <text class="month-title">{{ bill.month }}</text>

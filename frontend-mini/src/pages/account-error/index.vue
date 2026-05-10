@@ -20,7 +20,7 @@ const handleBack = () => {
       <view class="error-card">
         <image
           class="error-illustration"
-          src="/static/stitch/account-error-illustration.png"
+          src="/static/stitch/check.png"
           mode="aspectFit"
         />
 
@@ -120,7 +120,7 @@ const handleBack = () => {
 
 .error-illustration {
   width: design-rpx(318);
-  height: design-rpx(272);
+  height: design-rpx(294);
   margin-bottom: design-rpx(48);
 }
 
