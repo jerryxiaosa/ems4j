@@ -17,7 +17,7 @@ const props = withDefaults(
   {
     color: '#004AC6',
     widthRpx: 626,
-    heightRpx: 224
+    heightRpx: 431
   }
 )
 
@@ -68,7 +68,7 @@ const buildChartOptions = () => ({
   animation: true,
   background: '#ffffff',
   color: [props.color],
-  padding: [12, 8, 6, 4],
+  padding: [12, 24, 6, 4],
   fontSize: 10,
   fontColor: '#6A7A8F',
   dataLabel: false,
@@ -98,8 +98,8 @@ const buildChartOptions = () => ({
       {
         min: 0,
         max: findMaxValue(),
-        unit: props.unit,
-        tofix: props.unit === '元' ? 1 : 0
+        unit: '',
+        tofix: 0
       }
     ]
   },
@@ -170,17 +170,35 @@ watch(
 </script>
 
 <template>
-  <canvas
-    class="trend-line-chart"
-    :canvas-id="canvasId"
-    :id="canvasId"
-    :style="canvasStyle"
-    @touchstart="handleTouchStart"
-    @touchmove="handleTouchStart"
-  ></canvas>
+  <view class="trend-line-chart-wrap" :style="canvasStyle">
+    <text class="chart-unit">{{ unit }}</text>
+    <canvas
+      class="trend-line-chart"
+      :canvas-id="canvasId"
+      :id="canvasId"
+      :style="canvasStyle"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchStart"
+    ></canvas>
+  </view>
 </template>
 
 <style scoped lang="scss">
+.trend-line-chart-wrap {
+  position: relative;
+}
+
+.chart-unit {
+  position: absolute;
+  top: -24rpx;
+  left: 0;
+  z-index: 2;
+  color: #6a7a8f;
+  font-size: 20rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+
 .trend-line-chart {
   display: block;
 }

@@ -13,15 +13,15 @@ const trendDataMap: Record<TrendType, { label: string; seriesName: string; unit:
     label: '电量',
     seriesName: '电量',
     unit: 'kWh',
-    max: 600,
-    values: [180, 260, 320, 480, 410, 300, 420]
+    max: 12000,
+    values: [3600, 5200, 6400, 9600, 8200, 6000, 8800]
   },
   cost: {
     label: '电费',
     seriesName: '电费',
     unit: '元',
-    max: 420,
-    values: [126, 182, 224, 336, 287, 210, 294]
+    max: 12000,
+    values: [2520, 3640, 4480, 6720, 5740, 4200, 5880]
   }
 }
 const trendTypes: TrendType[] = ['usage', 'cost']
@@ -454,6 +454,7 @@ const switchTrendType = (trendType: TrendType) => {
   position: relative;
   height: design-rpx(224);
   margin-top: design-rpx(24);
+  transform: translateX(design-rpx(-14));
 }
 
 .axis-labels {
