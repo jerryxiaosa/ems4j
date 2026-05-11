@@ -14,6 +14,7 @@ type MeterDetail = {
   totalEnergy: string
   energySegments: EnergySegment[]
   todayEnergy: string
+  todayEnergySegments: EnergySegment[]
   todayUsageValues: number[]
   updateTime: string
   updateClock: string
@@ -41,6 +42,13 @@ const meterList: MeterDetail[] = [
       { name: '深谷', value: '2.43', tone: 'deep' }
     ],
     todayEnergy: '2.36',
+    todayEnergySegments: [
+      { name: '尖', value: '1234.56', tone: 'tip' },
+      { name: '峰', value: '2345.67', tone: 'peak' },
+      { name: '平', value: '3456.78', tone: 'flat' },
+      { name: '谷', value: '4567.89', tone: 'valley' },
+      { name: '深谷', value: '5678.90', tone: 'deep' }
+    ],
     todayUsageValues: [0.06, 0.48, 1.72, 2.36, 2.36, 2.36, 2.36],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
@@ -60,6 +68,13 @@ const meterList: MeterDetail[] = [
       { name: '深谷', value: '1.28', tone: 'deep' }
     ],
     todayEnergy: '1.64',
+    todayEnergySegments: [
+      { name: '尖', value: '0.18', tone: 'tip' },
+      { name: '峰', value: '0.46', tone: 'peak' },
+      { name: '平', value: '0.72', tone: 'flat' },
+      { name: '谷', value: '0.21', tone: 'valley' },
+      { name: '深谷', value: '0.07', tone: 'deep' }
+    ],
     todayUsageValues: [0.04, 0.33, 1.12, 1.64, 1.64, 1.64, 1.64],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
@@ -79,6 +94,13 @@ const meterList: MeterDetail[] = [
       { name: '深谷', value: '0.79', tone: 'deep' }
     ],
     todayEnergy: '0.58',
+    todayEnergySegments: [
+      { name: '尖', value: '0.07', tone: 'tip' },
+      { name: '峰', value: '0.16', tone: 'peak' },
+      { name: '平', value: '0.25', tone: 'flat' },
+      { name: '谷', value: '0.07', tone: 'valley' },
+      { name: '深谷', value: '0.03', tone: 'deep' }
+    ],
     todayUsageValues: [0.02, 0.13, 0.41, 0.58, 0.58, 0.58, 0.58],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
@@ -129,8 +151,14 @@ onLoad((query) => {
                 {{ meter.status === 'normal' ? '正常' : '离线' }}
               </text>
             </view>
-            <text class="meter-meta">电表编号：{{ meter.meterNo }}</text>
-            <text class="meter-meta">所在位置：{{ meter.location }}</text>
+            <view class="meter-meta-line">
+              <text class="meter-meta-label">电表编号：</text>
+              <text class="meter-meta-value">{{ meter.meterNo }}</text>
+            </view>
+            <view class="meter-meta-line">
+              <text class="meter-meta-label">所在位置：</text>
+              <text class="meter-meta-value">{{ meter.location }}</text>
+            </view>
           </view>
         </view>
 
@@ -146,30 +174,30 @@ onLoad((query) => {
             <text class="update-time">更新时间：{{ meter.updateTime }}</text>
           </view>
 
-          <view class="segment-grid">
-            <view v-for="segment in meter.energySegments" :key="segment.name" class="segment-item">
-              <view :class="['segment-dot', segment.tone]"></view>
-              <text class="segment-name">{{ segment.name }}</text>
-              <text class="segment-value">{{ segment.value }}</text>
+          <view class="segment-section">
+            <text class="segment-section-title">总电量分项</text>
+            <view class="segment-list">
+              <view v-for="segment in meter.energySegments" :key="segment.name" class="segment-item">
+                <view class="segment-name-wrap">
+                  <view :class="['segment-dot', segment.tone]"></view>
+                  <text class="segment-name">{{ segment.name }}</text>
+                </view>
+                <view class="segment-value-wrap">
+                  <text class="segment-value">{{ segment.value }}</text>
+                  <text class="segment-unit">kWh</text>
+                </view>
+              </view>
             </view>
           </view>
         </view>
 
         <view class="usage-card">
           <view class="usage-card-head">
-            <text class="section-title">用电统计</text>
-            <text class="today-badge">今日用电</text>
-          </view>
-
-          <view class="today-summary">
-            <view>
-              <text class="today-label">今日用电</text>
-              <view class="today-value">
-                <text>{{ meter.todayEnergy }}</text>
-                <text class="unit">kWh</text>
-              </view>
+            <text class="section-title">今日用电</text>
+            <view class="today-value">
+              <text>{{ meter.todayEnergy }}</text>
+              <text class="unit">kWh</text>
             </view>
-            <text class="today-time">截至 {{ meter.updateClock }}</text>
           </view>
 
           <view class="today-chart-wrap">
@@ -183,6 +211,21 @@ onLoad((query) => {
               :width-rpx="620"
               :height-rpx="270"
             />
+          </view>
+
+          <view class="segment-section today-segment-section">
+            <text class="segment-section-title">今日分项</text>
+            <view class="today-segment-grid">
+              <view v-for="segment in meter.todayEnergySegments" :key="segment.name" class="today-segment-item">
+                <view class="today-segment-name-wrap">
+                  <view :class="['segment-dot', segment.tone]"></view>
+                  <text class="today-segment-name">{{ segment.name }}</text>
+                </view>
+                <view class="today-segment-value-wrap">
+                  <text class="today-segment-value">{{ segment.value }}</text>
+                </view>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -266,9 +309,9 @@ onLoad((query) => {
   box-sizing: border-box;
   align-items: center;
   width: 100%;
-  min-height: design-rpx(122);
-  padding: design-rpx(18);
-  background: rgba(255, 255, 255, 0.94);
+  min-height: design-rpx(110);
+  padding: design-rpx(16) design-rpx(18);
+  background: rgba(255, 255, 255, 0.88);
   border: design-rpx(0.5) solid #e7edf6;
   border-radius: design-rpx(20);
   box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.045);
@@ -279,16 +322,16 @@ onLoad((query) => {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: design-rpx(86);
-  height: design-rpx(86);
-  margin-right: design-rpx(18);
+  width: design-rpx(66);
+  height: design-rpx(66);
+  margin-right: design-rpx(16);
   background: #eaf4ff;
-  border-radius: design-rpx(20);
+  border-radius: 999rpx;
 }
 
 .meter-icon {
-  width: design-rpx(66);
-  height: design-rpx(66);
+  width: design-rpx(50);
+  height: design-rpx(50);
 }
 
 .meter-main {
@@ -299,22 +342,30 @@ onLoad((query) => {
 .meter-title-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: design-rpx(12);
 }
 
 .meter-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   color: #06133d;
-  font-size: design-rpx(20);
+  font-size: design-rpx(16);
   font-weight: 700;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-pill {
   flex-shrink: 0;
-  padding: design-rpx(5) design-rpx(12);
+  min-width: design-rpx(44);
+  padding: design-rpx(5) design-rpx(10);
   font-size: design-rpx(13);
   font-weight: 600;
   line-height: 1;
+  text-align: center;
   border-radius: 999rpx;
 }
 
@@ -328,14 +379,29 @@ onLoad((query) => {
   background: #ffe5e7;
 }
 
-.meter-meta {
-  display: block;
-  margin-top: design-rpx(12);
+.meter-meta-line {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: design-rpx(10);
   overflow: hidden;
-  color: #3f5288;
-  font-size: design-rpx(14);
+  color: #7b879a;
+  font-size: design-rpx(13);
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.meter-meta-label {
+  display: block;
+  flex-shrink: 0;
+}
+
+.meter-meta-value {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -397,29 +463,117 @@ onLoad((query) => {
   font-weight: 400;
 }
 
-.segment-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: design-rpx(6);
+.segment-section {
   margin-top: design-rpx(18);
 }
 
-.segment-item {
+.today-segment-section {
+  margin: 0 design-rpx(18) design-rpx(18);
+  padding-top: design-rpx(16);
+  border-top: design-rpx(0.5) solid #edf2f9;
+}
+
+.today-segment-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: design-rpx(6);
+  margin-top: design-rpx(10);
+}
+
+.today-segment-item {
   display: flex;
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  padding: design-rpx(10) design-rpx(4);
+  padding: design-rpx(9) design-rpx(3);
   background: #f7faff;
   border: design-rpx(0.5) solid #edf2f9;
   border-radius: design-rpx(12);
 }
 
+.today-segment-name-wrap,
+.today-segment-value-wrap {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.today-segment-name-wrap {
+  gap: design-rpx(5);
+}
+
+.today-segment-value-wrap {
+  justify-content: center;
+  width: 100%;
+  margin-top: design-rpx(7);
+}
+
+.today-segment-name {
+  color: #6a7a8f;
+  font-size: design-rpx(12);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.today-segment-value {
+  color: #06133d;
+  font-size: design-rpx(12);
+  font-weight: 300;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.segment-section-title {
+  display: block;
+  color: #6a7a8f;
+  font-size: design-rpx(13);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.segment-list {
+  display: flex;
+  flex-direction: column;
+  gap: design-rpx(8);
+  margin-top: design-rpx(10);
+}
+
+.segment-item {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: design-rpx(42);
+  padding: 0 design-rpx(12);
+  background: #f7faff;
+  border: design-rpx(0.5) solid #edf2f9;
+  border-radius: design-rpx(12);
+}
+
+.segment-name-wrap,
+.segment-value-wrap {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.segment-name-wrap {
+  gap: design-rpx(8);
+}
+
+.segment-value-wrap {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  width: design-rpx(140);
+  gap: design-rpx(4);
+}
+
 .segment-dot {
+  flex-shrink: 0;
   width: design-rpx(8);
   height: design-rpx(8);
-  margin-bottom: design-rpx(6);
   border-radius: 999rpx;
 }
 
@@ -445,16 +599,22 @@ onLoad((query) => {
 
 .segment-name {
   color: #6a7a8f;
-  font-size: design-rpx(11);
+  font-size: design-rpx(13);
   font-weight: 500;
   line-height: 1;
 }
 
 .segment-value {
-  margin-top: design-rpx(7);
   color: #06133d;
-  font-size: design-rpx(12);
+  font-size: design-rpx(14);
   font-weight: 600;
+  line-height: 1;
+}
+
+.segment-unit {
+  color: #8a97ac;
+  font-size: design-rpx(11);
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -474,50 +634,14 @@ onLoad((query) => {
   padding: design-rpx(18) design-rpx(18) 0;
 }
 
-.today-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: design-rpx(28);
-  padding: 0 design-rpx(12);
-  color: #1677ff;
-  font-size: design-rpx(13);
-  font-weight: 600;
-  line-height: 1;
-  background: #eaf3ff;
-  border-radius: 999rpx;
-}
-
-.today-summary {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: design-rpx(20) design-rpx(18) 0;
-}
-
-.today-label {
-  display: block;
-  color: #6a7a8f;
-  font-size: design-rpx(13);
-  font-weight: 500;
-  line-height: 1;
-}
-
 .today-value {
   display: flex;
   align-items: baseline;
+  flex-shrink: 0;
   gap: design-rpx(6);
-  margin-top: design-rpx(10);
   color: #06133d;
-  font-size: design-rpx(30);
-  font-weight: 800;
-  line-height: 1;
-}
-
-.today-time {
-  color: #8a97ac;
-  font-size: design-rpx(12);
-  font-weight: 400;
+  font-size: design-rpx(24);
+  font-weight: 700;
   line-height: 1;
 }
 

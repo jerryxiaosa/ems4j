@@ -1,4 +1,10 @@
 {
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-icons$": "@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue"
+    }
+  },
   "pages": [
     {
       "path": "pages/login/index",

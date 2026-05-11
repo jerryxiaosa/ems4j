@@ -277,13 +277,14 @@ const handleUserAgreement = () => {
 
 .checked-circle::after {
   position: absolute;
-  top: design-rpx(4);
-  left: design-rpx(4);
+  top: 50%;
+  left: 50%;
   width: design-rpx(8);
   height: design-rpx(4);
   border-left: design-rpx(2) solid #ffffff;
   border-bottom: design-rpx(2) solid #ffffff;
-  transform: rotate(-45deg);
+  transform: translate(-50%, -62%) rotate(-45deg);
+  transform-origin: center;
   content: "";
   opacity: 0;
 }

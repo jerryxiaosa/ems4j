@@ -99,12 +99,13 @@ const toggleBalanceVisible = () => {
           <view class="balance-block">
             <view class="balance-label">
               <text>当前余额 (元)</text>
-              <view
-                :class="['icon-eye', isBalanceVisible ? 'is-open' : 'is-closed']"
+              <uni-icons
+                class="balance-eye-icon"
+                :type="isBalanceVisible ? 'eye' : 'eye-slash'"
+                :size="18"
+                color="#ffffff"
                 @click="toggleBalanceVisible"
-              >
-                <view></view>
-              </view>
+              />
             </view>
             <view class="balance-value">
               <template v-if="isBalanceVisible">
@@ -116,7 +117,7 @@ const toggleBalanceVisible = () => {
           </view>
           <button class="recharge-button" @click="goRecharge">
             <text>去充值</text>
-            <view class="arrow-line"></view>
+            <text class="recharge-chevron">›</text>
           </button>
         </view>
       </view>
@@ -349,47 +350,13 @@ const toggleBalanceVisible = () => {
   opacity: 0.82;
 }
 
-.icon-eye {
-  position: relative;
-  width: design-rpx(14);
-  height: design-rpx(9);
-  border: design-rpx(1.5) solid currentColor;
-  border-radius: 50%;
+.balance-eye-icon {
+  opacity: 0.92;
   transition: opacity 120ms ease, transform 120ms ease;
 }
 
-.icon-eye:active {
+.balance-eye-icon:active {
   transform: scale(0.92);
-}
-
-.icon-eye view {
-  position: absolute;
-  top: design-rpx(2);
-  left: design-rpx(4.5);
-  width: design-rpx(4);
-  height: design-rpx(4);
-  background: currentColor;
-  border-radius: 999rpx;
-}
-
-.icon-eye.is-closed {
-  opacity: 0.72;
-}
-
-.icon-eye.is-closed view {
-  display: none;
-}
-
-.icon-eye.is-closed::after {
-  position: absolute;
-  top: design-rpx(3);
-  left: design-rpx(-2);
-  width: design-rpx(18);
-  height: design-rpx(1.5);
-  background: currentColor;
-  border-radius: 999rpx;
-  content: "";
-  transform: rotate(-28deg);
 }
 
 .balance-value {
@@ -420,24 +387,12 @@ const toggleBalanceVisible = () => {
   box-shadow: 0 design-rpx(6) design-rpx(15) rgba(12, 43, 71, 0.12);
 }
 
-.arrow-line {
-  position: relative;
-  width: design-rpx(16);
-  height: design-rpx(1.5);
-  background: currentColor;
-  border-radius: 999rpx;
-}
-
-.arrow-line::after {
-  position: absolute;
-  right: 0;
-  top: design-rpx(-3);
-  width: design-rpx(6);
-  height: design-rpx(6);
-  border-top: design-rpx(1.5) solid currentColor;
-  border-right: design-rpx(1.5) solid currentColor;
-  transform: rotate(45deg);
-  content: "";
+.recharge-chevron {
+  display: block;
+  margin-left: design-rpx(-2);
+  font-size: design-rpx(22);
+  font-weight: 500;
+  line-height: 1;
 }
 
 .card {

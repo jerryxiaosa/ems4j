@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 
 const rechargeAmount = ref('200')
+const hasAgreed = ref(true)
 const serviceFeeAmount = '0.00'
 
 const formatAmount = (value: string) => {
@@ -31,7 +32,19 @@ const handleBack = () => {
   })
 }
 
-const goPaySuccess = () => {
+const toggleAgreement = () => {
+  hasAgreed.value = !hasAgreed.value
+}
+
+const handlePay = () => {
+  if (!hasAgreed.value) {
+    uni.showToast({
+      title: '请先阅读并同意用户服务协议和隐私政策',
+      icon: 'none'
+    })
+    return
+  }
+
   uni.redirectTo({
     url: '/pages/pay-success/index'
   })
@@ -107,7 +120,10 @@ onLoad((query) => {
         </view>
 
         <view class="agreement-row">
-          <view class="agreement-check"></view>
+          <view
+            :class="['agreement-check', hasAgreed ? 'is-checked' : '']"
+            @click="toggleAgreement"
+          ></view>
           <text class="agreement-text">我已阅读并同意</text>
           <text class="agreement-link">《用户服务协议》</text>
           <text class="agreement-text">和</text>
@@ -117,7 +133,7 @@ onLoad((query) => {
     </scroll-view>
 
     <view class="pay-bar">
-      <button class="pay-button" @click="goPaySuccess">
+      <button class="pay-button" @click="handlePay">
         <text>立即支付</text>
       </button>
     </view>
@@ -424,20 +440,37 @@ onLoad((query) => {
   width: design-rpx(18);
   height: design-rpx(18);
   margin-right: design-rpx(4);
-  background: #1677ff;
+  background: #ffffff;
+  border: design-rpx(1.5) solid #cbd5e1;
   border-radius: 999rpx;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.agreement-check:active {
+  transform: scale(0.9);
+}
+
+.agreement-check.is-checked {
+  background: #1677ff;
+  border-color: #1677ff;
 }
 
 .agreement-check::after {
   position: absolute;
-  top: design-rpx(5);
-  left: design-rpx(5);
-  width: design-rpx(7);
+  top: 50%;
+  left: 50%;
+  width: design-rpx(8);
   height: design-rpx(4);
   border-bottom: design-rpx(2) solid #ffffff;
   border-left: design-rpx(2) solid #ffffff;
-  transform: rotate(-45deg);
+  transform: translate(-50%, -62%) rotate(-45deg);
+  transform-origin: center;
   content: "";
+  opacity: 0;
+}
+
+.agreement-check.is-checked::after {
+  opacity: 1;
 }
 
 .agreement-link {
