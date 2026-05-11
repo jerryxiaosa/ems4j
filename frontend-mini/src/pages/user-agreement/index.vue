@@ -8,9 +8,6 @@ type AgreementSection = {
   items?: string[]
 }
 
-const effectiveDate = '2026年5月11日'
-const updatedDate = '2026年5月11日'
-
 const agreementSections: AgreementSection[] = [
   {
     title: '一、服务说明',
@@ -102,23 +99,6 @@ const handleBack = () => {
 
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
-        <view class="intro-card">
-          <text class="document-title">EMS4J 用户服务协议</text>
-          <text class="document-desc">
-            请您在使用本小程序前仔细阅读本协议。您点击同意或继续使用，即表示您已理解并接受本协议内容。
-          </text>
-          <view class="meta-list">
-            <view class="meta-row">
-              <text>生效日期</text>
-              <text>{{ effectiveDate }}</text>
-            </view>
-            <view class="meta-row">
-              <text>更新日期</text>
-              <text>{{ updatedDate }}</text>
-            </view>
-          </view>
-        </view>
-
         <view class="section-card">
           <view
             v-for="section in agreementSections"
@@ -175,7 +155,6 @@ const handleBack = () => {
   padding: design-rpx(16) design-rpx(22) design-rpx(36);
 }
 
-.intro-card,
 .section-card {
   background: #ffffff;
   border: design-rpx(1) solid rgba(219, 228, 242, 0.72);
@@ -183,55 +162,12 @@ const handleBack = () => {
   box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
 }
 
-.intro-card {
-  padding: design-rpx(20);
-}
-
-.document-title,
-.document-desc,
 .section-title,
 .section-paragraph {
   display: block;
 }
 
-.document-title {
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.document-desc {
-  margin-top: design-rpx(12);
-  color: #6a7a8f;
-  font-size: design-rpx(14);
-  font-weight: 400;
-  line-height: 1.7;
-}
-
-.meta-list {
-  margin-top: design-rpx(18);
-  padding: design-rpx(12) design-rpx(14);
-  background: #f7faff;
-  border-radius: design-rpx(12);
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #6a7a8f;
-  font-size: design-rpx(13);
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.meta-row + .meta-row {
-  margin-top: design-rpx(8);
-}
-
 .section-card {
-  margin-top: design-rpx(14);
   padding: design-rpx(20);
 }
 
