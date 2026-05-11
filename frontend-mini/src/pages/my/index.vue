@@ -6,7 +6,7 @@ type PrimaryAction = {
   title: string
   desc: string
   tone: 'recharge' | 'bill' | 'meter'
-  icon: 'charge' | 'bill' | 'meter'
+  iconSrc: string
   action: 'rechargeRecord' | 'billing' | 'meter'
 }
 
@@ -17,27 +17,29 @@ type SecondaryAction = {
 }
 
 const isBalanceVisible = ref(true)
+const profileAvatarIcon = '/static/icons/profile-avatar.png'
+const profileChargeBackgroundIcon = '/static/icons/profile-charge-bg.png'
 
 const primaryActions: PrimaryAction[] = [
   {
     title: '我的充值',
     desc: '查看充值缴费记录',
     tone: 'recharge',
-    icon: 'charge',
+    iconSrc: '/static/icons/profile-charge.png',
     action: 'rechargeRecord'
   },
   {
     title: '我的账单',
     desc: '查看用电明细和消费记录',
     tone: 'bill',
-    icon: 'bill',
+    iconSrc: '/static/icons/profile-bill.png',
     action: 'billing'
   },
   {
     title: '我的电表',
     desc: '管理我的电表和用电信息',
     tone: 'meter',
-    icon: 'meter',
+    iconSrc: '/static/icons/meter.png',
     action: 'meter'
   }
 ]
@@ -99,7 +101,7 @@ const toggleBalanceVisible = () => {
       <view class="content-stack">
         <view class="profile-card">
           <view class="avatar-wrap">
-            <image class="avatar-image" src="/static/icons/profile-avatar.png" mode="aspectFill" />
+            <image class="avatar-image" :src="profileAvatarIcon" mode="aspectFill" />
           </view>
 
           <view class="profile-main">
@@ -109,7 +111,7 @@ const toggleBalanceVisible = () => {
         </view>
 
         <view class="balance-card">
-          <image class="balance-bg" src="/static/icons/profile-charge-bg.png" mode="aspectFit" />
+          <image class="balance-bg" :src="profileChargeBackgroundIcon" mode="aspectFit" />
           <view class="balance-content">
             <view class="balance-label-row">
               <text>当前余额（元）</text>
@@ -138,24 +140,7 @@ const toggleBalanceVisible = () => {
             @click="handlePrimaryAction(item.action)"
           >
             <view :class="['action-icon', item.tone]">
-              <image
-                v-if="item.icon === 'charge'"
-                class="action-icon-image"
-                src="/static/icons/profile-charge.png"
-                mode="aspectFit"
-              />
-              <image
-                v-else-if="item.icon === 'bill'"
-                class="action-icon-image"
-                src="/static/icons/profile-bill.png"
-                mode="aspectFit"
-              />
-              <image
-                v-else-if="item.icon === 'meter'"
-                class="action-icon-image"
-                src="/static/icons/meter.png"
-                mode="aspectFit"
-              />
+              <image class="action-icon-image" :src="item.iconSrc" mode="aspectFit" />
             </view>
             <view class="action-copy">
               <text class="action-title">{{ item.title }}</text>
