@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('200')
 const hasAgreed = ref(true)
@@ -28,7 +29,7 @@ const handleBack = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/recharge/index'
+    url: miniRoute.recharge
   })
 }
 
@@ -46,7 +47,7 @@ const handlePay = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/pay-success/index'
+    url: miniRoute.paySuccess
   })
 }
 

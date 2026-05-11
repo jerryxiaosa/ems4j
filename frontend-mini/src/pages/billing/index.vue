@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { miniRoute } from '@/utils/route'
 
 type BillMonth = {
   month: string
@@ -24,7 +25,7 @@ const billMonths: BillMonth[] = [
 
 const handleBack = () => {
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: miniRoute.home
   })
 }
 
@@ -36,7 +37,7 @@ const openBillDetail = (bill: BillMonth) => {
   const isEmptyBill = !bill.amount && !bill.usage
 
   uni.navigateTo({
-    url: `/pages/billing-detail/index?month=${encodeURIComponent(bill.month)}&empty=${isEmptyBill ? '1' : '0'}`
+    url: `${miniRoute.billingDetail}?month=${encodeURIComponent(bill.month)}&empty=${isEmptyBill ? '1' : '0'}`
   })
 }
 </script>

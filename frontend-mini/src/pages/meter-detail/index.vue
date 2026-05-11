@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
+import { miniRoute } from '@/utils/route'
 
 type MeterStatus = 'normal' | 'offline'
 
@@ -124,7 +125,7 @@ const handleBack = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/meter/index'
+    url: miniRoute.meter
   })
 }
 

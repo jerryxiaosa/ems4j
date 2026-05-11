@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { miniRoute } from '@/utils/route'
 
 const hasAgreed = ref(true)
 
@@ -17,13 +18,13 @@ const handleLogin = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: miniRoute.home
   })
 }
 
 const handleUserAgreement = () => {
   uni.navigateTo({
-    url: '/pages/account-error/index'
+    url: miniRoute.accountError
   })
 }
 </script>

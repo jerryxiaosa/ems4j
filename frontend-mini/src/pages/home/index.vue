@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
+import { miniRoute } from '@/utils/route'
 
 type TrendType = 'usage' | 'cost'
 
@@ -84,19 +85,19 @@ const summaryCards = [
 
 const goRecharge = () => {
   uni.navigateTo({
-    url: '/pages/recharge/index'
+    url: miniRoute.recharge
   })
 }
 
 const goPayRecord = () => {
   uni.navigateTo({
-    url: '/pages/pay-record/index'
+    url: miniRoute.payRecord
   })
 }
 
 const goMeterList = () => {
   uni.navigateTo({
-    url: '/pages/meter/index'
+    url: miniRoute.meter
   })
 }
 

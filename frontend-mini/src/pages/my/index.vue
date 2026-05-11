@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { miniRoute } from '@/utils/route'
 
 type PrimaryAction = {
   title: string
@@ -52,9 +53,9 @@ const goPage = (url: string) => {
 
 const handlePrimaryAction = (action: PrimaryAction['action']) => {
   const actionUrlMap: Record<PrimaryAction['action'], string> = {
-    rechargeRecord: '/pages/pay-record/index',
-    billing: '/pages/billing/index',
-    meter: '/pages/meter/index'
+    rechargeRecord: miniRoute.payRecord,
+    billing: miniRoute.billing,
+    meter: miniRoute.meter
   }
 
   goPage(actionUrlMap[action])
@@ -82,12 +83,12 @@ const handleSecondaryAction = (action: SecondaryAction['action']) => {
   }
 
   uni.reLaunch({
-    url: '/pages/login/index'
+    url: miniRoute.login
   })
 }
 
 const goRecharge = () => {
-  goPage('/pages/recharge/index')
+  goPage(miniRoute.recharge)
 }
 
 const toggleBalanceVisible = () => {

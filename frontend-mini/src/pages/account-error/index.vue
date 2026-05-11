@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { miniRoute } from '@/utils/route'
+
 const handleBack = () => {
   const pages = getCurrentPages()
 
@@ -12,7 +14,7 @@ const handleBack = () => {
 
 const goLogin = () => {
   uni.redirectTo({
-    url: '/pages/login/index'
+    url: miniRoute.login
   })
 }
 </script>

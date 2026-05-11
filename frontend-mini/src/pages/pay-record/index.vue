@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { miniRoute } from '@/utils/route'
 
 const filterOptions = ['全部', '本年', '近6月', '近3月']
 const activeFilter = ref(filterOptions[0])
@@ -71,7 +72,7 @@ const handleBack = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/recharge/index'
+    url: miniRoute.recharge
   })
 }
 

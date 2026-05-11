@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('')
 const isBalanceVisible = ref(true)
 
 const handleBack = () => {
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: miniRoute.home
   })
 }
 
@@ -15,13 +16,13 @@ const goPayConfirm = () => {
   const amount = rechargeAmount.value || '200'
 
   uni.navigateTo({
-    url: `/pages/pay-confirm/index?amount=${encodeURIComponent(amount)}`
+    url: `${miniRoute.payConfirm}?amount=${encodeURIComponent(amount)}`
   })
 }
 
 const goPayRecord = () => {
   uni.navigateTo({
-    url: '/pages/pay-record/index'
+    url: miniRoute.payRecord
   })
 }
 

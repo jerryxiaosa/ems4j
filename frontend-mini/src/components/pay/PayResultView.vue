@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { miniRoute } from '@/utils/route'
 
 const props = defineProps<{
   status: 'success' | 'fail'
@@ -15,19 +16,19 @@ const secondaryButtonText = computed(() => (isSuccess.value ? '查看缴费记�
 
 const goHome = () => {
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: miniRoute.home
   })
 }
 
 const retryPay = () => {
   uni.redirectTo({
-    url: '/pages/pay-confirm/index'
+    url: miniRoute.payConfirm
   })
 }
 
 const goPayRecord = () => {
   uni.redirectTo({
-    url: '/pages/pay-record/index'
+    url: miniRoute.payRecord
   })
 }
 

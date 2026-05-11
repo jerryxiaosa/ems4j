@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { miniRoute } from '@/utils/route'
+
 type MeterStatus = 'normal' | 'offline'
 
 type MeterItem = {
@@ -42,13 +44,13 @@ const handleBack = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: miniRoute.home
   })
 }
 
 const openMeterDetail = (meter: MeterItem) => {
   uni.navigateTo({
-    url: `/pages/meter-detail/index?id=${encodeURIComponent(meter.id)}`
+    url: `${miniRoute.meterDetail}?id=${encodeURIComponent(meter.id)}`
   })
 }
 </script>

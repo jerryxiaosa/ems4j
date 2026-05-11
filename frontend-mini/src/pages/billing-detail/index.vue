@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { miniRoute } from '@/utils/route'
 
 type DailyBill = {
   date: string
@@ -67,7 +68,7 @@ const handleBack = () => {
   }
 
   uni.redirectTo({
-    url: '/pages/billing/index'
+    url: miniRoute.billing
   })
 }
 
