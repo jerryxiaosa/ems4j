@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 
 const rechargeAmount = ref('')
+const isBalanceVisible = ref(true)
 
 const handleBack = () => {
   uni.redirectTo({
@@ -24,6 +25,10 @@ const goPayRecord = () => {
   })
 }
 
+const toggleBalanceVisible = () => {
+  isBalanceVisible.value = !isBalanceVisible.value
+}
+
 </script>
 
 <template>
@@ -38,24 +43,37 @@ const goPayRecord = () => {
 
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
-        <view class="meter-card">
-          <image class="meter-hero" src="/static/stitch/pay-confirm-hero.jpg" mode="aspectFill" />
-          <view class="meter-info">
+        <view class="account-card">
+          <image class="account-hero" src="/static/stitch/pay-confirm-hero.jpg" mode="aspectFill" />
+          <view class="account-overlay"></view>
+          <view class="account-info">
             <view class="community-row">
               <view class="community-icon">
                 <image class="community-icon-image" src="/static/icons/account-house-white.svg" mode="aspectFit" />
               </view>
               <text>星河家园 2 栋住户账户</text>
             </view>
-            <text class="room-text">1 单元 101 室</text>
-            <text class="meter-no">电表编号：01234567890123456789</text>
+            <view class="balance-label">
+              <text>当前余额（元）</text>
+              <button
+                :class="['balance-eye-button', isBalanceVisible ? 'is-visible' : '']"
+                aria-label="切换余额显示"
+                @click="toggleBalanceVisible"
+              >
+                <view class="balance-eye-icon"></view>
+              </button>
+            </view>
+            <view class="balance-value">
+              <text v-if="isBalanceVisible" class="currency-mark">¥</text>
+              <text>{{ isBalanceVisible ? '1,234.56' : '--' }}</text>
+            </view>
           </view>
         </view>
 
         <view class="form-card">
           <text class="section-title">充值金额</text>
           <view class="amount-input-wrap">
-            <text class="currency-mark">¥</text>
+            <text class="amount-currency">¥</text>
             <input
               v-model="rechargeAmount"
               class="amount-input"
@@ -154,16 +172,17 @@ const goPayRecord = () => {
   padding: design-rpx(16) design-rpx(22) design-rpx(156);
 }
 
-.meter-card {
+.account-card {
   position: relative;
   min-height: design-rpx(138);
   overflow: hidden;
+  color: #06133d;
   background: #eef6ff;
   border-radius: design-rpx(20);
   box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
 }
 
-.meter-hero {
+.account-hero {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -172,15 +191,14 @@ const goPayRecord = () => {
   opacity: 0.96;
 }
 
-.meter-card::after {
+.account-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
   background: linear-gradient(90deg, rgba(238, 246, 255, 0.96) 0%, rgba(238, 246, 255, 0.84) 43%, rgba(238, 246, 255, 0.08) 100%);
-  content: "";
 }
 
-.meter-info {
+.account-info {
   position: relative;
   z-index: 3;
   padding: design-rpx(22) design-rpx(16);
@@ -192,7 +210,14 @@ const goPayRecord = () => {
   gap: design-rpx(10);
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 600;
+  font-weight: 400;
+}
+
+.community-row text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .community-icon {
@@ -211,20 +236,80 @@ const goPayRecord = () => {
   height: design-rpx(14);
 }
 
-.room-text {
-  display: block;
-  margin-top: design-rpx(18);
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 500;
-}
-
-.meter-no {
-  display: block;
-  margin-top: design-rpx(14);
+.balance-label {
+  display: flex;
+  align-items: center;
+  gap: design-rpx(8);
+  margin-top: design-rpx(22);
   color: #8a97ac;
   font-size: design-rpx(13);
   font-weight: 500;
+}
+
+.balance-eye-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: design-rpx(24);
+  height: design-rpx(24);
+  padding: 0;
+  line-height: 1;
+  color: currentColor;
+  background: transparent;
+  border: 0;
+  border-radius: 999rpx;
+}
+
+.balance-eye-button::after {
+  border: 0;
+}
+
+.balance-eye-icon {
+  position: relative;
+  width: design-rpx(18);
+  height: design-rpx(11);
+  border: design-rpx(1.5) solid currentColor;
+  border-radius: 50%;
+}
+
+.balance-eye-icon::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: design-rpx(4);
+  height: design-rpx(4);
+  background: currentColor;
+  border-radius: 999rpx;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.balance-eye-button:not(.is-visible) .balance-eye-icon::after {
+  position: absolute;
+  top: 50%;
+  left: design-rpx(-2);
+  width: design-rpx(22);
+  height: design-rpx(2);
+  background: currentColor;
+  border-radius: 999rpx;
+  content: "";
+  transform: rotate(-35deg);
+}
+
+.balance-value {
+  display: flex;
+  align-items: baseline;
+  gap: design-rpx(6);
+  margin-top: design-rpx(12);
+  color: #06133d;
+  font-size: design-rpx(30);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.currency-mark {
+  font-size: design-rpx(22);
+  font-weight: 400;
 }
 
 .form-card {
@@ -258,7 +343,7 @@ const goPayRecord = () => {
   border-radius: design-rpx(12);
 }
 
-.currency-mark {
+.amount-currency {
   color: #152234;
   font-size: design-rpx(22);
   font-weight: 600;

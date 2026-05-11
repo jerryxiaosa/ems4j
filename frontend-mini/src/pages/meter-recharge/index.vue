@@ -21,7 +21,6 @@ const meterList: MeterOption[] = [
 const rechargeAmount = ref('')
 const selectedMeterId = ref(meterList[0].id)
 const showMeterSheet = ref(false)
-const isBalanceVisible = ref(true)
 
 const selectedMeter = computed(() => meterList.find((meter) => meter.id === selectedMeterId.value) ?? meterList[0])
 
@@ -60,10 +59,6 @@ const closeMeterSheet = () => {
   showMeterSheet.value = false
 }
 
-const toggleBalanceVisible = () => {
-  isBalanceVisible.value = !isBalanceVisible.value
-}
-
 const selectMeter = (meter: MeterOption) => {
   selectedMeterId.value = meter.id
   closeMeterSheet()
@@ -92,19 +87,9 @@ const selectMeter = (meter: MeterOption) => {
               </view>
               <text>星河家园 2 栋住户账户</text>
             </view>
-            <view class="balance-label">
-              <text>账户余额（元）</text>
-              <button
-                :class="['balance-eye-button', isBalanceVisible ? 'is-visible' : '']"
-                aria-label="切换余额显示"
-                @click="toggleBalanceVisible"
-              >
-                <view class="balance-eye-icon"></view>
-              </button>
-            </view>
-            <view class="balance-value">
-              <text v-if="isBalanceVisible" class="currency-mark">¥</text>
-              <text>{{ isBalanceVisible ? '1,234.56' : '--' }}</text>
+            <view class="meter-count-entry" @click="openMeterSheet">
+              <text>共 {{ meterList.length }} 个电表</text>
+              <view class="right-chevron light"></view>
             </view>
           </view>
         </view>
@@ -123,7 +108,7 @@ const selectMeter = (meter: MeterOption) => {
               <text class="meter-no">电表编号：{{ selectedMeter.meterNo }}</text>
             </view>
             <view class="meter-balance">
-              <text class="balance-caption">当前余额</text>
+              <text class="balance-caption">电表余额</text>
               <text class="balance-amount">¥ {{ selectedMeter.balance }}</text>
             </view>
           </view>
@@ -182,7 +167,7 @@ const selectMeter = (meter: MeterOption) => {
                 <text class="option-meter-no">电表编号：{{ meter.meterNo }}</text>
               </view>
               <view class="option-balance">
-                <text class="option-balance-label">当前余额</text>
+                <text class="option-balance-label">电表余额</text>
                 <text class="option-balance-value">¥ {{ meter.balance }}</text>
               </view>
             </view>
@@ -295,6 +280,9 @@ const selectMeter = (meter: MeterOption) => {
 .account-info {
   position: relative;
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   padding: design-rpx(22) design-rpx(16);
 }
 
@@ -351,80 +339,16 @@ const selectMeter = (meter: MeterOption) => {
   color: currentColor;
 }
 
-.balance-label {
+.meter-count-entry {
   display: flex;
   align-items: center;
   gap: design-rpx(8);
-  margin-top: design-rpx(22);
-  color: #8a97ac;
-  font-size: design-rpx(13);
-  font-weight: 500;
-}
-
-.balance-eye-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(24);
-  height: design-rpx(24);
-  padding: 0;
-  line-height: 1;
-  color: currentColor;
-  background: transparent;
-  border: 0;
-  border-radius: 999rpx;
-}
-
-.balance-eye-button::after {
-  border: 0;
-}
-
-.balance-eye-icon {
-  position: relative;
-  width: design-rpx(18);
-  height: design-rpx(11);
-  border: design-rpx(1.5) solid currentColor;
-  border-radius: 50%;
-}
-
-.balance-eye-icon::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: design-rpx(4);
-  height: design-rpx(4);
-  background: currentColor;
-  border-radius: 999rpx;
-  content: "";
-  transform: translate(-50%, -50%);
-}
-
-.balance-eye-button:not(.is-visible) .balance-eye-icon::after {
-  position: absolute;
-  top: 50%;
-  left: design-rpx(-2);
-  width: design-rpx(22);
-  height: design-rpx(2);
-  background: currentColor;
-  border-radius: 999rpx;
-  content: "";
-  transform: rotate(-35deg);
-}
-
-.balance-value {
-  display: flex;
-  align-items: baseline;
-  gap: design-rpx(6);
-  margin-top: design-rpx(12);
+  margin-top: design-rpx(44);
+  padding: design-rpx(8) 0;
   color: #06133d;
-  font-size: design-rpx(30);
+  font-size: design-rpx(13);
   font-weight: 400;
   line-height: 1;
-}
-
-.currency-mark {
-  font-size: design-rpx(22);
-  font-weight: 400;
 }
 
 .form-card {
