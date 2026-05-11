@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppAmount from '@/components/common/AppAmount.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
 import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('')
@@ -51,17 +53,10 @@ const toggleBalanceVisible = () => {
             </view>
             <view class="balance-label">
               <text>当前余额（元）</text>
-              <button
-                :class="['balance-eye-button', isBalanceVisible ? 'is-visible' : '']"
-                aria-label="切换余额显示"
-                @click="toggleBalanceVisible"
-              >
-                <view class="balance-eye-icon"></view>
-              </button>
+              <AppVisibilityToggle :visible="isBalanceVisible" @toggle="toggleBalanceVisible" />
             </view>
             <view class="balance-value">
-              <text v-if="isBalanceVisible" class="currency-mark">¥</text>
-              <text>{{ isBalanceVisible ? '1,234.56' : '--' }}</text>
+              <AppAmount :visible="isBalanceVisible" value="1,234.56" size="medium" />
             </view>
           </view>
         </view>
@@ -200,70 +195,9 @@ const toggleBalanceVisible = () => {
   font-weight: 500;
 }
 
-.balance-eye-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(24);
-  height: design-rpx(24);
-  padding: 0;
-  line-height: 1;
-  color: currentColor;
-  background: transparent;
-  border: 0;
-  border-radius: 999rpx;
-}
-
-.balance-eye-button::after {
-  border: 0;
-}
-
-.balance-eye-icon {
-  position: relative;
-  width: design-rpx(18);
-  height: design-rpx(11);
-  border: design-rpx(1.5) solid currentColor;
-  border-radius: 50%;
-}
-
-.balance-eye-icon::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: design-rpx(4);
-  height: design-rpx(4);
-  background: currentColor;
-  border-radius: 999rpx;
-  content: "";
-  transform: translate(-50%, -50%);
-}
-
-.balance-eye-button:not(.is-visible) .balance-eye-icon::after {
-  position: absolute;
-  top: 50%;
-  left: design-rpx(-2);
-  width: design-rpx(22);
-  height: design-rpx(2);
-  background: currentColor;
-  border-radius: 999rpx;
-  content: "";
-  transform: rotate(-35deg);
-}
-
 .balance-value {
-  display: flex;
-  align-items: baseline;
-  gap: design-rpx(6);
-  margin-top: design-rpx(12);
+  margin-top: design-rpx(22);
   color: #06133d;
-  font-size: design-rpx(30);
-  font-weight: 400;
-  line-height: 1;
-}
-
-.currency-mark {
-  font-size: design-rpx(22);
-  font-weight: 400;
 }
 
 .form-card {

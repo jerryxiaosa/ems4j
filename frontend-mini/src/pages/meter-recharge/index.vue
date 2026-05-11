@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import AppAmount from '@/components/common/AppAmount.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import { miniRoute } from '@/utils/route'
@@ -105,7 +106,9 @@ const selectMeter = (meter: MeterOption) => {
             </view>
             <view class="meter-balance">
               <text class="balance-caption">电表余额</text>
-              <text class="balance-amount">¥ {{ selectedMeter.balance }}</text>
+              <view class="balance-amount">
+                <AppAmount :value="selectedMeter.balance" size="small" />
+              </view>
             </view>
           </view>
         </view>
@@ -164,7 +167,9 @@ const selectMeter = (meter: MeterOption) => {
               </view>
               <view class="option-balance">
                 <text class="option-balance-label">电表余额</text>
-                <text class="option-balance-value">¥ {{ meter.balance }}</text>
+                <view class="option-balance-value">
+                  <AppAmount :value="meter.balance" size="small" />
+                </view>
               </view>
             </view>
           </view>
@@ -401,10 +406,9 @@ const selectMeter = (meter: MeterOption) => {
 }
 
 .balance-amount {
-  display: block;
+  display: flex;
+  justify-content: flex-end;
   margin-top: design-rpx(8);
-  font-size: design-rpx(18);
-  font-weight: 400;
 }
 
 .amount-input-wrap {
@@ -621,8 +625,7 @@ const selectMeter = (meter: MeterOption) => {
 
 .option-room,
 .option-meter-no,
-.option-balance-label,
-.option-balance-value {
+.option-balance-label {
   display: block;
 }
 
@@ -661,9 +664,9 @@ const selectMeter = (meter: MeterOption) => {
 }
 
 .option-balance-value {
+  display: flex;
+  justify-content: flex-end;
   margin-top: design-rpx(8);
-  font-size: design-rpx(18);
-  font-weight: 400;
 }
 
 .meter-option-card.is-selected .option-balance-label {

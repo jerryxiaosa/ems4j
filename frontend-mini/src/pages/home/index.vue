@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import AppAmount from '@/components/common/AppAmount.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
 import { miniRoute } from '@/utils/route'
 
@@ -135,21 +137,9 @@ const toggleBalanceVisible = () => {
           <view class="balance-block">
             <view class="balance-label">
               <text>当前余额 (元)</text>
-              <uni-icons
-                class="balance-eye-icon"
-                :type="isBalanceVisible ? 'eye' : 'eye-slash'"
-                :size="18"
-                color="#ffffff"
-                @click="toggleBalanceVisible"
-              />
+              <AppVisibilityToggle :visible="isBalanceVisible" @toggle="toggleBalanceVisible" />
             </view>
-            <view class="balance-value">
-              <template v-if="isBalanceVisible">
-                <text class="currency">¥</text>
-                <text>1,234.56</text>
-              </template>
-              <text v-else>--</text>
-            </view>
+            <AppAmount :visible="isBalanceVisible" value="1,234.56" />
           </view>
           <button class="recharge-button" @click="goRecharge">
             <text>去充值</text>
@@ -385,29 +375,6 @@ const toggleBalanceVisible = () => {
   margin-bottom: design-rpx(4);
   font-size: design-rpx(12);
   opacity: 0.82;
-}
-
-.balance-eye-icon {
-  opacity: 0.92;
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-
-.balance-eye-icon:active {
-  transform: scale(0.92);
-}
-
-.balance-value {
-  display: flex;
-  align-items: baseline;
-  gap: design-rpx(2);
-  font-size: design-rpx(38);
-  font-weight: 800;
-  line-height: 1.08;
-}
-
-.currency {
-  font-size: design-rpx(24);
-  font-weight: 700;
 }
 
 .recharge-button {
