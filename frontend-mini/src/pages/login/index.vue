@@ -74,7 +74,7 @@ const handleUserAgreement = () => {
           @click="toggleAgreement"
         ></view>
         <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" @click="handleUserAgreement">《用户协议》</text>
+        <text class="agreement-link" @click="handleUserAgreement">《用户服务协议》</text>
         <text class="agreement-text">和</text>
         <text class="agreement-link">《隐私政策》</text>
       </view>
