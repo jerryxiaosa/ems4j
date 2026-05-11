@@ -41,6 +41,7 @@ export const appTabItems: AppTabItem[] = [
   {
     key: 'profile',
     label: '我的',
+    url: '/pages/my/index',
     icon: {
       default: '/static/icons/tab-profile-reference.png',
       active: '/static/icons/tab-profile-reference-active.png'
