@@ -37,6 +37,12 @@
       }
     },
     {
+      "path": "pages/meter-detail/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/billing/index",
       "style": {
         "navigationStyle": "custom"

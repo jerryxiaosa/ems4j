@@ -1,5 +1,21 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
+const hasAgreed = ref(true)
+
+const toggleAgreement = () => {
+  hasAgreed.value = !hasAgreed.value
+}
+
 const handleLogin = () => {
+  if (!hasAgreed.value) {
+    uni.showToast({
+      title: '请先阅读并同意用户协议和隐私政策',
+      icon: 'none'
+    })
+    return
+  }
+
   uni.redirectTo({
     url: '/pages/home/index'
   })
@@ -52,7 +68,10 @@ const handleUserAgreement = () => {
       </button>
 
       <view class="agreement-row">
-        <view class="checked-circle"></view>
+        <view
+          :class="['checked-circle', hasAgreed ? 'is-checked' : '']"
+          @click="toggleAgreement"
+        ></view>
         <text class="agreement-text">我已阅读并同意</text>
         <text class="agreement-link" @click="handleUserAgreement">《用户协议》</text>
         <text class="agreement-text">和</text>
@@ -241,9 +260,19 @@ const handleUserAgreement = () => {
   width: design-rpx(18);
   height: design-rpx(18);
   margin-right: design-rpx(8);
-  background: #07c160;
-  border: design-rpx(1.5) solid #07c160;
+  background: #ffffff;
+  border: design-rpx(1.5) solid #cbd5e1;
   border-radius: 999rpx;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.checked-circle:active {
+  transform: scale(0.9);
+}
+
+.checked-circle.is-checked {
+  background: #07c160;
+  border-color: #07c160;
 }
 
 .checked-circle::after {
@@ -256,6 +285,11 @@ const handleUserAgreement = () => {
   border-bottom: design-rpx(2) solid #ffffff;
   transform: rotate(-45deg);
   content: "";
+  opacity: 0;
+}
+
+.checked-circle.is-checked::after {
+  opacity: 1;
 }
 
 .agreement-text,

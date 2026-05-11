@@ -46,10 +46,9 @@ const handleBack = () => {
   })
 }
 
-const openMeterDetail = () => {
-  uni.showToast({
-    title: '电表详情待接入',
-    icon: 'none'
+const openMeterDetail = (meter: MeterItem) => {
+  uni.navigateTo({
+    url: `/pages/meter-detail/index?id=${encodeURIComponent(meter.id)}`
   })
 }
 </script>
@@ -67,9 +66,14 @@ const openMeterDetail = () => {
     <scroll-view class="meter-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <view class="meter-list">
-          <view v-for="meter in meterList" :key="meter.id" class="meter-card" @click="openMeterDetail">
+          <view
+            v-for="meter in meterList"
+            :key="meter.id"
+            class="meter-card"
+            @click="openMeterDetail(meter)"
+          >
             <view class="meter-icon-wrap">
-              <image class="meter-icon" src="/static/stitch/meter.png" mode="aspectFit" />
+              <image class="meter-icon" src="/static/icons/meter.png" mode="aspectFit" />
             </view>
 
             <view class="meter-copy">
@@ -87,6 +91,9 @@ const openMeterDetail = () => {
                 <text class="meter-meta-label">所在位置：</text>
                 <text class="meter-meta-value">{{ meter.location }}</text>
               </view>
+            </view>
+            <view class="meter-action" aria-hidden="true">
+              <view class="meter-chevron"></view>
             </view>
           </view>
         </view>
@@ -202,6 +209,24 @@ const openMeterDetail = () => {
 .meter-copy {
   flex: 1;
   min-width: 0;
+}
+
+.meter-action {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: design-rpx(24);
+  height: design-rpx(66);
+  margin-left: design-rpx(10);
+}
+
+.meter-chevron {
+  width: design-rpx(8);
+  height: design-rpx(8);
+  border-top: design-rpx(2) solid #9aa8bd;
+  border-right: design-rpx(2) solid #9aa8bd;
+  transform: rotate(45deg);
 }
 
 .meter-title-row {

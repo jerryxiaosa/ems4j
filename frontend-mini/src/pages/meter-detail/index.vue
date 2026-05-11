@@ -1,0 +1,439 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import TrendLineChart from '@/components/chart/TrendLineChart.vue'
+
+type MeterStatus = 'normal' | 'offline'
+
+type MeterDetail = {
+  id: string
+  name: string
+  meterNo: string
+  location: string
+  balance: string
+  status: MeterStatus
+  totalEnergy: string
+  todayEnergy: string
+  todayUsageValues: number[]
+  updateTime: string
+  updateClock: string
+}
+
+const meterList: MeterDetail[] = [
+  {
+    id: 'meter-1',
+    name: '客厅电表',
+    meterNo: '01234567890123456789',
+    location: '1 单元 101 室',
+    balance: '128.56',
+    status: 'normal',
+    totalEnergy: '87.21',
+    todayEnergy: '2.36',
+    todayUsageValues: [0.06, 0.22, 0.48, 0.85, 1.72, 2.36],
+    updateTime: '2024-05-20 09:41:00',
+    updateClock: '09:41'
+  },
+  {
+    id: 'meter-2',
+    name: '卧室电表',
+    meterNo: '98765432109876543210',
+    location: '1 单元 202 室',
+    balance: '64.20',
+    status: 'normal',
+    totalEnergy: '42.18',
+    todayEnergy: '1.64',
+    todayUsageValues: [0.04, 0.16, 0.33, 0.62, 1.12, 1.64],
+    updateTime: '2024-05-20 09:41:00',
+    updateClock: '09:41'
+  },
+  {
+    id: 'meter-3',
+    name: '商铺电表',
+    meterNo: '11223344556677889900',
+    location: '2 单元 301 室',
+    balance: '0.00',
+    status: 'offline',
+    totalEnergy: '16.80',
+    todayEnergy: '0.58',
+    todayUsageValues: [0.02, 0.08, 0.13, 0.22, 0.41, 0.58],
+    updateTime: '2024-05-20 09:41:00',
+    updateClock: '09:41'
+  }
+]
+
+const todayUsageCategories = ['00:00', '02:00', '04:00', '06:00', '08:00', '09:41']
+
+const meterId = ref(meterList[0].id)
+
+const meter = computed(() => {
+  return meterList.find((item) => item.id === meterId.value) ?? meterList[0]
+})
+
+const handleBack = () => {
+  uni.navigateBack({
+    delta: 1
+  })
+}
+
+onLoad((query) => {
+  if (query?.id) {
+    meterId.value = String(query.id)
+  }
+})
+</script>
+
+<template>
+  <view class="meter-detail-page">
+    <view class="page-header">
+      <button class="back-button" aria-label="返回" @click="handleBack">
+        <view class="back-chevron"></view>
+      </button>
+      <text class="page-title">电表详情</text>
+      <view class="header-placeholder"></view>
+    </view>
+
+    <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
+      <view class="content-stack">
+        <view class="meter-hero-card">
+          <view class="meter-icon-wrap">
+            <image class="meter-icon" src="/static/icons/meter.png" mode="aspectFit" />
+          </view>
+          <view class="meter-main">
+            <view class="meter-title-row">
+              <text class="meter-title">{{ meter.name }}</text>
+              <text :class="['status-pill', meter.status === 'normal' ? 'is-normal' : 'is-offline']">
+                {{ meter.status === 'normal' ? '正常' : '离线' }}
+              </text>
+            </view>
+            <text class="meter-meta">电表编号：{{ meter.meterNo }}</text>
+            <text class="meter-meta">所在位置：{{ meter.location }}</text>
+          </view>
+        </view>
+
+        <view class="balance-row">
+          <view>
+            <text class="section-title">当前余额</text>
+            <text class="update-time">更新时间：{{ meter.updateTime }}</text>
+          </view>
+          <text class="balance-value">¥ {{ meter.balance }}</text>
+        </view>
+
+        <view class="total-row">
+          <view>
+            <text class="section-title">总电量</text>
+            <text class="update-time">更新时间：{{ meter.updateTime }}</text>
+          </view>
+          <view class="total-value">
+            <text>{{ meter.totalEnergy }}</text>
+            <text class="unit">kWh</text>
+          </view>
+        </view>
+
+        <view class="usage-card">
+          <view class="usage-card-head">
+            <text class="section-title">用电统计</text>
+            <text class="today-badge">今日用电</text>
+          </view>
+
+          <view class="today-summary">
+            <view>
+              <text class="today-label">今日用电</text>
+              <view class="today-value">
+                <text>{{ meter.todayEnergy }}</text>
+                <text class="unit">kWh</text>
+              </view>
+            </view>
+            <text class="today-time">截至 {{ meter.updateClock }}</text>
+          </view>
+
+          <view class="today-chart-wrap">
+            <TrendLineChart
+              canvas-id="meterTodayUsageChart"
+              :categories="todayUsageCategories"
+              :values="meter.todayUsageValues"
+              series-name="今日用电"
+              unit="kWh"
+              :max="4"
+              :width-rpx="620"
+              :height-rpx="270"
+            />
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<style scoped lang="scss">
+@use "sass:math";
+
+@function design-rpx($px) {
+  @return math.div($px * 750rpx, 390);
+}
+
+.meter-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 750rpx;
+  max-width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  color: #06133d;
+  background: linear-gradient(180deg, #f6faff 0%, #ffffff 100%);
+}
+
+.page-header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: design-rpx(86);
+  padding: design-rpx(34) design-rpx(20) 0;
+}
+
+.back-button,
+.header-placeholder {
+  width: design-rpx(40);
+  height: design-rpx(40);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-chevron {
+  width: design-rpx(14);
+  height: design-rpx(14);
+  border-bottom: design-rpx(2.5) solid #06133d;
+  border-left: design-rpx(2.5) solid #06133d;
+  transform: rotate(45deg);
+}
+
+.page-title {
+  position: absolute;
+  left: 50%;
+  color: #06133d;
+  font-size: design-rpx(20);
+  font-weight: 700;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.page-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
+.content-stack {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: design-rpx(28) design-rpx(22) design-rpx(34);
+}
+
+.meter-hero-card {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  width: 100%;
+  min-height: design-rpx(122);
+  padding: design-rpx(18);
+  background: rgba(255, 255, 255, 0.94);
+  border: design-rpx(0.5) solid #e7edf6;
+  border-radius: design-rpx(20);
+  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.045);
+}
+
+.meter-icon-wrap {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: design-rpx(86);
+  height: design-rpx(86);
+  margin-right: design-rpx(18);
+  background: #eaf4ff;
+  border-radius: design-rpx(20);
+}
+
+.meter-icon {
+  width: design-rpx(66);
+  height: design-rpx(66);
+}
+
+.meter-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.meter-title-row {
+  display: flex;
+  align-items: center;
+  gap: design-rpx(12);
+}
+
+.meter-title {
+  color: #06133d;
+  font-size: design-rpx(20);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.status-pill {
+  flex-shrink: 0;
+  padding: design-rpx(5) design-rpx(12);
+  font-size: design-rpx(13);
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999rpx;
+}
+
+.status-pill.is-normal {
+  color: #11a646;
+  background: #def8e7;
+}
+
+.status-pill.is-offline {
+  color: #ff3b45;
+  background: #ffe5e7;
+}
+
+.meter-meta {
+  display: block;
+  margin-top: design-rpx(12);
+  overflow: hidden;
+  color: #3f5288;
+  font-size: design-rpx(14);
+  font-weight: 400;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.balance-row,
+.total-row {
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: design-rpx(24);
+  padding: design-rpx(18);
+  background: rgba(255, 255, 255, 0.94);
+  border: design-rpx(0.5) solid #e7edf6;
+  border-radius: design-rpx(20);
+  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
+}
+
+.section-title {
+  display: block;
+  color: #06133d;
+  font-size: design-rpx(18);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.update-time {
+  display: block;
+  margin-top: design-rpx(12);
+  color: #4a5d91;
+  font-size: design-rpx(13);
+  font-weight: 400;
+}
+
+.balance-value {
+  color: #1677ff;
+  font-size: design-rpx(24);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.total-value {
+  display: flex;
+  align-items: baseline;
+  gap: design-rpx(8);
+  color: #06133d;
+  font-size: design-rpx(34);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.unit {
+  color: #3f5288;
+  font-size: design-rpx(17);
+  font-weight: 400;
+}
+
+.usage-card {
+  margin-top: design-rpx(24);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.94);
+  border: design-rpx(0.5) solid #e7edf6;
+  border-radius: design-rpx(20);
+  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
+}
+
+.usage-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: design-rpx(18) design-rpx(18) 0;
+}
+
+.today-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: design-rpx(28);
+  padding: 0 design-rpx(12);
+  color: #1677ff;
+  font-size: design-rpx(13);
+  font-weight: 600;
+  line-height: 1;
+  background: #eaf3ff;
+  border-radius: 999rpx;
+}
+
+.today-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: design-rpx(20) design-rpx(18) 0;
+}
+
+.today-label {
+  display: block;
+  color: #6a7a8f;
+  font-size: design-rpx(13);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.today-value {
+  display: flex;
+  align-items: baseline;
+  gap: design-rpx(6);
+  margin-top: design-rpx(10);
+  color: #06133d;
+  font-size: design-rpx(30);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.today-time {
+  color: #8a97ac;
+  font-size: design-rpx(12);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.today-chart-wrap {
+  margin-top: design-rpx(12);
+  padding: 0 design-rpx(8) design-rpx(10);
+  overflow: hidden;
+}
+</style>
