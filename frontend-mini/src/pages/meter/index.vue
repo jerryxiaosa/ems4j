@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import { miniRoute } from '@/utils/route'
 
 type MeterStatus = 'normal' | 'offline'
@@ -57,13 +58,7 @@ const openMeterDetail = (meter: MeterItem) => {
 
 <template>
   <view class="meter-page">
-    <view class="page-header">
-      <button class="back-button" aria-label="返回" @click="handleBack">
-        <view class="back-chevron"></view>
-      </button>
-      <text class="page-title">我的电表</text>
-      <view class="header-placeholder"></view>
-    </view>
+    <AppBackHeader title="我的电表" @back="handleBack" />
 
     <scroll-view class="meter-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
@@ -120,47 +115,6 @@ const openMeterDetail = (meter: MeterItem) => {
   overflow: hidden;
   color: #06133d;
   background: linear-gradient(180deg, #f6faff 0%, #ffffff 100%);
-}
-
-.page-header {
-  position: relative;
-  z-index: 20;
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  height: design-rpx(86);
-  padding: design-rpx(34) design-rpx(20) 0;
-}
-
-.back-button,
-.header-placeholder {
-  width: design-rpx(40);
-  height: design-rpx(40);
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-chevron {
-  width: design-rpx(14);
-  height: design-rpx(14);
-  border-bottom: design-rpx(2.5) solid #06133d;
-  border-left: design-rpx(2.5) solid #06133d;
-  transform: rotate(45deg);
-}
-
-.page-title {
-  position: absolute;
-  left: 50%;
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 400;
-  line-height: 1;
-  transform: translateX(-50%);
 }
 
 .meter-scroll {

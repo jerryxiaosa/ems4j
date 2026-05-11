@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { miniRoute } from '@/utils/route'
 
 const props = defineProps<{
@@ -53,9 +54,7 @@ const handleSecondary = () => {
 
 <template>
   <view class="pay-result-page">
-    <view class="page-header">
-      <text class="page-title">{{ pageTitle }}</text>
-    </view>
+    <AppPageHeader :title="pageTitle" />
 
     <view class="result-body">
       <view :class="['result-visual', isSuccess ? 'is-success' : 'is-fail']">
@@ -107,24 +106,6 @@ const handleSecondary = () => {
   overflow: hidden;
   color: #06133d;
   background: linear-gradient(180deg, #f6faff 0%, #ffffff 100%);
-}
-
-.page-header {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  height: design-rpx(86);
-  padding-top: design-rpx(34);
-}
-
-.page-title {
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 400;
-  line-height: 1;
 }
 
 .result-body {
