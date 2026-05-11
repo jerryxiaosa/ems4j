@@ -58,6 +58,12 @@ const goPayRecord = () => {
   })
 }
 
+const goMeterList = () => {
+  uni.navigateTo({
+    url: '/pages/meter/index'
+  })
+}
+
 const switchTrendType = (trendType: TrendType) => {
   activeTrendType.value = trendType
 }
@@ -80,7 +86,7 @@ const switchTrendType = (trendType: TrendType) => {
             <view class="hero-meta-item">
               <text>星河家园 2 栋住户账户</text>
             </view>
-            <view class="hero-meta-item">
+            <view class="hero-meta-item" @click="goMeterList">
               <text>共 6 个电表</text>
               <view class="chevron right"></view>
             </view>

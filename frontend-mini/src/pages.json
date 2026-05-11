@@ -31,6 +31,12 @@
       }
     },
     {
+      "path": "pages/meter/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/billing/index",
       "style": {
         "navigationStyle": "custom"

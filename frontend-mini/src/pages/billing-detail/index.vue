@@ -95,7 +95,7 @@ onLoad((query) => {
               <view class="summary-icon energy-icon">
                 <image class="summary-icon-image" src="/static/icons/energy.svg" mode="aspectFit" />
               </view>
-              <text>本月用电量（kWh）</text>
+              <text class="summary-title">本月电量（kWh）</text>
             </view>
             <view class="summary-value usage-value">
               <text>{{ totalUsageText }}</text>
@@ -111,7 +111,7 @@ onLoad((query) => {
               <view class="summary-icon money-icon">
                 <text>¥</text>
               </view>
-              <text>本月电费（元）</text>
+              <text class="summary-title">本月电费（元）</text>
             </view>
             <view class="summary-value cost-value">
               <text>{{ totalAmountText }}</text>
@@ -264,6 +264,11 @@ onLoad((query) => {
   font-weight: 600;
 }
 
+.summary-title {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .summary-icon {
   display: flex;
   align-items: center;
@@ -396,7 +401,7 @@ onLoad((query) => {
 .date-text {
   color: #152234;
   font-size: design-rpx(16);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -411,7 +416,7 @@ onLoad((query) => {
 .amount-cell {
   color: #152234;
   font-size: design-rpx(14);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1;
   text-align: right;
   white-space: nowrap;

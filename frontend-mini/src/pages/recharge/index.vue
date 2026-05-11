@@ -216,7 +216,7 @@ const goPayRecord = () => {
   margin-top: design-rpx(18);
   color: #06133d;
   font-size: design-rpx(18);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .meter-no {

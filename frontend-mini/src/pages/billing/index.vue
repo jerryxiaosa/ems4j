@@ -340,7 +340,7 @@ const openBillDetail = (bill: BillMonth) => {
 .year-title {
   display: block;
   margin: design-rpx(22) 0 design-rpx(12);
-  color: #152234;
+  color: #06133d;
   font-size: design-rpx(18);
   font-weight: 700;
 }
@@ -399,9 +399,9 @@ const openBillDetail = (bill: BillMonth) => {
 }
 
 .month-title {
-  color: #152234;
+  color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 300;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -446,7 +446,7 @@ const openBillDetail = (bill: BillMonth) => {
 .metric-value {
   color: #152234;
   font-size: design-rpx(14);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1;
   white-space: nowrap;
 }
