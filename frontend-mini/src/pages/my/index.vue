@@ -256,8 +256,8 @@ const toggleBalanceVisible = () => {
 
 .profile-name {
   color: #06133d;
-  font-size: design-rpx(22);
-  font-weight: 500;
+  font-size: design-rpx(18);
+  font-weight: 400;
   line-height: 1.2;
 }
 
@@ -468,7 +468,7 @@ const toggleBalanceVisible = () => {
 .action-title {
   color: #06133d;
   font-size: design-rpx(18);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
 }
 

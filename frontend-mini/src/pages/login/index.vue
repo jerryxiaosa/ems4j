@@ -129,7 +129,7 @@ const handleUserAgreement = () => {
 .page-title {
   margin-bottom: design-rpx(8);
   color: #152234;
-  font-size: design-rpx(24);
+  font-size: design-rpx(18);
   font-weight: 800;
   line-height: 1.25;
   text-shadow: 0 design-rpx(1) design-rpx(2) rgba(0, 0, 0, 0.05);

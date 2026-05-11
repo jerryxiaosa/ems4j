@@ -183,6 +183,7 @@ const toggleBalanceVisible = () => {
             :series-name="activeTrend.seriesName"
             :unit="activeTrend.unit"
             :max="activeTrend.max"
+            :height-rpx="350"
           />
         </view>
       </view>
@@ -278,7 +279,7 @@ const toggleBalanceVisible = () => {
 }
 
 .home-title {
-  font-size: design-rpx(20);
+  font-size: design-rpx(18);
   font-weight: 700;
   line-height: 1.4;
   color: #152234;
@@ -439,6 +440,10 @@ const toggleBalanceVisible = () => {
   box-shadow: 0 design-rpx(4) design-rpx(20) rgba(12, 43, 71, 0.04);
 }
 
+.trend-card {
+  padding: design-rpx(16) design-rpx(18) design-rpx(14);
+}
+
 .card-head {
   display: flex;
   justify-content: space-between;
@@ -490,7 +495,7 @@ const toggleBalanceVisible = () => {
 
 .chart-wrap {
   position: relative;
-  margin-top: design-rpx(24);
+  margin-top: design-rpx(14);
   transform: translateX(design-rpx(-14));
 }
 
