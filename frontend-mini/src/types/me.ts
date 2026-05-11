@@ -1,6 +1,12 @@
-export type MeProfileResponse = {
+import type { ElectricAccountType } from './common'
+
+export type CurrentMiniUserResponse = {
   userPhone: string
-  accountName?: string
-  accountStatus: string
-  accountStatusName: string
+  electricAccountId: string
+  electricAccountName: string
+  electricAccountType: ElectricAccountType
+  balance: number
+  meterCount: number
 }
+
+export type MeProfileResponse = CurrentMiniUserResponse
