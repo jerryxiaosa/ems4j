@@ -140,7 +140,7 @@ const goPayRecord = () => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(18);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1;
   transform: translateX(-50%);
 }

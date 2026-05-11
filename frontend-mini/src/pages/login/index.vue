@@ -130,7 +130,7 @@ const handleUserAgreement = () => {
   margin-bottom: design-rpx(8);
   color: #152234;
   font-size: design-rpx(18);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.25;
   text-shadow: 0 design-rpx(1) design-rpx(2) rgba(0, 0, 0, 0.05);
 }
@@ -317,7 +317,7 @@ const handleUserAgreement = () => {
   margin-bottom: design-rpx(8);
   color: #152234;
   font-size: design-rpx(18);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .welcome-subtitle {

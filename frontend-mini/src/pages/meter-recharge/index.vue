@@ -21,6 +21,7 @@ const meterList: MeterOption[] = [
 const rechargeAmount = ref('')
 const selectedMeterId = ref(meterList[0].id)
 const showMeterSheet = ref(false)
+const isBalanceVisible = ref(true)
 
 const selectedMeter = computed(() => meterList.find((meter) => meter.id === selectedMeterId.value) ?? meterList[0])
 
@@ -59,6 +60,10 @@ const closeMeterSheet = () => {
   showMeterSheet.value = false
 }
 
+const toggleBalanceVisible = () => {
+  isBalanceVisible.value = !isBalanceVisible.value
+}
+
 const selectMeter = (meter: MeterOption) => {
   selectedMeterId.value = meter.id
   closeMeterSheet()
@@ -89,11 +94,17 @@ const selectMeter = (meter: MeterOption) => {
             </view>
             <view class="balance-label">
               <text>账户余额（元）</text>
-              <view class="eye-icon"></view>
+              <button
+                :class="['balance-eye-button', isBalanceVisible ? 'is-visible' : '']"
+                aria-label="切换余额显示"
+                @click="toggleBalanceVisible"
+              >
+                <view class="balance-eye-icon"></view>
+              </button>
             </view>
             <view class="balance-value">
-              <text class="currency-mark">¥</text>
-              <text>1,234.56</text>
+              <text v-if="isBalanceVisible" class="currency-mark">¥</text>
+              <text>{{ isBalanceVisible ? '1,234.56' : '--' }}</text>
             </view>
           </view>
         </view>
@@ -241,7 +252,7 @@ const selectMeter = (meter: MeterOption) => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(18);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1;
   transform: translateX(-50%);
 }
@@ -293,7 +304,7 @@ const selectMeter = (meter: MeterOption) => {
   gap: design-rpx(10);
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .community-row text {
@@ -350,23 +361,54 @@ const selectMeter = (meter: MeterOption) => {
   font-weight: 500;
 }
 
-.eye-icon {
+.balance-eye-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: design-rpx(24);
+  height: design-rpx(24);
+  padding: 0;
+  line-height: 1;
+  color: currentColor;
+  background: transparent;
+  border: 0;
+  border-radius: 999rpx;
+}
+
+.balance-eye-button::after {
+  border: 0;
+}
+
+.balance-eye-icon {
   position: relative;
-  width: design-rpx(16);
-  height: design-rpx(10);
+  width: design-rpx(18);
+  height: design-rpx(11);
   border: design-rpx(1.5) solid currentColor;
   border-radius: 50%;
 }
 
-.eye-icon::after {
+.balance-eye-icon::before {
   position: absolute;
-  top: design-rpx(2.5);
-  left: design-rpx(5.5);
+  top: 50%;
+  left: 50%;
   width: design-rpx(4);
   height: design-rpx(4);
   background: currentColor;
   border-radius: 999rpx;
   content: "";
+  transform: translate(-50%, -50%);
+}
+
+.balance-eye-button:not(.is-visible) .balance-eye-icon::after {
+  position: absolute;
+  top: 50%;
+  left: design-rpx(-2);
+  width: design-rpx(22);
+  height: design-rpx(2);
+  background: currentColor;
+  border-radius: 999rpx;
+  content: "";
+  transform: rotate(-35deg);
 }
 
 .balance-value {
@@ -376,13 +418,13 @@ const selectMeter = (meter: MeterOption) => {
   margin-top: design-rpx(12);
   color: #06133d;
   font-size: design-rpx(30);
-  font-weight: 800;
+  font-weight: 400;
   line-height: 1;
 }
 
 .currency-mark {
   font-size: design-rpx(22);
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .form-card {
@@ -484,7 +526,7 @@ const selectMeter = (meter: MeterOption) => {
   display: block;
   margin-top: design-rpx(8);
   font-size: design-rpx(18);
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .amount-input-wrap {
@@ -510,7 +552,7 @@ const selectMeter = (meter: MeterOption) => {
   height: 100%;
   color: #152234;
   font-size: design-rpx(20);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .amount-placeholder {
@@ -743,7 +785,7 @@ const selectMeter = (meter: MeterOption) => {
 .option-balance-value {
   margin-top: design-rpx(8);
   font-size: design-rpx(18);
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .meter-option-card.is-selected .option-balance-label {

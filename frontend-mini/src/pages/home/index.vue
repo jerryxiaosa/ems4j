@@ -280,7 +280,7 @@ const toggleBalanceVisible = () => {
 
 .home-title {
   font-size: design-rpx(18);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   color: #152234;
 }

@@ -28,7 +28,7 @@ const primaryActions: PrimaryAction[] = [
   },
   {
     title: '我的账单',
-    desc: '查看用电明细和充值记录',
+    desc: '查看用电明细和消费记录',
     tone: 'bill',
     icon: 'bill',
     action: 'billing'
@@ -112,7 +112,7 @@ const toggleBalanceVisible = () => {
           <image class="balance-bg" src="/static/icons/profile-charge-bg.png" mode="aspectFit" />
           <view class="balance-content">
             <view class="balance-label-row">
-              <text>账户余额（元）</text>
+              <text>当前余额（元）</text>
               <button
                 :class="['balance-eye-button', isBalanceVisible ? 'is-visible' : '']"
                 aria-label="切换余额显示"
@@ -121,7 +121,10 @@ const toggleBalanceVisible = () => {
                 <view class="balance-eye-icon"></view>
               </button>
             </view>
-            <text class="balance-value">{{ isBalanceVisible ? '120.00' : '--' }}</text>
+            <view class="balance-amount">
+              <text v-if="isBalanceVisible" class="balance-currency">¥</text>
+              <text class="balance-value">{{ isBalanceVisible ? '120.00' : '--' }}</text>
+            </view>
           </view>
           <button class="balance-button" @click="goRecharge">去充值</button>
           <view class="balance-wave"></view>
@@ -304,7 +307,7 @@ const toggleBalanceVisible = () => {
   align-items: center;
   gap: design-rpx(8);
   color: rgba(255, 255, 255, 0.86);
-  font-size: design-rpx(14);
+  font-size: design-rpx(12);
   font-weight: 400;
   line-height: 1;
 }
@@ -358,12 +361,24 @@ const toggleBalanceVisible = () => {
   transform: rotate(-35deg);
 }
 
-.balance-value {
+.balance-amount {
+  display: flex;
+  align-items: baseline;
+  gap: design-rpx(2);
   margin-top: design-rpx(24);
   color: #ffffff;
+}
+
+.balance-currency {
+  font-size: design-rpx(24);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.balance-value {
   font-size: design-rpx(38);
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.08;
   letter-spacing: design-rpx(0.5);
 }
 
