@@ -252,10 +252,9 @@ const selectFilter = (filter: string) => {
   width: 100%;
   min-height: design-rpx(142);
   padding: design-rpx(16) design-rpx(18);
-  background: rgba(255, 255, 255, 0.88);
-  border: design-rpx(0.5) solid #e7edf6;
+  background: #ffffff;
+  border: design-rpx(1) solid rgba(219, 228, 242, 0.72);
   border-radius: design-rpx(20);
-  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.045);
 }
 
 .record-summary {

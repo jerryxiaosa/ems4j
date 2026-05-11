@@ -5,6 +5,41 @@ import TrendLineChart from '@/components/chart/TrendLineChart.vue'
 
 type TrendType = 'usage' | 'cost'
 
+const DESIGN_WIDTH = 390
+
+const designPxToRpx = (px: number) => {
+  return (px * 750) / DESIGN_WIDTH
+}
+
+const runtimePxToRpx = (px: number, windowWidth: number) => {
+  return (px * 750) / windowWidth
+}
+
+const createHomeHeaderPaddingTop = () => {
+  const designTopRpx = designPxToRpx(48)
+
+  try {
+    const systemInfo = uni.getSystemInfoSync()
+    const statusBarHeight = systemInfo.statusBarHeight ?? 0
+    const windowWidth = systemInfo.windowWidth || DESIGN_WIDTH
+
+    if (!statusBarHeight) {
+      return `${designTopRpx}rpx`
+    }
+
+    // Do not stack env(safe-area-inset-top) with the design offset.
+    // On real devices that double offset pushes the title too far down.
+    const safeTopRpx = runtimePxToRpx(statusBarHeight + 8, windowWidth)
+    return `${Math.max(designTopRpx, safeTopRpx)}rpx`
+  } catch {
+    return `${designTopRpx}rpx`
+  }
+}
+
+const homeHeaderStyle = {
+  paddingTop: createHomeHeaderPaddingTop()
+}
+
 const activeTrendType = ref<TrendType>('usage')
 const isBalanceVisible = ref(true)
 
@@ -76,7 +111,7 @@ const toggleBalanceVisible = () => {
 
 <template>
   <view class="home-page">
-    <view class="home-header">
+    <view class="home-header" :style="homeHeaderStyle">
       <view>
         <text class="home-title">EMS4J 能耗管理系统</text>
         <text class="home-subtitle">智慧用能 · 节能高效</text>
@@ -226,7 +261,7 @@ const toggleBalanceVisible = () => {
   flex-shrink: 0;
   justify-content: flex-start;
   align-items: center;
-  padding: calc(env(safe-area-inset-top) + #{design-rpx(48)}) design-rpx(16) design-rpx(12);
+  padding: design-rpx(48) design-rpx(16) design-rpx(12);
 }
 
 .home-title,
