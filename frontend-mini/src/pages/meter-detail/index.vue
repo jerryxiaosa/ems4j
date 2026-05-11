@@ -10,13 +10,19 @@ type MeterDetail = {
   name: string
   meterNo: string
   location: string
-  balance: string
   status: MeterStatus
   totalEnergy: string
+  energySegments: EnergySegment[]
   todayEnergy: string
   todayUsageValues: number[]
   updateTime: string
   updateClock: string
+}
+
+type EnergySegment = {
+  name: string
+  value: string
+  tone: 'tip' | 'peak' | 'flat' | 'valley' | 'deep'
 }
 
 const meterList: MeterDetail[] = [
@@ -25,11 +31,17 @@ const meterList: MeterDetail[] = [
     name: '客厅电表',
     meterNo: '01234567890123456789',
     location: '1 单元 101 室',
-    balance: '128.56',
     status: 'normal',
     totalEnergy: '87.21',
+    energySegments: [
+      { name: '尖', value: '12.45', tone: 'tip' },
+      { name: '峰', value: '25.68', tone: 'peak' },
+      { name: '平', value: '38.76', tone: 'flat' },
+      { name: '谷', value: '7.89', tone: 'valley' },
+      { name: '深谷', value: '2.43', tone: 'deep' }
+    ],
     todayEnergy: '2.36',
-    todayUsageValues: [0.06, 0.22, 0.48, 0.85, 1.72, 2.36],
+    todayUsageValues: [0.06, 0.48, 1.72, 2.36, 2.36, 2.36, 2.36],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
   },
@@ -38,11 +50,17 @@ const meterList: MeterDetail[] = [
     name: '卧室电表',
     meterNo: '98765432109876543210',
     location: '1 单元 202 室',
-    balance: '64.20',
     status: 'normal',
     totalEnergy: '42.18',
+    energySegments: [
+      { name: '尖', value: '5.24', tone: 'tip' },
+      { name: '峰', value: '12.68', tone: 'peak' },
+      { name: '平', value: '18.42', tone: 'flat' },
+      { name: '谷', value: '4.56', tone: 'valley' },
+      { name: '深谷', value: '1.28', tone: 'deep' }
+    ],
     todayEnergy: '1.64',
-    todayUsageValues: [0.04, 0.16, 0.33, 0.62, 1.12, 1.64],
+    todayUsageValues: [0.04, 0.33, 1.12, 1.64, 1.64, 1.64, 1.64],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
   },
@@ -51,17 +69,23 @@ const meterList: MeterDetail[] = [
     name: '商铺电表',
     meterNo: '11223344556677889900',
     location: '2 单元 301 室',
-    balance: '0.00',
     status: 'offline',
     totalEnergy: '16.80',
+    energySegments: [
+      { name: '尖', value: '2.15', tone: 'tip' },
+      { name: '峰', value: '4.68', tone: 'peak' },
+      { name: '平', value: '7.12', tone: 'flat' },
+      { name: '谷', value: '2.06', tone: 'valley' },
+      { name: '深谷', value: '0.79', tone: 'deep' }
+    ],
     todayEnergy: '0.58',
-    todayUsageValues: [0.02, 0.08, 0.13, 0.22, 0.41, 0.58],
+    todayUsageValues: [0.02, 0.13, 0.41, 0.58, 0.58, 0.58, 0.58],
     updateTime: '2024-05-20 09:41:00',
     updateClock: '09:41'
   }
 ]
 
-const todayUsageCategories = ['00:00', '02:00', '04:00', '06:00', '08:00', '09:41']
+const todayUsageCategories = ['0', '4', '8', '12', '16', '20', '24']
 
 const meterId = ref(meterList[0].id)
 
@@ -110,22 +134,24 @@ onLoad((query) => {
           </view>
         </view>
 
-        <view class="balance-row">
-          <view>
-            <text class="section-title">当前余额</text>
-            <text class="update-time">更新时间：{{ meter.updateTime }}</text>
-          </view>
-          <text class="balance-value">¥ {{ meter.balance }}</text>
-        </view>
-
         <view class="total-row">
-          <view>
-            <text class="section-title">总电量</text>
+          <view class="total-head">
+            <view class="total-title-row">
+              <text class="section-title">总电量</text>
+              <view class="total-value">
+                <text>{{ meter.totalEnergy }}</text>
+                <text class="unit">kWh</text>
+              </view>
+            </view>
             <text class="update-time">更新时间：{{ meter.updateTime }}</text>
           </view>
-          <view class="total-value">
-            <text>{{ meter.totalEnergy }}</text>
-            <text class="unit">kWh</text>
+
+          <view class="segment-grid">
+            <view v-for="segment in meter.energySegments" :key="segment.name" class="segment-item">
+              <view :class="['segment-dot', segment.tone]"></view>
+              <text class="segment-name">{{ segment.name }}</text>
+              <text class="segment-value">{{ segment.value }}</text>
+            </view>
           </view>
         </view>
 
@@ -314,12 +340,8 @@ onLoad((query) => {
   white-space: nowrap;
 }
 
-.balance-row,
 .total-row {
-  display: flex;
   box-sizing: border-box;
-  align-items: flex-end;
-  justify-content: space-between;
   width: 100%;
   margin-top: design-rpx(24);
   padding: design-rpx(18);
@@ -327,6 +349,17 @@ onLoad((query) => {
   border: design-rpx(0.5) solid #e7edf6;
   border-radius: design-rpx(20);
   box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
+}
+
+.total-head {
+  min-width: 0;
+}
+
+.total-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: design-rpx(12);
 }
 
 .section-title {
@@ -343,21 +376,17 @@ onLoad((query) => {
   color: #4a5d91;
   font-size: design-rpx(13);
   font-weight: 400;
-}
-
-.balance-value {
-  color: #1677ff;
-  font-size: design-rpx(24);
-  font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .total-value {
   display: flex;
   align-items: baseline;
-  gap: design-rpx(8);
+  flex-shrink: 0;
+  gap: design-rpx(5);
   color: #06133d;
-  font-size: design-rpx(34);
+  font-size: design-rpx(24);
   font-weight: 700;
   line-height: 1;
 }
@@ -366,6 +395,67 @@ onLoad((query) => {
   color: #3f5288;
   font-size: design-rpx(17);
   font-weight: 400;
+}
+
+.segment-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: design-rpx(6);
+  margin-top: design-rpx(18);
+}
+
+.segment-item {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: design-rpx(10) design-rpx(4);
+  background: #f7faff;
+  border: design-rpx(0.5) solid #edf2f9;
+  border-radius: design-rpx(12);
+}
+
+.segment-dot {
+  width: design-rpx(8);
+  height: design-rpx(8);
+  margin-bottom: design-rpx(6);
+  border-radius: 999rpx;
+}
+
+.segment-dot.tip {
+  background: #f06423;
+}
+
+.segment-dot.peak {
+  background: #f6a800;
+}
+
+.segment-dot.flat {
+  background: #14b86a;
+}
+
+.segment-dot.valley {
+  background: #1677ff;
+}
+
+.segment-dot.deep {
+  background: #6857ff;
+}
+
+.segment-name {
+  color: #6a7a8f;
+  font-size: design-rpx(11);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.segment-value {
+  margin-top: design-rpx(7);
+  color: #06133d;
+  font-size: design-rpx(12);
+  font-weight: 600;
+  line-height: 1;
 }
 
 .usage-card {

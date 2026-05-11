@@ -6,6 +6,7 @@ import TrendLineChart from '@/components/chart/TrendLineChart.vue'
 type TrendType = 'usage' | 'cost'
 
 const activeTrendType = ref<TrendType>('usage')
+const isBalanceVisible = ref(true)
 
 const trendCategories = ['5/6', '5/7', '5/8', '5/9', '5/10', '5/11', '5/12']
 const trendDataMap: Record<TrendType, { label: string; seriesName: string; unit: string; max: number; values: number[] }> = {
@@ -67,6 +68,10 @@ const goMeterList = () => {
 const switchTrendType = (trendType: TrendType) => {
   activeTrendType.value = trendType
 }
+
+const toggleBalanceVisible = () => {
+  isBalanceVisible.value = !isBalanceVisible.value
+}
 </script>
 
 <template>
@@ -94,13 +99,19 @@ const switchTrendType = (trendType: TrendType) => {
           <view class="balance-block">
             <view class="balance-label">
               <text>当前余额 (元)</text>
-              <view class="icon-eye">
+              <view
+                :class="['icon-eye', isBalanceVisible ? 'is-open' : 'is-closed']"
+                @click="toggleBalanceVisible"
+              >
                 <view></view>
               </view>
             </view>
             <view class="balance-value">
-              <text class="currency">¥</text>
-              <text>1,234.56</text>
+              <template v-if="isBalanceVisible">
+                <text class="currency">¥</text>
+                <text>1,234.56</text>
+              </template>
+              <text v-else>--</text>
             </view>
           </view>
           <button class="recharge-button" @click="goRecharge">
@@ -344,6 +355,11 @@ const switchTrendType = (trendType: TrendType) => {
   height: design-rpx(9);
   border: design-rpx(1.5) solid currentColor;
   border-radius: 50%;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.icon-eye:active {
+  transform: scale(0.92);
 }
 
 .icon-eye view {
@@ -354,6 +370,26 @@ const switchTrendType = (trendType: TrendType) => {
   height: design-rpx(4);
   background: currentColor;
   border-radius: 999rpx;
+}
+
+.icon-eye.is-closed {
+  opacity: 0.72;
+}
+
+.icon-eye.is-closed view {
+  display: none;
+}
+
+.icon-eye.is-closed::after {
+  position: absolute;
+  top: design-rpx(3);
+  left: design-rpx(-2);
+  width: design-rpx(18);
+  height: design-rpx(1.5);
+  background: currentColor;
+  border-radius: 999rpx;
+  content: "";
+  transform: rotate(-28deg);
 }
 
 .balance-value {
