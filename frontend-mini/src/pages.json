@@ -25,6 +25,18 @@
       }
     },
     {
+      "path": "pages/user-agreement/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/privacy-policy/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/recharge/index",
       "style": {
         "navigationStyle": "custom"

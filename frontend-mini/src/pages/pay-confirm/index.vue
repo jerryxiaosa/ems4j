@@ -44,6 +44,18 @@ const toggleBalanceVisible = () => {
   isBalanceVisible.value = !isBalanceVisible.value
 }
 
+const openUserAgreement = () => {
+  uni.navigateTo({
+    url: miniRoute.userAgreement
+  })
+}
+
+const openPrivacyPolicy = () => {
+  uni.navigateTo({
+    url: miniRoute.privacyPolicy
+  })
+}
+
 const handlePay = () => {
   if (!hasAgreed.value) {
     uni.showToast({
@@ -123,9 +135,9 @@ onLoad((query) => {
             @click="toggleAgreement"
           ></view>
           <text class="agreement-text">我已阅读并同意</text>
-          <text class="agreement-link">《用户服务协议》</text>
+          <text class="agreement-link" @click="openUserAgreement">《用户服务协议》</text>
           <text class="agreement-text">和</text>
-          <text class="agreement-link">《隐私政策》</text>
+          <text class="agreement-link" @click="openPrivacyPolicy">《隐私政策》</text>
         </view>
       </view>
     </scroll-view>

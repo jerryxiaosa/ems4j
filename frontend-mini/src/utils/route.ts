@@ -1,6 +1,8 @@
 export const miniRoute = {
   login: '/pages/login/index',
   accountError: '/pages/account-error/index',
+  userAgreement: '/pages/user-agreement/index',
+  privacyPolicy: '/pages/privacy-policy/index',
   home: '/pages/home/index',
   recharge: '/pages/recharge/index',
   meterRecharge: '/pages/meter-recharge/index',

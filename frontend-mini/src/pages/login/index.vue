@@ -22,9 +22,15 @@ const handleLogin = () => {
   })
 }
 
-const handleUserAgreement = () => {
+const openUserAgreement = () => {
   uni.navigateTo({
-    url: miniRoute.accountError
+    url: miniRoute.userAgreement
+  })
+}
+
+const openPrivacyPolicy = () => {
+  uni.navigateTo({
+    url: miniRoute.privacyPolicy
   })
 }
 </script>
@@ -74,9 +80,9 @@ const handleUserAgreement = () => {
           @click="toggleAgreement"
         ></view>
         <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" @click="handleUserAgreement">《用户服务协议》</text>
+        <text class="agreement-link" @click="openUserAgreement">《用户服务协议》</text>
         <text class="agreement-text">和</text>
-        <text class="agreement-link">《隐私政策》</text>
+        <text class="agreement-link" @click="openPrivacyPolicy">《隐私政策》</text>
       </view>
 
       <view class="welcome-block">
