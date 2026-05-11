@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ProfileActionList from '@/components/business/ProfileActionList.vue'
+import RechargeEntryButton from '@/components/business/RechargeEntryButton.vue'
 import AppAmount from '@/components/common/AppAmount.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
@@ -124,28 +126,13 @@ const toggleBalanceVisible = () => {
               <AppAmount :visible="isBalanceVisible" value="120.00" />
             </view>
           </view>
-          <button class="balance-button" @click="goRecharge">去充值</button>
+          <view class="balance-button-wrap">
+            <RechargeEntryButton @click="goRecharge" />
+          </view>
           <view class="balance-wave"></view>
         </view>
 
-        <view class="action-card primary-action-card">
-          <view
-            v-for="(item, index) in primaryActions"
-            :key="item.title"
-            class="action-row"
-            @click="handlePrimaryAction(item.action)"
-          >
-            <view :class="['action-icon', item.tone]">
-              <image class="action-icon-image" :src="item.iconSrc" mode="aspectFit" />
-            </view>
-            <view class="action-copy">
-              <text class="action-title">{{ item.title }}</text>
-              <text class="action-desc">{{ item.desc }}</text>
-            </view>
-            <view class="action-chevron"></view>
-            <view v-if="index < primaryActions.length - 1" class="row-divider"></view>
-          </view>
-        </view>
+        <ProfileActionList :items="primaryActions" @action="handlePrimaryAction" />
 
         <view class="action-card secondary-action-card">
           <view
@@ -230,8 +217,6 @@ const toggleBalanceVisible = () => {
 .profile-name,
 .profile-phone,
 .balance-label-row,
-.action-title,
-.action-desc,
 .secondary-title,
 .secondary-value {
   display: block;
@@ -297,20 +282,11 @@ const toggleBalanceVisible = () => {
   color: #ffffff;
 }
 
-.balance-button {
+.balance-button-wrap {
   position: relative;
   z-index: 3;
   flex-shrink: 0;
-  min-width: design-rpx(88);
-  height: design-rpx(42);
   margin: design-rpx(22) design-rpx(20) 0 0;
-  padding: 0 design-rpx(20);
-  color: #1677ff;
-  font-size: design-rpx(16);
-  font-weight: 600;
-  line-height: design-rpx(42);
-  background: #ffffff;
-  border-radius: 999rpx;
 }
 
 .balance-wave {
@@ -359,55 +335,6 @@ const toggleBalanceVisible = () => {
 
 .secondary-row .row-divider {
   left: design-rpx(18);
-}
-
-.action-icon {
-  position: relative;
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(52);
-  height: design-rpx(52);
-  margin-right: design-rpx(18);
-  border-radius: 999rpx;
-}
-
-.action-icon.recharge {
-  background: #e9fff5;
-}
-
-.action-icon.bill {
-  background: #fff7e6;
-}
-
-.action-icon.meter {
-  background: #eaf4ff;
-}
-
-.action-icon-image {
-  width: design-rpx(40);
-  height: design-rpx(40);
-}
-
-.action-copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.action-title {
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-.action-desc {
-  margin-top: design-rpx(10);
-  color: #6a7a8f;
-  font-size: design-rpx(14);
-  font-weight: 400;
-  line-height: 1;
 }
 
 .action-chevron {

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import AppAmount from '@/components/common/AppAmount.vue'
+import AccountHeroCard from '@/components/business/AccountHeroCard.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
-import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
 import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('200')
@@ -74,25 +73,13 @@ onLoad((query) => {
 
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
-        <view class="account-card">
-          <image class="account-hero" src="/static/stitch/pay-confirm-hero.jpg" mode="aspectFill" />
-          <view class="account-overlay"></view>
-          <view class="account-info">
-            <view class="community-row">
-              <view class="community-icon">
-                <image class="community-icon-image" src="/static/icons/account-house-white.svg" mode="aspectFit" />
-              </view>
-              <text>星河家园 2 栋住户账户</text>
-            </view>
-            <view class="balance-label">
-              <text>当前余额（元）</text>
-              <AppVisibilityToggle :visible="isBalanceVisible" @toggle="toggleBalanceVisible" />
-            </view>
-            <view class="balance-value">
-              <AppAmount :visible="isBalanceVisible" value="1,234.56" size="medium" />
-            </view>
-          </view>
-        </view>
+        <AccountHeroCard
+          account-name="星河家园 2 栋住户账户"
+          balance="1,234.56"
+          show-balance
+          :balance-visible="isBalanceVisible"
+          @toggle-balance="toggleBalanceVisible"
+        />
 
         <view class="section-card payment-card">
           <text class="section-title">支付方式</text>
@@ -176,85 +163,6 @@ onLoad((query) => {
 
 .content-stack {
   padding: design-rpx(16) design-rpx(22) design-rpx(148);
-}
-
-.account-card {
-  position: relative;
-  min-height: design-rpx(138);
-  overflow: hidden;
-  color: #06133d;
-  background: #eef6ff;
-  border-radius: design-rpx(20);
-  box-shadow: 0 design-rpx(8) design-rpx(24) rgba(6, 19, 61, 0.04);
-}
-
-.account-hero {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  opacity: 0.96;
-}
-
-.account-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: linear-gradient(90deg, rgba(238, 246, 255, 0.96) 0%, rgba(238, 246, 255, 0.84) 43%, rgba(238, 246, 255, 0.08) 100%);
-}
-
-.account-info {
-  position: relative;
-  z-index: 3;
-  padding: design-rpx(22) design-rpx(16);
-}
-
-.community-row {
-  display: flex;
-  align-items: center;
-  gap: design-rpx(10);
-  color: #06133d;
-  font-size: design-rpx(16);
-  font-weight: 400;
-}
-
-.community-row text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.community-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: design-rpx(20);
-  height: design-rpx(20);
-  background: linear-gradient(135deg, #3a8bff 0%, #1768f2 100%);
-  border-radius: design-rpx(5);
-}
-
-.community-icon-image {
-  width: design-rpx(14);
-  height: design-rpx(14);
-}
-
-.balance-label {
-  display: flex;
-  align-items: center;
-  gap: design-rpx(8);
-  margin-top: design-rpx(22);
-  color: #8a97ac;
-  font-size: design-rpx(13);
-  font-weight: 500;
-}
-
-.balance-value {
-  margin-top: design-rpx(22);
-  color: #06133d;
 }
 
 .section-card {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import RechargeEntryButton from '@/components/business/RechargeEntryButton.vue'
 import AppAmount from '@/components/common/AppAmount.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
@@ -141,10 +142,7 @@ const toggleBalanceVisible = () => {
             </view>
             <AppAmount :visible="isBalanceVisible" value="1,234.56" />
           </view>
-          <button class="recharge-button" @click="goRecharge">
-            <text>去充值</text>
-            <text class="recharge-chevron">›</text>
-          </button>
+          <RechargeEntryButton @click="goRecharge" />
         </view>
       </view>
 
@@ -375,28 +373,6 @@ const toggleBalanceVisible = () => {
   margin-bottom: design-rpx(4);
   font-size: design-rpx(12);
   opacity: 0.82;
-}
-
-.recharge-button {
-  display: inline-flex;
-  align-items: center;
-  gap: design-rpx(8);
-  height: design-rpx(42);
-  padding: 0 design-rpx(24);
-  color: #004ac6;
-  font-size: design-rpx(14);
-  font-weight: 800;
-  background: #ffffff;
-  border-radius: 999rpx;
-  box-shadow: 0 design-rpx(6) design-rpx(15) rgba(12, 43, 71, 0.12);
-}
-
-.recharge-chevron {
-  display: block;
-  margin-left: design-rpx(-2);
-  font-size: design-rpx(22);
-  font-weight: 500;
-  line-height: 1;
 }
 
 .card {
