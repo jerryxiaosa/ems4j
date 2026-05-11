@@ -156,7 +156,7 @@ const openMeterDetail = (meter: MeterItem) => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   transform: translateX(-50%);
 }

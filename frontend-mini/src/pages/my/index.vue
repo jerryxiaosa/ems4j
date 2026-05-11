@@ -95,10 +95,6 @@ const toggleBalanceVisible = () => {
 
 <template>
   <view class="my-page">
-    <view class="page-head">
-      <text class="page-title">我的</text>
-    </view>
-
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <view class="profile-card">
@@ -205,22 +201,6 @@ const toggleBalanceVisible = () => {
   background: linear-gradient(180deg, #f4f9ff 0%, #ffffff 100%);
 }
 
-.page-head {
-  display: flex;
-  flex-shrink: 0;
-  align-items: flex-end;
-  height: design-rpx(88);
-  padding: 0 design-rpx(22) design-rpx(14);
-}
-
-.page-title {
-  display: block;
-  color: #06133d;
-  font-size: design-rpx(24);
-  font-weight: 800;
-  line-height: 1;
-}
-
 .page-scroll {
   flex: 1;
   min-height: 0;
@@ -230,7 +210,7 @@ const toggleBalanceVisible = () => {
 .content-stack {
   box-sizing: border-box;
   min-height: 100%;
-  padding: design-rpx(18) design-rpx(22) design-rpx(94);
+  padding: design-rpx(50) design-rpx(22) design-rpx(94);
 }
 
 .profile-card {
@@ -277,7 +257,7 @@ const toggleBalanceVisible = () => {
 .profile-name {
   color: #06133d;
   font-size: design-rpx(22);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
 }
 

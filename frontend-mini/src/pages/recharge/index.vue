@@ -4,12 +4,6 @@ import AppTabBar from '@/components/common/AppTabBar.vue'
 
 const rechargeAmount = ref('')
 
-const handleBack = () => {
-  uni.redirectTo({
-    url: '/pages/home/index'
-  })
-}
-
 const goPayConfirm = () => {
   const amount = rechargeAmount.value || '200'
 
@@ -29,11 +23,7 @@ const goPayRecord = () => {
 <template>
   <view class="recharge-page">
     <view class="page-header">
-      <button class="back-button" aria-label="返回" @click="handleBack">
-        <view class="back-chevron"></view>
-      </button>
       <text class="page-title">充值缴费</text>
-      <view class="header-placeholder"></view>
     </view>
 
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
@@ -115,32 +105,12 @@ const goPayRecord = () => {
   background: transparent;
 }
 
-.back-button,
-.header-placeholder {
-  width: design-rpx(40);
-  height: design-rpx(40);
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-chevron {
-  width: design-rpx(14);
-  height: design-rpx(14);
-  border-bottom: design-rpx(2.5) solid #06133d;
-  border-left: design-rpx(2.5) solid #06133d;
-  transform: rotate(45deg);
-}
-
 .page-title {
   position: absolute;
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   transform: translateX(-50%);
 }

@@ -122,7 +122,7 @@ const handleSecondary = () => {
 .page-title {
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
 }
 

@@ -1,5 +1,16 @@
 <script setup lang="ts">
 const handleBack = () => {
+  const pages = getCurrentPages()
+
+  if (pages.length > 1) {
+    uni.navigateBack()
+    return
+  }
+
+  goLogin()
+}
+
+const goLogin = () => {
   uni.redirectTo({
     url: '/pages/login/index'
   })
@@ -29,7 +40,7 @@ const handleBack = () => {
           <text class="error-desc">如需帮助，请联系物业或相关负责人</text>
         </view>
 
-        <button class="contact-button" @click="handleBack">
+        <button class="contact-button" @click="goLogin">
           <text>返回登录页</text>
         </button>
       </view>
@@ -91,7 +102,7 @@ const handleBack = () => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   transform: translateX(-50%);
 }

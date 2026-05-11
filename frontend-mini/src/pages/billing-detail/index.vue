@@ -59,8 +59,15 @@ const averageAmount = computed(() => {
 })
 
 const handleBack = () => {
-  uni.navigateBack({
-    delta: 1
+  const pages = getCurrentPages()
+
+  if (pages.length > 1) {
+    uni.navigateBack()
+    return
+  }
+
+  uni.redirectTo({
+    url: '/pages/billing/index'
   })
 }
 
@@ -206,7 +213,7 @@ onLoad((query) => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   transform: translateX(-50%);
 }

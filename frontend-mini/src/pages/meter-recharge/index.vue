@@ -25,8 +25,15 @@ const showMeterSheet = ref(false)
 const selectedMeter = computed(() => meterList.find((meter) => meter.id === selectedMeterId.value) ?? meterList[0])
 
 const handleBack = () => {
+  const pages = getCurrentPages()
+
+  if (pages.length > 1) {
+    uni.navigateBack()
+    return
+  }
+
   uni.redirectTo({
-    url: '/pages/home/index'
+    url: '/pages/recharge/index'
   })
 }
 
@@ -234,7 +241,7 @@ const selectMeter = (meter: MeterOption) => {
   left: 50%;
   color: #06133d;
   font-size: design-rpx(20);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   transform: translateX(-50%);
 }
