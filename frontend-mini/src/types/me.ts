@@ -2,7 +2,7 @@ import type { ElectricAccountType } from './common'
 
 export type CurrentMiniUserResponse = {
   userPhone: string
-  electricAccountId: string
+  electricAccountId: number
   electricAccountName: string
   electricAccountType: ElectricAccountType
   balance: number

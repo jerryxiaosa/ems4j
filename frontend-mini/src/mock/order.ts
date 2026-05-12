@@ -16,7 +16,13 @@ const mockOrderList: OrderRecordItem[] = [
     serviceFeeAmount: 4,
     status: 'SUCCESS',
     statusName: '支付成功',
-    createTime: '2026-05-10 18:24'
+    createTime: '2026-05-10 18:24',
+    meterId: 101,
+    meterName: '客厅电表',
+    meterNo: '01234567890123456789',
+    location: '1 单元 101 室',
+    paymentChannel: 'WECHAT',
+    paymentChannelName: '微信支付'
   },
   {
     orderSn: 'RC202605090003',
@@ -25,7 +31,13 @@ const mockOrderList: OrderRecordItem[] = [
     serviceFeeAmount: 2,
     status: 'SUCCESS',
     statusName: '支付成功',
-    createTime: '2026-05-09 09:12'
+    createTime: '2026-05-09 09:12',
+    meterId: 102,
+    meterName: '卧室电表',
+    meterNo: '98765432109876543210',
+    location: '1 单元 202 室',
+    paymentChannel: 'WECHAT',
+    paymentChannelName: '微信支付'
   },
   {
     orderSn: 'RC202605050006',
@@ -34,7 +46,13 @@ const mockOrderList: OrderRecordItem[] = [
     serviceFeeAmount: 1,
     status: 'CLOSED',
     statusName: '已关闭',
-    createTime: '2026-05-05 21:08'
+    createTime: '2026-05-05 21:08',
+    meterId: 201,
+    meterName: '商铺电表',
+    meterNo: '11223344556677889900',
+    location: '2 单元 301 室',
+    paymentChannel: 'WECHAT',
+    paymentChannelName: '微信支付'
   }
 ]
 

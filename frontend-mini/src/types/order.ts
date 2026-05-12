@@ -1,5 +1,7 @@
 import type { PageQuery, PageResponse } from './common'
 
+export type OrderDateRange = 'all' | 'currentYear' | 'last6Months' | 'last3Months'
+
 export type OrderRecordItem = {
   orderSn: string
   payAmount: number
@@ -8,9 +10,17 @@ export type OrderRecordItem = {
   status: string
   statusName: string
   createTime: string
+  meterId?: number
+  meterName?: string
+  meterNo?: string
+  location?: string
+  paymentChannel?: string
+  paymentChannelName?: string
 }
 
-export type OrderListQuery = PageQuery
+export type OrderListQuery = PageQuery & {
+  range?: OrderDateRange
+}
 
 export type OrderListResponse = PageResponse<OrderRecordItem>
 

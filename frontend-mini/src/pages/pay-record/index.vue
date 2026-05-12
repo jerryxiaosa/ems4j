@@ -1,68 +1,38 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { getOrderPage } from '@/api/order'
+import type { OrderDateRange, OrderRecordItem } from '@/types/order'
 import { miniRoute } from '@/utils/route'
 
-const filterOptions = ['全部', '本年', '近6月', '近3月']
-const activeFilter = ref(filterOptions[0])
-
-const recordList = [
-  {
-    status: 'success',
-    room: '1 单元 101 室',
-    meterNo: '01234567890123456789',
-    orderNo: '2024052014304500001234',
-    time: '2024-05-20 14:30:45',
-    amount: '48.20',
-    payment: '微信支付'
-  },
-  {
-    status: 'success',
-    room: '1 单元 102 室',
-    meterNo: '01234567890123456790',
-    orderNo: '2024051510203000005678',
-    time: '2024-05-15 10:20:30',
-    amount: '76.50',
-    payment: '微信支付'
-  },
-  {
-    status: 'success',
-    room: '2 单元 201 室',
-    meterNo: '01234567890123456791',
-    orderNo: '2024051009151200003456',
-    time: '2024-05-10 09:15:12',
-    amount: '33.20',
-    payment: '微信支付'
-  },
-  {
-    status: 'fail',
-    room: '1 单元 101 室',
-    meterNo: '01234567890123456789',
-    orderNo: '2024050816452200007890',
-    time: '2024-05-08 16:45:22',
-    amount: '48.20',
-    payment: '支付超时'
-  },
-  {
-    status: 'success',
-    room: '2 单元 202 室',
-    meterNo: '01234567890123456792',
-    orderNo: '2024050511053300002345',
-    time: '2024-05-05 11:05:33',
-    amount: '15.80',
-    payment: '微信支付'
-  },
-  {
-    status: 'success',
-    room: '3 单元 301 室',
-    meterNo: '01234567890123456793',
-    orderNo: '2024050213221800006789',
-    time: '2024-05-02 13:22:18',
-    amount: '28.90',
-    payment: '微信支付'
-  }
+const filterOptions: { label: string; range: OrderDateRange }[] = [
+  { label: '全部', range: 'all' },
+  { label: '本年', range: 'currentYear' },
+  { label: '近6月', range: 'last6Months' },
+  { label: '近3月', range: 'last3Months' }
 ]
+const activeRange = ref<OrderDateRange>('all')
+const orderList = ref<OrderRecordItem[]>([])
+const pageNum = ref(1)
+const pageSize = 10
+
+const recordList = computed(() => {
+  return orderList.value.map((order) => {
+    const isSuccess = order.status === 'SUCCESS'
+
+    return {
+      status: isSuccess ? 'success' : 'fail',
+      statusName: order.statusName,
+      room: order.location || order.meterName || '账户充值',
+      meterNo: order.meterNo || '-',
+      orderNo: order.orderSn,
+      time: order.createTime,
+      amount: order.payAmount.toFixed(2),
+      payment: isSuccess ? (order.paymentChannelName || '微信支付') : order.statusName
+    }
+  })
+})
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -77,9 +47,36 @@ const handleBack = () => {
   })
 }
 
-const selectFilter = (filter: string) => {
-  activeFilter.value = filter
+const loadOrderPage = async () => {
+  try {
+    const response = await getOrderPage({
+      pageNum: pageNum.value,
+      pageSize,
+      range: activeRange.value
+    })
+    orderList.value = response.list
+  } catch (error) {
+    console.error('加载充值缴费记录失败', error)
+    uni.showToast({
+      title: '记录加载失败',
+      icon: 'none'
+    })
+  }
 }
+
+const selectFilter = async (range: OrderDateRange) => {
+  if (activeRange.value === range) {
+    return
+  }
+
+  activeRange.value = range
+  pageNum.value = 1
+  await loadOrderPage()
+}
+
+onMounted(() => {
+  void loadOrderPage()
+})
 </script>
 
 <template>
@@ -91,11 +88,11 @@ const selectFilter = (filter: string) => {
         <view class="filter-segment">
           <button
             v-for="filter in filterOptions"
-            :key="filter"
-            :class="['filter-item', activeFilter === filter ? 'is-active' : '']"
-            @click="selectFilter(filter)"
+            :key="filter.range"
+            :class="['filter-item', activeRange === filter.range ? 'is-active' : '']"
+            @click="selectFilter(filter.range)"
           >
-            <text>{{ filter }}</text>
+            <text>{{ filter.label }}</text>
           </button>
         </view>
 
@@ -110,7 +107,7 @@ const selectFilter = (filter: string) => {
                     <view></view>
                   </view>
                 </view>
-                <text class="status-title">{{ record.status === 'success' ? '支付成功' : '支付失败' }}</text>
+                <text class="status-title">{{ record.statusName }}</text>
               </view>
               <view class="record-amount">
                 <text class="amount-text">¥ {{ record.amount }}</text>

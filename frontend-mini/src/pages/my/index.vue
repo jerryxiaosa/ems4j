@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import ProfileActionList from '@/components/business/ProfileActionList.vue'
 import RechargeEntryButton from '@/components/business/RechargeEntryButton.vue'
 import AppAmount from '@/components/common/AppAmount.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
+import { getMyProfile } from '@/api/me'
+import type { MeProfileResponse } from '@/types/me'
 import { miniRoute } from '@/utils/route'
 
 type PrimaryAction = {
@@ -22,8 +24,29 @@ type SecondaryAction = {
 }
 
 const isBalanceVisible = ref(true)
+const profile = ref<MeProfileResponse>()
 const profileAvatarIcon = '/static/icons/profile-avatar.png'
 const profileChargeBackgroundIcon = '/static/icons/profile-charge-bg.png'
+
+const userPhoneText = computed(() => {
+  const phone = profile.value?.userPhone
+
+  if (!phone || phone.length < 7) {
+    return '手机：--'
+  }
+
+  return `手机：${phone.slice(0, 3)} **** ${phone.slice(-4)}`
+})
+
+const balanceText = computed(() => {
+  const balance = profile.value?.balance
+
+  if (balance === undefined) {
+    return '--'
+  }
+
+  return balance.toFixed(2)
+})
 
 const primaryActions: PrimaryAction[] = [
   {
@@ -98,6 +121,22 @@ const goRecharge = () => {
 const toggleBalanceVisible = () => {
   isBalanceVisible.value = !isBalanceVisible.value
 }
+
+const loadProfile = async () => {
+  try {
+    profile.value = await getMyProfile()
+  } catch (error) {
+    console.error('加载我的页面信息失败', error)
+    uni.showToast({
+      title: '个人信息加载失败',
+      icon: 'none'
+    })
+  }
+}
+
+onMounted(() => {
+  void loadProfile()
+})
 </script>
 
 <template>
@@ -111,7 +150,7 @@ const toggleBalanceVisible = () => {
 
           <view class="profile-main">
             <text class="profile-name">微信用户</text>
-            <text class="profile-phone">手机：138 **** 5678</text>
+            <text class="profile-phone">{{ userPhoneText }}</text>
           </view>
         </view>
 
@@ -123,7 +162,7 @@ const toggleBalanceVisible = () => {
               <AppVisibilityToggle :visible="isBalanceVisible" @toggle="toggleBalanceVisible" />
             </view>
             <view class="balance-amount">
-              <AppAmount :visible="isBalanceVisible" value="120.00" />
+              <AppAmount :visible="isBalanceVisible" :value="balanceText" />
             </view>
           </view>
           <view class="balance-button-wrap">
