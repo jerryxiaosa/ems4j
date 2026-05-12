@@ -146,7 +146,7 @@ onLoad((query) => {
             </view>
             <view class="wechat-copy">
               <text class="wechat-title">微信支付</text>
-              <text class="wechat-balance">可用余额 ¥ 2,345.67</text>
+              <text class="wechat-balance">点击下方按钮后拉起微信支付</text>
             </view>
             <view class="selected-circle">
               <view></view>

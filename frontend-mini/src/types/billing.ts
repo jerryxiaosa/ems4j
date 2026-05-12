@@ -1,4 +1,8 @@
-import type { ListResponse } from './common'
+export type BillDateRange = 'all' | 'currentYear' | 'last6Months' | 'last3Months'
+
+export type BillMonthListQuery = {
+  range?: BillDateRange
+}
 
 export type BillMonthItem = {
   month: string
@@ -10,7 +14,11 @@ export type BillMonthItem = {
   tip?: string
 }
 
-export type BillMonthListResponse = ListResponse<BillMonthItem>
+export type BillMonthListResponse = {
+  list: BillMonthItem[]
+  totalEnergy: number
+  totalFee: number
+}
 
 export type BillDayQuery = {
   month: string
@@ -18,13 +26,14 @@ export type BillDayQuery = {
 
 export type BillDayItem = {
   date: string
-  tipEnergy: number
+  weekday: string
+  sharpEnergy: number
   peakEnergy: number
   flatEnergy: number
   valleyEnergy: number
   deepValleyEnergy: number
   totalEnergy: number
-  tipFee: number
+  sharpFee: number
   peakFee: number
   flatFee: number
   valleyFee: number
@@ -35,6 +44,10 @@ export type BillDayItem = {
 export type BillDayListResponse = {
   month: string
   monthLabel: string
+  monthEnergy: number
+  monthFee: number
+  averageDailyEnergy: number
+  averageDailyFee: number
   tip?: string
   list: BillDayItem[]
 }

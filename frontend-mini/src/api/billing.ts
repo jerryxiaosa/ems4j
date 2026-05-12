@@ -1,16 +1,17 @@
 import { useMock } from '@/mock'
 import { getMockBillDayList, getMockBillMonthList } from '@/mock/billing'
-import type { BillDayListResponse, BillDayQuery, BillMonthListResponse } from '@/types/billing'
+import type { BillDayListResponse, BillDayQuery, BillMonthListQuery, BillMonthListResponse } from '@/types/billing'
 import { request } from '@/utils/request'
 
-export const getBillMonthList = async (): Promise<BillMonthListResponse> => {
+export const getBillMonthList = async (query: BillMonthListQuery = {}): Promise<BillMonthListResponse> => {
   if (useMock) {
-    return getMockBillMonthList()
+    return getMockBillMonthList(query)
   }
 
   return request<BillMonthListResponse>({
     url: '/v1/mini/bills/months',
-    method: 'GET'
+    method: 'GET',
+    data: query
   })
 }
 

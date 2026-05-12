@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
+import { getBillDayList } from '@/api/billing'
+import type { BillDayListResponse } from '@/types/billing'
 import { miniRoute } from '@/utils/route'
 
 type DailyBill = {
@@ -11,53 +13,55 @@ type DailyBill = {
   amount: string
 }
 
-const selectedMonth = ref('2024年11月')
-const isNoData = ref(false)
+const selectedMonth = ref('2026-04')
+const billDayResponse = ref<BillDayListResponse>()
 
-const dailyBills: DailyBill[] = [
-  { date: '11月30日', weekday: '周六', usage: '6.23', amount: '45.62' },
-  { date: '11月29日', weekday: '周五', usage: '7.45', amount: '53.21' },
-  { date: '11月28日', weekday: '周四', usage: '6.98', amount: '50.17' },
-  { date: '11月27日', weekday: '周三', usage: '7.12', amount: '51.08' },
-  { date: '11月26日', weekday: '周二', usage: '6.45', amount: '46.32' },
-  { date: '11月25日', weekday: '周一', usage: '6.78', amount: '48.67' },
-  { date: '11月24日', weekday: '周日', usage: '5.89', amount: '42.31' },
-  { date: '11月23日', weekday: '周六', usage: '6.10', amount: '43.89' }
-]
+const formatNumber = (value?: number) => {
+  if (value === undefined) {
+    return '--'
+  }
 
-const totalUsage = '215.43'
-const totalAmount = '1,534.45'
+  return value.toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
 
 const hasDailyData = computed(() => {
-  return !isNoData.value && dailyBills.length > 0
+  return (billDayResponse.value?.list.length ?? 0) > 0
 })
 
 const visibleDailyBills = computed(() => {
-  return hasDailyData.value ? dailyBills : []
+  if (!hasDailyData.value) {
+    return []
+  }
+
+  return (billDayResponse.value?.list ?? []).map<DailyBill>((item) => ({
+    date: item.date,
+    weekday: item.weekday,
+    usage: formatNumber(item.totalEnergy),
+    amount: formatNumber(item.totalFee)
+  }))
+})
+
+const selectedMonthLabel = computed(() => {
+  return billDayResponse.value?.monthLabel ?? selectedMonth.value
 })
 
 const totalUsageText = computed(() => {
-  return isNoData.value ? '--' : totalUsage
+  return formatNumber(billDayResponse.value?.monthEnergy)
 })
 
 const totalAmountText = computed(() => {
-  return isNoData.value ? '--' : totalAmount
+  return formatNumber(billDayResponse.value?.monthFee)
 })
 
 const averageUsage = computed(() => {
-  if (isNoData.value) {
-    return '--'
-  }
-
-  return (Number(totalUsage) / 30).toFixed(2)
+  return formatNumber(billDayResponse.value?.averageDailyEnergy)
 })
 
 const averageAmount = computed(() => {
-  if (isNoData.value) {
-    return '--'
-  }
-
-  return (Number(totalAmount.replace(/,/g, '')) / 30).toFixed(2)
+  return formatNumber(billDayResponse.value?.averageDailyFee)
 })
 
 const handleBack = () => {
@@ -73,12 +77,26 @@ const handleBack = () => {
   })
 }
 
+const loadBillDayList = async () => {
+  try {
+    billDayResponse.value = await getBillDayList({
+      month: selectedMonth.value
+    })
+  } catch (error) {
+    console.error('加载账单日明细失败', error)
+    uni.showToast({
+      title: '账单明细加载失败',
+      icon: 'none'
+    })
+  }
+}
+
 onLoad((query) => {
   if (query?.month) {
     selectedMonth.value = decodeURIComponent(String(query.month))
   }
 
-  isNoData.value = query?.empty === '1'
+  void loadBillDayList()
 })
 </script>
 
@@ -89,7 +107,7 @@ onLoad((query) => {
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <view class="month-selector">
-          <text>{{ selectedMonth }}</text>
+          <text>{{ selectedMonthLabel }}</text>
         </view>
 
         <view class="summary-card">

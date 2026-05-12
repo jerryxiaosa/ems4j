@@ -1,28 +1,46 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { getBillMonthList } from '@/api/billing'
+import type { BillDateRange, BillMonthItem, BillMonthListResponse } from '@/types/billing'
 import { miniRoute } from '@/utils/route'
 
-type BillMonth = {
-  month: string
-  tag?: string
-  amount?: string
-  usage?: string
+const filterOptions: { label: string; range: BillDateRange }[] = [
+  { label: '全部', range: 'all' },
+  { label: '本年', range: 'currentYear' },
+  { label: '近6月', range: 'last6Months' },
+  { label: '近3月', range: 'last3Months' }
+]
+
+const activeRange = ref<BillDateRange>('all')
+const billMonthResponse = ref<BillMonthListResponse>()
+
+const billMonths = computed(() => billMonthResponse.value?.list ?? [])
+
+const yearTitle = computed(() => {
+  const firstMonth = billMonths.value.find((item) => !item.isCurrentMonth) ?? billMonths.value[0]
+  return firstMonth ? `${firstMonth.month.slice(0, 4)}年` : ''
+})
+
+const formatNumber = (value?: number) => {
+  if (value === undefined) {
+    return '--'
+  }
+
+  return value.toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
 }
 
-const filterOptions = ['全部', '本年', '近6月', '近3月']
-const activeFilter = ref(filterOptions[0])
+const formatMoney = (value?: number) => {
+  return formatNumber(value)
+}
 
-const billMonths: BillMonth[] = [
-  { month: '2024年12月', tag: '本月结算中' },
-  { month: '2024年11月', amount: '1,534.45', usage: '215.43' },
-  { month: '2024年10月', amount: '1,856.23', usage: '263.12' },
-  { month: '2024年9月', amount: '1,245.33', usage: '198.67' },
-  { month: '2024年8月', amount: '1,650.00', usage: '205.21' },
-  { month: '2024年6月', amount: '1,503.45', usage: '230.14' },
-  { month: '2024年5月', amount: '1,245.30', usage: '192.56' }
-]
+const totalEnergyText = computed(() => formatNumber(billMonthResponse.value?.totalEnergy))
+
+const totalFeeText = computed(() => formatMoney(billMonthResponse.value?.totalFee))
 
 const handleBack = () => {
   uni.redirectTo({
@@ -30,17 +48,38 @@ const handleBack = () => {
   })
 }
 
-const selectFilter = (filter: string) => {
-  activeFilter.value = filter
+const loadBillMonths = async () => {
+  try {
+    billMonthResponse.value = await getBillMonthList({
+      range: activeRange.value
+    })
+  } catch (error) {
+    console.error('加载账单列表失败', error)
+    uni.showToast({
+      title: '账单加载失败',
+      icon: 'none'
+    })
+  }
 }
 
-const openBillDetail = (bill: BillMonth) => {
-  const isEmptyBill = !bill.amount && !bill.usage
+const selectFilter = async (range: BillDateRange) => {
+  if (activeRange.value === range) {
+    return
+  }
 
+  activeRange.value = range
+  await loadBillMonths()
+}
+
+const openBillDetail = (bill: BillMonthItem) => {
   uni.navigateTo({
-    url: `${miniRoute.billingDetail}?month=${encodeURIComponent(bill.month)}&empty=${isEmptyBill ? '1' : '0'}`
+    url: `${miniRoute.billingDetail}?month=${encodeURIComponent(bill.month)}`
   })
 }
+
+onMounted(() => {
+  void loadBillMonths()
+})
 </script>
 
 <template>
@@ -52,11 +91,11 @@ const openBillDetail = (bill: BillMonth) => {
         <view class="filter-segment">
           <button
             v-for="filter in filterOptions"
-            :key="filter"
-            :class="['filter-item', activeFilter === filter ? 'is-active' : '']"
-            @click="selectFilter(filter)"
+            :key="filter.range"
+            :class="['filter-item', activeRange === filter.range ? 'is-active' : '']"
+            @click="selectFilter(filter.range)"
           >
-            <text>{{ filter }}</text>
+            <text>{{ filter.label }}</text>
           </button>
         </view>
 
@@ -69,7 +108,7 @@ const openBillDetail = (bill: BillMonth) => {
               <text>总用电量（kWh）</text>
             </view>
             <view class="summary-value usage-value">
-              <text>1,544.63</text>
+              <text>{{ totalEnergyText }}</text>
             </view>
             <view class="summary-accent usage-accent"></view>
           </view>
@@ -85,27 +124,27 @@ const openBillDetail = (bill: BillMonth) => {
             </view>
             <view class="summary-value cost-value">
               <text class="currency">¥</text>
-              <text>12,345.56</text>
+              <text>{{ totalFeeText }}</text>
             </view>
             <view class="summary-accent cost-accent"></view>
           </view>
         </view>
 
-        <text class="year-title">2024年</text>
+        <text class="year-title">{{ yearTitle }}</text>
 
         <view class="bill-list">
           <view v-for="bill in billMonths" :key="bill.month" class="bill-card" @click="openBillDetail(bill)">
             <view class="month-row">
               <view class="month-bill-icon"></view>
-              <text class="month-title">{{ bill.month }}</text>
-              <text v-if="bill.tag" class="month-tag">{{ bill.tag }}</text>
+              <text class="month-title">{{ bill.monthLabel }}</text>
+              <text v-if="bill.tip" class="month-tag">{{ bill.tip }}</text>
             </view>
 
             <view class="bill-metrics">
               <view class="metric-block">
                 <view class="metric-copy">
                   <text class="metric-label">用电量</text>
-                  <text class="metric-value">{{ bill.usage ?? '--' }} kWh</text>
+                  <text class="metric-value">{{ formatNumber(bill.monthEnergy) }} kWh</text>
                 </view>
               </view>
 
@@ -114,7 +153,7 @@ const openBillDetail = (bill: BillMonth) => {
               <view class="metric-block">
                 <view class="metric-copy">
                   <text class="metric-label">电费</text>
-                  <text class="metric-value">¥ {{ bill.amount ?? '--' }}</text>
+                  <text class="metric-value">¥ {{ formatMoney(bill.monthFee) }}</text>
                 </view>
               </view>
 
