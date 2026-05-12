@@ -3,8 +3,8 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
-import { getMeterDetail } from '@/api/meter'
-import type { MeterDetailResponse } from '@/types/meter'
+import { getMeterDetail, getMeterTodayUsage } from '@/api/meter'
+import type { MeterDetailResponse, MeterTodayUsageResponse } from '@/types/meter'
 import { miniRoute } from '@/utils/route'
 
 type MeterStatus = 'normal' | 'offline'
@@ -30,12 +30,15 @@ type EnergySegment = {
   tone: 'tip' | 'peak' | 'flat' | 'valley' | 'deep'
 }
 
-const todayUsageCategories = ['0', '4', '8', '12', '16', '20', '24']
-
 const meterId = ref(101)
 const meterDetail = ref<MeterDetailResponse>()
+const meterTodayUsage = ref<MeterTodayUsageResponse>()
 
-const formatNumber = (value?: number | null) => {
+const formatNumber = (value?: number | null, text?: string) => {
+  if (text) {
+    return text
+  }
+
   if (value === undefined || value === null) {
     return '--'
   }
@@ -46,8 +49,13 @@ const formatNumber = (value?: number | null) => {
   })
 }
 
+const todayUsageCategories = computed(() => {
+  return meterTodayUsage.value?.trendList.map((item) => item.timeLabel) ?? ['0', '4', '8', '12', '16', '20', '24']
+})
+
 const meter = computed(() => {
   const detail = meterDetail.value
+  const todayUsage = meterTodayUsage.value
 
   if (!detail) {
     return {
@@ -70,29 +78,33 @@ const meter = computed(() => {
   return {
     id: String(detail.meterId),
     name: detail.meterName,
-    meterNo: detail.meterNo,
-    location: detail.location,
+    meterNo: detail.meterNo ?? '-',
+    location: detail.location ?? '-',
     status: detail.isOnline ? 'normal' : 'offline',
     statusText: detail.isOnline ? '在线' : '离线',
-    totalEnergy: formatNumber(detail.totalEnergy),
+    totalEnergy: formatNumber(detail.totalEnergy, detail.totalEnergyText),
     energySegments: [
-      { name: '尖', value: formatNumber(detail.sharpEnergy), tone: 'tip' },
-      { name: '峰', value: formatNumber(detail.peakEnergy), tone: 'peak' },
-      { name: '平', value: formatNumber(detail.flatEnergy), tone: 'flat' },
-      { name: '谷', value: formatNumber(detail.valleyEnergy), tone: 'valley' },
-      { name: '深谷', value: formatNumber(detail.deepValleyEnergy), tone: 'deep' }
+      { name: '尖', value: formatNumber(detail.sharpEnergy, detail.sharpEnergyText), tone: 'tip' },
+      { name: '峰', value: formatNumber(detail.peakEnergy, detail.peakEnergyText), tone: 'peak' },
+      { name: '平', value: formatNumber(detail.flatEnergy, detail.flatEnergyText), tone: 'flat' },
+      { name: '谷', value: formatNumber(detail.valleyEnergy, detail.valleyEnergyText), tone: 'valley' },
+      { name: '深谷', value: formatNumber(detail.deepValleyEnergy, detail.deepValleyEnergyText), tone: 'deep' }
     ] as EnergySegment[],
-    todayEnergy: formatNumber(detail.todayTotalEnergy),
+    todayEnergy: formatNumber(todayUsage?.todayEnergy, todayUsage?.todayEnergyText),
     todayEnergySegments: [
-      { name: '尖', value: formatNumber(detail.todaySharpEnergy), tone: 'tip' },
-      { name: '峰', value: formatNumber(detail.todayPeakEnergy), tone: 'peak' },
-      { name: '平', value: formatNumber(detail.todayFlatEnergy), tone: 'flat' },
-      { name: '谷', value: formatNumber(detail.todayValleyEnergy), tone: 'valley' },
-      { name: '深谷', value: formatNumber(detail.todayDeepValleyEnergy), tone: 'deep' }
+      { name: '尖', value: formatNumber(todayUsage?.todaySharpEnergy, todayUsage?.todaySharpEnergyText), tone: 'tip' },
+      { name: '峰', value: formatNumber(todayUsage?.todayPeakEnergy, todayUsage?.todayPeakEnergyText), tone: 'peak' },
+      { name: '平', value: formatNumber(todayUsage?.todayFlatEnergy, todayUsage?.todayFlatEnergyText), tone: 'flat' },
+      { name: '谷', value: formatNumber(todayUsage?.todayValleyEnergy, todayUsage?.todayValleyEnergyText), tone: 'valley' },
+      {
+        name: '深谷',
+        value: formatNumber(todayUsage?.todayDeepValleyEnergy, todayUsage?.todayDeepValleyEnergyText),
+        tone: 'deep'
+      }
     ] as EnergySegment[],
-    todayUsageValues: detail.todayUsageTrend,
-    updateTime: detail.updateTime,
-    updateClock: detail.updateTime.slice(11, 16)
+    todayUsageValues: todayUsage?.trendList.map((item) => item.value) ?? [0, 0, 0, 0, 0, 0, 0],
+    updateTime: detail.updateTime ?? todayUsage?.updateTime ?? '--',
+    updateClock: todayUsage?.updateClock ?? detail.updateTime?.slice(11, 16) ?? '--'
   } satisfies MeterDetail & { statusText: string }
 })
 
@@ -111,7 +123,12 @@ const handleBack = () => {
 
 const loadMeterDetail = async () => {
   try {
-    meterDetail.value = await getMeterDetail(meterId.value)
+    const [detail, todayUsage] = await Promise.all([
+      getMeterDetail(meterId.value),
+      getMeterTodayUsage(meterId.value)
+    ])
+    meterDetail.value = detail
+    meterTodayUsage.value = todayUsage
   } catch (error) {
     console.error('加载电表详情失败', error)
     uni.showToast({

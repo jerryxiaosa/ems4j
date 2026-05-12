@@ -109,7 +109,7 @@ export const getMockBillDayList = async (query: BillDayQuery): Promise<BillDayLi
       monthFee: null,
       averageDailyEnergy: null,
       averageDailyFee: null,
-      tip: '本月结算中',
+      tip: '当月暂无记录',
       list: []
     }
   }

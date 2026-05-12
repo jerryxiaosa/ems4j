@@ -1,14 +1,29 @@
 import type { ElectricAccountType } from './common'
-import type { OrderRecordItem } from './order'
+
+export type HomeLatestRechargeOrder = {
+  orderSn: string
+  payAmount: number
+  payAmountText?: string
+  topUpAmount?: number
+  topUpAmountText?: string
+  serviceFeeAmount?: number
+  serviceFeeAmountText?: string
+  status: string
+  statusName: string
+  createTime: string
+}
 
 export type HomeSummaryResponse = {
   electricAccountName: string
   electricAccountType: ElectricAccountType
   balance: number
+  balanceText?: string
   meterCount: number
   lastMonthEnergy?: number
+  lastMonthEnergyText?: string
   lastMonthFee?: number
-  latestRechargeOrder?: OrderRecordItem
+  lastMonthFeeText?: string
+  latestRechargeOrder?: HomeLatestRechargeOrder
 }
 
 export type HomeTrendMetric = 'fee' | 'energy'

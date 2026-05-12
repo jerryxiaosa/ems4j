@@ -74,11 +74,11 @@ onMounted(() => {
               </view>
               <view class="meter-meta-line">
                 <text class="meter-meta-label">电表编号：</text>
-                <text class="meter-meta-value">{{ meter.meterNo }}</text>
+                <text class="meter-meta-value">{{ meter.meterNo || '-' }}</text>
               </view>
               <view class="meter-meta-line">
                 <text class="meter-meta-label">所在位置：</text>
-                <text class="meter-meta-value">{{ meter.location }}</text>
+                <text class="meter-meta-value">{{ meter.location || '-' }}</text>
               </view>
             </view>
             <view class="meter-action" aria-hidden="true">

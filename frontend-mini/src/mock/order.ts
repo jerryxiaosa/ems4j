@@ -4,16 +4,18 @@ import type {
   OrderListResponse,
   OrderRecordItem,
   TopUpOrderRequest,
-  TopUpOrderResponse,
-  WechatPaymentParamsResponse
+  TopUpOrderResponse
 } from '@/types/order'
 
 const mockOrderList: OrderRecordItem[] = [
   {
     orderSn: 'RC202605110001',
     payAmount: 200,
+    payAmountText: '200.00',
     topUpAmount: 196,
+    topUpAmountText: '196.00',
     serviceFeeAmount: 4,
+    serviceFeeAmountText: '4.00',
     status: 'SUCCESS',
     statusName: '支付成功',
     createTime: '2026-05-10 18:24',
@@ -21,14 +23,17 @@ const mockOrderList: OrderRecordItem[] = [
     meterName: '客厅电表',
     meterNo: '01234567890123456789',
     location: '1 单元 101 室',
-    paymentChannel: 'WECHAT',
+    paymentChannel: 'WX_MINI',
     paymentChannelName: '微信支付'
   },
   {
     orderSn: 'RC202605090003',
     payAmount: 100,
+    payAmountText: '100.00',
     topUpAmount: 98,
+    topUpAmountText: '98.00',
     serviceFeeAmount: 2,
+    serviceFeeAmountText: '2.00',
     status: 'SUCCESS',
     statusName: '支付成功',
     createTime: '2026-05-09 09:12',
@@ -36,14 +41,17 @@ const mockOrderList: OrderRecordItem[] = [
     meterName: '卧室电表',
     meterNo: '98765432109876543210',
     location: '1 单元 202 室',
-    paymentChannel: 'WECHAT',
+    paymentChannel: 'WX_MINI',
     paymentChannelName: '微信支付'
   },
   {
     orderSn: 'RC202605050006',
     payAmount: 50,
+    payAmountText: '50.00',
     topUpAmount: 49,
+    topUpAmountText: '49.00',
     serviceFeeAmount: 1,
+    serviceFeeAmountText: '1.00',
     status: 'CLOSED',
     statusName: '已关闭',
     createTime: '2026-05-05 21:08',
@@ -51,7 +59,7 @@ const mockOrderList: OrderRecordItem[] = [
     meterName: '商铺电表',
     meterNo: '11223344556677889900',
     location: '2 单元 301 室',
-    paymentChannel: 'WECHAT',
+    paymentChannel: 'WX_MINI',
     paymentChannelName: '微信支付'
   }
 ]
@@ -72,8 +80,11 @@ export const createMockTopUpOrder = async (request: TopUpOrderRequest): Promise<
   return {
     orderSn: 'RC202605110888',
     payAmount: request.payAmount,
+    payAmountText: request.payAmount.toFixed(2),
     topUpAmount: Number((request.payAmount - serviceFeeAmount).toFixed(2)),
+    topUpAmountText: (request.payAmount - serviceFeeAmount).toFixed(2),
     serviceFeeAmount,
+    serviceFeeAmountText: serviceFeeAmount.toFixed(2),
     orderPayStopTime: '2026-05-11 23:59:59',
     paymentParams: {
       timeStamp: '1799654399',
@@ -82,18 +93,6 @@ export const createMockTopUpOrder = async (request: TopUpOrderRequest): Promise<
       signType: 'RSA',
       paySign: 'mockPaySign'
     }
-  }
-}
-
-export const getMockPaymentParams = async (_orderSn: string): Promise<WechatPaymentParamsResponse> => {
-  await mockDelay()
-
-  return {
-    timeStamp: '1799654399',
-    nonceStr: 'mockNonceStr',
-    packageValue: 'prepay_id=mock_prepay_id',
-    signType: 'RSA',
-    paySign: 'mockPaySign'
   }
 }
 

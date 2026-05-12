@@ -5,8 +5,11 @@ export type OrderDateRange = 'all' | 'currentYear' | 'last6Months' | 'last3Month
 export type OrderRecordItem = {
   orderSn: string
   payAmount: number
+  payAmountText?: string
   topUpAmount?: number
+  topUpAmountText?: string
   serviceFeeAmount?: number
+  serviceFeeAmountText?: string
   status: string
   statusName: string
   createTime: string
@@ -14,8 +17,8 @@ export type OrderRecordItem = {
   meterName?: string
   meterNo?: string
   location?: string
-  paymentChannel?: string
-  paymentChannelName?: string
+  paymentChannel: string
+  paymentChannelName: string
 }
 
 export type OrderListQuery = PageQuery & {
@@ -32,8 +35,11 @@ export type TopUpOrderRequest = {
 export type TopUpOrderResponse = {
   orderSn: string
   payAmount: number
+  payAmountText?: string
   topUpAmount: number
+  topUpAmountText?: string
   serviceFeeAmount: number
+  serviceFeeAmountText?: string
   orderPayStopTime: string
   paymentParams: WechatPaymentParamsResponse
 }

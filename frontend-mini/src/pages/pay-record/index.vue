@@ -24,12 +24,12 @@ const recordList = computed(() => {
     return {
       status: isSuccess ? 'success' : 'fail',
       statusName: order.statusName,
-      room: order.location || order.meterName || '账户充值',
+      room: order.meterName || order.location || '账户充值',
       meterNo: order.meterNo || '-',
       orderNo: order.orderSn,
       time: order.createTime,
-      amount: order.payAmount.toFixed(2),
-      payment: isSuccess ? (order.paymentChannelName || '微信支付') : order.statusName
+      amount: order.payAmountText ?? order.payAmount.toFixed(2),
+      payment: isSuccess ? order.paymentChannelName : order.statusName
     }
   })
 })
