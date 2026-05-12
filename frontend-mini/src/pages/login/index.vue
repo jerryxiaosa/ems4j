@@ -121,17 +121,22 @@ onLoad((query) => {
     <view class="login-panel">
       <button
         v-if="hasAgreed"
-        class="wechat-login-button"
+        :class="['wechat-login-button', isLoggingIn ? 'is-logging-in' : '']"
         open-type="getPhoneNumber"
         :disabled="isLoggingIn"
         @getphonenumber="handleWechatPhoneLogin"
       >
         <image class="wechat-login-icon" src="/static/icons/wechat-white.svg" mode="aspectFit" />
-        <text>{{ isLoggingIn ? '登录中...' : '微信一键登录' }}</text>
+        <text>微信一键登录</text>
       </button>
-      <button v-else class="wechat-login-button" :disabled="isLoggingIn" @click="handleLoginWithoutAgreement">
+      <button
+        v-else
+        :class="['wechat-login-button', isLoggingIn ? 'is-logging-in' : '']"
+        :disabled="isLoggingIn"
+        @click="handleLoginWithoutAgreement"
+      >
         <image class="wechat-login-icon" src="/static/icons/wechat-white.svg" mode="aspectFit" />
-        <text>{{ isLoggingIn ? '登录中...' : '微信一键登录' }}</text>
+        <text>微信一键登录</text>
       </button>
 
       <view class="agreement-row">
@@ -304,6 +309,10 @@ onLoad((query) => {
   background: linear-gradient(90deg, #60d179 0%, #2ab64f 100%);
   border-radius: 999rpx;
   box-shadow: 0 design-rpx(4) design-rpx(14) rgba(42, 182, 79, 0.39);
+}
+
+.wechat-login-button.is-logging-in {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .wechat-login-icon {
