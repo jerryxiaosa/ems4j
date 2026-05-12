@@ -1,13 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AccountHeroCard from '@/components/business/AccountHeroCard.vue'
 import RechargeAmountCard from '@/components/business/RechargeAmountCard.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { getRechargeInit } from '@/api/recharge'
+import type { RechargeInitResponse } from '@/types/recharge'
 import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('')
 const isBalanceVisible = ref(true)
+const rechargeInit = ref<RechargeInitResponse>()
+
+const formatMoney = (value?: number) => {
+  return (value ?? 0).toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+const accountName = computed(() => rechargeInit.value?.electricAccountName ?? '')
+const accountBalance = computed(() => formatMoney(rechargeInit.value?.accountBalance))
+const serviceFeeRate = computed(() => rechargeInit.value?.serviceFeeRate ?? 0)
 
 const handleBack = () => {
   uni.redirectTo({
@@ -33,6 +47,21 @@ const toggleBalanceVisible = () => {
   isBalanceVisible.value = !isBalanceVisible.value
 }
 
+const loadRechargeInit = async () => {
+  try {
+    rechargeInit.value = await getRechargeInit()
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '充值信息加载失败',
+      icon: 'none'
+    })
+  }
+}
+
+onMounted(() => {
+  loadRechargeInit()
+})
+
 </script>
 
 <template>
@@ -42,14 +71,14 @@ const toggleBalanceVisible = () => {
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <AccountHeroCard
-          account-name="星河家园 2 栋住户账户"
-          balance="1,234.56"
+          :account-name="accountName"
+          :balance="accountBalance"
           show-balance
           :balance-visible="isBalanceVisible"
           @toggle-balance="toggleBalanceVisible"
         />
 
-        <RechargeAmountCard v-model:amount="rechargeAmount" />
+        <RechargeAmountCard v-model:amount="rechargeAmount" :service-fee-rate="serviceFeeRate" />
 
         <view class="record-link" @click="goPayRecord">
           <text>充值缴费记录</text>

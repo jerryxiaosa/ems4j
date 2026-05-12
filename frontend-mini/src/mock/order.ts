@@ -47,14 +47,23 @@ export const getMockOrderPage = async (query: OrderListQuery = {}): Promise<Orde
 export const createMockTopUpOrder = async (request: TopUpOrderRequest): Promise<TopUpOrderResponse> => {
   await mockDelay()
 
-  const serviceFeeAmount = Number((request.orderAmount * 0.02).toFixed(2))
+  const serviceFeeRate = 0.02
+  const rawServiceFeeAmount = Math.floor(request.payAmount * serviceFeeRate * 100) / 100
+  const serviceFeeAmount = serviceFeeRate > 0 && rawServiceFeeAmount < 0.01 ? 0.01 : rawServiceFeeAmount
 
   return {
     orderSn: 'RC202605110888',
-    orderAmount: request.orderAmount,
-    arrivalAmount: Number((request.orderAmount - serviceFeeAmount).toFixed(2)),
+    payAmount: request.payAmount,
+    topUpAmount: Number((request.payAmount - serviceFeeAmount).toFixed(2)),
     serviceFeeAmount,
-    orderPayStopTime: '2026-05-11 23:59:59'
+    orderPayStopTime: '2026-05-11 23:59:59',
+    paymentParams: {
+      timeStamp: '1799654399',
+      nonceStr: 'mockNonceStr',
+      packageValue: 'prepay_id=mock_prepay_id',
+      signType: 'RSA',
+      paySign: 'mockPaySign'
+    }
   }
 }
 

@@ -3,25 +3,41 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AccountHeroCard from '@/components/business/AccountHeroCard.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
+import { createTopUpOrder } from '@/api/order'
+import { getRechargeInit } from '@/api/recharge'
+import type { TopUpOrderResponse } from '@/types/order'
+import type { RechargeInitResponse } from '@/types/recharge'
 import { miniRoute } from '@/utils/route'
 
 const rechargeAmount = ref('200')
+const selectedMeterId = ref<number>()
 const hasAgreed = ref(true)
 const isBalanceVisible = ref(true)
-const serviceFeeAmount = '0.00'
+const rechargeInit = ref<RechargeInitResponse>()
+const topUpOrder = ref<TopUpOrderResponse>()
 
-const formatAmount = (value: string) => {
+const formatMoney = (value?: number) => {
+  return (value ?? 0).toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+const normalizeAmount = (value: string) => {
   const numericValue = Number(value)
 
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
-    return '200.00'
+    return 200
   }
 
-  return numericValue.toFixed(2)
+  return numericValue
 }
 
-const rechargeAmountText = computed(() => formatAmount(rechargeAmount.value))
-const totalAmountText = computed(() => formatAmount(rechargeAmount.value))
+const accountName = computed(() => rechargeInit.value?.electricAccountName ?? '')
+const accountBalance = computed(() => formatMoney(rechargeInit.value?.accountBalance))
+const rechargeAmountText = computed(() => formatMoney(topUpOrder.value?.payAmount ?? normalizeAmount(rechargeAmount.value)))
+const totalAmountText = computed(() => formatMoney(topUpOrder.value?.payAmount ?? normalizeAmount(rechargeAmount.value)))
+const serviceFeeAmount = computed(() => formatMoney(topUpOrder.value?.serviceFeeAmount))
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -70,12 +86,41 @@ const handlePay = () => {
   })
 }
 
+const loadPayConfirmData = async () => {
+  try {
+    const payAmount = normalizeAmount(rechargeAmount.value)
+    const [init, order] = await Promise.all([
+      getRechargeInit(),
+      createTopUpOrder({
+        payAmount,
+        meterId: selectedMeterId.value
+      })
+    ])
+
+    rechargeInit.value = init
+    topUpOrder.value = order
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '订单信息加载失败',
+      icon: 'none'
+    })
+  }
+}
+
 onLoad((query) => {
   const amount = query?.amount
+  const meterId = query?.meterId
 
   if (typeof amount === 'string' && amount.trim()) {
     rechargeAmount.value = amount
   }
+
+  if (typeof meterId === 'string' && meterId.trim()) {
+    const numericMeterId = Number(meterId)
+    selectedMeterId.value = Number.isFinite(numericMeterId) ? numericMeterId : undefined
+  }
+
+  loadPayConfirmData()
 })
 </script>
 
@@ -86,8 +131,8 @@ onLoad((query) => {
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <AccountHeroCard
-          account-name="星河家园 2 栋住户账户"
-          balance="1,234.56"
+          :account-name="accountName"
+          :balance="accountBalance"
           show-balance
           :balance-visible="isBalanceVisible"
           @toggle-balance="toggleBalanceVisible"

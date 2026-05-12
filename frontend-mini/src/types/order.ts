@@ -15,16 +15,17 @@ export type OrderListQuery = PageQuery
 export type OrderListResponse = PageResponse<OrderRecordItem>
 
 export type TopUpOrderRequest = {
-  orderAmount: number
-  meterId?: string
+  payAmount: number
+  meterId?: number
 }
 
 export type TopUpOrderResponse = {
   orderSn: string
-  orderAmount: number
-  arrivalAmount: number
+  payAmount: number
+  topUpAmount: number
   serviceFeeAmount: number
   orderPayStopTime: string
+  paymentParams: WechatPaymentParamsResponse
 }
 
 export type WechatPaymentParamsResponse = {

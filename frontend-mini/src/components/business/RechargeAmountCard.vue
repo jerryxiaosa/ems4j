@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 const feeTip = computed(() => {
   if (props.serviceFeeRate > 0) {
-    return `收取 ${props.serviceFeeRate}% 的服务费。`
+    return `收取 ${(props.serviceFeeRate * 100).toFixed(2).replace(/\.?0+$/, '')}% 的服务费。`
   }
 
   return '账户充值后，余额可用于电费扣缴和相关服务。'

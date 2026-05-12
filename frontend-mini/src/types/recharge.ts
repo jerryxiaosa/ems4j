@@ -1,17 +1,18 @@
 import type { ElectricAccountType } from './common'
 
 export type RechargeMeterOption = {
-  meterId: string
+  meterId: number
   meterName: string
   meterNo?: string
+  location?: string
   meterBalance: number
 }
 
 export type RechargeInitResponse = {
   electricAccountType: ElectricAccountType
-  accountName: string
+  electricAccountName: string
   accountBalance: number
   serviceFeeRate: number
-  selectedMeterId?: string
+  selectedMeterId?: number
   meterOptionList?: RechargeMeterOption[]
 }

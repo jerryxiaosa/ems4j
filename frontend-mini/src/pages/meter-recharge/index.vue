@@ -1,34 +1,46 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AccountHeroCard from '@/components/business/AccountHeroCard.vue'
 import MeterSelectCard from '@/components/business/MeterSelectCard.vue'
 import RechargeAmountCard from '@/components/business/RechargeAmountCard.vue'
 import AppAmount from '@/components/common/AppAmount.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { getRechargeInit } from '@/api/recharge'
+import type { RechargeInitResponse, RechargeMeterOption } from '@/types/recharge'
 import { miniRoute } from '@/utils/route'
 
 type MeterOption = {
-  id: string
+  id: number
   room: string
   meterNo: string
   balance: string
 }
 
-const meterList: MeterOption[] = [
-  { id: '101', room: '1 单元 101 室', meterNo: '01234567890123456789', balance: '48.20' },
-  { id: '102', room: '1 单元 102 室', meterNo: '01234567890123456790', balance: '12.00' },
-  { id: '201', room: '2 单元 201 室', meterNo: '01234567890123456791', balance: '76.50' },
-  { id: '202', room: '2 单元 202 室', meterNo: '01234567890123456792', balance: '33.20' },
-  { id: '301', room: '3 单元 301 室', meterNo: '01234567890123456793', balance: '15.80' },
-  { id: '302', room: '3 单元 302 室', meterNo: '01234567890123456794', balance: '28.90' }
-]
-
 const rechargeAmount = ref('')
-const selectedMeterId = ref(meterList[0].id)
+const selectedMeterId = ref<number>()
 const showMeterSheet = ref(false)
+const rechargeInit = ref<RechargeInitResponse>()
 
-const selectedMeter = computed(() => meterList.find((meter) => meter.id === selectedMeterId.value) ?? meterList[0])
+const formatMoney = (value?: number) => {
+  return (value ?? 0).toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+const toMeterOption = (meter: RechargeMeterOption): MeterOption => ({
+  id: meter.meterId,
+  room: meter.location || meter.meterName,
+  meterNo: meter.meterNo ?? '-',
+  balance: formatMoney(meter.meterBalance)
+})
+
+const meterList = computed(() => rechargeInit.value?.meterOptionList?.map(toMeterOption) ?? [])
+const selectedMeter = computed(() => meterList.value.find((meter) => meter.id === selectedMeterId.value) ?? meterList.value[0])
+const accountName = computed(() => rechargeInit.value?.electricAccountName ?? '')
+const meterCount = computed(() => meterList.value.length)
+const serviceFeeRate = computed(() => rechargeInit.value?.serviceFeeRate ?? 0)
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -45,9 +57,10 @@ const handleBack = () => {
 
 const goPayConfirm = () => {
   const amount = rechargeAmount.value || '200'
+  const meterId = selectedMeter.value?.id
 
   uni.navigateTo({
-    url: `${miniRoute.payConfirm}?amount=${encodeURIComponent(amount)}`
+    url: `${miniRoute.payConfirm}?amount=${encodeURIComponent(amount)}${meterId ? `&meterId=${encodeURIComponent(String(meterId))}` : ''}`
   })
 }
 
@@ -69,6 +82,23 @@ const selectMeter = (meter: MeterOption) => {
   selectedMeterId.value = meter.id
   closeMeterSheet()
 }
+
+const loadRechargeInit = async () => {
+  try {
+    const result = await getRechargeInit()
+    rechargeInit.value = result
+    selectedMeterId.value = result.selectedMeterId ?? result.meterOptionList?.[0]?.meterId
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '充值信息加载失败',
+      icon: 'none'
+    })
+  }
+}
+
+onMounted(() => {
+  loadRechargeInit()
+})
 </script>
 
 <template>
@@ -78,20 +108,20 @@ const selectMeter = (meter: MeterOption) => {
     <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">
         <AccountHeroCard
-          account-name="星河家园 2 栋住户账户"
+          :account-name="accountName"
           show-meter-count
-          :meter-count="meterList.length"
+          :meter-count="meterCount"
           @meter-click="openMeterSheet"
         />
 
         <MeterSelectCard
-          :room="selectedMeter.room"
-          :meter-no="selectedMeter.meterNo"
-          :balance="selectedMeter.balance"
+          :room="selectedMeter?.room ?? ''"
+          :meter-no="selectedMeter?.meterNo ?? ''"
+          :balance="selectedMeter?.balance ?? '0.00'"
           @click="openMeterSheet"
         />
 
-        <RechargeAmountCard v-model:amount="rechargeAmount" />
+        <RechargeAmountCard v-model:amount="rechargeAmount" :service-fee-rate="serviceFeeRate" />
 
         <view class="record-link" @click="goPayRecord">
           <text>充值缴费记录</text>
@@ -112,7 +142,7 @@ const selectMeter = (meter: MeterOption) => {
       <view :class="['meter-sheet', showMeterSheet ? 'is-open' : '']" @click.stop>
         <view class="sheet-handle"></view>
         <text class="sheet-title">选择电表</text>
-        <text class="sheet-subtitle">共 {{ meterList.length }} 个电表</text>
+        <text class="sheet-subtitle">共 {{ meterCount }} 个电表</text>
 
         <scroll-view class="meter-list-scroll" scroll-y enhanced show-scrollbar="false">
           <view class="meter-option-list">

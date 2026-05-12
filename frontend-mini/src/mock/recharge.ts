@@ -3,27 +3,30 @@ import type { RechargeInitResponse } from '@/types/recharge'
 
 export const mockDemandRechargeInit: RechargeInitResponse = {
   electricAccountType: 0,
-  accountName: '星河家园 2 栋住户账',
+  electricAccountName: '星河家园 2 栋住户账',
   accountBalance: 328.6,
-  serviceFeeRate: 2,
-  selectedMeterId: 'meter-101',
+  serviceFeeRate: 0.02,
+  selectedMeterId: 101,
   meterOptionList: [
     {
-      meterId: 'meter-101',
-      meterName: '1 单元 101 室',
-      meterNo: 'EM2026050101',
+      meterId: 101,
+      meterName: '客厅电表',
+      location: '1 单元 101 室',
+      meterNo: '01234567890123456789',
       meterBalance: 86.5
     },
     {
-      meterId: 'meter-102',
-      meterName: '1 单元 102 室',
-      meterNo: 'EM2026050102',
+      meterId: 102,
+      meterName: '卧室电表',
+      location: '1 单元 102 室',
+      meterNo: '01234567890123456790',
       meterBalance: 120.3
     },
     {
-      meterId: 'meter-201',
-      meterName: '2 单元 201 室',
-      meterNo: 'EM2026050201',
+      meterId: 201,
+      meterName: '商铺电表',
+      location: '2 单元 201 室',
+      meterNo: '01234567890123456791',
       meterBalance: 121.8
     }
   ]
@@ -31,9 +34,9 @@ export const mockDemandRechargeInit: RechargeInitResponse = {
 
 export const mockMergedRechargeInit: RechargeInitResponse = {
   electricAccountType: 2,
-  accountName: '星河家园 2 栋住户账',
+  electricAccountName: '星河家园 2 栋住户账',
   accountBalance: 328.6,
-  serviceFeeRate: 2
+  serviceFeeRate: 0.02
 }
 
 export const getMockRechargeInit = async (): Promise<RechargeInitResponse> => {
