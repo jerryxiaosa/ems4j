@@ -5,6 +5,11 @@ import AccountHeroCard from '@/components/business/AccountHeroCard.vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import { createTopUpOrder } from '@/api/order'
 import { getRechargeInit } from '@/api/recharge'
+import {
+  requestWechatPayment,
+  setMockWechatPaymentResult,
+  type MockWechatPaymentResult
+} from '@/platform/payment/wechatPayment'
 import type { TopUpOrderResponse } from '@/types/order'
 import type { RechargeInitResponse } from '@/types/recharge'
 import { miniRoute } from '@/utils/route'
@@ -12,9 +17,11 @@ import { miniRoute } from '@/utils/route'
 const rechargeAmount = ref('200')
 const selectedMeterId = ref<number>()
 const hasAgreed = ref(true)
+const isPaying = ref(false)
 const isBalanceVisible = ref(true)
 const rechargeInit = ref<RechargeInitResponse>()
 const topUpOrder = ref<TopUpOrderResponse>()
+const mockPayResult = ref<MockWechatPaymentResult>('success')
 
 const formatMoney = (value?: number) => {
   return (value ?? 0).toLocaleString('zh-CN', {
@@ -35,9 +42,15 @@ const normalizeAmount = (value: string) => {
 
 const accountName = computed(() => rechargeInit.value?.electricAccountName ?? '')
 const accountBalance = computed(() => formatMoney(rechargeInit.value?.accountBalance))
-const rechargeAmountText = computed(() => formatMoney(topUpOrder.value?.payAmount ?? normalizeAmount(rechargeAmount.value)))
-const totalAmountText = computed(() => formatMoney(topUpOrder.value?.payAmount ?? normalizeAmount(rechargeAmount.value)))
-const serviceFeeAmount = computed(() => formatMoney(topUpOrder.value?.serviceFeeAmount))
+const rechargeAmountText = computed(() => {
+  return topUpOrder.value?.payAmountText ?? formatMoney(topUpOrder.value?.payAmount ?? normalizeAmount(rechargeAmount.value))
+})
+const arrivalAmountText = computed(() => {
+  return topUpOrder.value?.topUpAmountText ?? formatMoney(topUpOrder.value?.topUpAmount)
+})
+const serviceFeeAmount = computed(() => {
+  return topUpOrder.value?.serviceFeeAmountText ?? formatMoney(topUpOrder.value?.serviceFeeAmount)
+})
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -72,7 +85,7 @@ const openPrivacyPolicy = () => {
   })
 }
 
-const handlePay = () => {
+const handlePay = async () => {
   if (!hasAgreed.value) {
     uni.showToast({
       title: '请先阅读并同意用户服务协议和隐私政策',
@@ -81,9 +94,35 @@ const handlePay = () => {
     return
   }
 
-  uni.redirectTo({
-    url: miniRoute.paySuccess
-  })
+  const paymentParams = topUpOrder.value?.paymentParams
+
+  if (!paymentParams) {
+    uni.showToast({
+      title: '订单支付参数未生成',
+      icon: 'none'
+    })
+    return
+  }
+
+  if (isPaying.value) {
+    return
+  }
+
+  isPaying.value = true
+
+  try {
+    setMockWechatPaymentResult(mockPayResult.value)
+    await requestWechatPayment(paymentParams)
+    uni.redirectTo({
+      url: miniRoute.paySuccess
+    })
+  } catch (error) {
+    uni.redirectTo({
+      url: miniRoute.payFail
+    })
+  } finally {
+    isPaying.value = false
+  }
 }
 
 const loadPayConfirmData = async () => {
@@ -110,6 +149,7 @@ const loadPayConfirmData = async () => {
 onLoad((query) => {
   const amount = query?.amount
   const meterId = query?.meterId
+  const mockResult = query?.mockPayResult
 
   if (typeof amount === 'string' && amount.trim()) {
     rechargeAmount.value = amount
@@ -118,6 +158,10 @@ onLoad((query) => {
   if (typeof meterId === 'string' && meterId.trim()) {
     const numericMeterId = Number(meterId)
     selectedMeterId.value = Number.isFinite(numericMeterId) ? numericMeterId : undefined
+  }
+
+  if (mockResult === 'fail') {
+    mockPayResult.value = 'fail'
   }
 
   loadPayConfirmData()
@@ -160,17 +204,17 @@ onLoad((query) => {
             <text>充值金额</text>
             <text>¥ {{ rechargeAmountText }}</text>
           </view>
+          <view class="divider"></view>
+          <view class="amount-row">
+            <text>到账金额</text>
+            <text>¥ {{ arrivalAmountText }}</text>
+          </view>
           <view class="amount-row">
             <view class="label-with-info">
               <text>服务费</text>
               <view class="info-dot">i</view>
             </view>
             <text>¥ {{ serviceFeeAmount }}</text>
-          </view>
-          <view class="divider"></view>
-          <view class="total-row">
-            <text>应付金额</text>
-            <text>¥ {{ totalAmountText }}</text>
           </view>
         </view>
 
@@ -188,8 +232,8 @@ onLoad((query) => {
     </scroll-view>
 
     <view class="pay-bar">
-      <button class="pay-button" @click="handlePay">
-        <text>立即支付</text>
+      <button class="pay-button" :disabled="isPaying" @click="handlePay">
+        <text>{{ isPaying ? '支付中...' : '立即支付' }}</text>
       </button>
     </view>
   </view>
@@ -310,8 +354,7 @@ onLoad((query) => {
   padding-bottom: design-rpx(22);
 }
 
-.amount-row,
-.total-row {
+.amount-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -352,18 +395,6 @@ onLoad((query) => {
   height: design-rpx(0.5);
   margin: design-rpx(22) 0 design-rpx(18);
   background: #e7e7f3;
-}
-
-.total-row {
-  color: #06133d;
-  font-size: design-rpx(18);
-  font-weight: 700;
-}
-
-.total-row text:last-child {
-  color: #06133d;
-  font-size: design-rpx(26);
-  letter-spacing: design-rpx(1);
 }
 
 .agreement-row {

@@ -1,25 +1,71 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { miniLogin, saveMiniAccessToken, setMockMiniLoginScenario } from '@/api/auth'
+import { getWechatLoginCode, getWechatPhoneCode, type WechatPhoneCodeEvent } from '@/platform/auth/wechatAuth'
 import { miniRoute } from '@/utils/route'
 
 const hasAgreed = ref(true)
+const isLoggingIn = ref(false)
 
 const toggleAgreement = () => {
   hasAgreed.value = !hasAgreed.value
 }
 
-const handleLogin = () => {
+const showAgreementToast = () => {
+  uni.showToast({
+    title: '请先阅读并同意用户协议和隐私政策',
+    icon: 'none'
+  })
+}
+
+const isAccountError = (error: unknown) => {
+  return error instanceof Error && /账户|开户|异常/.test(error.message)
+}
+
+const handleLoginWithoutAgreement = () => {
+  showAgreementToast()
+}
+
+const handleWechatPhoneLogin = async (event: WechatPhoneCodeEvent) => {
   if (!hasAgreed.value) {
-    uni.showToast({
-      title: '请先阅读并同意用户协议和隐私政策',
-      icon: 'none'
-    })
+    showAgreementToast()
     return
   }
 
-  uni.redirectTo({
-    url: miniRoute.home
-  })
+  if (isLoggingIn.value) {
+    return
+  }
+
+  isLoggingIn.value = true
+
+  try {
+    const phoneCode = getWechatPhoneCode(event)
+    const loginCode = await getWechatLoginCode()
+    const loginResponse = await miniLogin({
+      loginCode,
+      phoneCode
+    })
+
+    saveMiniAccessToken(loginResponse)
+    uni.redirectTo({
+      url: miniRoute.home
+    })
+  } catch (error) {
+    if (isAccountError(error)) {
+      uni.redirectTo({
+        url: miniRoute.accountError
+      })
+      return
+    }
+
+    uni.showToast({
+      title: error instanceof Error ? error.message : '登录失败，请重试',
+      icon: 'none'
+    })
+  } finally {
+    isLoggingIn.value = false
+  }
 }
 
 const openUserAgreement = () => {
@@ -33,6 +79,10 @@ const openPrivacyPolicy = () => {
     url: miniRoute.privacyPolicy
   })
 }
+
+onLoad((query) => {
+  setMockMiniLoginScenario(query?.mockLogin === 'accountError' ? 'accountError' : 'success')
+})
 </script>
 
 <template>
@@ -69,9 +119,19 @@ const openPrivacyPolicy = () => {
     </view>
 
     <view class="login-panel">
-      <button class="wechat-login-button" @click="handleLogin">
+      <button
+        v-if="hasAgreed"
+        class="wechat-login-button"
+        open-type="getPhoneNumber"
+        :disabled="isLoggingIn"
+        @getphonenumber="handleWechatPhoneLogin"
+      >
         <image class="wechat-login-icon" src="/static/icons/wechat-white.svg" mode="aspectFit" />
-        <text>微信一键登录</text>
+        <text>{{ isLoggingIn ? '登录中...' : '微信一键登录' }}</text>
+      </button>
+      <button v-else class="wechat-login-button" :disabled="isLoggingIn" @click="handleLoginWithoutAgreement">
+        <image class="wechat-login-icon" src="/static/icons/wechat-white.svg" mode="aspectFit" />
+        <text>{{ isLoggingIn ? '登录中...' : '微信一键登录' }}</text>
       </button>
 
       <view class="agreement-row">
