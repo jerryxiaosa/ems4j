@@ -44,10 +44,10 @@ export type BillDayItem = {
 export type BillDayListResponse = {
   month: string
   monthLabel: string
-  monthEnergy: number
-  monthFee: number
-  averageDailyEnergy: number
-  averageDailyFee: number
+  monthEnergy: number | null
+  monthFee: number | null
+  averageDailyEnergy: number | null
+  averageDailyFee: number | null
   tip?: string
   list: BillDayItem[]
 }

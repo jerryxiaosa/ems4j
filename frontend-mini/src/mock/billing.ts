@@ -105,11 +105,11 @@ export const getMockBillDayList = async (query: BillDayQuery): Promise<BillDayLi
     return {
       month: query.month,
       monthLabel: '2026年05月',
-      monthEnergy: 0,
-      monthFee: 0,
-      averageDailyEnergy: 0,
-      averageDailyFee: 0,
-      tip: '当月暂无记录',
+      monthEnergy: null,
+      monthFee: null,
+      averageDailyEnergy: null,
+      averageDailyFee: null,
+      tip: '本月结算中',
       list: []
     }
   }

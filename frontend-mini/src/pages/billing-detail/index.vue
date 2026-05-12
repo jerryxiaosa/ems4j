@@ -16,8 +16,8 @@ type DailyBill = {
 const selectedMonth = ref('2026-04')
 const billDayResponse = ref<BillDayListResponse>()
 
-const formatNumber = (value?: number) => {
-  if (value === undefined) {
+const formatNumber = (value?: number | null) => {
+  if (value === undefined || value === null) {
     return '--'
   }
 
