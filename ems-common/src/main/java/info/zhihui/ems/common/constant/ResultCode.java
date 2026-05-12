@@ -21,7 +21,6 @@ public enum ResultCode {
     MINI_PHONE_BINDING_ABNORMAL(-11004, "手机号绑定异常，请联系管理员"),
     MINI_USER_UNAVAILABLE(-11005, "当前用户不可用，请联系管理员"),
     MINI_ACCOUNT_NOT_FOUND(-11011, "未匹配到开户账户"),
-    MINI_ACCOUNT_NOT_OPENED(-11012, "账户未开户"),
     MINI_ACCOUNT_ABNORMAL(-11013, "账户未开户或状态异常"),
 
     ;

@@ -4,10 +4,8 @@ import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
-import info.zhihui.ems.business.account.entity.AccountOpenRecordEntity;
 import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.account.service.AccountInfoService;
-import info.zhihui.ems.business.account.repository.AccountOpenRecordRepository;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.mini.me.bo.MiniCurrentUserBo;
@@ -35,14 +33,12 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
     private final UserService userService;
     private final AccountInfoService accountInfoService;
     private final AccountAdditionalInfoService accountAdditionalInfoService;
-    private final AccountOpenRecordRepository accountOpenRecordRepository;
     private final ElectricMeterInfoService electricMeterInfoService;
 
     @Override
     public MiniCurrentUserBo getCurrentUser() {
         UserBo user = userService.getUserInfo(StpUtil.getLoginIdAsInt());
         AccountBo account = getEnterpriseAccount(user);
-        validateOpenedAccount(account);
         BigDecimal balance = getBalance(account);
         int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setAccountIds(List.of(account.getId()))).size();
@@ -71,16 +67,6 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
         return accountList.get(0);
-    }
-
-    private void validateOpenedAccount(AccountBo account) {
-        AccountOpenRecordEntity openRecord = accountOpenRecordRepository.selectLatestOpenByAccountId(account.getId());
-        if (openRecord == null) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_NOT_OPENED.getCode(), ResultCode.MINI_ACCOUNT_NOT_OPENED.getMessage());
-        }
-        if (openRecord.getOwnerId() == null || openRecord.getOwnerType() == null || openRecord.getElectricAccountType() == null) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-        }
     }
 
     private BigDecimal getBalance(AccountBo account) {
