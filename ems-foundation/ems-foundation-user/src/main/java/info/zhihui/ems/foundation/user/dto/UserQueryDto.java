@@ -22,6 +22,12 @@ public class UserQueryDto {
     private String realNameLike;
 
     /**
+     * 电话号码精确匹配（≤20）
+     */
+    @Size(max = 20)
+    private String userPhone;
+
+    /**
      * 电话号码模糊匹配（≤20）
      */
     @Size(max = 20)

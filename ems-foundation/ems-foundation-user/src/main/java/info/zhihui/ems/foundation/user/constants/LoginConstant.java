@@ -22,4 +22,14 @@ public class LoginConstant {
      */
     public static final String LOGIN_USER_PHONE = "user::login::phone";
 
+    /**
+     * 小程序登录 openId
+     */
+    public static final String LOGIN_MINI_OPEN_ID = "user::login::mini::open_id";
+
+    /**
+     * 小程序登录 unionId
+     */
+    public static final String LOGIN_MINI_UNION_ID = "user::login::mini::union_id";
+
 }

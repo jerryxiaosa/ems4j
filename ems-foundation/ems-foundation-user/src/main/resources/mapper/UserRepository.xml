@@ -22,6 +22,9 @@
             <if test="qo.userName != null and qo.userName != ''">
                 and t.user_name = #{qo.userName}
             </if>
+            <if test="qo.userPhone != null and qo.userPhone != ''">
+                and t.user_phone = #{qo.userPhone}
+            </if>
             <if test="qo.userPhoneLike != null and qo.userPhoneLike != ''">
                 and t.user_phone like concat('%', #{qo.userPhoneLike}, '%')
             </if>

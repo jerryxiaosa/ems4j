@@ -18,6 +18,7 @@
         <module>ems-foundation-space</module>
         <module>ems-foundation-integration</module>
         <module>ems-foundation-organization</module>
+        <module>ems-foundation-thirdparty</module>
     </modules>
 
 </project>

@@ -291,6 +291,12 @@
 
             <dependency>
                 <groupId>info.zhihui</groupId>
+                <artifactId>ems-foundation-thirdparty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>info.zhihui</groupId>
                 <artifactId>ems-foundation-space</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -346,6 +352,12 @@
             <dependency>
                 <groupId>info.zhihui</groupId>
                 <artifactId>ems-business-aggregation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>info.zhihui</groupId>
+                <artifactId>ems-business-mini</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
