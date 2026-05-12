@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import RechargeEntryButton from '@/components/business/RechargeEntryButton.vue'
 import AppAmount from '@/components/common/AppAmount.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
 import AppVisibilityToggle from '@/components/common/AppVisibilityToggle.vue'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
+import { getHomeSummary, getHomeTrend } from '@/api/home'
+import type { HomeSummaryResponse, HomeTrendMetric, HomeTrendResponse } from '@/types/home'
 import { miniRoute } from '@/utils/route'
 
 type TrendType = 'usage' | 'cost'
@@ -46,45 +48,127 @@ const homeHeaderStyle = {
 
 const activeTrendType = ref<TrendType>('usage')
 const isBalanceVisible = ref(true)
+const homeSummary = ref<HomeSummaryResponse>()
+const trendResponseMap = ref<Partial<Record<TrendType, HomeTrendResponse>>>({})
 
-const trendCategories = ['5/6', '5/7', '5/8', '5/9', '5/10', '5/11', '5/12']
-const trendDataMap: Record<TrendType, { label: string; seriesName: string; unit: string; max: number; values: number[] }> = {
+const trendMetricMap: Record<TrendType, HomeTrendMetric> = {
+  usage: 'energy',
+  cost: 'fee'
+}
+
+const trendDataMap: Record<TrendType, { label: string; seriesName: string; unit: string }> = {
   usage: {
     label: '电量',
     seriesName: '电量',
-    unit: 'kWh',
-    max: 12000,
-    values: [3600, 5200, 6400, 9600, 8200, 6000, 8800]
+    unit: 'kWh'
   },
   cost: {
     label: '电费',
     seriesName: '电费',
-    unit: '元',
-    max: 12000,
-    values: [2520, 3640, 4480, 6720, 5740, 4200, 5880]
+    unit: '元'
   }
 }
 const trendTypes: TrendType[] = ['usage', 'cost']
-const activeTrend = computed(() => trendDataMap[activeTrendType.value])
 
-const summaryCards = [
+const formatMoney = (value?: number) => {
+  return (value ?? 0).toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+const formatNumber = (value?: number) => {
+  return (value ?? 0).toLocaleString('zh-CN', {
+    maximumFractionDigits: 2
+  })
+}
+
+const formatTrendDate = (date: string) => {
+  const matched = date.match(/^0?(\d{1,2})-0?(\d{1,2})$/)
+  return matched ? `${matched[1]}/${matched[2]}` : date
+}
+
+const formatRecentTime = (createTime: string) => {
+  const matched = createTime.match(/^\d{4}-(\d{2})-(\d{2})\s+(\d{2}:\d{2})/)
+  return matched ? `${matched[1]}-${matched[2]} ${matched[3]}` : createTime
+}
+
+const accountName = computed(() => homeSummary.value?.electricAccountName ?? '')
+const meterCount = computed(() => homeSummary.value?.meterCount ?? 0)
+const balanceText = computed(() => formatMoney(homeSummary.value?.balance))
+const latestRechargeOrder = computed(() => homeSummary.value?.latestRechargeOrder)
+
+const activeTrend = computed(() => {
+  const trendType = activeTrendType.value
+  const meta = trendDataMap[trendType]
+  const response = trendResponseMap.value[trendType]
+  const values = response?.list.map((item) => item.value) ?? []
+  const maxValue = Math.max(...values, 1)
+
+  return {
+    ...meta,
+    unit: response?.unit ?? meta.unit,
+    values,
+    max: Math.ceil(maxValue * 1.2)
+  }
+})
+
+const trendCategories = computed(() => {
+  return trendResponseMap.value[activeTrendType.value]?.list.map((item) => formatTrendDate(item.date)) ?? []
+})
+
+const summaryCards = computed(() => [
   {
     label: '上月总电量',
-    value: '3,268',
+    value: formatNumber(homeSummary.value?.lastMonthEnergy),
     unit: 'kWh',
-    trend: '较上月 12.5%',
+    trend: '已结算月份',
     trendClass: 'is-up',
     waveSrc: '/static/icons/summary-wave-usage.svg'
   },
   {
     label: '上月总电费',
-    value: '¥ 2,186.40',
+    value: `¥ ${formatMoney(homeSummary.value?.lastMonthFee)}`,
     unit: '',
-    trend: '较上月 8.3%',
+    trend: '已结算月份',
     trendClass: 'is-down',
     waveSrc: '/static/icons/summary-wave-cost.svg'
   }
-]
+])
+
+const recentRechargeSubtitle = computed(() => {
+  const order = latestRechargeOrder.value
+
+  if (!order) {
+    return ''
+  }
+
+  const topUpAmount = order.topUpAmount ?? order.payAmount
+  return `到账 ¥${formatMoney(topUpAmount)} · ${order.statusName} · ${formatRecentTime(order.createTime)}`
+})
+
+const loadTrendData = async (trendType: TrendType) => {
+  const response = await getHomeTrend(trendMetricMap[trendType])
+  trendResponseMap.value = {
+    ...trendResponseMap.value,
+    [trendType]: response
+  }
+}
+
+const loadHomeData = async () => {
+  try {
+    const [summary] = await Promise.all([
+      getHomeSummary(),
+      loadTrendData(activeTrendType.value)
+    ])
+    homeSummary.value = summary
+  } catch (error) {
+    uni.showToast({
+      title: error instanceof Error ? error.message : '首页数据加载失败',
+      icon: 'none'
+    })
+  }
+}
 
 const goRecharge = () => {
   uni.navigateTo({
@@ -104,13 +188,28 @@ const goMeterList = () => {
   })
 }
 
-const switchTrendType = (trendType: TrendType) => {
+const switchTrendType = async (trendType: TrendType) => {
   activeTrendType.value = trendType
+
+  if (!trendResponseMap.value[trendType]) {
+    try {
+      await loadTrendData(trendType)
+    } catch (error) {
+      uni.showToast({
+        title: error instanceof Error ? error.message : '趋势数据加载失败',
+        icon: 'none'
+      })
+    }
+  }
 }
 
 const toggleBalanceVisible = () => {
   isBalanceVisible.value = !isBalanceVisible.value
 }
+
+onMounted(() => {
+  loadHomeData()
+})
 </script>
 
 <template>
@@ -128,10 +227,10 @@ const toggleBalanceVisible = () => {
         <view class="hero-content">
           <view class="hero-meta">
             <view class="hero-meta-item">
-              <text>星河家园 2 栋住户账户</text>
+              <text>{{ accountName }}</text>
             </view>
             <view class="hero-meta-item" @click="goMeterList">
-              <text>共 6 个电表</text>
+              <text>共 {{ meterCount }} 个电表</text>
               <view class="chevron right"></view>
             </view>
           </view>
@@ -140,7 +239,7 @@ const toggleBalanceVisible = () => {
               <text>当前余额 (元)</text>
               <AppVisibilityToggle :visible="isBalanceVisible" @toggle="toggleBalanceVisible" />
             </view>
-            <AppAmount :visible="isBalanceVisible" value="1,234.56" />
+            <AppAmount :visible="isBalanceVisible" :value="balanceText" />
           </view>
           <RechargeEntryButton @click="goRecharge" />
         </view>
@@ -208,18 +307,19 @@ const toggleBalanceVisible = () => {
           <text class="card-title">最近充值缴费</text>
           <text class="more-link" @click="goPayRecord">查看全部›</text>
         </view>
-        <view class="recent-row">
+        <view v-if="latestRechargeOrder" class="recent-row">
           <view class="recent-icon">
             <image class="recent-icon-image" src="/static/icons/wechat.svg" mode="aspectFit" />
           </view>
           <view class="recent-main">
             <view class="recent-title-row">
               <text class="recent-title">微信充值</text>
-              <text class="recent-amount">¥200.00</text>
+              <text class="recent-amount">¥{{ formatMoney(latestRechargeOrder.payAmount) }}</text>
             </view>
-            <text class="recent-sub">到账 ¥198.00 · 支付成功 · 04-23 10:24</text>
+            <text class="recent-sub">{{ recentRechargeSubtitle }}</text>
           </view>
         </view>
+        <view v-else class="recent-empty">暂无充值缴费记录</view>
       </view>
     </scroll-view>
 
@@ -712,6 +812,14 @@ const toggleBalanceVisible = () => {
   margin-top: design-rpx(4);
   font-size: design-rpx(11);
   color: #6a7a8f;
+}
+
+.recent-empty {
+  margin-top: design-rpx(16);
+  color: #8a97ac;
+  font-size: design-rpx(13);
+  line-height: design-rpx(24);
+  text-align: center;
 }
 
 </style>

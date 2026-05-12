@@ -2,7 +2,7 @@ import type { ElectricAccountType } from './common'
 import type { OrderRecordItem } from './order'
 
 export type HomeSummaryResponse = {
-  accountName: string
+  electricAccountName: string
   electricAccountType: ElectricAccountType
   balance: number
   meterCount: number

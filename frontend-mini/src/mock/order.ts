@@ -11,26 +11,26 @@ import type {
 const mockOrderList: OrderRecordItem[] = [
   {
     orderSn: 'RC202605110001',
-    amount: 200,
-    arrivalAmount: 196,
+    payAmount: 200,
+    topUpAmount: 196,
     serviceFeeAmount: 4,
-    status: 'PAID',
+    status: 'SUCCESS',
     statusName: '支付成功',
     createTime: '2026-05-10 18:24'
   },
   {
     orderSn: 'RC202605090003',
-    amount: 100,
-    arrivalAmount: 98,
+    payAmount: 100,
+    topUpAmount: 98,
     serviceFeeAmount: 2,
-    status: 'PAID',
+    status: 'SUCCESS',
     statusName: '支付成功',
     createTime: '2026-05-09 09:12'
   },
   {
     orderSn: 'RC202605050006',
-    amount: 50,
-    arrivalAmount: 49,
+    payAmount: 50,
+    topUpAmount: 49,
     serviceFeeAmount: 1,
     status: 'CLOSED',
     statusName: '已关闭',

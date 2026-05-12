@@ -5,7 +5,7 @@ export const getMockHomeSummary = async (): Promise<HomeSummaryResponse> => {
   await mockDelay()
 
   return {
-    accountName: '星河家园 2 栋住户账',
+    electricAccountName: '星河家园 2 栋住户账',
     electricAccountType: 2,
     balance: 328.6,
     meterCount: 6,
@@ -13,10 +13,10 @@ export const getMockHomeSummary = async (): Promise<HomeSummaryResponse> => {
     lastMonthFee: 173.8,
     latestRechargeOrder: {
       orderSn: 'RC202605110001',
-      amount: 200,
-      arrivalAmount: 196,
+      payAmount: 200,
+      topUpAmount: 196,
       serviceFeeAmount: 4,
-      status: 'PAID',
+      status: 'SUCCESS',
       statusName: '支付成功',
       createTime: '2026-05-10 18:24'
     }

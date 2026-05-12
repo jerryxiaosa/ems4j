@@ -2,8 +2,8 @@ import type { PageQuery, PageResponse } from './common'
 
 export type OrderRecordItem = {
   orderSn: string
-  amount: number
-  arrivalAmount?: number
+  payAmount: number
+  topUpAmount?: number
   serviceFeeAmount?: number
   status: string
   statusName: string
