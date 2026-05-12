@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
+import AppTabBar from '@/components/common/AppTabBar.vue'
 import { getMeterList } from '@/api/meter'
 import type { MeterListItem } from '@/types/meter'
 import { miniRoute } from '@/utils/route'
@@ -88,6 +89,8 @@ onMounted(() => {
         </view>
       </view>
     </scroll-view>
+
+    <AppTabBar active="profile" />
   </view>
 </template>
 
@@ -115,7 +118,7 @@ onMounted(() => {
 }
 
 .content-stack {
-  padding: design-rpx(36) design-rpx(18) design-rpx(34);
+  padding: design-rpx(36) design-rpx(18) design-rpx(94);
 }
 
 .meter-list {
@@ -189,7 +192,7 @@ onMounted(() => {
   overflow: hidden;
   color: #06133d;
   font-size: design-rpx(16);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;

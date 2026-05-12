@@ -2,10 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import { getMyProfile } from '@/api/me'
 import { getOrderPage } from '@/api/order'
+import type { ElectricAccountType } from '@/types/common'
 import type { OrderDateRange, OrderRecordItem } from '@/types/order'
 import { miniRoute } from '@/utils/route'
 
+const QUANTITY_ELECTRIC_ACCOUNT_TYPE: ElectricAccountType = 0
 const filterOptions: { label: string; range: OrderDateRange }[] = [
   { label: '全部', range: 'all' },
   { label: '本年', range: 'currentYear' },
@@ -14,8 +17,10 @@ const filterOptions: { label: string; range: OrderDateRange }[] = [
 ]
 const activeRange = ref<OrderDateRange>('all')
 const orderList = ref<OrderRecordItem[]>([])
+const electricAccountType = ref<ElectricAccountType>()
 const pageNum = ref(1)
 const pageSize = 10
+const shouldShowMeterInfo = computed(() => electricAccountType.value === QUANTITY_ELECTRIC_ACCOUNT_TYPE)
 
 const recordList = computed(() => {
   return orderList.value.map((order) => {
@@ -24,7 +29,7 @@ const recordList = computed(() => {
     return {
       status: isSuccess ? 'success' : 'fail',
       statusName: order.statusName,
-      room: order.meterName || order.location || '账户充值',
+      room: shouldShowMeterInfo.value ? order.meterName || order.location || '电表充值' : '账户充值',
       meterNo: order.meterNo || '-',
       orderNo: order.orderSn,
       time: order.createTime,
@@ -45,6 +50,16 @@ const handleBack = () => {
   uni.redirectTo({
     url: miniRoute.recharge
   })
+}
+
+const loadAccountType = async () => {
+  try {
+    const profile = await getMyProfile()
+    electricAccountType.value = profile.electricAccountType
+  } catch (error) {
+    console.error('加载账户类型失败', error)
+    electricAccountType.value = QUANTITY_ELECTRIC_ACCOUNT_TYPE
+  }
 }
 
 const loadOrderPage = async () => {
@@ -75,7 +90,10 @@ const selectFilter = async (range: OrderDateRange) => {
 }
 
 onMounted(() => {
-  void loadOrderPage()
+  void (async () => {
+    await loadAccountType()
+    await loadOrderPage()
+  })()
 })
 </script>
 
@@ -118,7 +136,7 @@ onMounted(() => {
                 <text class="room-title">{{ record.room }}</text>
                 <text :class="['payment-text', record.status === 'fail' ? 'is-fail' : '']">{{ record.payment }}</text>
               </view>
-              <view class="record-meta-line">
+              <view v-if="shouldShowMeterInfo" class="record-meta-line">
                 <text class="record-meta-label">电表编号：</text>
                 <text class="record-meta-value">{{ record.meterNo }}</text>
               </view>
@@ -313,7 +331,7 @@ onMounted(() => {
   overflow: hidden;
   color: #152234;
   font-size: design-rpx(16);
-  font-weight: 600;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

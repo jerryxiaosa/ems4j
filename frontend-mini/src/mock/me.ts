@@ -8,7 +8,7 @@ export const getMockMyProfile = async (): Promise<CurrentMiniUserResponse> => {
     userPhone: '13800000000',
     electricAccountId: 10001,
     electricAccountName: '星河家园 2 栋住户账',
-    electricAccountType: 2,
+    electricAccountType: 1,
     balance: 328.6,
     meterCount: 6
   }
