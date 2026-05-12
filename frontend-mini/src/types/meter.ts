@@ -1,23 +1,35 @@
 import type { ListResponse } from './common'
 
 export type MeterListItem = {
-  meterId: string
+  meterId: number
   meterName: string
-  balance: number
-  isOnline?: boolean
+  meterNo: string
+  location: string
+  balance: number | null
+  isOnline: boolean
 }
 
 export type MeterListResponse = ListResponse<MeterListItem>
 
 export type MeterDetailResponse = {
-  meterId: string
+  meterId: number
   meterName: string
-  isOnline?: boolean
-  balance: number
-  tipEnergy: number
+  meterNo: string
+  location: string
+  isOnline: boolean
+  balance: number | null
+  sharpEnergy: number
   peakEnergy: number
   flatEnergy: number
   valleyEnergy: number
   deepValleyEnergy: number
   totalEnergy: number
+  todaySharpEnergy: number
+  todayPeakEnergy: number
+  todayFlatEnergy: number
+  todayValleyEnergy: number
+  todayDeepValleyEnergy: number
+  todayTotalEnergy: number
+  todayUsageTrend: number[]
+  updateTime: string
 }

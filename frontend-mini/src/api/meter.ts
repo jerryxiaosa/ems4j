@@ -14,13 +14,13 @@ export const getMeterList = async (): Promise<MeterListResponse> => {
   })
 }
 
-export const getMeterDetail = async (meterId: string): Promise<MeterDetailResponse> => {
+export const getMeterDetail = async (meterId: number): Promise<MeterDetailResponse> => {
   if (useMock) {
     return getMockMeterDetail(meterId)
   }
 
   return request<MeterDetailResponse>({
-    url: `/v1/mini/meters/${encodeURIComponent(meterId)}`,
+    url: `/v1/mini/meters/${encodeURIComponent(String(meterId))}`,
     method: 'GET'
   })
 }

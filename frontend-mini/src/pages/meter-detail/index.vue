@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
 import TrendLineChart from '@/components/chart/TrendLineChart.vue'
+import { getMeterDetail } from '@/api/meter'
+import type { MeterDetailResponse } from '@/types/meter'
 import { miniRoute } from '@/utils/route'
 
 type MeterStatus = 'normal' | 'offline'
@@ -28,93 +30,70 @@ type EnergySegment = {
   tone: 'tip' | 'peak' | 'flat' | 'valley' | 'deep'
 }
 
-const meterList: MeterDetail[] = [
-  {
-    id: 'meter-1',
-    name: '客厅电表',
-    meterNo: '01234567890123456789',
-    location: '1 单元 101 室',
-    status: 'normal',
-    totalEnergy: '87.21',
-    energySegments: [
-      { name: '尖', value: '12.45', tone: 'tip' },
-      { name: '峰', value: '25.68', tone: 'peak' },
-      { name: '平', value: '38.76', tone: 'flat' },
-      { name: '谷', value: '7.89', tone: 'valley' },
-      { name: '深谷', value: '2.43', tone: 'deep' }
-    ],
-    todayEnergy: '2.36',
-    todayEnergySegments: [
-      { name: '尖', value: '1234.56', tone: 'tip' },
-      { name: '峰', value: '2345.67', tone: 'peak' },
-      { name: '平', value: '3456.78', tone: 'flat' },
-      { name: '谷', value: '4567.89', tone: 'valley' },
-      { name: '深谷', value: '5678.90', tone: 'deep' }
-    ],
-    todayUsageValues: [0.06, 0.48, 1.72, 2.36, 2.36, 2.36, 2.36],
-    updateTime: '2024-05-20 09:41:00',
-    updateClock: '09:41'
-  },
-  {
-    id: 'meter-2',
-    name: '卧室电表',
-    meterNo: '98765432109876543210',
-    location: '1 单元 202 室',
-    status: 'normal',
-    totalEnergy: '42.18',
-    energySegments: [
-      { name: '尖', value: '5.24', tone: 'tip' },
-      { name: '峰', value: '12.68', tone: 'peak' },
-      { name: '平', value: '18.42', tone: 'flat' },
-      { name: '谷', value: '4.56', tone: 'valley' },
-      { name: '深谷', value: '1.28', tone: 'deep' }
-    ],
-    todayEnergy: '1.64',
-    todayEnergySegments: [
-      { name: '尖', value: '0.18', tone: 'tip' },
-      { name: '峰', value: '0.46', tone: 'peak' },
-      { name: '平', value: '0.72', tone: 'flat' },
-      { name: '谷', value: '0.21', tone: 'valley' },
-      { name: '深谷', value: '0.07', tone: 'deep' }
-    ],
-    todayUsageValues: [0.04, 0.33, 1.12, 1.64, 1.64, 1.64, 1.64],
-    updateTime: '2024-05-20 09:41:00',
-    updateClock: '09:41'
-  },
-  {
-    id: 'meter-3',
-    name: '商铺电表',
-    meterNo: '11223344556677889900',
-    location: '2 单元 301 室',
-    status: 'offline',
-    totalEnergy: '16.80',
-    energySegments: [
-      { name: '尖', value: '2.15', tone: 'tip' },
-      { name: '峰', value: '4.68', tone: 'peak' },
-      { name: '平', value: '7.12', tone: 'flat' },
-      { name: '谷', value: '2.06', tone: 'valley' },
-      { name: '深谷', value: '0.79', tone: 'deep' }
-    ],
-    todayEnergy: '0.58',
-    todayEnergySegments: [
-      { name: '尖', value: '0.07', tone: 'tip' },
-      { name: '峰', value: '0.16', tone: 'peak' },
-      { name: '平', value: '0.25', tone: 'flat' },
-      { name: '谷', value: '0.07', tone: 'valley' },
-      { name: '深谷', value: '0.03', tone: 'deep' }
-    ],
-    todayUsageValues: [0.02, 0.13, 0.41, 0.58, 0.58, 0.58, 0.58],
-    updateTime: '2024-05-20 09:41:00',
-    updateClock: '09:41'
-  }
-]
-
 const todayUsageCategories = ['0', '4', '8', '12', '16', '20', '24']
 
-const meterId = ref(meterList[0].id)
+const meterId = ref(101)
+const meterDetail = ref<MeterDetailResponse>()
+
+const formatNumber = (value?: number | null) => {
+  if (value === undefined || value === null) {
+    return '--'
+  }
+
+  return value.toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
 
 const meter = computed(() => {
-  return meterList.find((item) => item.id === meterId.value) ?? meterList[0]
+  const detail = meterDetail.value
+
+  if (!detail) {
+    return {
+      id: String(meterId.value),
+      name: '',
+      meterNo: '',
+      location: '',
+      status: 'offline' as MeterStatus,
+      statusText: '--',
+      totalEnergy: '--',
+      energySegments: [],
+      todayEnergy: '--',
+      todayEnergySegments: [],
+      todayUsageValues: [0, 0, 0, 0, 0, 0, 0],
+      updateTime: '--',
+      updateClock: '--'
+    }
+  }
+
+  return {
+    id: String(detail.meterId),
+    name: detail.meterName,
+    meterNo: detail.meterNo,
+    location: detail.location,
+    status: detail.isOnline ? 'normal' : 'offline',
+    statusText: detail.isOnline ? '在线' : '离线',
+    totalEnergy: formatNumber(detail.totalEnergy),
+    energySegments: [
+      { name: '尖', value: formatNumber(detail.sharpEnergy), tone: 'tip' },
+      { name: '峰', value: formatNumber(detail.peakEnergy), tone: 'peak' },
+      { name: '平', value: formatNumber(detail.flatEnergy), tone: 'flat' },
+      { name: '谷', value: formatNumber(detail.valleyEnergy), tone: 'valley' },
+      { name: '深谷', value: formatNumber(detail.deepValleyEnergy), tone: 'deep' }
+    ] as EnergySegment[],
+    todayEnergy: formatNumber(detail.todayTotalEnergy),
+    todayEnergySegments: [
+      { name: '尖', value: formatNumber(detail.todaySharpEnergy), tone: 'tip' },
+      { name: '峰', value: formatNumber(detail.todayPeakEnergy), tone: 'peak' },
+      { name: '平', value: formatNumber(detail.todayFlatEnergy), tone: 'flat' },
+      { name: '谷', value: formatNumber(detail.todayValleyEnergy), tone: 'valley' },
+      { name: '深谷', value: formatNumber(detail.todayDeepValleyEnergy), tone: 'deep' }
+    ] as EnergySegment[],
+    todayUsageValues: detail.todayUsageTrend,
+    updateTime: detail.updateTime,
+    updateClock: detail.updateTime.slice(11, 16)
+  } satisfies MeterDetail & { statusText: string }
 })
 
 const handleBack = () => {
@@ -130,10 +109,27 @@ const handleBack = () => {
   })
 }
 
+const loadMeterDetail = async () => {
+  try {
+    meterDetail.value = await getMeterDetail(meterId.value)
+  } catch (error) {
+    console.error('加载电表详情失败', error)
+    uni.showToast({
+      title: '电表详情加载失败',
+      icon: 'none'
+    })
+  }
+}
+
 onLoad((query) => {
   if (query?.id) {
-    meterId.value = String(query.id)
+    const parsedMeterId = Number(query.id)
+    if (!Number.isNaN(parsedMeterId)) {
+      meterId.value = parsedMeterId
+    }
   }
+
+  void loadMeterDetail()
 })
 </script>
 
@@ -151,7 +147,7 @@ onLoad((query) => {
             <view class="meter-title-row">
               <text class="meter-title">{{ meter.name }}</text>
               <text :class="['status-pill', meter.status === 'normal' ? 'is-normal' : 'is-offline']">
-                {{ meter.status === 'normal' ? '正常' : '离线' }}
+                {{ meter.statusText }}
               </text>
             </view>
             <view class="meter-meta-line">

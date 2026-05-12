@@ -1,40 +1,11 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import AppBackHeader from '@/components/common/AppBackHeader.vue'
+import { getMeterList } from '@/api/meter'
+import type { MeterListItem } from '@/types/meter'
 import { miniRoute } from '@/utils/route'
 
-type MeterStatus = 'normal' | 'offline'
-
-type MeterItem = {
-  id: string
-  name: string
-  meterNo: string
-  location: string
-  status: MeterStatus
-}
-
-const meterList: MeterItem[] = [
-  {
-    id: 'meter-1',
-    name: '客厅电表',
-    meterNo: '01234567890123456789',
-    location: '1 单元 101 室',
-    status: 'normal'
-  },
-  {
-    id: 'meter-2',
-    name: '卧室电表',
-    meterNo: '98765432109876543210',
-    location: '1 单元 202 室',
-    status: 'normal'
-  },
-  {
-    id: 'meter-3',
-    name: '商铺电表',
-    meterNo: '11223344556677889900',
-    location: '2 单元 301 室',
-    status: 'offline'
-  }
-]
+const meterList = ref<MeterListItem[]>([])
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -49,11 +20,32 @@ const handleBack = () => {
   })
 }
 
-const openMeterDetail = (meter: MeterItem) => {
+const loadMeterList = async () => {
+  try {
+    const response = await getMeterList()
+    meterList.value = response.list
+  } catch (error) {
+    console.error('加载电表列表失败', error)
+    uni.showToast({
+      title: '电表加载失败',
+      icon: 'none'
+    })
+  }
+}
+
+const getMeterStatusText = (meter: MeterListItem) => {
+  return meter.isOnline ? '在线' : '离线'
+}
+
+const openMeterDetail = (meter: MeterListItem) => {
   uni.navigateTo({
-    url: `${miniRoute.meterDetail}?id=${encodeURIComponent(meter.id)}`
+    url: `${miniRoute.meterDetail}?id=${encodeURIComponent(String(meter.meterId))}`
   })
 }
+
+onMounted(() => {
+  void loadMeterList()
+})
 </script>
 
 <template>
@@ -65,7 +57,7 @@ const openMeterDetail = (meter: MeterItem) => {
         <view class="meter-list">
           <view
             v-for="meter in meterList"
-            :key="meter.id"
+            :key="meter.meterId"
             class="meter-card"
             @click="openMeterDetail(meter)"
           >
@@ -75,9 +67,9 @@ const openMeterDetail = (meter: MeterItem) => {
 
             <view class="meter-copy">
               <view class="meter-title-row">
-                <text class="meter-title">{{ meter.name }}</text>
-                <text :class="['status-pill', meter.status === 'normal' ? 'is-normal' : 'is-offline']">
-                  {{ meter.status === 'normal' ? '正常' : '离线' }}
+                <text class="meter-title">{{ meter.meterName }}</text>
+                <text :class="['status-pill', meter.isOnline ? 'is-normal' : 'is-offline']">
+                  {{ getMeterStatusText(meter) }}
                 </text>
               </view>
               <view class="meter-meta-line">
