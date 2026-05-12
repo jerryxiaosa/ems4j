@@ -182,6 +182,12 @@ const goPayRecord = () => {
   })
 }
 
+const goBilling = () => {
+  uni.navigateTo({
+    url: miniRoute.billing
+  })
+}
+
 const goMeterList = () => {
   uni.navigateTo({
     url: miniRoute.meter
@@ -277,7 +283,12 @@ onMounted(() => {
       </view>
 
       <view class="summary-grid">
-        <view v-for="item in summaryCards" :key="item.label" :class="['summary-card', item.trendClass]">
+        <view
+          v-for="item in summaryCards"
+          :key="item.label"
+          :class="['summary-card', item.trendClass]"
+          @click="goBilling"
+        >
           <view class="summary-head">
             <view :class="['summary-icon', item.trendClass === 'is-up' ? 'energy-icon' : 'money-icon']">
               <image
