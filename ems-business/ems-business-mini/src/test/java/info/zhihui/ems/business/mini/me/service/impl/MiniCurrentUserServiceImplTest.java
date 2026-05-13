@@ -1,17 +1,22 @@
 package info.zhihui.ems.business.mini.me.service.impl;
 
 import info.zhihui.ems.business.account.bo.AccountBo;
+import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
 import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
+import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.mini.me.bo.MiniCurrentUserBo;
+import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.RequestContext;
-import info.zhihui.ems.foundation.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,16 +26,16 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MiniCurrentUserServiceImplTest {
 
-    @Mock
-    private UserService userService;
     @Mock
     private AccountInfoService accountInfoService;
     @Mock
@@ -43,6 +48,7 @@ class MiniCurrentUserServiceImplTest {
     private MiniCurrentUserServiceImpl service;
 
     @Test
+    @SuppressWarnings("unchecked")
     void testGetCurrentUser_FromRequestContext_ShouldNotQueryUserInfo() {
         when(requestContext.getUserPhone()).thenReturn("13800138000");
         when(requestContext.getOrganizationId()).thenReturn(10);
@@ -58,8 +64,103 @@ class MiniCurrentUserServiceImplTest {
 
         assertThat(result.getUserPhone()).isEqualTo("13800138000");
         assertThat(result.getElectricAccountId()).isEqualTo(20);
+        assertThat(result.getElectricAccountName()).isEqualTo("星河家园 2 栋住户账户");
+        assertThat(result.getElectricAccountType()).isEqualTo(ElectricAccountTypeEnum.QUANTITY);
         assertThat(result.getBalance()).isEqualByComparingTo("12.34");
         assertThat(result.getMeterCount()).isEqualTo(2);
-        verify(userService, never()).getUserInfo(any());
+
+        ArgumentCaptor<AccountQueryDto> accountQueryCaptor = ArgumentCaptor.forClass(AccountQueryDto.class);
+        verify(accountInfoService).findList(accountQueryCaptor.capture());
+        assertThat(accountQueryCaptor.getValue().getOwnerType()).isEqualTo(OwnerTypeEnum.ENTERPRISE);
+        assertThat(accountQueryCaptor.getValue().getOwnerIds()).containsExactly(10);
+
+        ArgumentCaptor<List<AccountElectricBalanceAggregateItemDto>> balanceItemCaptor = ArgumentCaptor.forClass(List.class);
+        verify(accountAdditionalInfoService).findElectricBalanceAmountMap(balanceItemCaptor.capture());
+        assertThat(balanceItemCaptor.getValue()).hasSize(1);
+        assertThat(balanceItemCaptor.getValue().get(0).getAccountId()).isEqualTo(20);
+        assertThat(balanceItemCaptor.getValue().get(0).getElectricAccountType()).isEqualTo(ElectricAccountTypeEnum.QUANTITY);
+
+        ArgumentCaptor<ElectricMeterQueryDto> meterQueryCaptor = ArgumentCaptor.forClass(ElectricMeterQueryDto.class);
+        verify(electricMeterInfoService).findList(meterQueryCaptor.capture());
+        assertThat(meterQueryCaptor.getValue().getAccountIds()).containsExactly(20);
+    }
+
+    @Test
+    void testGetCurrentUser_WhenBalanceMissing_ShouldUseZeroBalance() {
+        when(requestContext.getUserPhone()).thenReturn("13800138000");
+        when(requestContext.getOrganizationId()).thenReturn(10);
+        AccountBo account = new AccountBo()
+                .setId(20)
+                .setOwnerName("星河家园 2 栋住户账户")
+                .setElectricAccountType(ElectricAccountTypeEnum.MONTHLY);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of(account));
+        when(accountAdditionalInfoService.findElectricBalanceAmountMap(any())).thenReturn(Map.of());
+        when(electricMeterInfoService.findList(any())).thenReturn(List.of());
+
+        MiniCurrentUserBo result = service.getCurrentUser();
+
+        assertThat(result.getBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(result.getMeterCount()).isZero();
+    }
+
+    @Test
+    void testGetCurrentUser_WhenOrganizationIdMissing_ShouldThrowAccountNotFound() {
+        when(requestContext.getOrganizationId()).thenReturn(null);
+
+        assertThatThrownBy(() -> service.getCurrentUser())
+                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+                });
+
+        verifyNoInteractions(accountInfoService, accountAdditionalInfoService, electricMeterInfoService);
+    }
+
+    @Test
+    void testGetCurrentUser_WhenNoAccountMatched_ShouldThrowAccountNotFound() {
+        when(requestContext.getOrganizationId()).thenReturn(10);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.getCurrentUser())
+                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+                });
+
+        verify(accountAdditionalInfoService, never()).findElectricBalanceAmountMap(any());
+        verify(electricMeterInfoService, never()).findList(any());
+    }
+
+    @Test
+    void testGetCurrentUser_WhenMultipleAccountsMatched_ShouldThrowAccountAbnormal() {
+        when(requestContext.getOrganizationId()).thenReturn(10);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of(
+                new AccountBo().setId(20).setElectricAccountType(ElectricAccountTypeEnum.QUANTITY),
+                new AccountBo().setId(21).setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+        ));
+
+        assertThatThrownBy(() -> service.getCurrentUser())
+                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+                });
+
+        verify(accountAdditionalInfoService, never()).findElectricBalanceAmountMap(any());
+        verify(electricMeterInfoService, never()).findList(any());
+    }
+
+    @Test
+    void testGetCurrentUser_WhenAccountTypeMissing_ShouldThrowAccountAbnormal() {
+        when(requestContext.getOrganizationId()).thenReturn(10);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of(new AccountBo().setId(20)));
+
+        assertThatThrownBy(() -> service.getCurrentUser())
+                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+                });
+
+        verify(accountAdditionalInfoService, never()).findElectricBalanceAmountMap(any());
+        verify(electricMeterInfoService, never()).findList(any());
     }
 }
