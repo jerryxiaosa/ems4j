@@ -102,7 +102,7 @@ const handleInput = (event: Event) => {
 
 .amount-placeholder {
   color: #9aa6ba;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .amount-unit {
