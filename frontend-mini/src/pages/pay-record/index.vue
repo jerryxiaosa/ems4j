@@ -38,6 +38,7 @@ const recordList = computed(() => {
     }
   })
 })
+const hasRecords = computed(() => recordList.value.length > 0)
 
 const handleBack = () => {
   const pages = getCurrentPages()
@@ -114,7 +115,7 @@ onMounted(() => {
           </button>
         </view>
 
-        <view class="record-list">
+        <view v-if="hasRecords" class="record-list">
           <view v-for="record in recordList" :key="record.orderNo" class="record-card">
             <view class="record-summary">
               <view class="record-status">
@@ -149,7 +150,10 @@ onMounted(() => {
           </view>
         </view>
 
-        <text class="end-text">没有更多了</text>
+        <view v-else class="empty-state">
+          <image class="empty-image" src="/static/stitch/empty.png" mode="aspectFit" />
+          <text class="empty-text">暂无数据</text>
+        </view>
       </view>
     </scroll-view>
 
@@ -392,13 +396,25 @@ onMounted(() => {
   color: #ff3b45;
 }
 
-.end-text {
-  display: block;
-  margin-top: design-rpx(22);
-  color: #a1acbd;
-  font-size: design-rpx(12);
-  font-weight: 500;
-  text-align: center;
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: design-rpx(150);
 }
 
+.empty-image {
+  width: design-rpx(224);
+  height: design-rpx(149);
+}
+
+.empty-text {
+  display: block;
+  margin-top: design-rpx(14);
+  color: #8a97ac;
+  font-size: design-rpx(15);
+  font-weight: 400;
+  line-height: 1;
+}
 </style>
