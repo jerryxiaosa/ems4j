@@ -330,7 +330,12 @@ onMounted(() => {
             <text class="recent-sub">{{ recentRechargeSubtitle }}</text>
           </view>
         </view>
-        <view v-else class="recent-empty">暂无充值缴费记录</view>
+        <view v-else class="recent-empty">
+          <text class="recent-empty-text">暂无充值缴费记录</text>
+          <button class="recent-empty-action" hover-class="none" @click="goRecharge">
+            <text>去充值</text>
+          </button>
+        </view>
       </view>
     </scroll-view>
 
@@ -826,11 +831,38 @@ onMounted(() => {
 }
 
 .recent-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: design-rpx(10);
   margin-top: design-rpx(16);
+}
+
+.recent-empty-text {
+  display: block;
   color: #8a97ac;
   font-size: design-rpx(13);
   line-height: design-rpx(24);
   text-align: center;
+}
+
+.recent-empty-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: design-rpx(86);
+  height: design-rpx(30);
+  padding: 0 design-rpx(18);
+  color: #ffffff;
+  font-size: design-rpx(13);
+  font-weight: 600;
+  line-height: design-rpx(30);
+  background: linear-gradient(90deg, #1677ff 0%, #0068ff 100%);
+  border-radius: 999rpx;
+}
+
+.recent-empty-action::after {
+  border: 0;
 }
 
 </style>
