@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.mini.satoken;
+package info.zhihui.ems.business.mini.utils;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.context.mock.SaTokenContextMockUtil;

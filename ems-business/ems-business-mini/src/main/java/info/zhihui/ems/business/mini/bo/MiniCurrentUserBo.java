@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.mini.me.bo;
+package info.zhihui.ems.business.mini.bo;
 
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import lombok.Data;

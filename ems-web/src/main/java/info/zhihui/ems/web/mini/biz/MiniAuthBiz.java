@@ -1,8 +1,8 @@
 package info.zhihui.ems.web.mini.biz;
 
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginBo;
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginResultBo;
-import info.zhihui.ems.business.mini.auth.service.MiniAuthService;
+import info.zhihui.ems.business.mini.bo.MiniLoginBo;
+import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
+import info.zhihui.ems.business.mini.service.MiniAuthService;
 import info.zhihui.ems.web.mini.mapstruct.MiniWebMapper;
 import info.zhihui.ems.web.mini.vo.MiniLoginRequestVo;
 import info.zhihui.ems.web.mini.vo.MiniLoginResponseVo;

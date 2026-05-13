@@ -5,7 +5,7 @@ import cn.dev33.satoken.dao.SaTokenDao;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
-import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
+import info.zhihui.ems.business.mini.utils.MiniStpUtil;
 import info.zhihui.ems.foundation.user.satoken.RedisSaTokenDao;
 import info.zhihui.ems.foundation.user.satoken.SaPermissionImpl;
 import jakarta.annotation.PostConstruct;

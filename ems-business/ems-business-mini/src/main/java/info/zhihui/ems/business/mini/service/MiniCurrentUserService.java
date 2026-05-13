@@ -1,6 +1,6 @@
-package info.zhihui.ems.business.mini.me.service;
+package info.zhihui.ems.business.mini.service;
 
-import info.zhihui.ems.business.mini.me.bo.MiniCurrentUserBo;
+import info.zhihui.ems.business.mini.bo.MiniCurrentUserBo;
 
 /**
  * 小程序当前用户服务。

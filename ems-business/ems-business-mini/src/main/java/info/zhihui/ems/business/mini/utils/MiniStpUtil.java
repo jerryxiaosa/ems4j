@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.mini.satoken;
+package info.zhihui.ems.business.mini.utils;
 
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.session.SaSession;

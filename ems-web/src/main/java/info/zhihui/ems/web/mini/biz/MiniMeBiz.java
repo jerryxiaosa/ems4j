@@ -1,7 +1,7 @@
 package info.zhihui.ems.web.mini.biz;
 
-import info.zhihui.ems.business.mini.me.bo.MiniCurrentUserBo;
-import info.zhihui.ems.business.mini.me.service.MiniCurrentUserService;
+import info.zhihui.ems.business.mini.bo.MiniCurrentUserBo;
+import info.zhihui.ems.business.mini.service.MiniCurrentUserService;
 import info.zhihui.ems.web.mini.mapstruct.MiniWebMapper;
 import info.zhihui.ems.web.mini.vo.MiniCurrentUserVo;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.mini.me.service.impl;
+package info.zhihui.ems.business.mini.service.impl;
 
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
@@ -8,7 +8,7 @@ import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.device.bo.ElectricMeterBo;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
 import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
-import info.zhihui.ems.business.mini.me.bo.MiniCurrentUserBo;
+import info.zhihui.ems.business.mini.bo.MiniCurrentUserBo;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;

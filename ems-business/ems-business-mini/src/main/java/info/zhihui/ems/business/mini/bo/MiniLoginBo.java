@@ -1,4 +1,4 @@
-package info.zhihui.ems.business.mini.auth.bo;
+package info.zhihui.ems.business.mini.bo;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

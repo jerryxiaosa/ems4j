@@ -4,7 +4,7 @@ import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
-import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
+import info.zhihui.ems.business.mini.utils.MiniStpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.model.UserRequestData;

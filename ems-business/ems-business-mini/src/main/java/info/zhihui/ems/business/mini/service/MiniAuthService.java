@@ -1,7 +1,7 @@
-package info.zhihui.ems.business.mini.auth.service;
+package info.zhihui.ems.business.mini.service;
 
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginBo;
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginResultBo;
+import info.zhihui.ems.business.mini.bo.MiniLoginBo;
+import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 

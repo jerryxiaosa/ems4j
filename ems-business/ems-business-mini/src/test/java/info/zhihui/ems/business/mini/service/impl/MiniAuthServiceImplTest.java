@@ -1,10 +1,10 @@
-package info.zhihui.ems.business.mini.auth.service.impl;
+package info.zhihui.ems.business.mini.service.impl;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginBo;
-import info.zhihui.ems.business.mini.auth.bo.MiniLoginResultBo;
-import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
+import info.zhihui.ems.business.mini.bo.MiniLoginBo;
+import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
+import info.zhihui.ems.business.mini.utils.MiniStpUtil;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.service.WechatMiniProgramService;
 import info.zhihui.ems.foundation.user.bo.UserBo;
