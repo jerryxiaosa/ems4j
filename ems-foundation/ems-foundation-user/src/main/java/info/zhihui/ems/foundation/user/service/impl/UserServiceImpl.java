@@ -118,6 +118,30 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 根据手机号获取用户详情
+     *
+     * @param userPhone 用户手机号
+     * @return 用户业务对象
+     * @throws NotFoundException        当用户不存在时抛出
+     * @throws BusinessRuntimeException 当手机号匹配到多个用户时抛出
+     */
+    @Override
+    public @NotNull UserBo getUserByPhone(@NotEmpty String userPhone) throws NotFoundException {
+        List<UserEntity> entityList = repository.selectByQo(new UserQueryQo().setUserPhone(userPhone));
+        if (CollectionUtils.isEmpty(entityList)) {
+            throw new NotFoundException("用户不存在");
+        }
+        if (entityList.size() > 1) {
+            throw new BusinessRuntimeException("手机号绑定多个用户");
+        }
+        UserBo userBo = mapper.entityToBo(entityList.get(0));
+
+        fillUserRoles(List.of(userBo));
+
+        return userBo;
+    }
+
+    /**
      * 新增用户
      * - 对用户名唯一性进行校验
      *

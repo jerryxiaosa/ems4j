@@ -24,6 +24,12 @@ public class RequestContext {
                 .orElse(null);
     }
 
+    public Integer getOrganizationId() {
+        return Optional.ofNullable(getUserRequestData())
+                .map(UserRequestData::getOrganizationId)
+                .orElse(null);
+    }
+
     private UserRequestData getUserRequestData() {
         return (UserRequestData) ThreadLocalUtil.get(RequestContextConstant.USER_REQUEST_DATA);
     }

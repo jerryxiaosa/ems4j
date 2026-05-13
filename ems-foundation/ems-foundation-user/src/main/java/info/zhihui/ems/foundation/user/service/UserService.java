@@ -49,6 +49,16 @@ public interface UserService {
     UserBo getUserInfo(@NotNull Integer id) throws NotFoundException;
 
     /**
+     * 根据手机号获取用户详情
+     *
+     * @param userPhone 用户手机号
+     * @return 用户业务对象
+     * @throws NotFoundException        当用户不存在时抛出
+     * @throws BusinessRuntimeException 当手机号匹配到多个用户时抛出
+     */
+    UserBo getUserByPhone(@NotEmpty String userPhone) throws NotFoundException;
+
+    /**
      * 新增用户
      * - 对用户名唯一性进行校验
      *

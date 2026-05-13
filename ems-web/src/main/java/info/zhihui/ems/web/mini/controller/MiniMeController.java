@@ -1,6 +1,7 @@
 package info.zhihui.ems.web.mini.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.web.common.constant.ApiPathConstant;
@@ -24,7 +25,7 @@ public class MiniMeController {
 
     private final MiniMeBiz miniMeBiz;
 
-    @SaCheckLogin
+    @SaCheckLogin(type = MiniStpUtil.TYPE)
     @GetMapping("/me")
     @Operation(summary = "查询当前用户与开户账户信息")
     public RestResult<MiniCurrentUserVo> getCurrentUser() {

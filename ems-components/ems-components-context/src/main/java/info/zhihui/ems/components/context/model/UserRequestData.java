@@ -1,12 +1,10 @@
 package info.zhihui.ems.components.context.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.io.Serial;
 import java.io.Serializable;
 
-@AllArgsConstructor
 public class UserRequestData implements Serializable {
 
     @Serial
@@ -17,4 +15,17 @@ public class UserRequestData implements Serializable {
 
     @Getter
     private final String userPhone;
+
+    @Getter
+    private final Integer organizationId;
+
+    public UserRequestData(String userRealName, String userPhone) {
+        this(userRealName, userPhone, null);
+    }
+
+    public UserRequestData(String userRealName, String userPhone, Integer organizationId) {
+        this.userRealName = userRealName;
+        this.userPhone = userPhone;
+        this.organizationId = organizationId;
+    }
 }

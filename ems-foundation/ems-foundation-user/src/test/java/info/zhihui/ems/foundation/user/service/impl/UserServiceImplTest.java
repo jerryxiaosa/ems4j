@@ -386,6 +386,42 @@ class UserServiceImplTest {
         verify(userMapper, never()).entityToBo(any());
     }
 
+    @Test
+    @DisplayName("getUserByPhone - 成功按手机号精确查询用户")
+    void testGetUserByPhone_Success() {
+        UserQueryQo phoneQo = new UserQueryQo().setUserPhone("13800138000");
+
+        when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(List.of(mockEntity));
+        when(userMapper.entityToBo(mockEntity)).thenReturn(mockBo);
+
+        UserBo result = userService.getUserByPhone("13800138000");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1);
+        verify(userRepository).selectByQo(ArgumentMatchers.refEq(phoneQo));
+        verify(userMapper).entityToBo(mockEntity);
+    }
+
+    @Test
+    @DisplayName("getUserByPhone - 用户不存在")
+    void testGetUserByPhone_NotFound() {
+        when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(Collections.emptyList());
+
+        assertThatThrownBy(() -> userService.getUserByPhone("13900139000"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("用户不存在");
+    }
+
+    @Test
+    @DisplayName("getUserByPhone - 手机号绑定多个用户")
+    void testGetUserByPhone_Duplicate() {
+        when(userRepository.selectByQo(any(UserQueryQo.class))).thenReturn(List.of(mockEntity, new UserEntity().setId(2)));
+
+        assertThatThrownBy(() -> userService.getUserByPhone("13800138000"))
+                .isInstanceOf(BusinessRuntimeException.class)
+                .hasMessage("手机号绑定多个用户");
+    }
+
     // ==================== add 测试 ====================
 
     @Test

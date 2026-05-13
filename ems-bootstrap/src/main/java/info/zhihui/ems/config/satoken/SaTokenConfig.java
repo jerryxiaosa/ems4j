@@ -1,11 +1,14 @@
 package info.zhihui.ems.config.satoken;
 
+import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.dao.SaTokenDao;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
+import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
 import info.zhihui.ems.foundation.user.satoken.RedisSaTokenDao;
 import info.zhihui.ems.foundation.user.satoken.SaPermissionImpl;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +23,11 @@ import org.springframework.context.annotation.Configuration;
 public class SaTokenConfig {
 
     private final SaPermissionImpl saPermissionImpl;
+
+    @PostConstruct
+    public void registerMiniStpLogic() {
+        SaManager.putStpLogic(MiniStpUtil.getStpLogic());
+    }
 
     @Bean
     public StpLogic getStpLogicJwt() {

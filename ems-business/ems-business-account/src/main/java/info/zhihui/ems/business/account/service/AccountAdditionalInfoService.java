@@ -38,6 +38,9 @@ public interface AccountAdditionalInfoService {
     /**
      * 批量计算账户列表展示电费余额。
      *
+     * <p>展示口径由账户计费类型决定：按需计费展示账户下电表余额合计，
+     * 包月计费和合并按需计费展示账户余额；未知计费类型返回 0。</p>
+     *
      * @param itemDtoList 聚合输入项列表（accountId + electricAccountType）
      * @return key=账户ID，value=展示电费余额
      */

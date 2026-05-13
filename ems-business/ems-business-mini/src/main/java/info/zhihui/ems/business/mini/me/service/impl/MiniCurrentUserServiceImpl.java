@@ -1,6 +1,5 @@
 package info.zhihui.ems.business.mini.me.service.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
 import info.zhihui.ems.business.account.dto.AccountQueryDto;
@@ -13,8 +12,7 @@ import info.zhihui.ems.business.mini.me.service.MiniCurrentUserService;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.foundation.user.bo.UserBo;
-import info.zhihui.ems.foundation.user.service.UserService;
+import info.zhihui.ems.components.context.RequestContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -30,21 +28,20 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
 
-    private final UserService userService;
+    private final RequestContext requestContext;
     private final AccountInfoService accountInfoService;
     private final AccountAdditionalInfoService accountAdditionalInfoService;
     private final ElectricMeterInfoService electricMeterInfoService;
 
     @Override
     public MiniCurrentUserBo getCurrentUser() {
-        UserBo user = userService.getUserInfo(StpUtil.getLoginIdAsInt());
-        AccountBo account = getEnterpriseAccount(user);
+        AccountBo account = getEnterpriseAccount(requestContext.getOrganizationId());
         BigDecimal balance = getBalance(account);
         int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setAccountIds(List.of(account.getId()))).size();
 
         return new MiniCurrentUserBo()
-                .setUserPhone(user.getUserPhone())
+                .setUserPhone(requestContext.getUserPhone())
                 .setElectricAccountId(account.getId())
                 .setElectricAccountName(account.getOwnerName())
                 .setElectricAccountType(account.getElectricAccountType())
@@ -52,14 +49,13 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
                 .setMeterCount(meterCount);
     }
 
-    private AccountBo getEnterpriseAccount(UserBo user) {
-        if (user.getOrganizationId() == null) {
+    private AccountBo getEnterpriseAccount(Integer organizationId) {
+        if (organizationId == null) {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode(), ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
         }
         List<AccountBo> accountList = accountInfoService.findList(new AccountQueryDto()
-                .setIncludeDeleted(false)
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
-                .setOwnerIds(List.of(user.getOrganizationId())));
+                .setOwnerIds(List.of(organizationId)));
         if (CollectionUtils.isEmpty(accountList)) {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode(), ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
         }

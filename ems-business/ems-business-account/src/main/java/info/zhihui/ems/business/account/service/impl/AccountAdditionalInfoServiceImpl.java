@@ -154,6 +154,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
     @Override
     public Map<Integer, BigDecimal> findElectricBalanceAmountMap(
             @NotEmpty List<@Valid @NotNull AccountElectricBalanceAggregateItemDto> itemDtoList) {
+        // 同一账户只保留第一次出现的计费类型，避免分页/详情聚合时重复项覆盖前面已确定的账户口径。
         Map<Integer, ElectricAccountTypeEnum> accountElectricAccountTypeMap = new HashMap<>();
         for (AccountElectricBalanceAggregateItemDto itemDto : itemDtoList) {
             Integer accountId = itemDto.getAccountId();
@@ -176,6 +177,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
                     continue;
                 }
                 BigDecimal balanceAmount = Objects.requireNonNullElse(balanceBo.getBalance(), BigDecimal.ZERO);
+                // 账户余额和电表余额同时查出后分开归集，后面再按账户计费类型选择最终展示口径。
                 if (BalanceTypeEnum.ACCOUNT.equals(balanceBo.getBalanceType())) {
                     accountBalanceAmountMap.put(balanceBo.getAccountId(), balanceAmount);
                     continue;
@@ -190,6 +192,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
         for (Map.Entry<Integer, ElectricAccountTypeEnum> entry : accountElectricAccountTypeMap.entrySet()) {
             Integer accountId = entry.getKey();
             BalanceTypeEnum balanceType = toBalanceType(entry.getValue());
+            // 按需计费充值到电表，展示该账户下所有电表余额合计；包月/合并按需充值到账户，展示账户余额。
             if (BalanceTypeEnum.ACCOUNT.equals(balanceType)) {
                 electricBalanceAmountMap.put(accountId, accountBalanceAmountMap.getOrDefault(accountId, BigDecimal.ZERO));
                 continue;

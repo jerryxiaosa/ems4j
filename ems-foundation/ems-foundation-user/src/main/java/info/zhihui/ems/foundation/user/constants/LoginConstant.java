@@ -23,6 +23,11 @@ public class LoginConstant {
     public static final String LOGIN_USER_PHONE = "user::login::phone";
 
     /**
+     * 登录会话中的用户组织ID
+     */
+    public static final String LOGIN_USER_ORGANIZATION_ID = "user::login::organization_id";
+
+    /**
      * 小程序登录 openId
      */
     public static final String LOGIN_MINI_OPEN_ID = "user::login::mini::open_id";

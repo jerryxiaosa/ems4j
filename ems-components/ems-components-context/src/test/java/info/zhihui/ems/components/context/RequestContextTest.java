@@ -130,4 +130,11 @@ public class RequestContextTest {
         Assertions.assertNull(requestContext.getUserPhone());
     }
 
+    @Test
+    public void testGetOrganizationId() {
+        RequestContextSetter.doSet(6, new UserRequestData("李四", "13700000000", 1001));
+
+        Assertions.assertEquals(1001, requestContext.getOrganizationId());
+    }
+
 }

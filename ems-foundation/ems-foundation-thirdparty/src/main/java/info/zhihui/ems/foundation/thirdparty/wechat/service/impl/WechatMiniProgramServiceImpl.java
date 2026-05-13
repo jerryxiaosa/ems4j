@@ -35,6 +35,18 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
     private final WechatMiniProgramClient client;
     private final WechatMiniProgramProperties properties;
 
+    /**
+     * 解析微信小程序登录身份。
+     *
+     * <p>该方法封装小程序登录需要的两段微信接口调用：
+     * 先用 {@code loginCode} 换取 openId/sessionKey，再用 {@code phoneCode}
+     * 换取用户手机号。业务层只需要消费统一的 {@link WechatMiniProgramLoginDto}，
+     * 不直接感知微信接口细节。</p>
+     *
+     * @param loginCode 小程序端 {@code wx.login} 返回的登录凭证
+     * @param phoneCode 小程序端手机号授权返回的一次性凭证
+     * @return 微信小程序登录身份和手机号信息
+     */
     @Override
     public WechatMiniProgramLoginDto resolveLogin(@NotBlank String loginCode, @NotBlank String phoneCode) {
         validateProperties();
@@ -53,6 +65,12 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
                 .setCountryCode(phoneInfo.getCountryCode());
     }
 
+    /**
+     * 校验微信小程序基础配置。
+     *
+     * <p>appId 和 appSecret 是调用微信登录、手机号接口的前置条件。
+     * 缺失时统一返回小程序登录凭证无效，避免把配置细节暴露给前端。</p>
+     */
     private void validateProperties() {
         if (!StringUtils.hasText(properties.getAppId()) || !StringUtils.hasText(properties.getAppSecret())) {
             log.warn("微信小程序 appId 或 appSecret 未配置");
@@ -61,6 +79,16 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
         }
     }
 
+    /**
+     * 使用登录凭证换取微信小程序会话信息。
+     *
+     * <p>微信正常成功时 {@code errcode} 可能为空或为 0，因此成功判断统一交给
+     * {@link #isSuccess(Integer)}。openId 是后续第三方身份绑定和小程序支付的基础，
+     * 所以这里必须校验非空。</p>
+     *
+     * @param loginCode 小程序登录凭证
+     * @return 微信返回的小程序会话信息
+     */
     private WechatCodeSessionDto code2Session(String loginCode) {
         try {
             WechatCodeSessionDto dto = client.code2Session(properties.getAppId(), properties.getAppSecret(), loginCode);
@@ -79,6 +107,14 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
         }
     }
 
+    /**
+     * 获取并缓存微信接口调用凭证。
+     *
+     * <p>access_token 用于调用获取手机号接口。这里按 appId 维度缓存，
+     * 并在微信过期时间前提前失效，避免临界时间使用到即将过期的 token。</p>
+     *
+     * @return 有效的微信 access_token
+     */
     private String getAccessToken() {
         String cacheKey = ACCESS_TOKEN_CACHE_KEY_PREFIX + properties.getAppId();
         String cachedToken = RedisUtil.getCacheObject(cacheKey);
@@ -99,6 +135,17 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
         return dto.getAccessToken();
     }
 
+    /**
+     * 使用手机号凭证换取微信绑定手机号。
+     *
+     * <p>业务用户匹配依赖不带区号的纯手机号 {@code purePhoneNumber}，
+     * 因此该字段为空时视为手机号凭证无效。接口返回后还会校验 watermark，
+     * 确认手机号数据确实来自当前小程序 appId。</p>
+     *
+     * @param accessToken 微信接口调用凭证
+     * @param phoneCode 小程序手机号授权返回的一次性凭证
+     * @return 微信返回的手机号信息
+     */
     private WechatPhoneNumberDto getPhoneNumber(String accessToken, String phoneCode) {
         try {
             WechatPhoneNumberDto dto = client.getPhoneNumber(accessToken, phoneCode);
@@ -119,6 +166,14 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
         }
     }
 
+    /**
+     * 校验手机号数据水印。
+     *
+     * <p>微信手机号响应里的 watermark 会带上 appId。
+     * 这里要求它必须等于当前配置的 appId，防止错误小程序或错误配置下的数据被继续使用。</p>
+     *
+     * @param dto 微信手机号响应
+     */
     private void validateWatermark(WechatPhoneNumberDto dto) {
         WechatPhoneNumberDto.Watermark watermark = dto.getPhoneInfo().getWatermark();
         if (watermark == null || !properties.getAppId().equals(watermark.getAppid())) {
@@ -128,6 +183,11 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
         }
     }
 
+    /**
+     * 判断微信接口是否调用成功。
+     *
+     * <p>部分微信接口成功响应不会返回 {@code errcode}，因此空值和 0 都按成功处理。</p>
+     */
     private boolean isSuccess(Integer errcode) {
         return errcode == null || SUCCESS_CODE == errcode;
     }

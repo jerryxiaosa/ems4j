@@ -1,7 +1,10 @@
 package info.zhihui.ems.config.satoken;
 
+import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.interceptor.SaInterceptor;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import info.zhihui.ems.business.mini.satoken.MiniStpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.model.UserRequestData;
@@ -66,26 +69,49 @@ public class SaWebConfig implements WebMvcConfigurer {
     }
 
     private void setUserContext() {
-        int userId = StpUtil.getLoginIdAsInt();
-        String userRealName = (String) StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME);
-        String userPhone = (String) StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE);
+        boolean miniRequest = isMiniRequest();
+        int userId = miniRequest ? MiniStpUtil.getLoginIdAsInt() : StpUtil.getLoginIdAsInt();
+        SaSession session = miniRequest ? MiniStpUtil.getSession() : StpUtil.getSession();
+        String userRealName = (String) session.get(LoginConstant.LOGIN_USER_REAL_NAME);
+        String userPhone = (String) session.get(LoginConstant.LOGIN_USER_PHONE);
+        Integer organizationId = (Integer) session.get(LoginConstant.LOGIN_USER_ORGANIZATION_ID);
 
-        if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
+        if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone) || organizationId == null) {
             UserBo user;
             try {
                 // 登录会话没有用户基础信息时回源，并写回会话
                 user = userService.getUserInfo(userId);
             } catch (NotFoundException e) {
-                StpUtil.logout();
+                logoutCurrentRequest(miniRequest);
                 throw new BusinessRuntimeException("无法获取到用户信息");
             }
             userRealName = user.getRealName();
             userPhone = user.getUserPhone();
-            StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, userRealName);
-            StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, userPhone);
+            organizationId = user.getOrganizationId();
+            session.set(LoginConstant.LOGIN_USER_REAL_NAME, userRealName);
+            session.set(LoginConstant.LOGIN_USER_PHONE, userPhone);
+            if (organizationId != null) {
+                session.set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, organizationId);
+            }
         }
 
-        UserRequestData userData = new UserRequestData(userRealName, userPhone);
+        UserRequestData userData = new UserRequestData(userRealName, userPhone, organizationId);
         RequestContextSetter.doSet(userId, userData);
+    }
+
+    private boolean isMiniRequest() {
+        String requestPath = SaHolder.getRequest().getRequestPath();
+        if (!StringUtils.hasText(requestPath)) {
+            return false;
+        }
+        return requestPath.equals("/v1/mini") || requestPath.startsWith("/v1/mini/");
+    }
+
+    private void logoutCurrentRequest(boolean miniRequest) {
+        if (miniRequest) {
+            MiniStpUtil.logout();
+        } else {
+            StpUtil.logout();
+        }
     }
 }

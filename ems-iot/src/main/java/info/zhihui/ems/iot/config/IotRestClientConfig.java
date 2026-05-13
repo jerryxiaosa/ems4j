@@ -1,10 +1,8 @@
 package info.zhihui.ems.iot.config;
 
+import info.zhihui.ems.common.factory.RestClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -28,13 +26,6 @@ public class IotRestClientConfig {
      */
     @Bean("iotRestClient")
     public RestClient iotRestClient() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(IOT_HTTP_CONNECT_TIMEOUT_MS);
-        requestFactory.setReadTimeout(IOT_HTTP_READ_TIMEOUT_MS);
-
-        return RestClient.builder()
-                .requestFactory(requestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        return RestClientFactory.jsonClient(IOT_HTTP_CONNECT_TIMEOUT_MS, IOT_HTTP_READ_TIMEOUT_MS);
     }
 }

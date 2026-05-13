@@ -91,6 +91,9 @@ public class LoginServiceImpl implements LoginService {
         StpUtil.login(userInfo.getId(), new SaLoginParameter().setDeviceType(MenuSourceEnum.WEB.getInfo()));
         StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, userInfo.getRealName());
         StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, userInfo.getUserPhone());
+        if (userInfo.getOrganizationId() != null) {
+            StpUtil.getSession().set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, userInfo.getOrganizationId());
+        }
 
         return new LoginResponseDto()
                 .setAccessToken(StpUtil.getTokenValue())
