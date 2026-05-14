@@ -125,6 +125,53 @@ class WechatMiniProgramServiceImplTest {
     }
 
     @Test
+    void testResolveLogin_WhenAccessTokenRequestThrows_ShouldThrowLoginCodeInvalid() {
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
+        when(client.getAccessToken(APP_ID, APP_SECRET)).thenThrow(new RuntimeException("wechat unavailable"));
+
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn(null);
+
+            assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID);
+        }
+    }
+
+    @Test
+    void testResolveLogin_WhenAccessTokenExpiresBeforeAhead_ShouldNotCacheToken() {
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
+        when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
+                .setAccessToken("short-lived-token")
+                .setExpiresIn(120));
+        when(client.getPhoneNumber("short-lived-token", PHONE_CODE)).thenReturn(successPhoneNumber());
+
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn(null);
+
+            service.resolveLogin(LOGIN_CODE, PHONE_CODE);
+
+            redisMock.verify(() -> RedisUtil.getCacheObject(CACHE_KEY));
+            redisMock.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    void testResolveLogin_WhenAccessTokenExpiresInMissing_ShouldNotCacheToken() {
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
+        when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
+                .setAccessToken("missing-expire-token"));
+        when(client.getPhoneNumber("missing-expire-token", PHONE_CODE)).thenReturn(successPhoneNumber());
+
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn(null);
+
+            service.resolveLogin(LOGIN_CODE, PHONE_CODE);
+
+            redisMock.verify(() -> RedisUtil.getCacheObject(CACHE_KEY));
+            redisMock.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
     void testResolveLogin_WhenPhoneNumberInvalid_ShouldThrowPhoneCodeInvalid() {
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getPhoneNumber("cached-token", PHONE_CODE)).thenReturn(new WechatPhoneNumberDto()

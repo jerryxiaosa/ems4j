@@ -5,6 +5,9 @@ import info.zhihui.ems.business.mini.bo.MiniLoginBo;
 import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
 import info.zhihui.ems.business.mini.service.MiniAuthService;
 import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.service.WechatMiniProgramService;
 import info.zhihui.ems.foundation.user.bo.UserBo;
@@ -39,7 +42,7 @@ public class MiniAuthServiceImpl implements MiniAuthService {
                 loginBo.getLoginCode(),
                 loginBo.getPhoneCode()
         );
-        UserBo user = userService.getUserByPhone(wechatLogin.getPurePhoneNumber());
+        UserBo user = getMiniLoginUserByPhone(wechatLogin.getPurePhoneNumber());
         bindThirdPartyIdentity(user, wechatLogin);
         loginUser(user, wechatLogin);
 
@@ -51,6 +54,22 @@ public class MiniAuthServiceImpl implements MiniAuthService {
     @Override
     public void logout() {
         MiniStpUtil.logout();
+    }
+
+    private UserBo getMiniLoginUserByPhone(String phoneNumber) {
+        try {
+            return userService.getUserByPhone(phoneNumber);
+        } catch (NotFoundException e) {
+            throw new BusinessRuntimeException(
+                    ResultCode.MINI_PHONE_NOT_BOUND.getCode(),
+                    ResultCode.MINI_PHONE_NOT_BOUND.getMessage()
+            );
+        } catch (BusinessRuntimeException e) {
+            throw new BusinessRuntimeException(
+                    ResultCode.MINI_PHONE_BINDING_ABNORMAL.getCode(),
+                    ResultCode.MINI_PHONE_BINDING_ABNORMAL.getMessage()
+            );
+        }
     }
 
     private void bindThirdPartyIdentity(UserBo user, WechatMiniProgramLoginDto wechatLogin) {

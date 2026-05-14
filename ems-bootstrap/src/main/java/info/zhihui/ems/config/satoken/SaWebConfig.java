@@ -76,7 +76,7 @@ public class SaWebConfig implements WebMvcConfigurer {
         String userPhone = (String) session.get(LoginConstant.LOGIN_USER_PHONE);
         Integer organizationId = (Integer) session.get(LoginConstant.LOGIN_USER_ORGANIZATION_ID);
 
-        if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone) || organizationId == null) {
+        if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
             UserBo user;
             try {
                 // 登录会话没有用户基础信息时回源，并写回会话

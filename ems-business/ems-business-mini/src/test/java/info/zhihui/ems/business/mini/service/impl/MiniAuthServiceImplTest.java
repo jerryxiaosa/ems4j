@@ -5,6 +5,9 @@ import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import info.zhihui.ems.business.mini.bo.MiniLoginBo;
 import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
 import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.service.WechatMiniProgramService;
 import info.zhihui.ems.foundation.user.bo.UserBo;
@@ -22,6 +25,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -42,6 +46,44 @@ class MiniAuthServiceImplTest {
 
     @InjectMocks
     private MiniAuthServiceImpl miniAuthService;
+
+    @Test
+    void login_WhenPhoneNotBound_ShouldThrowMiniPhoneNotBoundCode() {
+        MiniLoginBo loginBo = new MiniLoginBo()
+                .setLoginCode("login-code")
+                .setPhoneCode("phone-code");
+        WechatMiniProgramLoginDto wechatLogin = new WechatMiniProgramLoginDto()
+                .setOpenId("open-id")
+                .setPurePhoneNumber("13800138000");
+
+        when(wechatMiniProgramService.resolveLogin("login-code", "phone-code")).thenReturn(wechatLogin);
+        when(userService.getUserByPhone("13800138000")).thenThrow(new NotFoundException("用户不存在"));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniAuthService.login(loginBo));
+
+        assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_PHONE_NOT_BOUND.getCode());
+        assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_PHONE_NOT_BOUND.getMessage());
+        verify(userThirdPartyBindService, never()).bindOrUpdate(any());
+    }
+
+    @Test
+    void login_WhenPhoneBindingAbnormal_ShouldThrowMiniPhoneBindingAbnormalCode() {
+        MiniLoginBo loginBo = new MiniLoginBo()
+                .setLoginCode("login-code")
+                .setPhoneCode("phone-code");
+        WechatMiniProgramLoginDto wechatLogin = new WechatMiniProgramLoginDto()
+                .setOpenId("open-id")
+                .setPurePhoneNumber("13800138000");
+
+        when(wechatMiniProgramService.resolveLogin("login-code", "phone-code")).thenReturn(wechatLogin);
+        when(userService.getUserByPhone("13800138000")).thenThrow(new BusinessRuntimeException("手机号绑定多个用户"));
+
+        BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniAuthService.login(loginBo));
+
+        assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_PHONE_BINDING_ABNORMAL.getCode());
+        assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_PHONE_BINDING_ABNORMAL.getMessage());
+        verify(userThirdPartyBindService, never()).bindOrUpdate(any());
+    }
 
     @Test
     void login_WhenUnionIdMissing_ShouldSkipUnionIdSessionValue() {

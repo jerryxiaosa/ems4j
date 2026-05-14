@@ -122,17 +122,41 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
             return cachedToken;
         }
 
-        WechatAccessTokenDto dto = client.getAccessToken(properties.getAppId(), properties.getAppSecret());
-        if (dto == null || !isSuccess(dto.getErrcode()) || !StringUtils.hasText(dto.getAccessToken())) {
-            log.warn("获取微信小程序 access_token 失败，errcode={}, errmsg={}", dto == null ? null : dto.getErrcode(), dto == null ? null : dto.getErrmsg());
-            throw new BusinessRuntimeException(ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getCode(),
-                    ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getMessage());
-        }
+        try {
+            WechatAccessTokenDto dto = client.getAccessToken(properties.getAppId(), properties.getAppSecret());
+            if (dto == null || !isSuccess(dto.getErrcode()) || !StringUtils.hasText(dto.getAccessToken())) {
+                log.warn("获取微信小程序 access_token 失败，errcode={}, errmsg={}", dto == null ? null : dto.getErrcode(), dto == null ? null : dto.getErrmsg());
+                throw miniWechatLoginCodeInvalid();
+            }
 
-        int expiresIn = Objects.requireNonNullElse(dto.getExpiresIn(), 7200);
-        int cacheSeconds = Math.max(60, expiresIn - properties.getAccessTokenExpireAheadSeconds());
+            cacheAccessTokenIfSafe(cacheKey, dto);
+            return dto.getAccessToken();
+        } catch (BusinessRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("调用微信小程序 access_token 接口失败", e);
+            throw miniWechatLoginCodeInvalid();
+        }
+    }
+
+    private void cacheAccessTokenIfSafe(String cacheKey, WechatAccessTokenDto dto) {
+        Integer expiresIn = dto.getExpiresIn();
+        if (expiresIn == null || expiresIn <= 0) {
+            log.warn("微信小程序 access_token 过期时间无效，不写入缓存，expiresIn={}", expiresIn);
+            return;
+        }
+        int expireAheadSeconds = Math.max(0, Objects.requireNonNullElse(properties.getAccessTokenExpireAheadSeconds(), 0));
+        int cacheSeconds = expiresIn - expireAheadSeconds;
+        if (cacheSeconds <= 0) {
+            log.warn("微信小程序 access_token 剩余有效期不足，不写入缓存，expiresIn={}, expireAheadSeconds={}", expiresIn, expireAheadSeconds);
+            return;
+        }
         RedisUtil.setCacheObject(cacheKey, dto.getAccessToken(), Duration.ofSeconds(cacheSeconds));
-        return dto.getAccessToken();
+    }
+
+    private BusinessRuntimeException miniWechatLoginCodeInvalid() {
+        return new BusinessRuntimeException(ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getCode(),
+                ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getMessage());
     }
 
     /**
