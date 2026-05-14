@@ -611,15 +611,25 @@ const getIndentStyle = (depth: number) => ({
   color: var(--es-color-primary);
 }
 
+.btn-link:hover {
+  color: var(--es-color-primary-hover);
+}
+
 .btn-link-danger {
-  color: var(--es-color-error-text);
+  color: var(--es-color-danger);
+}
+
+.btn-link-danger:hover {
+  opacity: 0.85;
 }
 
 .btn-link,
 .btn-link-danger {
+  height: auto;
   padding: 0;
   font-size: var(--es-font-size-sm);
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
   background: transparent;
   border: none;

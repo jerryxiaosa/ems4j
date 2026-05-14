@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { reactive, ref } from 'vue'
 import UserManagementView from '@/views/system/UserManagementView.vue'
@@ -20,6 +21,14 @@ vi.mock('@/modules/system/users/composables/useUserCrud', () => ({
 const mockedUseUserNotice = vi.mocked(useUserNotice)
 const mockedUseUserQuery = vi.mocked(useUserQuery)
 const mockedUseUserCrud = vi.mocked(useUserCrud)
+
+const readComponentStyle = () => {
+  const source = readFileSync(
+    `${process.cwd()}/src/views/system/UserManagementView.vue`,
+    'utf8'
+  )
+  return source.match(/<style scoped>([\s\S]*?)<\/style>/)?.[1] ?? ''
+}
 
 const mountComponent = () => {
   return mount(UserManagementView, {
@@ -173,5 +182,17 @@ describe('UserManagementView', () => {
     expect(rows[1]!.text()).toContain('tester')
     expect(rows[1]!.text()).toContain('重置密码')
     expect(rows[1]!.text()).toContain('删除')
+  })
+
+  test('testActionButtonStyle_WhenRenderedInUserTable_ShouldAlignWithAccountInfoList', () => {
+    const style = readComponentStyle()
+
+    expect(style).toMatch(
+      /\.btn-link,\s*\.btn-link-danger\s*\{[\s\S]*?font-weight:\s*500;[\s\S]*?line-height:\s*1\.2;/
+    )
+    expect(style).toMatch(
+      /\.btn-link:hover\s*\{[\s\S]*?color:\s*var\(--es-color-primary-hover\);/
+    )
+    expect(style).toMatch(/\.btn-link-danger:hover\s*\{[\s\S]*?opacity:\s*0\.85;/)
   })
 })
