@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import DeviceOperationDetailModal from '@/components/devices/DeviceOperationDetailModal.vue'
 import {
@@ -15,6 +16,24 @@ vi.mock('@/api/adapters/device-operation', () => ({
 const mockedFetchDeviceOperationDetail = vi.mocked(fetchDeviceOperationDetail)
 const mockedFetchDeviceOperationExecuteRecordList = vi.mocked(fetchDeviceOperationExecuteRecordList)
 const mockedRetryDeviceOperation = vi.mocked(retryDeviceOperation)
+
+const readComponentStyle = () => {
+  const source = readFileSync(
+    `${process.cwd()}/src/components/devices/DeviceOperationDetailModal.vue`,
+    'utf8'
+  )
+  return source.match(/<style scoped>([\s\S]*?)<\/style>/)?.[1] ?? ''
+}
+
+const expectStyleRuleToContain = (style: string, selector: string, declarations: string[]) => {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const ruleContent = style.match(new RegExp(`${escapedSelector}\\s*\\{([\\s\\S]*?)\\}`))?.[1] ?? ''
+
+  expect(ruleContent).toBeTruthy()
+  declarations.forEach((declaration) => {
+    expect(ruleContent).toContain(declaration)
+  })
+}
 
 const mountComponent = () => {
   return mount(DeviceOperationDetailModal, {
@@ -149,5 +168,65 @@ describe('DeviceOperationDetailModal', () => {
 
     expect(mockedRetryDeviceOperation).toHaveBeenCalledWith(20)
     expect(wrapper.text()).toContain('设备操作重试失败')
+  })
+
+  test('testRenderLongCommand_WhenCommandContentLarge_ShouldKeepScrollableDetailLayout', async () => {
+    const longCommandValue = 'A'.repeat(5000)
+
+    mockedFetchDeviceOperationDetail.mockResolvedValue({
+      id: 21,
+      deviceIotId: 'iot-21',
+      deviceNo: 'EM-021',
+      deviceName: '测试电表',
+      deviceType: 'electricMeter',
+      deviceTypeName: '电表',
+      spaceName: 'A-104',
+      commandType: 5,
+      commandTypeName: '设置长指令',
+      commandSource: 1,
+      commandSourceName: '用户命令',
+      commandData: JSON.stringify({ payload: longCommandValue }),
+      success: false,
+      isRunning: false,
+      successName: '失败',
+      successTime: '--',
+      lastExecuteTime: '2026-04-14 13:00:00',
+      ensureSuccess: true,
+      executeTimes: 1,
+      maxExecuteTimes: 3,
+      operateUserName: '赵六',
+      createTime: '2026-04-14 12:50:00',
+      remark: '--'
+    })
+    mockedFetchDeviceOperationExecuteRecordList.mockResolvedValue([])
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.get('.command-box').text()).toContain(longCommandValue)
+
+    const style = readComponentStyle()
+    expectStyleRuleToContain(style, '.operation-detail-modal', [
+      'display: flex;',
+      'flex-direction: column;',
+      'max-height: calc(100vh - 40px);',
+      'overflow: hidden;'
+    ])
+    expectStyleRuleToContain(style, '.nested-modal-panel', [
+      'display: flex;',
+      'flex-direction: column;',
+      'max-height: calc(100vh - 40px);',
+      'overflow: hidden;'
+    ])
+    expectStyleRuleToContain(style, '.modal-head', ['flex: 0 0 auto;'])
+    expectStyleRuleToContain(style, '.modal-body', [
+      'flex: 1 1 auto;',
+      'min-height: 0;',
+      'overflow: auto;'
+    ])
+    expectStyleRuleToContain(style, '.command-box', [
+      'max-height: min(360px, 42vh);',
+      'overflow: auto;'
+    ])
   })
 })

@@ -427,6 +427,8 @@ watch(
 }
 
 .operation-detail-modal {
+  display: flex;
+  flex-direction: column;
   width: min(920px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   overflow: hidden;
@@ -437,6 +439,8 @@ watch(
 }
 
 .nested-modal-panel {
+  display: flex;
+  flex-direction: column;
   width: min(920px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   overflow: hidden;
@@ -447,6 +451,7 @@ watch(
 }
 
 .modal-head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -481,6 +486,8 @@ watch(
 }
 
 .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 16px;
   overflow: auto;
   display: grid;
@@ -635,6 +642,8 @@ watch(
 .command-box {
   margin: 0;
   min-height: 100px;
+  max-height: min(360px, 42vh);
+  overflow: auto;
   padding: 12px;
   font-size: var(--es-font-size-sm);
   color: var(--es-color-text-secondary);
