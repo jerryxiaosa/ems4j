@@ -100,7 +100,7 @@ onMounted(() => {
 
 <template>
   <view class="pay-record-page">
-    <AppBackHeader title="缴费记录" @back="handleBack" />
+    <AppBackHeader title="充值缴费记录" @back="handleBack" />
 
     <scroll-view class="record-scroll" scroll-y enhanced show-scrollbar="false">
       <view class="content-stack">

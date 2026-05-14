@@ -13,7 +13,7 @@ const pageTitle = computed(() => (isSuccess.value ? '支付成功' : '支付失�
 const messageTitle = computed(() => (isSuccess.value ? '支付成功' : '支付失败'))
 const messageDesc = computed(() => (isSuccess.value ? '缴费已到账，感谢您的使用' : '缴费未完成，请重试'))
 const primaryButtonText = computed(() => (isSuccess.value ? '返回首页' : '查看订单'))
-const secondaryButtonText = computed(() => (isSuccess.value ? '查看缴费记录' : '返回首页'))
+const secondaryButtonText = computed(() => (isSuccess.value ? '查看充值缴费记录' : '返回首页'))
 
 const goHome = () => {
   uni.redirectTo({

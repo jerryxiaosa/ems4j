@@ -251,7 +251,7 @@ onMounted(async () => {
               <th>电表数量</th>
               <th>本期电量(kWh)</th>
               <th>本期电费</th>
-              <th>充值金额</th>
+              <th>支付金额</th>
               <th>补正金额</th>
               <th>合计费用</th>
               <th>操作</th>

@@ -103,7 +103,7 @@ const confirm = () => {
                   <th class="radio-col"></th>
                   <th class="table-col-index col-index">序号</th>
                   <th>电表名称</th>
-                  <th>电表号</th>
+                  <th>电表编号</th>
                   <th class="col-location">所在位置</th>
                   <th class="col-region">所属区域</th>
                   <th>电表余额（元）</th>

@@ -387,7 +387,7 @@ onMounted(async () => {
             </select>
           </label>
           <label class="search-item">
-            <span class="search-label-inline">付款方式</span>
+            <span class="search-label-inline">支付方式</span>
             <select
               v-model="queryForm.paymentMethodCode"
               class="search-input search-radius-micro"
@@ -485,7 +485,7 @@ onMounted(async () => {
               <th>缴费人</th>
               <th>机构名称</th>
               <th>电表名称</th>
-              <th>电表号</th>
+              <th>电表编号</th>
               <th>订单前金额（元）</th>
               <th>订单后金额（元）</th>
               <th>服务费（元）</th>

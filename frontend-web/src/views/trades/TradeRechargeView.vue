@@ -187,16 +187,19 @@ const serviceFeeAmount = computed(() => {
   return amount > 0 && rate >= 0 ? formatMoney((amount * rate) / 100) : ''
 })
 
-const saleAmount = computed(() => {
+const topUpAmount = computed(() => {
   const amount = parseDecimal(form.payAmount)
   const fee = Number(serviceFeeAmount.value || 0)
   return amount > 0 ? formatMoney(Math.max(amount - fee, 0)) : ''
 })
 
-const rechargeAmountText = computed(() => {
+const payAmountText = computed(() => {
   const amount = parseDecimal(form.payAmount)
   return amount > 0 ? formatMoney(amount) : '--'
 })
+
+const topUpAmountText = computed(() => topUpAmount.value || '--')
+const serviceFeeAmountText = computed(() => serviceFeeAmount.value || '--')
 
 const summaryRows = computed(() => {
   const enterprise = selectedEnterprise.value
@@ -661,7 +664,7 @@ const validateSubmit = (): number | null => {
   }
   const orderAmount = parseDecimal(form.payAmount)
   if (orderAmount <= 0) {
-    setNotice('error', '请输入付款金额')
+    setNotice('error', '请输入支付金额')
     return null
   }
   const serviceRate = parseOptionalDecimal(form.serviceRate)
@@ -805,7 +808,7 @@ onMounted(() => {
               }}</span>
             </div>
             <div class="summary-item summary-item-compact">
-              <span class="summary-label es-detail-label">电表表号</span>
+              <span class="summary-label es-detail-label">电表编号</span>
               <span class="summary-value es-detail-value-box">{{
                 selectedMeter?.deviceNo || '--'
               }}</span>
@@ -828,17 +831,17 @@ onMounted(() => {
         <section class="form-card">
           <div class="form-grid">
             <label class="form-field">
-              <span class="field-label search-label-required">付款金额（元）</span>
+              <span class="field-label search-label-required">支付金额（元）</span>
               <input
                 v-model="form.payAmount"
                 class="form-control"
                 type="text"
-                placeholder="请输入付款金额"
+                placeholder="请输入支付金额"
               />
             </label>
             <label class="form-field">
-              <span class="field-label">售电金额（元）</span>
-              <input :value="saleAmount" class="form-control" type="text" readonly />
+              <span class="field-label">到账金额（元）</span>
+              <input :value="topUpAmount" class="form-control" type="text" readonly />
             </label>
             <label class="form-field">
               <span class="field-label search-label-required">服务费比例（%）</span>
@@ -850,11 +853,11 @@ onMounted(() => {
               />
             </label>
             <label class="form-field">
-              <span class="field-label">服务费金额（元）</span>
+              <span class="field-label">服务费（元）</span>
               <input :value="serviceFeeAmount" class="form-control" type="text" readonly />
             </label>
             <label class="form-field">
-              <span class="field-label search-label-required">付款方式</span>
+              <span class="field-label search-label-required">支付方式</span>
               <select v-model="form.paymentMethod" class="form-control" disabled>
                 <option value="现金支付">现金支付</option>
               </select>
@@ -885,7 +888,9 @@ onMounted(() => {
       v-model="confirmModalVisible"
       :meter-name="selectedMeter?.meterName || '--'"
       :meter-device-no="selectedMeter?.deviceNo || '--'"
-      :amount-text="rechargeAmountText"
+      :pay-amount-text="payAmountText"
+      :top-up-amount-text="topUpAmountText"
+      :service-fee-amount-text="serviceFeeAmountText"
       :submitting="submitting"
       @confirm="handleConfirmSubmit"
     />

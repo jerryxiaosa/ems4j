@@ -201,7 +201,7 @@ onLoad((query) => {
         <view class="section-card amount-card">
           <text class="section-title">订单金额明细</text>
           <view class="amount-row">
-            <text>充值金额</text>
+            <text>支付金额</text>
             <text>¥ {{ rechargeAmountText }}</text>
           </view>
           <view class="divider"></view>

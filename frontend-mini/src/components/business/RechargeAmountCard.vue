@@ -33,14 +33,14 @@ const handleInput = (event: Event) => {
 
 <template>
   <view class="form-card">
-    <text class="section-title">充值金额</text>
+    <text class="section-title">支付金额</text>
     <view class="amount-input-wrap">
       <text class="amount-currency">¥</text>
       <input
         :value="amount"
         class="amount-input"
         type="number"
-        placeholder="请输入充值金额"
+        placeholder="请输入支付金额"
         placeholder-class="amount-placeholder"
         @input="handleInput"
       />

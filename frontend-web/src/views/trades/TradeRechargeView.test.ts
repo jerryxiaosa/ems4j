@@ -69,10 +69,18 @@ const OrganizationPickerStub = defineComponent({
 })
 
 const ElectricRechargeConfirmModalStub = defineComponent({
-  props: ['modelValue', 'meterName', 'meterDeviceNo', 'amountText', 'submitting'],
+  props: [
+    'modelValue',
+    'meterName',
+    'meterDeviceNo',
+    'payAmountText',
+    'topUpAmountText',
+    'serviceFeeAmountText',
+    'submitting'
+  ],
   emits: ['update:modelValue', 'confirm'],
   template:
-    '<div data-test="confirm-modal" :data-visible="String(modelValue)" :data-meter-name="String(meterName)" :data-device-no="String(meterDeviceNo)" :data-amount="String(amountText)"><button data-test="confirm-submit" type="button" @click="$emit(\'confirm\')">提交确认</button></div>'
+    '<div data-test="confirm-modal" :data-visible="String(modelValue)" :data-meter-name="String(meterName)" :data-device-no="String(meterDeviceNo)" :data-pay-amount="String(payAmountText)" :data-top-up-amount="String(topUpAmountText)" :data-service-fee-amount="String(serviceFeeAmountText)"><button data-test="confirm-submit" type="button" @click="$emit(\'confirm\')">提交确认</button></div>'
 })
 
 const mountComponent = () => {
@@ -175,11 +183,14 @@ describe('TradeRechargeView', () => {
     await flushPromises()
 
     expect(mockedFetchAccountDetail).toHaveBeenCalledWith(88)
+    expect(wrapper.text()).toContain('支付金额（元）')
+    expect(wrapper.text()).toContain('到账金额（元）')
+    expect(wrapper.text()).toContain('服务费（元）')
     expect(wrapper.text()).toContain('按需计费')
     expect(wrapper.text()).toContain('1号表')
     expect(wrapper.text()).toContain('更换电表')
 
-    await wrapper.get('input[placeholder="请输入付款金额"]').setValue('200')
+    await wrapper.get('input[placeholder="请输入支付金额"]').setValue('200')
     const actionButtons = wrapper.findAll('button')
     const confirmButton = actionButtons.find((button) => button.text() === '确认充值')
     expect(confirmButton).toBeDefined()
@@ -189,7 +200,9 @@ describe('TradeRechargeView', () => {
     const confirmModal = wrapper.get('[data-test="confirm-modal"]')
     expect(confirmModal.attributes('data-visible')).toBe('true')
     expect(confirmModal.attributes('data-meter-name')).toBe('1号表')
-    expect(confirmModal.attributes('data-amount')).toBe('200.00')
+    expect(confirmModal.attributes('data-pay-amount')).toBe('200.00')
+    expect(confirmModal.attributes('data-top-up-amount')).toBe('180.00')
+    expect(confirmModal.attributes('data-service-fee-amount')).toBe('20.00')
   })
 
   test('testSubmitMergedAccount_WhenConfirmRecharge_ShouldCreateOrderAndNavigateToOrderFlows', async () => {
@@ -221,7 +234,7 @@ describe('TradeRechargeView', () => {
     expect(wrapper.text()).toContain('合并计费')
     expect(wrapper.text()).not.toContain('更换电表')
 
-    await wrapper.get('input[placeholder="请输入付款金额"]').setValue('200')
+    await wrapper.get('input[placeholder="请输入支付金额"]').setValue('200')
     const actionButtons = wrapper.findAll('button')
     const confirmButton = actionButtons.find((button) => button.text() === '确认充值')
     expect(confirmButton).toBeDefined()
@@ -281,7 +294,7 @@ describe('TradeRechargeView', () => {
     await confirmButton!.trigger('click')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('请输入付款金额')
+    expect(wrapper.text()).toContain('请输入支付金额')
     expect(mockedCreateEnergyTopUpOrder).not.toHaveBeenCalled()
     expect(pushMock).not.toHaveBeenCalled()
   })
@@ -308,7 +321,7 @@ describe('TradeRechargeView', () => {
     await wrapper.get('[data-test="pick-account"]').trigger('click')
     await flushPromises()
 
-    await wrapper.get('input[placeholder="请输入付款金额"]').setValue('200')
+    await wrapper.get('input[placeholder="请输入支付金额"]').setValue('200')
     const confirmButton = wrapper.findAll('button').find((button) => button.text() === '确认充值')
     expect(confirmButton).toBeDefined()
     await confirmButton!.trigger('click')

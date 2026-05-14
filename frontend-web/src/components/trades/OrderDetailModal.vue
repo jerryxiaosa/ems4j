@@ -104,7 +104,7 @@ const amountRows = computed(() => {
     amountCells.splice(
       2,
       0,
-      { label: '服务费金额（元）', value: detail.serviceAmount },
+      { label: '服务费（元）', value: detail.serviceAmount },
       { label: '服务费比例（%）', value: detail.serviceRate }
     )
 
