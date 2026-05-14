@@ -41,6 +41,8 @@ INSERT INTO sys_config (id, config_module_name, config_key, config_name, config_
 VALUES (8, 'electric', 'electric_step_price', '默认阶梯电价', '[{"startValue":0,"endValue":100,"priceRate":1.0},{"startValue":100,"endValue":200,"priceRate":1.2},{"startValue":200,"endValue":null,"priceRate":1.5}]', TRUE, FALSE, '2023-01-01 00:00:00');
 INSERT INTO sys_config (id, config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
 VALUES (9, 'electric', 'electric_price_type', '默认尖峰平谷电价', '[{"type":1,"price":1.2},{"type":2,"price":1.0},{"type":3,"price":0.8},{"type":4,"price":0.6},{"type":5,"price":0.4}]', TRUE, FALSE, '2023-01-01 00:00:00');
+INSERT INTO sys_config (id, config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
+VALUES (11, 'mini', 'mini_account', '小程序账号配置', '{"appId":"","appSecret":""}', TRUE, FALSE, '2025-01-02 03:04:05');
 
 -- 插入能耗账户测试数据
 INSERT INTO energy_account (id, owner_id, owner_type, owner_name, contact_name, contact_phone, electric_account_type, monthly_pay_amount, warn_plan_id, electric_warn_type, create_user, create_user_name, create_time, is_deleted)

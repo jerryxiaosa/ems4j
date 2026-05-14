@@ -45,6 +45,11 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
+            <artifactId>ems-foundation-system</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>info.zhihui</groupId>
             <artifactId>ems-components-redis</artifactId>
         </dependency>
 

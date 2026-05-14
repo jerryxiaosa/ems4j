@@ -1,14 +1,15 @@
-import { useMock } from '@/mock'
+import { useMockAuth } from '@/mock'
 
 export type WechatPhoneCodeEvent = {
   detail?: {
     code?: string
     errMsg?: string
+    errno?: number
   }
 }
 
 export const getWechatLoginCode = async (): Promise<string> => {
-  if (useMock) {
+  if (useMockAuth) {
     return 'mock-wx-login-code'
   }
 
@@ -28,9 +29,20 @@ export const getWechatPhoneCode = (event: WechatPhoneCodeEvent): string => {
     return phoneCode
   }
 
-  if (useMock) {
+  if (useMockAuth) {
     return 'mock-wx-phone-code'
   }
 
-  throw new Error('未授权获取手机号')
+  const errorMessage = event.detail?.errMsg ?? '未授权获取手机号'
+  console.warn('获取手机号失败', event.detail)
+
+  if (/deny|cancel/i.test(errorMessage)) {
+    throw new Error('请允许获取手机号后再登录')
+  }
+
+  if (/permission|auth/i.test(errorMessage)) {
+    throw new Error('当前小程序未开通获取手机号权限')
+  }
+
+  throw new Error(errorMessage)
 }

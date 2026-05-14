@@ -1,15 +1,18 @@
 package info.zhihui.ems.foundation.thirdparty.wechat.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.thirdparty.wechat.client.WechatMiniProgramClient;
+import info.zhihui.ems.foundation.thirdparty.wechat.config.WechatMiniProgramAccountConfig;
 import info.zhihui.ems.foundation.thirdparty.wechat.config.WechatMiniProgramProperties;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatAccessTokenDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatCodeSessionDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatPhoneNumberDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.service.WechatMiniProgramService;
+import info.zhihui.ems.foundation.system.service.ConfigService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,8 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 import java.util.Objects;
+
+import static info.zhihui.ems.foundation.system.constant.SystemConfigConstant.MINI_ACCOUNT;
 
 /**
  * 微信小程序服务实现。
@@ -34,6 +39,7 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
 
     private final WechatMiniProgramClient client;
     private final WechatMiniProgramProperties properties;
+    private final ConfigService configService;
 
     /**
      * 解析微信小程序登录身份。
@@ -49,14 +55,14 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
      */
     @Override
     public WechatMiniProgramLoginDto resolveLogin(@NotBlank String loginCode, @NotBlank String phoneCode) {
-        validateProperties();
-        WechatCodeSessionDto sessionDto = code2Session(loginCode);
-        String accessToken = getAccessToken();
-        WechatPhoneNumberDto phoneNumberDto = getPhoneNumber(accessToken, phoneCode);
+        WechatMiniProgramAccountConfig accountConfig = getMiniAccountConfig();
+        WechatCodeSessionDto sessionDto = code2Session(accountConfig, loginCode);
+        String accessToken = getAccessToken(accountConfig);
+        WechatPhoneNumberDto phoneNumberDto = getPhoneNumber(accountConfig.getAppId(), accessToken, phoneCode);
         WechatPhoneNumberDto.PhoneInfo phoneInfo = phoneNumberDto.getPhoneInfo();
 
         return new WechatMiniProgramLoginDto()
-                .setAppId(properties.getAppId())
+                .setAppId(accountConfig.getAppId())
                 .setOpenId(sessionDto.getOpenid())
                 .setUnionId(sessionDto.getUnionid())
                 .setSessionKey(sessionDto.getSessionKey())
@@ -66,16 +72,30 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
     }
 
     /**
-     * 校验微信小程序基础配置。
+     * 读取并校验微信小程序账号配置。
      *
      * <p>appId 和 appSecret 是调用微信登录、手机号接口的前置条件。
      * 缺失时统一返回小程序登录凭证无效，避免把配置细节暴露给前端。</p>
      */
-    private void validateProperties() {
-        if (!StringUtils.hasText(properties.getAppId()) || !StringUtils.hasText(properties.getAppSecret())) {
-            log.warn("微信小程序 appId 或 appSecret 未配置");
-            throw new BusinessRuntimeException(ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getCode(),
-                    ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getMessage());
+    private WechatMiniProgramAccountConfig getMiniAccountConfig() {
+        try {
+            WechatMiniProgramAccountConfig accountConfig = configService.getValueByKey(MINI_ACCOUNT, new TypeReference<>() {
+            });
+            if (accountConfig == null || !StringUtils.hasText(accountConfig.getAppId()) ||
+                    !StringUtils.hasText(accountConfig.getAppSecret())) {
+                log.warn("微信小程序账号配置缺失，key={}", MINI_ACCOUNT);
+                throw miniWechatLoginCodeInvalid();
+            }
+            return accountConfig;
+        } catch (BusinessRuntimeException e) {
+            if (Objects.equals(e.getCode(), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getCode())) {
+                throw e;
+            }
+            log.warn("读取微信小程序账号配置失败，key={}", MINI_ACCOUNT, e);
+            throw miniWechatLoginCodeInvalid();
+        } catch (Exception e) {
+            log.warn("读取微信小程序账号配置失败，key={}", MINI_ACCOUNT, e);
+            throw miniWechatLoginCodeInvalid();
         }
     }
 
@@ -89,9 +109,9 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
      * @param loginCode 小程序登录凭证
      * @return 微信返回的小程序会话信息
      */
-    private WechatCodeSessionDto code2Session(String loginCode) {
+    private WechatCodeSessionDto code2Session(WechatMiniProgramAccountConfig accountConfig, String loginCode) {
         try {
-            WechatCodeSessionDto dto = client.code2Session(properties.getAppId(), properties.getAppSecret(), loginCode);
+            WechatCodeSessionDto dto = client.code2Session(accountConfig.getAppId(), accountConfig.getAppSecret(), loginCode);
             if (dto == null || !isSuccess(dto.getErrcode()) || !StringUtils.hasText(dto.getOpenid())) {
                 log.warn("微信小程序登录凭证校验失败，errcode={}, errmsg={}", dto == null ? null : dto.getErrcode(), dto == null ? null : dto.getErrmsg());
                 throw new BusinessRuntimeException(ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID.getCode(),
@@ -115,15 +135,15 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
      *
      * @return 有效的微信 access_token
      */
-    private String getAccessToken() {
-        String cacheKey = ACCESS_TOKEN_CACHE_KEY_PREFIX + properties.getAppId();
+    private String getAccessToken(WechatMiniProgramAccountConfig accountConfig) {
+        String cacheKey = ACCESS_TOKEN_CACHE_KEY_PREFIX + accountConfig.getAppId();
         String cachedToken = RedisUtil.getCacheObject(cacheKey);
         if (StringUtils.hasText(cachedToken)) {
             return cachedToken;
         }
 
         try {
-            WechatAccessTokenDto dto = client.getAccessToken(properties.getAppId(), properties.getAppSecret());
+            WechatAccessTokenDto dto = client.getAccessToken(accountConfig.getAppId(), accountConfig.getAppSecret());
             if (dto == null || !isSuccess(dto.getErrcode()) || !StringUtils.hasText(dto.getAccessToken())) {
                 log.warn("获取微信小程序 access_token 失败，errcode={}, errmsg={}", dto == null ? null : dto.getErrcode(), dto == null ? null : dto.getErrmsg());
                 throw miniWechatLoginCodeInvalid();
@@ -170,7 +190,7 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
      * @param phoneCode 小程序手机号授权返回的一次性凭证
      * @return 微信返回的手机号信息
      */
-    private WechatPhoneNumberDto getPhoneNumber(String accessToken, String phoneCode) {
+    private WechatPhoneNumberDto getPhoneNumber(String appId, String accessToken, String phoneCode) {
         try {
             WechatPhoneNumberDto dto = client.getPhoneNumber(accessToken, phoneCode);
             if (dto == null || !isSuccess(dto.getErrcode()) || dto.getPhoneInfo() == null ||
@@ -179,7 +199,7 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
                 throw new BusinessRuntimeException(ResultCode.MINI_WECHAT_PHONE_CODE_INVALID.getCode(),
                         ResultCode.MINI_WECHAT_PHONE_CODE_INVALID.getMessage());
             }
-            validateWatermark(dto);
+            validateWatermark(appId, dto);
             return dto;
         } catch (BusinessRuntimeException e) {
             throw e;
@@ -198,9 +218,9 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
      *
      * @param dto 微信手机号响应
      */
-    private void validateWatermark(WechatPhoneNumberDto dto) {
+    private void validateWatermark(String appId, WechatPhoneNumberDto dto) {
         WechatPhoneNumberDto.Watermark watermark = dto.getPhoneInfo().getWatermark();
-        if (watermark == null || !properties.getAppId().equals(watermark.getAppid())) {
+        if (watermark == null || !appId.equals(watermark.getAppid())) {
             log.warn("微信小程序手机号 watermark 校验失败，appid={}", watermark == null ? null : watermark.getAppid());
             throw new BusinessRuntimeException(ResultCode.MINI_WECHAT_PHONE_CODE_INVALID.getCode(),
                     ResultCode.MINI_WECHAT_PHONE_CODE_INVALID.getMessage());

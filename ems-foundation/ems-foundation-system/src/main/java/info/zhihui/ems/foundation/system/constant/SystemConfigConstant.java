@@ -10,6 +10,9 @@ public class SystemConfigConstant {
     // 微信支付配置
     public static final String WX_PAY_CONFIG = "wx_pay_config";
 
+    // 小程序账号配置
+    public static final String MINI_ACCOUNT = "mini_account";
+
     // 默认尖峰平谷深谷时间段
     public static final String ELECTRIC_PRICE_TIME_KEY = "electric_price_time";
 

@@ -1,4 +1,5 @@
 export const useMock = true
+export const useMockAuth = false
 
 export const mockDelay = async () => {
   await new Promise<void>((resolve) => {

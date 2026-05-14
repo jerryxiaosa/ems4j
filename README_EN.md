@@ -53,6 +53,19 @@ Notes:
 - The first startup may take longer because images need to be built and dependencies initialized
 - If you prefer running frontend and backend separately, see the `Development & Deployment` section below
 
+## Module Layered Architecture
+
+![Module Layered Architecture](resource/images/readme-module-architecture.png)
+
+Notes:
+- ems-web can depend on both ems-business and ems-foundation (user/org/space/system, etc.).
+- ems-web should depend on service/dto only; avoid direct repository/entity/mapper access.
+- ems-foundation should not depend on ems-business/ems-web to keep base domains reusable.
+
+## Data Flow
+
+![Data Flow](resource/images/readme-data-flow.png)
+
 ## Development & Deployment
 
 ### Requirements
@@ -198,19 +211,6 @@ pnpm test:e2e
 | IoT Access | Netty |
 | Auth | Sa-Token + JWT |
 | API Doc | Knife4j / SpringDoc OpenAPI |
-
-## Module Layered Architecture
-
-![Module Layered Architecture](resource/images/readme-module-architecture.png)
-
-Notes:
-- ems-web can depend on both ems-business and ems-foundation (user/org/space/system, etc.).
-- ems-web should depend on service/dto only; avoid direct repository/entity/mapper access.
-- ems-foundation should not depend on ems-business/ems-web to keep base domains reusable.
-
-## Data Flow
-
-![Data Flow](resource/images/readme-data-flow.png)
 
 ## Module Details
 

@@ -1,17 +1,21 @@
 package info.zhihui.ems.foundation.thirdparty.wechat.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.thirdparty.wechat.client.WechatMiniProgramClient;
+import info.zhihui.ems.foundation.thirdparty.wechat.config.WechatMiniProgramAccountConfig;
 import info.zhihui.ems.foundation.thirdparty.wechat.config.WechatMiniProgramProperties;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatAccessTokenDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatCodeSessionDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatPhoneNumberDto;
+import info.zhihui.ems.foundation.system.service.ConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -19,8 +23,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 
+import static info.zhihui.ems.foundation.system.constant.SystemConfigConstant.MINI_ACCOUNT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,6 +44,8 @@ class WechatMiniProgramServiceImplTest {
 
     @Mock
     private WechatMiniProgramClient client;
+    @Mock
+    private ConfigService configService;
     private WechatMiniProgramProperties properties;
     @InjectMocks
     private WechatMiniProgramServiceImpl service;
@@ -45,14 +53,13 @@ class WechatMiniProgramServiceImplTest {
     @BeforeEach
     void setUp() {
         properties = new WechatMiniProgramProperties();
-        properties.setAppId(APP_ID);
-        properties.setAppSecret(APP_SECRET);
         properties.setAccessTokenExpireAheadSeconds(300);
-        service = new WechatMiniProgramServiceImpl(client, properties);
+        service = new WechatMiniProgramServiceImpl(client, properties, configService);
     }
 
     @Test
     void testResolveLogin_WhenWechatResponsesValid_ShouldReturnMiniProgramLogin() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
                 .setAccessToken("access-token")
@@ -77,6 +84,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAccessTokenCached_ShouldReuseCachedToken() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getPhoneNumber("cached-token", PHONE_CODE)).thenReturn(successPhoneNumber());
 
@@ -94,7 +102,9 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAppConfigMissing_ShouldThrowLoginCodeInvalid() {
-        properties.setAppSecret("");
+        stubMiniAccountConfig(new WechatMiniProgramAccountConfig()
+                .setAppId(APP_ID)
+                .setAppSecret(""));
 
         assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID);
 
@@ -103,6 +113,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenCodeSessionInvalid_ShouldThrowLoginCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(new WechatCodeSessionDto()
                 .setErrcode(40029)
                 .setErrmsg("invalid code"));
@@ -112,6 +123,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAccessTokenInvalid_ShouldThrowLoginCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
                 .setErrcode(40001)
@@ -126,6 +138,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAccessTokenRequestThrows_ShouldThrowLoginCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getAccessToken(APP_ID, APP_SECRET)).thenThrow(new RuntimeException("wechat unavailable"));
 
@@ -138,6 +151,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAccessTokenExpiresBeforeAhead_ShouldNotCacheToken() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
                 .setAccessToken("short-lived-token")
@@ -156,6 +170,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenAccessTokenExpiresInMissing_ShouldNotCacheToken() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
                 .setAccessToken("missing-expire-token"));
@@ -173,6 +188,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenPhoneNumberInvalid_ShouldThrowPhoneCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
         when(client.getPhoneNumber("cached-token", PHONE_CODE)).thenReturn(new WechatPhoneNumberDto()
                 .setErrcode(40029)
@@ -187,6 +203,7 @@ class WechatMiniProgramServiceImplTest {
 
     @Test
     void testResolveLogin_WhenWatermarkAppIdMismatch_ShouldThrowPhoneCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
         WechatPhoneNumberDto phoneNumber = successPhoneNumber();
         phoneNumber.getPhoneInfo().getWatermark().setAppid("other-app-id");
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
@@ -197,6 +214,17 @@ class WechatMiniProgramServiceImplTest {
 
             assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_PHONE_CODE_INVALID);
         }
+    }
+
+    private void stubMiniAccountConfig(WechatMiniProgramAccountConfig config) {
+        when(configService.getValueByKey(eq(MINI_ACCOUNT), ArgumentMatchers.<TypeReference<WechatMiniProgramAccountConfig>>any()))
+                .thenReturn(config);
+    }
+
+    private WechatMiniProgramAccountConfig miniAccountConfig() {
+        return new WechatMiniProgramAccountConfig()
+                .setAppId(APP_ID)
+                .setAppSecret(APP_SECRET);
     }
 
     private WechatCodeSessionDto successSession() {

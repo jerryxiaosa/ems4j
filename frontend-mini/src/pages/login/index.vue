@@ -7,6 +7,7 @@ import { miniRoute } from '@/utils/route'
 
 const hasAgreed = ref(true)
 const isLoggingIn = ref(false)
+const MINI_ACCOUNT_ERROR_CODES = new Set([-11003, -11004, -11005, -11011, -11013])
 
 const toggleAgreement = () => {
   hasAgreed.value = !hasAgreed.value
@@ -19,8 +20,33 @@ const showAgreementToast = () => {
   })
 }
 
+const isErrorObject = (error: unknown): error is Record<string, unknown> => {
+  return typeof error === 'object' && error !== null
+}
+
+const getErrorCode = (error: unknown) => {
+  if (!isErrorObject(error) || typeof error.code !== 'number') {
+    return undefined
+  }
+
+  return error.code
+}
+
+const getErrorMessage = (error: unknown) => {
+  if (!isErrorObject(error) || typeof error.message !== 'string') {
+    return ''
+  }
+
+  return error.message
+}
+
 const isAccountError = (error: unknown) => {
-  return error instanceof Error && /账户|开户|异常/.test(error.message)
+  const errorCode = getErrorCode(error)
+  if (errorCode !== undefined) {
+    return MINI_ACCOUNT_ERROR_CODES.has(errorCode)
+  }
+
+  return /账户|开户|异常/.test(getErrorMessage(error))
 }
 
 const handleLoginWithoutAgreement = () => {
@@ -60,7 +86,7 @@ const handleWechatPhoneLogin = async (event: WechatPhoneCodeEvent) => {
     }
 
     uni.showToast({
-      title: error instanceof Error ? error.message : '登录失败，请重试',
+      title: getErrorMessage(error) || '登录失败，请重试',
       icon: 'none'
     })
   } finally {

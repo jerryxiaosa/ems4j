@@ -1,4 +1,4 @@
-import { useMock } from '@/mock'
+import { useMockAuth } from '@/mock'
 import {
   getMockMiniLogin,
   mockLogout,
@@ -6,30 +6,19 @@ import {
   type MockMiniLoginScenario
 } from '@/mock/auth'
 import type { MiniLoginRequest, MiniLoginResponse } from '@/types/auth'
+import { clearMiniAccessToken } from '@/utils/authToken'
 import { request } from '@/utils/request'
 
-const MINI_ACCESS_TOKEN_STORAGE_KEY = 'miniAccessToken'
-
-export const saveMiniAccessToken = (response: MiniLoginResponse) => {
-  uni.setStorageSync(MINI_ACCESS_TOKEN_STORAGE_KEY, response.accessToken)
-}
-
-export const getMiniAccessToken = () => {
-  return uni.getStorageSync(MINI_ACCESS_TOKEN_STORAGE_KEY) as string | undefined
-}
-
-export const clearMiniAccessToken = () => {
-  uni.removeStorageSync(MINI_ACCESS_TOKEN_STORAGE_KEY)
-}
+export { clearMiniAccessToken, getMiniAccessToken, saveMiniAccessToken } from '@/utils/authToken'
 
 export const setMockMiniLoginScenario = (scenario: MockMiniLoginScenario) => {
-  if (useMock) {
+  if (useMockAuth) {
     setMockMiniLoginScenarioInMock(scenario)
   }
 }
 
 export const miniLogin = async (data: MiniLoginRequest): Promise<MiniLoginResponse> => {
-  if (useMock) {
+  if (useMockAuth) {
     return getMockMiniLogin(data)
   }
 
@@ -41,7 +30,7 @@ export const miniLogin = async (data: MiniLoginRequest): Promise<MiniLoginRespon
 }
 
 export const logout = async (): Promise<void> => {
-  if (useMock) {
+  if (useMockAuth) {
     clearMiniAccessToken()
     return mockLogout()
   }

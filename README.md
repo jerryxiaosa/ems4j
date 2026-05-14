@@ -53,6 +53,19 @@ docker compose -f deploy/compose/docker-compose.full.yml up -d --build
 - 如果是首次启动，镜像构建和依赖初始化会稍慢一些
 - 如果你更希望分开调试前后端，可以查看下方"开发与部署"章节
 
+## 模块分层架构
+
+![模块分层架构](resource/images/readme-module-architecture.png)
+
+说明：
+- ems-web 可直接依赖 ems-business 与 ems-foundation（用户/组织/空间/系统等基础域）。
+- ems-web 仅依赖 service/dto，避免直接引用 repository/entity/mapper。
+- ems-foundation 不反向依赖 ems-business/ems-web，保持基础域可复用。
+
+## 数据流向
+
+![数据流向](resource/images/readme-data-flow.png)
+
 ## 开发与部署
 
 ### 环境要求
@@ -198,20 +211,6 @@ pnpm test:e2e
 | IoT 接入 | Netty |
 | 认证 | Sa-Token + JWT |
 | API 文档 | Knife4j / SpringDoc OpenAPI |
-
-## 模块分层架构
-
-![模块分层架构](resource/images/readme-module-architecture.png)
-
-说明：
-- ems-web 可直接依赖 ems-business 与 ems-foundation（用户/组织/空间/系统等基础域）。
-- ems-web 仅依赖 service/dto，避免直接引用 repository/entity/mapper。
-- ems-foundation 不反向依赖 ems-business/ems-web，保持基础域可复用。
-
-## 数据流向
-
-![数据流向](resource/images/readme-data-flow.png)
-
 
 ## 模块说明
 

@@ -980,6 +980,7 @@ CREATE TABLE `sys_config`
 INSERT INTO sys_config (config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
 VALUES ('finance', 'service_rate', '默认服务费', '0.1', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('finance', 'wx_pay_config', '微信支付配置', '{}', TRUE, FALSE, '2025-01-02 03:04:05'),
+       ('mini', 'mini_account', '小程序账号配置', '{"appId":"","appSecret":""}', TRUE, FALSE, '2025-01-02 03:04:05'),
        ('device', 'device_config', '设备配置',
         '[{"areaId":1,"deviceConfigList":[{"moduleServiceName":"EnergyService","implName":"defaultEnergyServiceImpl","configValue":{"addressUrl":"http://iot:8880"}}]}]',
         TRUE, FALSE, '2025-01-02 03:04:05'),

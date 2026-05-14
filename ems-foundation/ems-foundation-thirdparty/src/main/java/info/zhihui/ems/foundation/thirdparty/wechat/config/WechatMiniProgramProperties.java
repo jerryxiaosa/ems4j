@@ -13,10 +13,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "third-party.wechat.mini-program")
 public class WechatMiniProgramProperties {
 
-    private String appId;
-
-    private String appSecret;
-
     @NotNull
     private Integer connectTimeoutMillis = 5000;
 
