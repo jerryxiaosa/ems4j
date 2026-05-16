@@ -67,7 +67,7 @@ class MiniAuthServiceImplTest {
     }
 
     @Test
-    void login_WhenPhoneBindingAbnormal_ShouldThrowMiniPhoneBindingAbnormalCode() {
+    void login_WhenPhoneBindingAbnormal_ShouldThrowMiniPhoneNotBoundCode() {
         MiniLoginBo loginBo = new MiniLoginBo()
                 .setLoginCode("login-code")
                 .setPhoneCode("phone-code");
@@ -80,8 +80,8 @@ class MiniAuthServiceImplTest {
 
         BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniAuthService.login(loginBo));
 
-        assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_PHONE_BINDING_ABNORMAL.getCode());
-        assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_PHONE_BINDING_ABNORMAL.getMessage());
+        assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_PHONE_NOT_BOUND.getCode());
+        assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_PHONE_NOT_BOUND.getMessage());
         verify(userThirdPartyBindService, never()).bindOrUpdate(any());
     }
 

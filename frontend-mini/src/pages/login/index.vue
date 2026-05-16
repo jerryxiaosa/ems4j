@@ -7,7 +7,7 @@ import { miniRoute } from '@/utils/route'
 
 const hasAgreed = ref(true)
 const isLoggingIn = ref(false)
-const MINI_ACCOUNT_ERROR_CODES = new Set([-11003, -11004, -11005, -11011, -11013])
+const MINI_ACCOUNT_ERROR_CODES = new Set([-11003, -11010])
 
 const toggleAgreement = () => {
   hasAgreed.value = !hasAgreed.value

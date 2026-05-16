@@ -59,15 +59,10 @@ public class MiniAuthServiceImpl implements MiniAuthService {
     private UserBo getMiniLoginUserByPhone(String phoneNumber) {
         try {
             return userService.getUserByPhone(phoneNumber);
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | BusinessRuntimeException e) {
             throw new BusinessRuntimeException(
                     ResultCode.MINI_PHONE_NOT_BOUND.getCode(),
                     ResultCode.MINI_PHONE_NOT_BOUND.getMessage()
-            );
-        } catch (BusinessRuntimeException e) {
-            throw new BusinessRuntimeException(
-                    ResultCode.MINI_PHONE_BINDING_ABNORMAL.getCode(),
-                    ResultCode.MINI_PHONE_BINDING_ABNORMAL.getMessage()
             );
         }
     }

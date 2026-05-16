@@ -51,13 +51,13 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
 
     private AccountBo getEnterpriseAccount(Integer organizationId) {
         if (organizationId == null) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode(), ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
         List<AccountBo> accountList = accountInfoService.findList(new AccountQueryDto()
                 .setOwnerType(OwnerTypeEnum.ENTERPRISE)
                 .setOwnerIds(List.of(organizationId)));
         if (CollectionUtils.isEmpty(accountList)) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode(), ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
         if (accountList.size() > 1 || accountList.get(0).getElectricAccountType() == null) {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());

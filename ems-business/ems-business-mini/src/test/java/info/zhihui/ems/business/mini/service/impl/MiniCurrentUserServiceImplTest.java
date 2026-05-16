@@ -104,27 +104,27 @@ class MiniCurrentUserServiceImplTest {
     }
 
     @Test
-    void testGetCurrentUser_WhenOrganizationIdMissing_ShouldThrowAccountNotFound() {
+    void testGetCurrentUser_WhenOrganizationIdMissing_ShouldThrowAccountAbnormal() {
         when(requestContext.getOrganizationId()).thenReturn(null);
 
         assertThatThrownBy(() -> service.getCurrentUser())
                 .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
-                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode());
-                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
                 });
 
         verifyNoInteractions(accountInfoService, accountAdditionalInfoService, electricMeterInfoService);
     }
 
     @Test
-    void testGetCurrentUser_WhenNoAccountMatched_ShouldThrowAccountNotFound() {
+    void testGetCurrentUser_WhenNoAccountMatched_ShouldThrowAccountAbnormal() {
         when(requestContext.getOrganizationId()).thenReturn(10);
         when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of());
 
         assertThatThrownBy(() -> service.getCurrentUser())
                 .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
-                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getCode());
-                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_NOT_FOUND.getMessage());
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
                 });
 
         verify(accountAdditionalInfoService, never()).findElectricBalanceAmountMap(any());
