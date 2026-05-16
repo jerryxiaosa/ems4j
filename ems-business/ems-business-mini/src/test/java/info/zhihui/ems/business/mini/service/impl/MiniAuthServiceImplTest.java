@@ -37,6 +37,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class MiniAuthServiceImplTest {
 
+    private static final String OLD_MINI_OPEN_ID_SESSION_KEY = "user::login::mini::open_id";
+    private static final String OLD_MINI_UNION_ID_SESSION_KEY = "user::login::mini::union_id";
+
     @Mock
     private WechatMiniProgramService wechatMiniProgramService;
     @Mock
@@ -86,7 +89,7 @@ class MiniAuthServiceImplTest {
     }
 
     @Test
-    void login_WhenUnionIdMissing_ShouldSkipUnionIdSessionValue() {
+    void login_WhenUnionIdMissing_ShouldNotWriteWechatIdentityToSession() {
         MiniLoginBo loginBo = new MiniLoginBo()
                 .setLoginCode("login-code")
                 .setPhoneCode("phone-code");
@@ -117,8 +120,8 @@ class MiniAuthServiceImplTest {
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "测试用户");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
             verify(session).set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, 10);
-            verify(session).set(LoginConstant.LOGIN_MINI_OPEN_ID, "open-id");
-            verify(session, never()).set(eq(LoginConstant.LOGIN_MINI_UNION_ID), any());
+            verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
+            verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }
     }
 
@@ -154,8 +157,8 @@ class MiniAuthServiceImplTest {
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "张三");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
             verify(session, never()).set(eq(LoginConstant.LOGIN_USER_ORGANIZATION_ID), any());
-            verify(session).set(LoginConstant.LOGIN_MINI_OPEN_ID, "open-id");
-            verify(session).set(LoginConstant.LOGIN_MINI_UNION_ID, "union-id");
+            verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
+            verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }
 
         ArgumentCaptor<UserThirdPartyBindDto> bindCaptor = ArgumentCaptor.forClass(UserThirdPartyBindDto.class);

@@ -21,7 +21,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -44,7 +43,7 @@ public class MiniAuthServiceImpl implements MiniAuthService {
         );
         UserBo user = getMiniLoginUserByPhone(wechatLogin.getPurePhoneNumber());
         bindThirdPartyIdentity(user, wechatLogin);
-        loginUser(user, wechatLogin);
+        loginUser(user);
 
         return new MiniLoginResultBo()
                 .setAccessToken(MiniStpUtil.getTokenValue())
@@ -77,16 +76,12 @@ public class MiniAuthServiceImpl implements MiniAuthService {
                 .setPhone(wechatLogin.getPurePhoneNumber()));
     }
 
-    private void loginUser(UserBo user, WechatMiniProgramLoginDto wechatLogin) {
+    private void loginUser(UserBo user) {
         MiniStpUtil.login(user.getId(), new SaLoginParameter().setDeviceType(MenuSourceEnum.MOBILE.getInfo()));
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, user.getRealName());
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, user.getUserPhone());
         if (user.getOrganizationId() != null) {
             MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, user.getOrganizationId());
-        }
-        MiniStpUtil.getSession().set(LoginConstant.LOGIN_MINI_OPEN_ID, wechatLogin.getOpenId());
-        if (StringUtils.hasText(wechatLogin.getUnionId())) {
-            MiniStpUtil.getSession().set(LoginConstant.LOGIN_MINI_UNION_ID, wechatLogin.getUnionId());
         }
     }
 }
