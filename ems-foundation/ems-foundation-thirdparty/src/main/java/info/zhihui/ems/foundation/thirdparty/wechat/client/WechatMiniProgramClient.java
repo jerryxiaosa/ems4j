@@ -77,7 +77,7 @@ public class WechatMiniProgramClient {
     }
 
     private <T> T parseWechatResponse(String action, String rawResponse, Class<T> responseType) {
-        log.info("微信小程序 {} 原始响应：{}", action, rawResponse);
+        log.debug("微信小程序 {} 原始响应：{}", action, rawResponse);
         if (!StringUtils.hasText(rawResponse)) {
             log.warn("微信小程序 {} 原始响应为空", action);
             throw new IllegalStateException("微信小程序接口响应为空：" + action);

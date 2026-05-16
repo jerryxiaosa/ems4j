@@ -75,9 +75,7 @@ class WechatMiniProgramServiceImplTest {
             assertThat(result.getOpenId()).isEqualTo("open-id");
             assertThat(result.getUnionId()).isEqualTo("union-id");
             assertThat(result.getSessionKey()).isEqualTo("session-key");
-            assertThat(result.getPhoneNumber()).isEqualTo("+8613800138000");
             assertThat(result.getPurePhoneNumber()).isEqualTo("13800138000");
-            assertThat(result.getCountryCode()).isEqualTo("86");
             redisMock.verify(() -> RedisUtil.setCacheObject(CACHE_KEY, "access-token", Duration.ofSeconds(6900)));
         }
     }

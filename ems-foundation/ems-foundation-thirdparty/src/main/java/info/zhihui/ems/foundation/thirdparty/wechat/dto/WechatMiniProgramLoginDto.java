@@ -13,7 +13,5 @@ public class WechatMiniProgramLoginDto {
     private String openId;
     private String unionId;
     private String sessionKey;
-    private String phoneNumber;
     private String purePhoneNumber;
-    private String countryCode;
 }

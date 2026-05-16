@@ -66,9 +66,7 @@ public class WechatMiniProgramServiceImpl implements WechatMiniProgramService {
                 .setOpenId(sessionDto.getOpenid())
                 .setUnionId(sessionDto.getUnionid())
                 .setSessionKey(sessionDto.getSessionKey())
-                .setPhoneNumber(phoneInfo.getPhoneNumber())
-                .setPurePhoneNumber(phoneInfo.getPurePhoneNumber())
-                .setCountryCode(phoneInfo.getCountryCode());
+                .setPurePhoneNumber(phoneInfo.getPurePhoneNumber());
     }
 
     /**
