@@ -1,10 +1,15 @@
 package info.zhihui.ems.foundation.thirdparty.wechat.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatAccessTokenDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatCodeSessionDto;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatPhoneNumberDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -13,6 +18,7 @@ import java.util.Map;
 /**
  * 微信小程序官方接口客户端。
  */
+@Slf4j
 @Component
 public class WechatMiniProgramClient {
 
@@ -21,6 +27,8 @@ public class WechatMiniProgramClient {
     private static final String PHONE_NUMBER_URL = "https://api.weixin.qq.com/wxa/business/getuserphonenumber";
 
     private final RestClient restClient;
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public WechatMiniProgramClient(@Qualifier("wechatRestClient") RestClient restClient) {
         this.restClient = restClient;
@@ -34,10 +42,11 @@ public class WechatMiniProgramClient {
                 .queryParam("grant_type", "authorization_code")
                 .build()
                 .toUriString();
-        return restClient.get()
+        String rawResponse = restClient.get()
                 .uri(url)
                 .retrieve()
-                .body(WechatCodeSessionDto.class);
+                .body(String.class);
+        return parseWechatResponse("code2Session", rawResponse, WechatCodeSessionDto.class);
     }
 
     public WechatAccessTokenDto getAccessToken(String appId, String appSecret) {
@@ -47,10 +56,11 @@ public class WechatMiniProgramClient {
                 .queryParam("secret", appSecret)
                 .build()
                 .toUriString();
-        return restClient.get()
+        String rawResponse = restClient.get()
                 .uri(url)
                 .retrieve()
-                .body(WechatAccessTokenDto.class);
+                .body(String.class);
+        return parseWechatResponse("getAccessToken", rawResponse, WechatAccessTokenDto.class);
     }
 
     public WechatPhoneNumberDto getPhoneNumber(String accessToken, String phoneCode) {
@@ -58,10 +68,25 @@ public class WechatMiniProgramClient {
                 .queryParam("access_token", accessToken)
                 .build()
                 .toUriString();
-        return restClient.post()
+        String rawResponse = restClient.post()
                 .uri(url)
                 .body(Map.of("code", phoneCode))
                 .retrieve()
-                .body(WechatPhoneNumberDto.class);
+                .body(String.class);
+        return parseWechatResponse("getPhoneNumber", rawResponse, WechatPhoneNumberDto.class);
+    }
+
+    private <T> T parseWechatResponse(String action, String rawResponse, Class<T> responseType) {
+        log.info("微信小程序 {} 原始响应：{}", action, rawResponse);
+        if (!StringUtils.hasText(rawResponse)) {
+            log.warn("微信小程序 {} 原始响应为空", action);
+            throw new IllegalStateException("微信小程序接口响应为空：" + action);
+        }
+        try {
+            return objectMapper.readValue(rawResponse, responseType);
+        } catch (JsonProcessingException e) {
+            log.warn("微信小程序 {} 原始响应解析失败，response={}", action, rawResponse, e);
+            throw new IllegalStateException("微信小程序接口响应解析失败：" + action, e);
+        }
     }
 }

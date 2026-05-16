@@ -26,8 +26,9 @@ CREATE TABLE IF NOT EXISTS `sys_user_third_party_bind`
   DEFAULT CHARSET = UTF8MB4
   COLLATE = utf8mb4_unicode_ci COMMENT ='用户第三方身份绑定表';
 
+-- 需要在下面的sql里配置小程序账号和密钥
 INSERT INTO sys_config (config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
-SELECT 'mini', 'mini_account', '小程序账号配置', '{"appId":"","appSecret":""}', TRUE, FALSE, now()
+SELECT 'mini', 'mini_account', '小程序账号配置', '{"appId":"xxx","appSecret":"xxx"}', TRUE, FALSE, now()
 WHERE NOT EXISTS (
     SELECT 1
     FROM sys_config

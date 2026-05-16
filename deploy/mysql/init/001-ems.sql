@@ -992,6 +992,15 @@ VALUES ('finance', 'service_rate', '默认服务费', '0.1', TRUE, FALSE, '2025-
        ('plan', 'electric_price_type', '默认尖峰平谷深谷电价配置', '[{"type":1,"price":0.12}]', TRUE, FALSE,
         '2025-01-02 03:04:05');
 
+-- 需要在下面的sql里配置小程序账号和密钥
+INSERT INTO sys_config (config_module_name, config_key, config_name, config_value, is_system, is_deleted, create_time)
+SELECT 'mini', 'mini_account', '小程序账号配置', '{"appId":"xxx","appSecret":"xxx"}', TRUE, FALSE, now()
+    WHERE NOT EXISTS (
+    SELECT 1
+    FROM sys_config
+    WHERE config_key = 'mini_account'
+);
+
 
 CREATE TABLE `sys_transaction_message`
 (

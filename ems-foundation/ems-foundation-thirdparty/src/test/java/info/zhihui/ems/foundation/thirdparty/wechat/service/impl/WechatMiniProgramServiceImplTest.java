@@ -101,6 +101,29 @@ class WechatMiniProgramServiceImplTest {
     }
 
     @Test
+    void testResolveLogin_WhenCodeSessionMissesOptionalKeys_ShouldReturnMiniProgramLogin() {
+        stubMiniAccountConfig(miniAccountConfig());
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(new WechatCodeSessionDto()
+                .setOpenid("ojhHQ6mfBBbBOyMk6dgbbDTYStyI")
+                .setSessionKey("qSFYpN7RpaCFyr/IRgaYtw=="));
+        when(client.getAccessToken(APP_ID, APP_SECRET)).thenReturn(new WechatAccessTokenDto()
+                .setAccessToken("access-token")
+                .setExpiresIn(7200));
+        when(client.getPhoneNumber("access-token", PHONE_CODE)).thenReturn(successPhoneNumber());
+
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn(null);
+
+            WechatMiniProgramLoginDto result = service.resolveLogin(LOGIN_CODE, PHONE_CODE);
+
+            assertThat(result.getOpenId()).isEqualTo("ojhHQ6mfBBbBOyMk6dgbbDTYStyI");
+            assertThat(result.getSessionKey()).isEqualTo("qSFYpN7RpaCFyr/IRgaYtw==");
+            assertThat(result.getUnionId()).isNull();
+            assertThat(result.getPurePhoneNumber()).isEqualTo("13800138000");
+        }
+    }
+
+    @Test
     void testResolveLogin_WhenAppConfigMissing_ShouldThrowLoginCodeInvalid() {
         stubMiniAccountConfig(new WechatMiniProgramAccountConfig()
                 .setAppId(APP_ID)
