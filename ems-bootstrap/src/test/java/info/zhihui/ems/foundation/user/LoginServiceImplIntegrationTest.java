@@ -8,7 +8,6 @@ import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.LoginException;
 import info.zhihui.ems.components.redis.utils.RedisUtil;
 import info.zhihui.ems.foundation.user.bo.MenuBo;
-import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.dto.LoginRequestDto;
 import info.zhihui.ems.foundation.user.dto.LoginResponseDto;
@@ -147,21 +146,20 @@ class LoginServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("鉴权上下文回填 - 会话缺失用户信息时自动回源并写回")
-    void testSetUserContext_ShouldBackfillSessionData_WhenSessionDataMissing() {
+    @DisplayName("鉴权上下文恢复 - 会话缺失用户信息时直接失效")
+    void testSetUserContext_WhenSessionDataMissing_ShouldLogoutAndThrow() {
         SaTokenContextMockUtil.setMockContext(() -> {
             StpUtil.login(1);
             try {
-                UserBo user = userService.getUserInfo(1);
-
                 // 模拟历史会话缺失（SaSession 不允许 null 值）
                 StpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, "");
                 StpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, "");
 
-                ReflectionTestUtils.invokeMethod(saWebConfig, "setUserContext");
+                BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class,
+                        () -> ReflectionTestUtils.invokeMethod(saWebConfig, "setUserContext"));
 
-                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo(user.getRealName());
-                assertThat(StpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo(user.getUserPhone());
+                assertThat(exception.getMessage()).isEqualTo("登录信息已失效，请重新登录");
+                assertThat(StpUtil.isLogin()).isFalse();
             } finally {
                 try {
                     StpUtil.logout();

@@ -1,11 +1,15 @@
 package info.zhihui.ems.business.mini.service.impl;
 
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
+import info.zhihui.ems.business.account.bo.AccountBo;
+import info.zhihui.ems.business.account.dto.AccountQueryDto;
+import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.mini.bo.MiniLoginBo;
 import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
 import info.zhihui.ems.business.mini.service.MiniAuthService;
 import info.zhihui.ems.business.mini.utils.MiniStpUtil;
 import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
@@ -21,7 +25,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 /**
  * 小程序认证服务实现。
@@ -33,6 +40,7 @@ public class MiniAuthServiceImpl implements MiniAuthService {
 
     private final WechatMiniProgramService wechatMiniProgramService;
     private final UserService userService;
+    private final AccountInfoService accountInfoService;
     private final UserThirdPartyBindService userThirdPartyBindService;
 
     @Override
@@ -42,8 +50,9 @@ public class MiniAuthServiceImpl implements MiniAuthService {
                 loginBo.getPhoneCode()
         );
         UserBo user = getMiniLoginUserByPhone(wechatLogin.getPurePhoneNumber());
+        AccountBo account = getMiniLoginAccount(user);
         bindThirdPartyIdentity(user, wechatLogin);
-        loginUser(user);
+        loginUser(user, account);
 
         return new MiniLoginResultBo()
                 .setAccessToken(MiniStpUtil.getTokenValue())
@@ -76,12 +85,23 @@ public class MiniAuthServiceImpl implements MiniAuthService {
                 .setPhone(wechatLogin.getPurePhoneNumber()));
     }
 
-    private void loginUser(UserBo user) {
+    private AccountBo getMiniLoginAccount(UserBo user) {
+        if (user.getOrganizationId() == null) {
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+        }
+        List<AccountBo> accountList = accountInfoService.findList(new AccountQueryDto()
+                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
+                .setOwnerIds(List.of(user.getOrganizationId())));
+        if (CollectionUtils.isEmpty(accountList) || accountList.size() > 1 || accountList.get(0).getElectricAccountType() == null) {
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+        }
+        return accountList.get(0);
+    }
+
+    private void loginUser(UserBo user, AccountBo account) {
         MiniStpUtil.login(user.getId(), new SaLoginParameter().setDeviceType(MenuSourceEnum.MOBILE.getInfo()));
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, user.getRealName());
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, user.getUserPhone());
-        if (user.getOrganizationId() != null) {
-            MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, user.getOrganizationId());
-        }
+        MiniStpUtil.getSession().set(LoginConstant.LOGIN_ACCOUNT_ID, account.getId());
     }
 }

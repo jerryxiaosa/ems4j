@@ -24,9 +24,9 @@ public class RequestContext {
                 .orElse(null);
     }
 
-    public Integer getOrganizationId() {
+    public Integer getAccountId() {
         return Optional.ofNullable(getUserRequestData())
-                .map(UserRequestData::getOrganizationId)
+                .map(UserRequestData::getAccountId)
                 .orElse(null);
     }
 

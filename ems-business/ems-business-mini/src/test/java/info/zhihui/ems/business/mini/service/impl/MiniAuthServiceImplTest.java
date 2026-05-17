@@ -2,10 +2,15 @@ package info.zhihui.ems.business.mini.service.impl;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
+import info.zhihui.ems.business.account.bo.AccountBo;
+import info.zhihui.ems.business.account.dto.AccountQueryDto;
+import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.mini.bo.MiniLoginBo;
 import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
 import info.zhihui.ems.business.mini.utils.MiniStpUtil;
 import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.foundation.thirdparty.wechat.dto.WechatMiniProgramLoginDto;
@@ -24,6 +29,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +52,8 @@ class MiniAuthServiceImplTest {
     private WechatMiniProgramService wechatMiniProgramService;
     @Mock
     private UserService userService;
+    @Mock
+    private AccountInfoService accountInfoService;
     @Mock
     private UserThirdPartyBindService userThirdPartyBindService;
 
@@ -103,10 +113,14 @@ class MiniAuthServiceImplTest {
                 .setRealName("测试用户")
                 .setUserPhone("13800138000")
                 .setOrganizationId(10);
+        AccountBo account = new AccountBo()
+                .setId(20)
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED);
         SaSession session = mock(SaSession.class);
 
         when(wechatMiniProgramService.resolveLogin("login-code", "phone-code")).thenReturn(wechatLogin);
         when(userService.getUserByPhone("13800138000")).thenReturn(user);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of(account));
 
         try (MockedStatic<MiniStpUtil> miniStpMock = mockStatic(MiniStpUtil.class)) {
             miniStpMock.when(MiniStpUtil::getSession).thenReturn(session);
@@ -119,10 +133,15 @@ class MiniAuthServiceImplTest {
             verify(userService).getUserByPhone("13800138000");
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "测试用户");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
-            verify(session).set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, 10);
+            verify(session).set(LoginConstant.LOGIN_ACCOUNT_ID, 20);
             verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
             verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }
+
+        ArgumentCaptor<AccountQueryDto> accountQueryCaptor = ArgumentCaptor.forClass(AccountQueryDto.class);
+        verify(accountInfoService).findList(accountQueryCaptor.capture());
+        assertThat(accountQueryCaptor.getValue().getOwnerType()).isEqualTo(OwnerTypeEnum.ENTERPRISE);
+        assertThat(accountQueryCaptor.getValue().getOwnerIds()).containsExactly(10);
     }
 
     @Test
@@ -138,11 +157,16 @@ class MiniAuthServiceImplTest {
         UserBo user = new UserBo()
                 .setId(2)
                 .setRealName("张三")
-                .setUserPhone("13800138000");
+                .setUserPhone("13800138000")
+                .setOrganizationId(10);
+        AccountBo account = new AccountBo()
+                .setId(30)
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED);
         SaSession session = mock(SaSession.class);
 
         when(wechatMiniProgramService.resolveLogin("login-code", "phone-code")).thenReturn(wechatLogin);
         when(userService.getUserByPhone("13800138000")).thenReturn(user);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of(account));
 
         try (MockedStatic<MiniStpUtil> miniStpMock = mockStatic(MiniStpUtil.class)) {
             miniStpMock.when(MiniStpUtil::getSession).thenReturn(session);
@@ -156,7 +180,7 @@ class MiniAuthServiceImplTest {
             miniStpMock.verify(() -> MiniStpUtil.login(eq(2), any(SaLoginParameter.class)));
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "张三");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
-            verify(session, never()).set(eq(LoginConstant.LOGIN_USER_ORGANIZATION_ID), any());
+            verify(session).set(LoginConstant.LOGIN_ACCOUNT_ID, 30);
             verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
             verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }
@@ -170,6 +194,35 @@ class MiniAuthServiceImplTest {
         assertThat(bindDto.getThirdPartyUserId()).isEqualTo("open-id");
         assertThat(bindDto.getThirdPartyUnionId()).isEqualTo("union-id");
         assertThat(bindDto.getPhone()).isEqualTo("13800138000");
+    }
+
+    @Test
+    void login_WhenAccountMissing_ShouldThrowAccountAbnormalAndNotBindOrLogin() {
+        MiniLoginBo loginBo = new MiniLoginBo()
+                .setLoginCode("login-code")
+                .setPhoneCode("phone-code");
+        WechatMiniProgramLoginDto wechatLogin = new WechatMiniProgramLoginDto()
+                .setAppId("wx-app")
+                .setOpenId("open-id")
+                .setPurePhoneNumber("13800138000");
+        UserBo user = new UserBo()
+                .setId(2)
+                .setRealName("张三")
+                .setUserPhone("13800138000")
+                .setOrganizationId(10);
+
+        when(wechatMiniProgramService.resolveLogin("login-code", "phone-code")).thenReturn(wechatLogin);
+        when(userService.getUserByPhone("13800138000")).thenReturn(user);
+        when(accountInfoService.findList(any(AccountQueryDto.class))).thenReturn(List.of());
+
+        try (MockedStatic<MiniStpUtil> miniStpMock = mockStatic(MiniStpUtil.class)) {
+            BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniAuthService.login(loginBo));
+
+            assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
+            assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+            verifyNoInteractions(userThirdPartyBindService);
+            miniStpMock.verifyNoInteractions();
+        }
     }
 
     @Test

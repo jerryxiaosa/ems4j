@@ -2,7 +2,6 @@ package info.zhihui.ems.business.mini.service.impl;
 
 import info.zhihui.ems.business.account.bo.AccountBo;
 import info.zhihui.ems.business.account.dto.AccountElectricBalanceAggregateItemDto;
-import info.zhihui.ems.business.account.dto.AccountQueryDto;
 import info.zhihui.ems.business.account.service.AccountAdditionalInfoService;
 import info.zhihui.ems.business.account.service.AccountInfoService;
 import info.zhihui.ems.business.device.dto.ElectricMeterQueryDto;
@@ -10,12 +9,11 @@ import info.zhihui.ems.business.device.service.ElectricMeterInfoService;
 import info.zhihui.ems.business.mini.bo.MiniCurrentUserBo;
 import info.zhihui.ems.business.mini.service.MiniCurrentUserService;
 import info.zhihui.ems.common.constant.ResultCode;
-import info.zhihui.ems.common.enums.OwnerTypeEnum;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
+import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.RequestContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +33,7 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
 
     @Override
     public MiniCurrentUserBo getCurrentUser() {
-        AccountBo account = getEnterpriseAccount(requestContext.getOrganizationId());
+        AccountBo account = getAccount(requestContext.getAccountId());
         BigDecimal balance = getBalance(account);
         int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setAccountIds(List.of(account.getId()))).size();
@@ -49,20 +47,24 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
                 .setMeterCount(meterCount);
     }
 
-    private AccountBo getEnterpriseAccount(Integer organizationId) {
-        if (organizationId == null) {
+    private AccountBo getAccount(Integer accountId) {
+        if (accountId == null) {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
-        List<AccountBo> accountList = accountInfoService.findList(new AccountQueryDto()
-                .setOwnerType(OwnerTypeEnum.ENTERPRISE)
-                .setOwnerIds(List.of(organizationId)));
-        if (CollectionUtils.isEmpty(accountList)) {
+
+        try {
+            AccountBo account = accountInfoService.getById(accountId);
+
+            // 账户类型为空，认为是账户异常
+            if (account.getElectricAccountType() == null) {
+                throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+            }
+
+            return account;
+        } catch (NotFoundException e) {
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
-        if (accountList.size() > 1 || accountList.get(0).getElectricAccountType() == null) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-        }
-        return accountList.get(0);
+
     }
 
     private BigDecimal getBalance(AccountBo account) {

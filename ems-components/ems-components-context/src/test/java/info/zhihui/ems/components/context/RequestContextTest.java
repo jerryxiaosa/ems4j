@@ -4,11 +4,10 @@ package info.zhihui.ems.components.context;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +16,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class RequestContextTest {
-    @InjectMocks
-    private RequestContext requestContext;
+    private final RequestContext requestContext = new RequestContext();
+
+    @BeforeEach
+    public void setUp() {
+        RequestContextSetter.clear();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        RequestContextSetter.clear();
+    }
 
     @Test
     public void testNull() {
@@ -131,10 +138,10 @@ public class RequestContextTest {
     }
 
     @Test
-    public void testGetOrganizationId() {
+    public void testGetAccountId() {
         RequestContextSetter.doSet(6, new UserRequestData("李四", "13700000000", 1001));
 
-        Assertions.assertEquals(1001, requestContext.getOrganizationId());
+        Assertions.assertEquals(1001, requestContext.getAccountId());
     }
 
 }

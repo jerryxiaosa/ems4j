@@ -5,14 +5,11 @@ import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
-import info.zhihui.ems.foundation.user.bo.UserBo;
 import info.zhihui.ems.foundation.user.constants.LoginConstant;
-import info.zhihui.ems.foundation.user.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
@@ -29,11 +26,8 @@ import java.util.Arrays;
  *
  * @author jerryxiaosa
  */
-@RequiredArgsConstructor
 @Configuration
 public class SaWebConfig implements WebMvcConfigurer {
-
-    private final UserService userService;
 
     @Value("${permission.excludes:}")
     private String excludes;
@@ -74,28 +68,19 @@ public class SaWebConfig implements WebMvcConfigurer {
         SaSession session = miniRequest ? MiniStpUtil.getSession() : StpUtil.getSession();
         String userRealName = (String) session.get(LoginConstant.LOGIN_USER_REAL_NAME);
         String userPhone = (String) session.get(LoginConstant.LOGIN_USER_PHONE);
-        Integer organizationId = (Integer) session.get(LoginConstant.LOGIN_USER_ORGANIZATION_ID);
+        Integer accountId = (Integer) session.get(LoginConstant.LOGIN_ACCOUNT_ID);
 
         if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
-            UserBo user;
-            try {
-                // 登录会话没有用户基础信息时回源，并写回会话
-                user = userService.getUserInfo(userId);
-            } catch (NotFoundException e) {
-                logoutCurrentRequest(miniRequest);
-                throw new BusinessRuntimeException("无法获取到用户信息");
-            }
-            userRealName = user.getRealName();
-            userPhone = user.getUserPhone();
-            organizationId = user.getOrganizationId();
-            session.set(LoginConstant.LOGIN_USER_REAL_NAME, userRealName);
-            session.set(LoginConstant.LOGIN_USER_PHONE, userPhone);
-            if (organizationId != null) {
-                session.set(LoginConstant.LOGIN_USER_ORGANIZATION_ID, organizationId);
-            }
+            logoutCurrentRequest(miniRequest);
+            throw new BusinessRuntimeException("登录信息已失效，请重新登录");
+        }
+        // 小程序需要设置账号ID
+        if (miniRequest && accountId == null) {
+            logoutCurrentRequest(true);
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
 
-        UserRequestData userData = new UserRequestData(userRealName, userPhone, organizationId);
+        UserRequestData userData = new UserRequestData(userRealName, userPhone, accountId);
         RequestContextSetter.doSet(userId, userData);
     }
 

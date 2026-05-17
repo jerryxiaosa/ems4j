@@ -17,15 +17,15 @@ public class UserRequestData implements Serializable {
     private final String userPhone;
 
     @Getter
-    private final Integer organizationId;
+    private final Integer accountId;
 
     public UserRequestData(String userRealName, String userPhone) {
         this(userRealName, userPhone, null);
     }
 
-    public UserRequestData(String userRealName, String userPhone, Integer organizationId) {
+    public UserRequestData(String userRealName, String userPhone, Integer accountId) {
         this.userRealName = userRealName;
         this.userPhone = userPhone;
-        this.organizationId = organizationId;
+        this.accountId = accountId;
     }
 }
