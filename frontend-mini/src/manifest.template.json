@@ -6,7 +6,7 @@
   "versionCode": "1",
   "transformPx": false,
   "mp-weixin": {
-    "appid": "wx44828ca3a719503c",
+    "appid": "__WECHAT_MINI_APPID__",
     "setting": {
       "urlCheck": false
     },

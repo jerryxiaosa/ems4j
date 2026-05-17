@@ -1,5 +1,7 @@
 # EMS4J Frontend Mini
 
+[English](README_EN.md)
+
 `frontend-mini` 是 EMS4J 用户端微信小程序验证工程。
 
 当前阶段目标是快速验证：
@@ -10,8 +12,22 @@
 
 ## 本地运行
 
+首次运行前，先创建本地环境变量文件：
+
 ```bash
 cd frontend-mini
+cp .env.example .env.local
+```
+
+然后在 `.env.local` 中填写微信小程序 AppID：
+
+```bash
+WECHAT_MINI_APPID=wx-your-mini-program-appid
+```
+
+然后安装依赖并启动微信小程序开发构建：
+
+```bash
 pnpm install
 pnpm dev:mp-weixin
 ```
@@ -25,6 +41,7 @@ dist/dev/mp-weixin
 ## 构建验证
 
 ```bash
+pnpm test:manifest
 pnpm typecheck
 pnpm build:mp-weixin
 ```
@@ -37,4 +54,4 @@ dist/build/mp-weixin
 
 ## 说明
 
-当前首页是静态验证页，没有接入登录、接口和支付。`src/manifest.json` 里的微信小程序 `appid` 仍为空，使用真实 AppID 调试时需要手工填写。后续业务页面应继续通过 `api/*`、`mock/*` 和 `platform/*` 适配层扩展。
+`src/manifest.json` 由 `src/manifest.template.json` 和本地 `.env.local` 生成，不提交到版本库。真实微信小程序 AppID 放在 `WECHAT_MINI_APPID` 中，避免把具体小程序配置写入仓库。后续业务页面应继续通过 `api/*`、`mock/*` 和 `platform/*` 适配层扩展。

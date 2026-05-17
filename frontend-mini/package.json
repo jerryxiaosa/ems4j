@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev:mp-weixin": "uni -p mp-weixin",
-    "build:mp-weixin": "uni build -p mp-weixin",
+    "generate:manifest": "node scripts/generate-manifest.cjs",
+    "test:manifest": "node scripts/test-generate-manifest.cjs",
+    "dev:mp-weixin": "node scripts/generate-manifest.cjs && uni -p mp-weixin",
+    "build:mp-weixin": "node scripts/generate-manifest.cjs && uni build -p mp-weixin",
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {

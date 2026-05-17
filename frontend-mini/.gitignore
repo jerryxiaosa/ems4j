@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .DS_Store
+.env
+.env.local
+.env.*.local
+src/manifest.json
