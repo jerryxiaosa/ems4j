@@ -48,10 +48,6 @@ public class MiniCurrentUserServiceImpl implements MiniCurrentUserService {
     }
 
     private AccountBo getAccount(Integer accountId) {
-        if (accountId == null) {
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-        }
-
         try {
             AccountBo account = accountInfoService.getById(accountId);
 

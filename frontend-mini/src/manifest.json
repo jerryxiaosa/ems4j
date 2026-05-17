@@ -1,7 +1,7 @@
 {
   "name": "EMS4J Mini",
   "appid": "__UNI__EMS4J",
-  "description": "EMS4J 微信小程序样式验证工程",
+  "description": "EMS4J 微信小程序用户端",
   "versionName": "0.0.1",
   "versionCode": "1",
   "transformPx": false,

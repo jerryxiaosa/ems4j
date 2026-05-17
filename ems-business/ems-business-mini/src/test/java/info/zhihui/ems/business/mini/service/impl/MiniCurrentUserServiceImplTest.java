@@ -99,19 +99,6 @@ class MiniCurrentUserServiceImplTest {
     }
 
     @Test
-    void testGetCurrentUser_WhenAccountIdMissing_ShouldThrowAccountAbnormal() {
-        when(requestContext.getAccountId()).thenReturn(null);
-
-        assertThatThrownBy(() -> service.getCurrentUser())
-                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
-                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode());
-                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-                });
-
-        verifyNoInteractions(accountInfoService, accountAdditionalInfoService, electricMeterInfoService);
-    }
-
-    @Test
     void testGetCurrentUser_WhenAccountTypeMissing_ShouldThrowAccountAbnormal() {
         when(requestContext.getAccountId()).thenReturn(20);
         when(accountInfoService.getById(20)).thenReturn(new AccountBo().setId(20));
