@@ -134,6 +134,7 @@ class MiniAuthServiceImplTest {
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "测试用户");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
             verify(session).set(LoginConstant.LOGIN_ACCOUNT_ID, 20);
+            verify(session).set(LoginConstant.LOGIN_THIRD_PARTY_APP_ID, "app-id");
             verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
             verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }
@@ -181,6 +182,7 @@ class MiniAuthServiceImplTest {
             verify(session).set(LoginConstant.LOGIN_USER_REAL_NAME, "张三");
             verify(session).set(LoginConstant.LOGIN_USER_PHONE, "13800138000");
             verify(session).set(LoginConstant.LOGIN_ACCOUNT_ID, 30);
+            verify(session).set(LoginConstant.LOGIN_THIRD_PARTY_APP_ID, "wx-app");
             verify(session, never()).set(eq(OLD_MINI_OPEN_ID_SESSION_KEY), any());
             verify(session, never()).set(eq(OLD_MINI_UNION_ID_SESSION_KEY), any());
         }

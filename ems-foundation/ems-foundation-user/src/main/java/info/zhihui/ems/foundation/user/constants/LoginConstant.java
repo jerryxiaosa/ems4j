@@ -27,4 +27,9 @@ public class LoginConstant {
      */
     public static final String LOGIN_ACCOUNT_ID = "user::login::account_id";
 
+    /**
+     * 登录时使用的第三方应用ID
+     */
+    public static final String LOGIN_THIRD_PARTY_APP_ID = "user::login::third_party::app_id";
+
 }

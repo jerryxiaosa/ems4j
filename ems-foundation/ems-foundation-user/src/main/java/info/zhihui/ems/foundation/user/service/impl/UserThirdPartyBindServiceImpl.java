@@ -1,11 +1,15 @@
 package info.zhihui.ems.foundation.user.service.impl;
 
+import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.foundation.user.bo.UserThirdPartyBindBo;
 import info.zhihui.ems.foundation.user.dto.UserThirdPartyBindDto;
 import info.zhihui.ems.foundation.user.entity.UserThirdPartyBindEntity;
+import info.zhihui.ems.foundation.user.enums.UserThirdPartyPlatformEnum;
 import info.zhihui.ems.foundation.user.repository.UserThirdPartyBindRepository;
 import info.zhihui.ems.foundation.user.service.UserThirdPartyBindService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -27,26 +31,52 @@ public class UserThirdPartyBindServiceImpl implements UserThirdPartyBindService 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public UserThirdPartyBindBo bindOrUpdate(@NotNull @Valid UserThirdPartyBindDto dto) {
+    public void bindOrUpdate(@NotNull @Valid UserThirdPartyBindDto dto) {
         UserThirdPartyBindEntity entity = toEntity(dto);
-        int updateRows = repository.updateByIdentity(entity);
-        if (updateRows <= 0) {
+        int updateRows;
+        try {
             updateRows = repository.updateByUserPlatform(entity);
+        } catch (DuplicateKeyException e) {
+            throwBindConflict();
+            return;
         }
-        if (updateRows <= 0) {
-            try {
-                repository.insert(entity);
-            } catch (DuplicateKeyException e) {
-                repository.updateByIdentity(entity);
-            }
+        if (updateRows > 0) {
+            return;
         }
 
-        UserThirdPartyBindEntity latest = repository.selectByIdentity(
-                entity.getPlatform(),
-                entity.getAppId(),
-                entity.getThirdPartyUserId()
+        try {
+            repository.insert(entity);
+        } catch (DuplicateKeyException e) {
+            retryUpdateAfterInsertDuplicateOrThrowBindConflict(entity);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserThirdPartyBindBo getByUserPlatformAndAppId(@NotNull Integer userId,
+                                                          @NotNull UserThirdPartyPlatformEnum platform,
+                                                          @NotBlank String appId) {
+        UserThirdPartyBindEntity entity = repository.selectByUserPlatformAndAppId(platform.getCode(), userId, appId);
+        return toBo(entity);
+    }
+
+    private void retryUpdateAfterInsertDuplicateOrThrowBindConflict(UserThirdPartyBindEntity entity) {
+        try {
+            int updateRows = repository.updateByUserPlatform(entity);
+            if (updateRows > 0) {
+                return;
+            }
+        } catch (DuplicateKeyException ignored) {
+            // 第三方身份绑定冲突，统一转换为业务错误。
+        }
+        throwBindConflict();
+    }
+
+    private void throwBindConflict() {
+        throw new BusinessRuntimeException(
+                ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getCode(),
+                ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getMessage()
         );
-        return toBo(latest);
     }
 
     private UserThirdPartyBindEntity toEntity(UserThirdPartyBindDto dto) {

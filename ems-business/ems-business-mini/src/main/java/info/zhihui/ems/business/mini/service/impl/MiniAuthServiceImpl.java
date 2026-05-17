@@ -52,7 +52,7 @@ public class MiniAuthServiceImpl implements MiniAuthService {
         UserBo user = getMiniLoginUserByPhone(wechatLogin.getPurePhoneNumber());
         AccountBo account = getMiniLoginAccount(user);
         bindThirdPartyIdentity(user, wechatLogin);
-        loginUser(user, account);
+        loginUser(user, account, wechatLogin.getAppId());
 
         return new MiniLoginResultBo()
                 .setAccessToken(MiniStpUtil.getTokenValue())
@@ -98,10 +98,11 @@ public class MiniAuthServiceImpl implements MiniAuthService {
         return accountList.get(0);
     }
 
-    private void loginUser(UserBo user, AccountBo account) {
+    private void loginUser(UserBo user, AccountBo account, String appId) {
         MiniStpUtil.login(user.getId(), new SaLoginParameter().setDeviceType(MenuSourceEnum.MOBILE.getInfo()));
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, user.getRealName());
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_USER_PHONE, user.getUserPhone());
         MiniStpUtil.getSession().set(LoginConstant.LOGIN_ACCOUNT_ID, account.getId());
+        MiniStpUtil.getSession().set(LoginConstant.LOGIN_THIRD_PARTY_APP_ID, appId);
     }
 }

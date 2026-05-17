@@ -11,11 +11,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserThirdPartyBindRepository extends BaseMapper<UserThirdPartyBindEntity> {
 
-    UserThirdPartyBindEntity selectByIdentity(@Param("platform") String platform,
-                                              @Param("appId") String appId,
-                                              @Param("thirdPartyUserId") String thirdPartyUserId);
-
-    int updateByIdentity(@Param("entity") UserThirdPartyBindEntity entity);
+    UserThirdPartyBindEntity selectByUserPlatformAndAppId(@Param("platform") String platform,
+                                                          @Param("userId") Integer userId,
+                                                          @Param("appId") String appId);
 
     int updateByUserPlatform(@Param("entity") UserThirdPartyBindEntity entity);
 }

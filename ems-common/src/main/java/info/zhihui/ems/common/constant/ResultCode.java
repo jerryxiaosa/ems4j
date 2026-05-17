@@ -18,6 +18,7 @@ public enum ResultCode {
     MINI_WECHAT_LOGIN_CODE_INVALID(-11001, "微信登录凭证已失效，请重新登录"),
     MINI_WECHAT_PHONE_CODE_INVALID(-11002, "获取微信手机号失败，请重新授权"),
     MINI_PHONE_NOT_BOUND(-11003, "当前手机号未绑定用户"),
+    MINI_THIRD_PARTY_BIND_CONFLICT(-11011, "当前第三方身份已绑定其他用户"),
     MINI_ACCOUNT_ABNORMAL(-11010, "账户未开户或状态异常"),
 
     ;

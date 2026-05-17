@@ -69,6 +69,7 @@ public class SaWebConfig implements WebMvcConfigurer {
         String userRealName = (String) session.get(LoginConstant.LOGIN_USER_REAL_NAME);
         String userPhone = (String) session.get(LoginConstant.LOGIN_USER_PHONE);
         Integer accountId = (Integer) session.get(LoginConstant.LOGIN_ACCOUNT_ID);
+        String thirdPartyAppId = (String) session.get(LoginConstant.LOGIN_THIRD_PARTY_APP_ID);
 
         if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
             logoutCurrentRequest(miniRequest);
@@ -79,8 +80,13 @@ public class SaWebConfig implements WebMvcConfigurer {
             logoutCurrentRequest(true);
             throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
         }
+        // 小程序后续支付链路需要按 appId 读取对应 openId，不能由前端透传。
+        if (miniRequest && !StringUtils.hasText(thirdPartyAppId)) {
+            logoutCurrentRequest(true);
+            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
+        }
 
-        UserRequestData userData = new UserRequestData(userRealName, userPhone, accountId);
+        UserRequestData userData = new UserRequestData(userRealName, userPhone, accountId, thirdPartyAppId);
         RequestContextSetter.doSet(userId, userData);
     }
 
