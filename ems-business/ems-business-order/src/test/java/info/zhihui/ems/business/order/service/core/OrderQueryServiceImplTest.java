@@ -2,6 +2,7 @@ package info.zhihui.ems.business.order.service.core;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.page.PageMethod;
+import info.zhihui.ems.business.order.dto.OrderDetailDto;
 import info.zhihui.ems.business.order.dto.OrderListDto;
 import info.zhihui.ems.business.order.dto.OrderQueryDto;
 import info.zhihui.ems.business.order.enums.OrderStatusEnum;
@@ -71,6 +72,7 @@ class OrderQueryServiceImplTest {
         LocalDateTime sevenDaysAgo = now.minusDays(7);
 
         queryDto = new OrderQueryDto()
+                .setAccountId(20)
                 .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
                 .setOrderStatus(OrderStatusEnum.NOT_PAY)
                 .setOrderSnLike(" ORDER ")
@@ -125,6 +127,7 @@ class OrderQueryServiceImplTest {
         assertEquals(2, result.getList().size());
         verify(orderRepository).findList(argThat(qo ->
                 OrderTypeEnum.ENERGY_TOP_UP.getCode().equals(qo.getOrderType())
+                        && Integer.valueOf(20).equals(qo.getAccountId())
                         && OrderStatusEnum.NOT_PAY.name().equals(qo.getOrderStatus())
                         && "ORDER".equals(qo.getOrderSnLike())
                         && "TP".equals(qo.getThirdPartySnLike())
@@ -177,6 +180,46 @@ class OrderQueryServiceImplTest {
         orderQueryService.findOrdersPage(queryDto, pageParam);
 
         verify(orderDetailEnergyTopUpRepository, never()).findByOrderSnList(any());
+    }
+
+    @Test
+    void testFindOrdersPage_WhenEnergyTopUpOrder_ShouldCalculateTopUpAmount() {
+        OrderListDto topUpOrder = new OrderListDto()
+                .setOrderSn("ORDER001")
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setOrderAmount(new java.math.BigDecimal("200.00"))
+                .setServiceAmount(new java.math.BigDecimal("4.00"));
+        PageResult<OrderListDto> pageResult = new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(topUpOrder));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderItemQo1));
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(pageResult);
+        when(orderDetailEnergyTopUpRepository.findByOrderSnList(List.of("ORDER001"))).thenReturn(List.of());
+
+        PageResult<OrderListDto> result = orderQueryService.findOrdersPage(queryDto, pageParam);
+
+        assertEquals(new java.math.BigDecimal("196.00"), result.getList().get(0).getTopUpAmount());
+    }
+
+    @Test
+    void testGetOrderDetail_WhenDetailAlreadyHasTopUpAmount_ShouldNotOverwriteIt() {
+        OrderListItemQo detailQo = new OrderListItemQo()
+                .setOrderSn("ORDER001");
+        OrderDetailDto detailDto = new OrderDetailDto();
+        detailDto.setOrderSn("ORDER001")
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setOrderAmount(new java.math.BigDecimal("100.00"))
+                .setServiceAmount(java.math.BigDecimal.ZERO)
+                .setTopUpAmount(new java.math.BigDecimal("95.00"));
+        when(orderRepository.selectDetailByOrderSn("ORDER001")).thenReturn(detailQo);
+        when(orderMapper.toOrderDetailDto(detailQo)).thenReturn(detailDto);
+
+        OrderDetailDto result = orderQueryService.getOrderDetail("ORDER001");
+
+        assertEquals(new java.math.BigDecimal("95.00"), result.getTopUpAmount());
+        verify(orderDetailEnergyTopUpRepository).selectByOrderSn("ORDER001");
     }
 
     @Test

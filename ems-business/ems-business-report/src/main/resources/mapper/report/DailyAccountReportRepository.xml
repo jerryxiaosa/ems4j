@@ -83,4 +83,13 @@
         order by report_date desc
         limit 1
     </select>
+
+    <select id="findListByAccountIdAndDateRange" resultType="info.zhihui.ems.business.report.entity.DailyAccountReportEntity">
+        select *
+        from energy_report_daily_account
+        where account_id = #{accountId}
+          and report_date <![CDATA[>=]]> #{startDate}
+          and report_date <![CDATA[<=]]> #{endDate}
+        order by report_date asc
+    </select>
 </mapper>

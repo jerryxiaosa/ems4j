@@ -89,6 +89,10 @@ public class OrderListDto {
      */
     private BigDecimal userPayAmount;
     /**
+     * 实际充值到账金额
+     */
+    private BigDecimal topUpAmount;
+    /**
      * 支付渠道
      */
     private PaymentChannelEnum paymentChannel;

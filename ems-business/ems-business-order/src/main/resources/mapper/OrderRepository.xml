@@ -32,6 +32,9 @@
             <if test="qo.orderType != null">
                 AND t.order_type = #{qo.orderType}
             </if>
+            <if test="qo.accountId != null">
+                AND t.account_id = #{qo.accountId}
+            </if>
             <if test="qo.orderStatus != null">
                 AND t.order_status = #{qo.orderStatus}
             </if>

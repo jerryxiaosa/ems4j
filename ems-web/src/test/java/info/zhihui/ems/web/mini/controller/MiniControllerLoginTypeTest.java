@@ -13,6 +13,8 @@ class MiniControllerLoginTypeTest {
     void miniProtectedEndpoints_ShouldUseMiniLoginType() throws NoSuchMethodException {
         assertMiniLoginType(MiniMeController.class.getMethod("getCurrentUser"));
         assertMiniLoginType(MiniAuthController.class.getMethod("logout"));
+        assertMiniLoginType(MiniHomeController.class.getMethod("getSummary"));
+        assertMiniLoginType(MiniHomeController.class.getMethod("getTrend", String.class));
     }
 
     private void assertMiniLoginType(Method method) {

@@ -76,6 +76,9 @@ public class OrderVo {
     @Schema(description = "用户实际支付金额")
     private BigDecimal userPayAmount;
 
+    @Schema(description = "实际充值到账金额")
+    private BigDecimal topUpAmount;
+
     @Schema(description = "支付渠道编码，参考 paymentChannel")
     private String paymentChannel;
 

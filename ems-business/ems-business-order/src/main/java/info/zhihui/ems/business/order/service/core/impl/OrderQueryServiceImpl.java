@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 订单查询服务接口
+ * 订单查询服务实现。
  *
  * @author jerryxiaosa
  */
@@ -72,6 +73,12 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         return pageResult;
     }
 
+    /**
+     * 查询订单详情。
+     *
+     * @param orderSn 订单编号
+     * @return 订单详情业务对象
+     */
     @Override
     @Transactional(readOnly = true)
     public OrderDetailDto getOrderDetail(@NotEmpty String orderSn) {
@@ -84,9 +91,18 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         return detailDto;
     }
 
+    /**
+     * 批量补充订单列表的电表信息和充值到账金额。
+     * 电表信息仅电表充值订单需要查询明细表，其余订单会保持为空。
+     *
+     * @param pageResult 订单分页结果
+     */
     private void fillMeterInfo(PageResult<OrderListDto> pageResult) {
         if (pageResult == null || pageResult.getList() == null || pageResult.getList().isEmpty()) {
             return;
+        }
+        for (OrderListDto item : pageResult.getList()) {
+            fillCalculatedTopUpAmount(item);
         }
         List<String> orderSnList = pageResult.getList().stream()
                 .filter(Objects::nonNull)
@@ -116,10 +132,16 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         }
     }
 
+    /**
+     * 补充单个订单的电表信息和充值到账金额。
+     *
+     * @param orderDto 订单列表/详情业务对象
+     */
     private void fillMeterInfo(OrderListDto orderDto) {
         if (orderDto == null || !StringUtils.hasText(orderDto.getOrderSn())) {
             return;
         }
+        fillCalculatedTopUpAmount(orderDto);
         if (!OrderTypeEnum.ENERGY_TOP_UP.equals(orderDto.getOrderType())) {
             orderDto.setMeterName(null).setDeviceNo(null);
             return;
@@ -128,6 +150,13 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         fillMeterInfo(orderDto, detailEntity);
     }
 
+    /**
+     * 根据充值明细补充电表名称和设备编号。
+     * 非电表充值订单不应展示电表字段，避免账户充值被误认为电表充值。
+     *
+     * @param orderDto 订单业务对象
+     * @param detailEntity 充值明细实体
+     */
     private void fillMeterInfo(OrderListDto orderDto, OrderDetailEnergyTopUpEntity detailEntity) {
         if (detailEntity == null || !isElectricMeterTopUp(detailEntity)) {
             orderDto.setMeterName(null).setDeviceNo(null);
@@ -136,6 +165,28 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         orderDto.setMeterName(detailEntity.getMeterName()).setDeviceNo(detailEntity.getDeviceNo());
     }
 
+    /**
+     * 计算当前阶段的充值到账金额。
+     * 已有明细到账金额时直接保留；缺失时再按订单金额扣减服务费兜底。
+     *
+     * @param orderDto 订单业务对象
+     */
+    private void fillCalculatedTopUpAmount(OrderListDto orderDto) {
+        if (orderDto == null || orderDto.getTopUpAmount() != null || orderDto.getOrderAmount() == null
+                || !OrderTypeEnum.ENERGY_TOP_UP.equals(orderDto.getOrderType())) {
+            return;
+        }
+        BigDecimal topUpAmount = orderDto.getOrderAmount().subtract(orderDto.getServiceAmount() == null ? BigDecimal.ZERO : orderDto.getServiceAmount());
+
+        orderDto.setTopUpAmount(topUpAmount);
+    }
+
+    /**
+     * 判断充值明细是否为电表余额充值。
+     *
+     * @param detail 充值明细实体
+     * @return true 表示电表充值
+     */
     private boolean isElectricMeterTopUp(OrderDetailEnergyTopUpEntity detail) {
         if (detail.getBalanceType() == null) {
             return false;
@@ -143,9 +194,17 @@ public class OrderQueryServiceImpl implements OrderQueryService {
         return Objects.equals(detail.getBalanceType(), BalanceTypeEnum.ELECTRIC_METER.getCode());
     }
 
+    /**
+     * 将接口查询参数转换为仓储查询对象。
+     * 企业名称查询只适用于企业所有人订单，因此存在企业名称条件时同步限定 ownerType。
+     *
+     * @param dto 订单查询参数
+     * @return 仓储查询对象
+     */
     private OrderQueryQo buildOrderQueryQo(OrderQueryDto dto) {
         String enterpriseNameLike = QueryValueUtil.normalizeLikeValue(dto.getEnterpriseNameLike());
         return new OrderQueryQo()
+                .setAccountId(dto.getAccountId())
                 .setOrderType(dto.getOrderType() == null ? null : dto.getOrderType().getCode())
                 .setOrderStatus(dto.getOrderStatus() == null ? null : dto.getOrderStatus().name())
                 .setOrderSnLike(QueryValueUtil.normalizeLikeValue(dto.getOrderSnLike()))

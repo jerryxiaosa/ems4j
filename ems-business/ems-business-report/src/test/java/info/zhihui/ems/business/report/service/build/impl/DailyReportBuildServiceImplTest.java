@@ -679,6 +679,13 @@ class DailyReportBuildServiceImplTest {
         }
 
         @Override
+        public List<DailyAccountReportEntity> findListByAccountIdAndDateRange(Integer accountId,
+                                                                              LocalDate startDate,
+                                                                              LocalDate endDate) {
+            return Collections.emptyList();
+        }
+
+        @Override
         public List<org.apache.ibatis.executor.BatchResult> insert(Collection<DailyAccountReportEntity> entityList) {
             operationList.add("account.insert:" + entityList.size());
             return List.of();

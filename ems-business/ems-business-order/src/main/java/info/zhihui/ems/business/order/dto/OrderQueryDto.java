@@ -18,6 +18,11 @@ import java.time.LocalDateTime;
 public class OrderQueryDto {
 
     /**
+     * 账户ID
+     */
+    private Integer accountId;
+
+    /**
      * 订单类型
      */
     private OrderTypeEnum orderType;

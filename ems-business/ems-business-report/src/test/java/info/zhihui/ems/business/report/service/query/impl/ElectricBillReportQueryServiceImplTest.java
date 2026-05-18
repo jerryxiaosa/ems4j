@@ -335,6 +335,14 @@ class ElectricBillReportQueryServiceImplTest {
                                                                          LocalDate endDate) {
             return latestReportToReturn;
         }
+
+        @Override
+        public List<DailyAccountReportEntity> findListByAccountIdAndDateRange(Integer accountId,
+                                                                              LocalDate startDate,
+                                                                              LocalDate endDate) {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
     private static class FakeDailyMeterReportRepository extends BaseMapperStub<DailyMeterReportEntity>

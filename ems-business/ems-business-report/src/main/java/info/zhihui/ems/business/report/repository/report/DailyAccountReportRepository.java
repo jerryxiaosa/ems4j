@@ -81,4 +81,16 @@ public interface DailyAccountReportRepository extends BaseMapper<DailyAccountRep
     DailyAccountReportEntity getLatestByAccountIdAndDateRange(@Param("accountId") Integer accountId,
                                                               @Param("startDate") LocalDate startDate,
                                                               @Param("endDate") LocalDate endDate);
+
+    /**
+     * 查询账户在统计区间内的日报列表。
+     *
+     * @param accountId 账户ID
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 账户日报列表
+     */
+    List<DailyAccountReportEntity> findListByAccountIdAndDateRange(@Param("accountId") Integer accountId,
+                                                                   @Param("startDate") LocalDate startDate,
+                                                                   @Param("endDate") LocalDate endDate);
 }

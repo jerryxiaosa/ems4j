@@ -15,6 +15,11 @@ import java.time.LocalDateTime;
 public class OrderQueryQo {
 
     /**
+     * 账户ID
+     */
+    private Integer accountId;
+
+    /**
      * 订单类型
      */
     private Integer orderType;
