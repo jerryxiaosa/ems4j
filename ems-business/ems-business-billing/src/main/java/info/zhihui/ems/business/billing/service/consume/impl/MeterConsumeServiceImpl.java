@@ -58,6 +58,8 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.sumIgnoreNull;
+
 /**
  * @author jerryxiaosa
  */
@@ -726,7 +728,7 @@ public class MeterConsumeServiceImpl implements MeterConsumeService, MeterCorrec
     }
 
     private BigDecimal sum(BigDecimal... ele) {
-        return Arrays.stream(ele).map(e -> Optional.ofNullable(e).orElse(BigDecimal.ZERO)).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sumIgnoreNull(Arrays.asList(ele));
     }
 
 

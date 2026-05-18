@@ -36,6 +36,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 订单查询服务实现。
  *
@@ -176,7 +178,7 @@ public class OrderQueryServiceImpl implements OrderQueryService {
                 || !OrderTypeEnum.ENERGY_TOP_UP.equals(orderDto.getOrderType())) {
             return;
         }
-        BigDecimal topUpAmount = orderDto.getOrderAmount().subtract(orderDto.getServiceAmount() == null ? BigDecimal.ZERO : orderDto.getServiceAmount());
+        BigDecimal topUpAmount = orderDto.getOrderAmount().subtract(zeroIfNull(orderDto.getServiceAmount()));
 
         orderDto.setTopUpAmount(topUpAmount);
     }

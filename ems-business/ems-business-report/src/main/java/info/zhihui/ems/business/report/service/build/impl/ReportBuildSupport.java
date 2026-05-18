@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 日报构建过程中复用的通用辅助方法集合。
  * <p>
@@ -28,7 +30,7 @@ final class ReportBuildSupport {
      * 将空金额统一折算为零值，避免累加时出现空指针。
      */
     static BigDecimal defaultDecimal(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
+        return zeroIfNull(value);
     }
 
     /**

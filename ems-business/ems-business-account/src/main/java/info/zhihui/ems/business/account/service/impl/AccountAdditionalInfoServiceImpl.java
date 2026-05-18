@@ -32,6 +32,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 账户附加信息服务实现。
  */
@@ -176,7 +178,7 @@ public class AccountAdditionalInfoServiceImpl implements AccountAdditionalInfoSe
                 if (balanceBo == null || balanceBo.getAccountId() == null || balanceBo.getBalanceType() == null) {
                     continue;
                 }
-                BigDecimal balanceAmount = Objects.requireNonNullElse(balanceBo.getBalance(), BigDecimal.ZERO);
+                BigDecimal balanceAmount = zeroIfNull(balanceBo.getBalance());
                 // 账户余额和电表余额同时查出后分开归集，后面再按账户计费类型选择最终展示口径。
                 if (BalanceTypeEnum.ACCOUNT.equals(balanceBo.getBalanceType())) {
                     accountBalanceAmountMap.put(balanceBo.getAccountId(), balanceAmount);

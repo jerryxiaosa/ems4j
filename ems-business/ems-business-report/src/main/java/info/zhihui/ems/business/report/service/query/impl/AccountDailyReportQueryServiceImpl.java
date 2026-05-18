@@ -18,6 +18,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 账户日报查询服务实现。
  */
@@ -71,8 +73,8 @@ public class AccountDailyReportQueryServiceImpl implements AccountDailyReportQue
         BigDecimal resolvedChargeAmount = BigDecimal.ZERO;
         if (reportList != null) {
             for (DailyAccountReportEntity report : reportList) {
-                consumePower = consumePower.add(defaultZero(report.getConsumePower()));
-                electricChargeAmount = electricChargeAmount.add(defaultZero(report.getElectricChargeAmount()));
+                consumePower = consumePower.add(zeroIfNull(report.getConsumePower()));
+                electricChargeAmount = electricChargeAmount.add(zeroIfNull(report.getElectricChargeAmount()));
                 resolvedChargeAmount = resolvedChargeAmount.add(resolveChargeAmount(report));
             }
         }
@@ -95,8 +97,8 @@ public class AccountDailyReportQueryServiceImpl implements AccountDailyReportQue
         return new AccountDailyReportBo()
                 .setReportDate(entity.getReportDate())
                 .setAccountId(entity.getAccountId())
-                .setConsumePower(defaultZero(entity.getConsumePower()))
-                .setElectricChargeAmount(defaultZero(entity.getElectricChargeAmount()))
+                .setConsumePower(zeroIfNull(entity.getConsumePower()))
+                .setElectricChargeAmount(zeroIfNull(entity.getElectricChargeAmount()))
                 .setResolvedChargeAmount(resolveChargeAmount(entity));
     }
 
@@ -109,9 +111,9 @@ public class AccountDailyReportQueryServiceImpl implements AccountDailyReportQue
      */
     private BigDecimal resolveChargeAmount(DailyAccountReportEntity entity) {
         if (Objects.equals(entity.getElectricAccountType(), ElectricAccountTypeEnum.MONTHLY.getCode())) {
-            return defaultZero(entity.getMonthlyChargeAmount());
+            return zeroIfNull(entity.getMonthlyChargeAmount());
         }
-        return defaultZero(entity.getElectricChargeAmount());
+        return zeroIfNull(entity.getElectricChargeAmount());
     }
 
     private void validateSummaryDateRange(LocalDate startDate, LocalDate endDate) {
@@ -121,7 +123,4 @@ public class AccountDailyReportQueryServiceImpl implements AccountDailyReportQue
         }
     }
 
-    private BigDecimal defaultZero(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
-    }
 }

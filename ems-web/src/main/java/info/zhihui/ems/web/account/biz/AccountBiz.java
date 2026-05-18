@@ -33,6 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 账户业务编排层
  */
@@ -292,7 +294,7 @@ public class AccountBiz {
                     .stream()
                     .filter(Objects::nonNull)
                     .filter(balanceBo -> balanceBo.getBalanceType() == BalanceTypeEnum.ELECTRIC_METER)
-                    .map(balanceBo -> Objects.requireNonNullElse(balanceBo.getBalance(), BigDecimal.ZERO))
+                    .map(balanceBo -> zeroIfNull(balanceBo.getBalance()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             accountVo.setElectricBalanceAmount(electricBalanceAmount);
             return;

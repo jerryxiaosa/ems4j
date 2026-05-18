@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static info.zhihui.ems.common.utils.BigDecimalUtils.zeroIfNull;
+
 /**
  * 小程序首页 Web 编排。
  */
@@ -135,7 +137,7 @@ public class MiniHomeBiz {
                         .setAccountId(account.getId())
                         .setElectricAccountType(account.getElectricAccountType())
         ));
-        return defaultZero(balanceMap.get(account.getId()));
+        return zeroIfNull(balanceMap.get(account.getId()));
     }
 
     private AccountDailyReportSummaryBo getLastMonthSummary(Integer accountId) {
@@ -162,11 +164,11 @@ public class MiniHomeBiz {
         BigDecimal topUpAmount = resolveTopUpAmount(order);
         return new MiniLatestRechargeOrderVo()
                 .setOrderSn(order.getOrderSn())
-                .setPayAmount(defaultZero(order.getUserPayAmount()))
+                .setPayAmount(zeroIfNull(order.getUserPayAmount()))
                 .setPayAmountText(formatAmount(order.getUserPayAmount()))
-                .setTopUpAmount(defaultZero(topUpAmount))
+                .setTopUpAmount(zeroIfNull(topUpAmount))
                 .setTopUpAmountText(formatAmount(topUpAmount))
-                .setServiceFeeAmount(defaultZero(order.getServiceAmount()))
+                .setServiceFeeAmount(zeroIfNull(order.getServiceAmount()))
                 .setServiceFeeAmountText(formatAmount(order.getServiceAmount()))
                 .setStatus(order.getOrderStatus() == null ? null : order.getOrderStatus().name())
                 .setStatusName(getOrderStatusName(order.getOrderStatus()))
@@ -187,7 +189,7 @@ public class MiniHomeBiz {
         if (order.getOrderAmount() == null) {
             return null;
         }
-        return order.getOrderAmount().subtract(defaultZero(order.getServiceAmount()));
+        return order.getOrderAmount().subtract(zeroIfNull(order.getServiceAmount()));
     }
 
     private void assertValidMetric(String metric) {
@@ -209,19 +211,19 @@ public class MiniHomeBiz {
             return BigDecimal.ZERO;
         }
         if (METRIC_ENERGY.equals(metric)) {
-            return defaultZero(report.getConsumePower());
+            return zeroIfNull(report.getConsumePower());
         }
-        return defaultZero(report.getResolvedChargeAmount());
+        return zeroIfNull(report.getResolvedChargeAmount());
     }
 
     private boolean isAllZero(List<MiniTrendPointVo> pointList) {
         return pointList.stream()
                 .map(MiniTrendPointVo::getValue)
-                .allMatch(value -> defaultZero(value).compareTo(BigDecimal.ZERO) == 0);
+                .allMatch(value -> zeroIfNull(value).compareTo(BigDecimal.ZERO) == 0);
     }
 
     private String formatAmount(BigDecimal amount) {
-        return defaultZero(amount).setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return zeroIfNull(amount).setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private String formatDateTime(LocalDateTime dateTime) {
@@ -242,10 +244,6 @@ public class MiniHomeBiz {
             case REFUND_CLOSED -> "退款关闭";
             case REFUND_ERROR -> "退款异常";
         };
-    }
-
-    private BigDecimal defaultZero(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
     }
 
     private BusinessRuntimeException accountAbnormal() {
