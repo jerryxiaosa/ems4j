@@ -18,13 +18,29 @@ const filterOptions: { label: string; range: OrderDateRange }[] = [
 const activeRange = ref<OrderDateRange>('all')
 const orderList = ref<OrderRecordItem[]>([])
 const electricAccountType = ref<ElectricAccountType>()
+const activeServiceFeeOrderNo = ref('')
 const pageNum = ref(1)
 const pageSize = 10
 const shouldShowMeterInfo = computed(() => electricAccountType.value === QUANTITY_ELECTRIC_ACCOUNT_TYPE)
 
+const formatMoney = (amount?: number, amountText?: string) => {
+  if (amountText) {
+    return amountText
+  }
+
+  if (typeof amount === 'number') {
+    return amount.toFixed(2)
+  }
+
+  return '--'
+}
+
 const recordList = computed(() => {
   return orderList.value.map((order) => {
     const isSuccess = order.status === 'SUCCESS'
+    const serviceFeeAmount = formatMoney(order.serviceFeeAmount, order.serviceFeeAmountText)
+    const serviceFeeNumber = order.serviceFeeAmount ?? Number(order.serviceFeeAmountText ?? 0)
+    const hasServiceFeeTip = isSuccess && serviceFeeAmount !== '--' && serviceFeeNumber > 0
 
     return {
       status: isSuccess ? 'success' : 'fail',
@@ -33,7 +49,10 @@ const recordList = computed(() => {
       meterNo: order.meterNo || '-',
       orderNo: order.orderSn,
       time: order.createTime,
-      amount: order.payAmountText ?? order.payAmount.toFixed(2),
+      amount: formatMoney(order.payAmount, order.payAmountText),
+      hasServiceFeeTip,
+      isServiceFeeTipVisible: activeServiceFeeOrderNo.value === order.orderSn,
+      serviceFeeNote: hasServiceFeeTip ? `到账金额已扣除服务费 ¥${serviceFeeAmount}` : '',
       payment: isSuccess ? order.paymentChannelName : order.statusName
     }
   })
@@ -51,6 +70,14 @@ const handleBack = () => {
   uni.redirectTo({
     url: miniRoute.recharge
   })
+}
+
+const toggleServiceFeeTip = (orderNo: string) => {
+  activeServiceFeeOrderNo.value = activeServiceFeeOrderNo.value === orderNo ? '' : orderNo
+}
+
+const hideServiceFeeTip = () => {
+  activeServiceFeeOrderNo.value = ''
 }
 
 const loadAccountType = async () => {
@@ -99,7 +126,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="pay-record-page">
+  <view class="pay-record-page" @click="hideServiceFeeTip">
     <AppBackHeader title="充值缴费记录" @back="handleBack" />
 
     <scroll-view class="record-scroll" scroll-y enhanced show-scrollbar="false">
@@ -129,7 +156,23 @@ onMounted(() => {
                 <text class="status-title">{{ record.statusName }}</text>
               </view>
               <view class="record-amount">
-                <text class="amount-text">¥ {{ record.amount }}</text>
+                <view class="amount-line">
+                  <view
+                    v-if="record.hasServiceFeeTip"
+                    class="amount-tip"
+                    @click.stop="toggleServiceFeeTip(record.orderNo)"
+                  >
+                    <view class="amount-tip-icon" hover-class="amount-tip-icon-hover">
+                      <text>i</text>
+                    </view>
+                    <view v-if="record.isServiceFeeTipVisible" class="amount-tooltip">
+                      <view class="amount-tooltip-arrow"></view>
+                      <text>{{ record.serviceFeeNote }}</text>
+                    </view>
+                  </view>
+                  <text class="amount-text">¥ {{ record.amount }}</text>
+                </view>
+                <text class="amount-label">订单金额</text>
               </view>
             </view>
             <view class="record-detail">
@@ -378,11 +421,86 @@ onMounted(() => {
   text-align: right;
 }
 
+.amount-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: design-rpx(5);
+}
+
+.amount-tip {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.amount-tip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: design-rpx(15);
+  height: design-rpx(15);
+  color: #7b879a;
+  font-size: design-rpx(10);
+  font-weight: 700;
+  line-height: 1;
+  border: design-rpx(1) solid #cfd9e8;
+  border-radius: 999rpx;
+}
+
+.amount-tip-icon-hover {
+  background: #eef4fb;
+}
+
+.amount-tooltip {
+  position: absolute;
+  top: design-rpx(23);
+  right: design-rpx(-8);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: design-rpx(8) design-rpx(10);
+  color: #7b879a;
+  font-size: design-rpx(13);
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: left;
+  white-space: nowrap;
+  background: #ffffff;
+  border: design-rpx(1) solid rgba(207, 217, 232, 0.92);
+  border-radius: design-rpx(8);
+  box-shadow: 0 design-rpx(8) design-rpx(18) rgba(6, 19, 61, 0.12);
+}
+
+.amount-tooltip-arrow {
+  position: absolute;
+  top: design-rpx(-5);
+  right: design-rpx(12);
+  width: design-rpx(9);
+  height: design-rpx(9);
+  background: #ffffff;
+  border-top: design-rpx(1) solid rgba(207, 217, 232, 0.92);
+  border-left: design-rpx(1) solid rgba(207, 217, 232, 0.92);
+  transform: rotate(45deg);
+}
+
 .amount-text {
   color: #152234;
   font-size: design-rpx(16);
   font-weight: 700;
   line-height: design-rpx(26);
+}
+
+.amount-label {
+  display: block;
+  margin-top: design-rpx(1);
+  color: #8a97ac;
+  font-size: design-rpx(11);
+  font-weight: 500;
+  line-height: 1.1;
 }
 
 .payment-text {
