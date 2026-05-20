@@ -2,7 +2,7 @@ package info.zhihui.ems.web.mini.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaIgnore;
-import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.business.mobile.utils.MobileStpUtil;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.web.common.constant.ApiPathConstant;
@@ -38,7 +38,7 @@ public class MiniAuthController {
         return ResultUtil.success(miniAuthBiz.login(requestVo));
     }
 
-    @SaCheckLogin(type = MiniStpUtil.TYPE)
+    @SaCheckLogin(type = MobileStpUtil.TYPE)
     @PostMapping("/logout")
     @Operation(summary = "小程序退出登录")
     public RestResult<Void> logout() {

@@ -20,7 +20,7 @@
         <module>ems-business-aggregation</module>
         <module>ems-business-order</module>
         <module>ems-business-report</module>
-        <module>ems-business-mini</module>
+        <module>ems-business-mobile</module>
     </modules>
 
 </project>

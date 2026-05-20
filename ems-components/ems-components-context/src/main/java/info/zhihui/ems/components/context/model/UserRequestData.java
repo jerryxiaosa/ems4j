@@ -17,16 +17,13 @@ public class UserRequestData implements Serializable {
 
     private final Integer accountId;
 
-    private final String thirdPartyAppId;
-
     public UserRequestData(String userRealName, String userPhone) {
-        this(userRealName, userPhone, null, null);
+        this(userRealName, userPhone, null);
     }
 
-    public UserRequestData(String userRealName, String userPhone, Integer accountId, String thirdPartyAppId) {
+    public UserRequestData(String userRealName, String userPhone, Integer accountId) {
         this.userRealName = userRealName;
         this.userPhone = userPhone;
         this.accountId = accountId;
-        this.thirdPartyAppId = thirdPartyAppId;
     }
 }

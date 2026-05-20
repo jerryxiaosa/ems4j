@@ -74,8 +74,8 @@ public class UserThirdPartyBindServiceImpl implements UserThirdPartyBindService 
 
     private void throwBindConflict() {
         throw new BusinessRuntimeException(
-                ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getCode(),
-                ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getMessage()
+                ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getCode(),
+                ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getMessage()
         );
     }
 

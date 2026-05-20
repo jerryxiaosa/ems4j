@@ -19,6 +19,6 @@ class MiniControllerLoginTypeTest {
 
     private void assertMiniLoginType(Method method) {
         SaCheckLogin annotation = method.getAnnotation(SaCheckLogin.class);
-        assertEquals("mini", annotation.type());
+        assertEquals("mobile", annotation.type());
     }
 }

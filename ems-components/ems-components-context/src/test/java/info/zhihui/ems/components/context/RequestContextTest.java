@@ -138,10 +138,10 @@ public class RequestContextTest {
     }
 
     @Test
-    public void testGetThirdPartyAppId() {
-        RequestContextSetter.doSet(6, new UserRequestData("李四", "13700000000", 1001, "mini-app-id"));
+    public void testGetAccountId() {
+        RequestContextSetter.doSet(6, new UserRequestData("李四", "13700000000", 1001));
 
-        Assertions.assertEquals("mini-app-id", requestContext.getThirdPartyAppId());
+        Assertions.assertEquals(1001, requestContext.getAccountId());
     }
 
 }

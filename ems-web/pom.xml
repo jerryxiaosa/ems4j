@@ -67,7 +67,7 @@
 
         <dependency>
             <groupId>info.zhihui</groupId>
-            <artifactId>ems-business-mini</artifactId>
+            <artifactId>ems-business-mobile</artifactId>
         </dependency>
 
         <dependency>

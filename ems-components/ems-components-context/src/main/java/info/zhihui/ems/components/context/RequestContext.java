@@ -30,12 +30,6 @@ public class RequestContext {
                 .orElse(null);
     }
 
-    public String getThirdPartyAppId() {
-        return Optional.ofNullable(getUserRequestData())
-                .map(UserRequestData::getThirdPartyAppId)
-                .orElse(null);
-    }
-
     private UserRequestData getUserRequestData() {
         return (UserRequestData) ThreadLocalUtil.get(RequestContextConstant.USER_REQUEST_DATA);
     }

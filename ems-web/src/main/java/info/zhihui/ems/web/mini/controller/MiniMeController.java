@@ -1,7 +1,8 @@
 package info.zhihui.ems.web.mini.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.business.mobile.annotation.RequireAccountContext;
+import info.zhihui.ems.business.mobile.utils.MobileStpUtil;
 import info.zhihui.ems.common.utils.ResultUtil;
 import info.zhihui.ems.common.vo.RestResult;
 import info.zhihui.ems.web.common.constant.ApiPathConstant;
@@ -21,11 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ApiPathConstant.V1 + "/mini")
 @RequiredArgsConstructor
 @Tag(name = "小程序当前用户接口")
+@RequireAccountContext
 public class MiniMeController {
 
     private final MiniMeBiz miniMeBiz;
 
-    @SaCheckLogin(type = MiniStpUtil.TYPE)
+    @SaCheckLogin(type = MobileStpUtil.TYPE)
     @GetMapping("/me")
     @Operation(summary = "查询当前用户与开户账户信息")
     public RestResult<MiniCurrentUserVo> getCurrentUser() {

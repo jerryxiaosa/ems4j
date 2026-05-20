@@ -16,7 +16,6 @@ import info.zhihui.ems.business.report.bo.AccountDailyReportSummaryBo;
 import info.zhihui.ems.business.report.service.query.AccountDailyReportQueryService;
 import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
-import info.zhihui.ems.common.exception.NotFoundException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.context.RequestContext;
@@ -70,7 +69,7 @@ public class MiniHomeBiz {
      */
     public MiniHomeSummaryVo getSummary() {
         Integer accountId = requestContext.getAccountId();
-        AccountBo account = getAccount(accountId);
+        AccountBo account = accountInfoService.getById(accountId);
         BigDecimal balance = getBalance(account);
         int meterCount = electricMeterInfoService.findList(new ElectricMeterQueryDto()
                 .setAccountIds(List.of(accountId))).size();
@@ -117,18 +116,6 @@ public class MiniHomeBiz {
                 .setUnit(METRIC_ENERGY.equals(metric) ? UNIT_ENERGY : UNIT_FEE)
                 .setList(pointList)
                 .setTip(isAllZero(pointList) ? NO_TREND_TIP : null);
-    }
-
-    private AccountBo getAccount(Integer accountId) {
-        try {
-            AccountBo account = accountInfoService.getById(accountId);
-            if (account.getElectricAccountType() == null) {
-                throw accountAbnormal();
-            }
-            return account;
-        } catch (NotFoundException e) {
-            throw accountAbnormal();
-        }
     }
 
     private BigDecimal getBalance(AccountBo account) {
@@ -244,9 +231,5 @@ public class MiniHomeBiz {
             case REFUND_CLOSED -> "退款关闭";
             case REFUND_ERROR -> "退款异常";
         };
-    }
-
-    private BusinessRuntimeException accountAbnormal() {
-        return new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
     }
 }

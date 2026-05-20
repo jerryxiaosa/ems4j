@@ -4,8 +4,7 @@ import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
-import info.zhihui.ems.business.mini.utils.MiniStpUtil;
-import info.zhihui.ems.common.constant.ResultCode;
+import info.zhihui.ems.business.mobile.utils.MobileStpUtil;
 import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.components.context.model.UserRequestData;
 import info.zhihui.ems.components.context.setter.RequestContextSetter;
@@ -63,34 +62,22 @@ public class SaWebConfig implements WebMvcConfigurer {
     }
 
     private void setUserContext() {
-        boolean miniRequest = isMiniRequest();
-        int userId = miniRequest ? MiniStpUtil.getLoginIdAsInt() : StpUtil.getLoginIdAsInt();
-        SaSession session = miniRequest ? MiniStpUtil.getSession() : StpUtil.getSession();
+        boolean mobileRequest = isMobileRequest();
+        int userId = mobileRequest ? MobileStpUtil.getLoginIdAsInt() : StpUtil.getLoginIdAsInt();
+        SaSession session = mobileRequest ? MobileStpUtil.getSession() : StpUtil.getSession();
         String userRealName = (String) session.get(LoginConstant.LOGIN_USER_REAL_NAME);
         String userPhone = (String) session.get(LoginConstant.LOGIN_USER_PHONE);
-        Integer accountId = (Integer) session.get(LoginConstant.LOGIN_ACCOUNT_ID);
-        String thirdPartyAppId = (String) session.get(LoginConstant.LOGIN_THIRD_PARTY_APP_ID);
 
         if (!StringUtils.hasLength(userRealName) || !StringUtils.hasLength(userPhone)) {
-            logoutCurrentRequest(miniRequest);
+            logoutCurrentRequest(mobileRequest);
             throw new BusinessRuntimeException("登录信息已失效，请重新登录");
         }
-        // 小程序需要设置账号ID
-        if (miniRequest && accountId == null) {
-            logoutCurrentRequest(true);
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-        }
-        // 小程序后续支付链路需要按 appId 读取对应 openId，不能由前端透传。
-        if (miniRequest && !StringUtils.hasText(thirdPartyAppId)) {
-            logoutCurrentRequest(true);
-            throw new BusinessRuntimeException(ResultCode.MINI_ACCOUNT_ABNORMAL.getCode(), ResultCode.MINI_ACCOUNT_ABNORMAL.getMessage());
-        }
 
-        UserRequestData userData = new UserRequestData(userRealName, userPhone, accountId, thirdPartyAppId);
+        UserRequestData userData = new UserRequestData(userRealName, userPhone);
         RequestContextSetter.doSet(userId, userData);
     }
 
-    private boolean isMiniRequest() {
+    private boolean isMobileRequest() {
         String requestPath = SaHolder.getRequest().getRequestPath();
         if (!StringUtils.hasText(requestPath)) {
             return false;
@@ -98,9 +85,9 @@ public class SaWebConfig implements WebMvcConfigurer {
         return requestPath.equals("/v1/mini") || requestPath.startsWith("/v1/mini/");
     }
 
-    private void logoutCurrentRequest(boolean miniRequest) {
-        if (miniRequest) {
-            MiniStpUtil.logout();
+    private void logoutCurrentRequest(boolean mobileRequest) {
+        if (mobileRequest) {
+            MobileStpUtil.logout();
         } else {
             StpUtil.logout();
         }

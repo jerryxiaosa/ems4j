@@ -5,7 +5,7 @@ import cn.dev33.satoken.dao.SaTokenDao;
 import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
-import info.zhihui.ems.business.mini.utils.MiniStpUtil;
+import info.zhihui.ems.business.mobile.utils.MobileStpUtil;
 import info.zhihui.ems.foundation.user.satoken.RedisSaTokenDao;
 import info.zhihui.ems.foundation.user.satoken.SaPermissionImpl;
 import jakarta.annotation.PostConstruct;
@@ -25,8 +25,8 @@ public class SaTokenConfig {
     private final SaPermissionImpl saPermissionImpl;
 
     @PostConstruct
-    public void registerMiniStpLogic() {
-        SaManager.putStpLogic(MiniStpUtil.getStpLogic());
+    public void registerMobileStpLogic() {
+        SaManager.putStpLogic(MobileStpUtil.getStpLogic());
     }
 
     @Bean

@@ -123,8 +123,8 @@ class UserThirdPartyBindServiceImplTest {
 
         assertThatThrownBy(() -> service.bindOrUpdate(dto))
                 .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
-                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getCode());
-                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getMessage());
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getMessage());
                 });
     }
 
@@ -159,8 +159,8 @@ class UserThirdPartyBindServiceImplTest {
 
         assertThatThrownBy(() -> service.bindOrUpdate(dto))
                 .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
-                    assertThat(exception.getCode()).isEqualTo(ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getCode());
-                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MINI_THIRD_PARTY_BIND_CONFLICT.getMessage());
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.MOBILE_THIRD_PARTY_BIND_CONFLICT.getMessage());
                 });
         assertThat(updateCount.get()).isEqualTo(1);
     }

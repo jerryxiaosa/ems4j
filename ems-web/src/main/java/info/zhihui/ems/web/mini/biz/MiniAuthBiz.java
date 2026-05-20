@@ -1,8 +1,8 @@
 package info.zhihui.ems.web.mini.biz;
 
-import info.zhihui.ems.business.mini.bo.MiniLoginBo;
-import info.zhihui.ems.business.mini.bo.MiniLoginResultBo;
-import info.zhihui.ems.business.mini.service.MiniAuthService;
+import info.zhihui.ems.business.mobile.bo.MiniLoginBo;
+import info.zhihui.ems.business.mobile.bo.MiniLoginResultBo;
+import info.zhihui.ems.business.mobile.service.MiniService;
 import info.zhihui.ems.web.mini.mapstruct.MiniWebMapper;
 import info.zhihui.ems.web.mini.vo.MiniLoginRequestVo;
 import info.zhihui.ems.web.mini.vo.MiniLoginResponseVo;
@@ -16,16 +16,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MiniAuthBiz {
 
-    private final MiniAuthService miniAuthService;
+    private final MiniService miniService;
     private final MiniWebMapper miniWebMapper;
 
     public MiniLoginResponseVo login(MiniLoginRequestVo requestVo) {
         MiniLoginBo loginBo = miniWebMapper.toLoginBo(requestVo);
-        MiniLoginResultBo resultBo = miniAuthService.login(loginBo);
+        MiniLoginResultBo resultBo = miniService.login(loginBo);
         return miniWebMapper.toLoginResponseVo(resultBo);
     }
 
     public void logout() {
-        miniAuthService.logout();
+        miniService.logout();
     }
 }
