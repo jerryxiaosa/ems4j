@@ -204,6 +204,26 @@ class OrderQueryServiceImplTest {
     }
 
     @Test
+    void testFindOrdersPage_WhenServiceAmountMissing_ShouldUseOrderAmountAsTopUpAmount() {
+        OrderListDto topUpOrder = new OrderListDto()
+                .setOrderSn("ORDER001")
+                .setOrderType(OrderTypeEnum.ENERGY_TOP_UP)
+                .setOrderAmount(new java.math.BigDecimal("200.00"));
+        PageResult<OrderListDto> pageResult = new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(10)
+                .setTotal(1L)
+                .setList(List.of(topUpOrder));
+        when(orderRepository.findList(any(OrderQueryQo.class))).thenReturn(List.of(orderItemQo1));
+        when(orderMapper.pageOrderListItemQoToOrderListDto(any())).thenReturn(pageResult);
+        when(orderDetailEnergyTopUpRepository.findByOrderSnList(List.of("ORDER001"))).thenReturn(List.of());
+
+        PageResult<OrderListDto> result = orderQueryService.findOrdersPage(queryDto, pageParam);
+
+        assertEquals(new java.math.BigDecimal("200.00"), result.getList().get(0).getTopUpAmount());
+    }
+
+    @Test
     void testGetOrderDetail_WhenDetailAlreadyHasTopUpAmount_ShouldNotOverwriteIt() {
         OrderListItemQo detailQo = new OrderListItemQo()
                 .setOrderSn("ORDER001");

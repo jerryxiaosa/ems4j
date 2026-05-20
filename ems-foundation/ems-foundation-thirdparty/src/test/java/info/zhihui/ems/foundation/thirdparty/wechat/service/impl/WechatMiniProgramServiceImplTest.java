@@ -133,6 +133,16 @@ class WechatMiniProgramServiceImplTest {
     }
 
     @Test
+    void testResolveLogin_WhenMiniAccountConfigReadThrows_ShouldThrowLoginCodeInvalid() {
+        when(configService.getValueByKey(eq(MINI_ACCOUNT), ArgumentMatchers.<TypeReference<WechatMiniProgramAccountConfig>>any()))
+                .thenThrow(new RuntimeException("bad config"));
+
+        assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID);
+
+        verifyNoInteractions(client);
+    }
+
+    @Test
     void testResolveLogin_WhenCodeSessionInvalid_ShouldThrowLoginCodeInvalid() {
         stubMiniAccountConfig(miniAccountConfig());
         when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(new WechatCodeSessionDto()
@@ -140,6 +150,17 @@ class WechatMiniProgramServiceImplTest {
                 .setErrmsg("invalid code"));
 
         assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID);
+    }
+
+    @Test
+    void testResolveLogin_WhenCodeSessionMissingOpenId_ShouldThrowLoginCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(new WechatCodeSessionDto()
+                .setSessionKey("session-key"));
+
+        assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_LOGIN_CODE_INVALID);
+
+        verify(client, never()).getAccessToken(APP_ID, APP_SECRET);
     }
 
     @Test
@@ -214,6 +235,21 @@ class WechatMiniProgramServiceImplTest {
         when(client.getPhoneNumber("cached-token", PHONE_CODE)).thenReturn(new WechatPhoneNumberDto()
                 .setErrcode(40029)
                 .setErrmsg("invalid code"));
+
+        try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
+            redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn("cached-token");
+
+            assertMiniException(() -> service.resolveLogin(LOGIN_CODE, PHONE_CODE), ResultCode.MINI_WECHAT_PHONE_CODE_INVALID);
+        }
+    }
+
+    @Test
+    void testResolveLogin_WhenPhoneNumberMissingPurePhone_ShouldThrowPhoneCodeInvalid() {
+        stubMiniAccountConfig(miniAccountConfig());
+        WechatPhoneNumberDto phoneNumber = successPhoneNumber();
+        phoneNumber.getPhoneInfo().setPurePhoneNumber("");
+        when(client.code2Session(APP_ID, APP_SECRET, LOGIN_CODE)).thenReturn(successSession());
+        when(client.getPhoneNumber("cached-token", PHONE_CODE)).thenReturn(phoneNumber);
 
         try (MockedStatic<RedisUtil> redisMock = mockStatic(RedisUtil.class)) {
             redisMock.when(() -> RedisUtil.getCacheObject(CACHE_KEY)).thenReturn("cached-token");

@@ -49,6 +49,7 @@ import info.zhihui.ems.foundation.user.enums.UserThirdPartyPlatformEnum;
 import info.zhihui.ems.foundation.user.service.UserService;
 import info.zhihui.ems.foundation.user.service.UserThirdPartyBindService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -64,6 +65,11 @@ class MiniServiceImplTest {
     private static final String OLD_MINI_OPEN_ID_SESSION_KEY = "user::login::mini::open_id";
     private static final String OLD_MINI_UNION_ID_SESSION_KEY = "user::login::mini::union_id";
     private static final String OLD_THIRD_PARTY_APP_ID_SESSION_KEY = "user::login::third_party::app_id";
+
+    @BeforeEach
+    void setUp() {
+        SaManager.getConfig().setJwtSecretKey("mini-service-test-secret");
+    }
 
     @AfterEach
     void tearDown() {
@@ -106,6 +112,33 @@ class MiniServiceImplTest {
         assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_PHONE_NOT_BOUND.getCode());
         assertThat(exception.getMessage()).isEqualTo(ResultCode.MOBILE_PHONE_NOT_BOUND.getMessage());
         assertThat(bindService.boundDto).isNull();
+    }
+
+    @Test
+    void login_ShouldQueryUserByExactWechatPhoneNumber() {
+        SaTokenContextMockUtil.setMockContext(() -> {
+            MiniLoginBo loginBo = new MiniLoginBo()
+                    .setLoginCode("login-code")
+                    .setPhoneCode("phone-code");
+            StubWechatMiniProgramService wechatService = new StubWechatMiniProgramService(new WechatMiniProgramLoginDto()
+                    .setAppId("wx-app")
+                    .setOpenId("open-id")
+                    .setPurePhoneNumber("13800138000"));
+            StubUserService userService = new StubUserService(new UserBo()
+                    .setId(2)
+                    .setRealName("张三")
+                    .setUserPhone("13800138000")
+                    .setOrganizationId(10));
+            StubAccountInfoService accountService = new StubAccountInfoService(new AccountBo()
+                    .setId(30)
+                    .setElectricAccountType(ElectricAccountTypeEnum.MERGED));
+            MiniServiceImpl miniService = newMiniService(wechatService, userService, accountService, new StubUserThirdPartyBindService());
+
+            miniService.login(loginBo);
+
+            assertThat(userService.lastPhone).isEqualTo("13800138000");
+            logoutMobileQuietly();
+        });
     }
 
     @Test
@@ -215,6 +248,64 @@ class MiniServiceImplTest {
 
             assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_ACCOUNT_ABNORMAL.getCode());
             assertThat(exception.getMessage()).isEqualTo(ResultCode.MOBILE_ACCOUNT_ABNORMAL.getMessage());
+            assertThat(bindService.boundDto).isNull();
+            assertThatThrownBy(MobileStpUtil::getLoginIdAsInt).isInstanceOf(NotLoginException.class);
+        });
+    }
+
+    @Test
+    void login_WhenUserHasNoOrganization_ShouldThrowAccountAbnormalAndNotBindOrLogin() {
+        SaTokenContextMockUtil.setMockContext(() -> {
+            MiniLoginBo loginBo = new MiniLoginBo()
+                    .setLoginCode("login-code")
+                    .setPhoneCode("phone-code");
+            StubWechatMiniProgramService wechatService = new StubWechatMiniProgramService(new WechatMiniProgramLoginDto()
+                    .setAppId("wx-app")
+                    .setOpenId("open-id")
+                    .setPurePhoneNumber("13800138000"));
+            StubUserService userService = new StubUserService(new UserBo()
+                    .setId(2)
+                    .setRealName("张三")
+                    .setUserPhone("13800138000"));
+            StubAccountInfoService accountService = new StubAccountInfoService(new AccountBo()
+                    .setId(30)
+                    .setElectricAccountType(ElectricAccountTypeEnum.MERGED));
+            StubUserThirdPartyBindService bindService = new StubUserThirdPartyBindService();
+            MiniServiceImpl miniService = newMiniService(wechatService, userService, accountService, bindService);
+
+            BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniService.login(loginBo));
+
+            assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_ACCOUNT_ABNORMAL.getCode());
+            assertThat(bindService.boundDto).isNull();
+            assertThatThrownBy(MobileStpUtil::getLoginIdAsInt).isInstanceOf(NotLoginException.class);
+        });
+    }
+
+    @Test
+    void login_WhenMultipleAccountsMatched_ShouldThrowAccountAbnormalAndNotBindOrLogin() {
+        SaTokenContextMockUtil.setMockContext(() -> {
+            MiniLoginBo loginBo = new MiniLoginBo()
+                    .setLoginCode("login-code")
+                    .setPhoneCode("phone-code");
+            StubWechatMiniProgramService wechatService = new StubWechatMiniProgramService(new WechatMiniProgramLoginDto()
+                    .setAppId("wx-app")
+                    .setOpenId("open-id")
+                    .setPurePhoneNumber("13800138000"));
+            StubUserService userService = new StubUserService(new UserBo()
+                    .setId(2)
+                    .setRealName("张三")
+                    .setUserPhone("13800138000")
+                    .setOrganizationId(10));
+            StubAccountInfoService accountService = new StubAccountInfoService(List.of(
+                    new AccountBo().setId(30).setElectricAccountType(ElectricAccountTypeEnum.MERGED),
+                    new AccountBo().setId(31).setElectricAccountType(ElectricAccountTypeEnum.MONTHLY)
+            ));
+            StubUserThirdPartyBindService bindService = new StubUserThirdPartyBindService();
+            MiniServiceImpl miniService = newMiniService(wechatService, userService, accountService, bindService);
+
+            BusinessRuntimeException exception = assertThrows(BusinessRuntimeException.class, () -> miniService.login(loginBo));
+
+            assertThat(exception.getCode()).isEqualTo(ResultCode.MOBILE_ACCOUNT_ABNORMAL.getCode());
             assertThat(bindService.boundDto).isNull();
             assertThatThrownBy(MobileStpUtil::getLoginIdAsInt).isInstanceOf(NotLoginException.class);
         });
@@ -335,6 +426,7 @@ class MiniServiceImplTest {
 
     private static final class StubUserService implements UserService {
         private final Object userOrException;
+        private String lastPhone;
 
         private StubUserService(Object userOrException) {
             this.userOrException = userOrException;
@@ -342,6 +434,7 @@ class MiniServiceImplTest {
 
         @Override
         public UserBo getUserByPhone(String userPhone) {
+            lastPhone = userPhone;
             if (userOrException instanceof NotFoundException exception) {
                 throw exception;
             }

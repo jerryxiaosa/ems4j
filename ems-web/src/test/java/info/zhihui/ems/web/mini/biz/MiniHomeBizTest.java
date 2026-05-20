@@ -132,6 +132,39 @@ class MiniHomeBizTest {
     }
 
     @Test
+    void getSummary_WhenLatestOrderHasTopUpAmount_ShouldUseTopUpAmountDirectly() {
+        when(requestContext.getAccountId()).thenReturn(20);
+        when(accountInfoService.getById(20)).thenReturn(new AccountBo()
+                .setId(20)
+                .setOwnerName("星河家园 2 栋住户账")
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED));
+        when(accountAdditionalInfoService.findElectricBalanceAmountMap(any()))
+                .thenReturn(Map.of(20, BigDecimal.ZERO));
+        when(electricMeterInfoService.findList(any())).thenReturn(List.of());
+        when(accountDailyReportQueryService.getAccountDailyReportSummary(any(), any(), any()))
+                .thenReturn(new AccountDailyReportSummaryBo()
+                        .setConsumePower(BigDecimal.ZERO)
+                        .setResolvedChargeAmount(BigDecimal.ZERO));
+        when(orderQueryService.findOrdersPage(any(), any())).thenReturn(new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(1)
+                .setTotal(1L)
+                .setList(List.of(new OrderListDto()
+                        .setOrderSn("RC202605110002")
+                        .setUserPayAmount(new BigDecimal("200"))
+                        .setOrderAmount(new BigDecimal("200"))
+                        .setServiceAmount(new BigDecimal("4"))
+                        .setTopUpAmount(new BigDecimal("188"))
+                        .setOrderStatus(OrderStatusEnum.SUCCESS))));
+
+        MiniHomeSummaryVo result = miniHomeBiz.getSummary();
+
+        assertThat(result.getLatestRechargeOrder().getTopUpAmount()).isEqualByComparingTo("188");
+        assertThat(result.getLatestRechargeOrder().getTopUpAmountText()).isEqualTo("188.00");
+        assertThat(result.getLatestRechargeOrder().getServiceFeeAmountText()).isEqualTo("4.00");
+    }
+
+    @Test
     void getTrend_ShouldReturnLastSevenCompletedDaysAndFillMissingDates() {
         when(requestContext.getAccountId()).thenReturn(20);
         LocalDate endDate = LocalDate.now().minusDays(1);
