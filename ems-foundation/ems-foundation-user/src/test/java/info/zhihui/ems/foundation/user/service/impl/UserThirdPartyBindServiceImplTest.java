@@ -111,6 +111,26 @@ class UserThirdPartyBindServiceImplTest {
     }
 
     @Test
+    void testBindOrUpdate_WhenUnionIdMissing_ShouldInsertBindWithNullUnionId() {
+        UserThirdPartyBindDto dto = new UserThirdPartyBindDto()
+                .setUserId(7)
+                .setPlatform(UserThirdPartyPlatformEnum.WECHAT_MINI)
+                .setAppId("mini-app-id")
+                .setThirdPartyUserId("openid-001")
+                .setThirdPartyUnionId(null)
+                .setPhone("13800138000");
+        AtomicReference<UserThirdPartyBindEntity> insertedEntity = new AtomicReference<>();
+        UserThirdPartyBindServiceImpl service = new UserThirdPartyBindServiceImpl(repositoryForInsert(insertedEntity, false));
+
+        service.bindOrUpdate(dto);
+
+        assertThat(insertedEntity.get()).isNotNull();
+        assertThat(insertedEntity.get().getThirdPartyUnionId()).isNull();
+        assertThat(insertedEntity.get().getPhone()).isEqualTo("13800138000");
+        assertThat(insertedEntity.get().getLastLoginTime()).isNotNull();
+    }
+
+    @Test
     void testBindOrUpdate_WhenThirdPartyIdentityAlreadyBound_ShouldThrowBindConflict() {
         UserThirdPartyBindDto dto = new UserThirdPartyBindDto()
                 .setUserId(7)

@@ -119,6 +119,20 @@ class AccountDailyReportQueryServiceImplTest {
                 .hasMessage("账户日报汇总日期范围不能超过一年");
     }
 
+    @Test
+    void getAccountDailyReportSummary_WhenDateRangeIsExactly366Days_ShouldAllowQuery() {
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 12, 31);
+        FakeRepository fakeRepository = new FakeRepository();
+        AccountDailyReportQueryServiceImpl service = new AccountDailyReportQueryServiceImpl(fakeRepository.create());
+
+        AccountDailyReportSummaryBo result = service.getAccountDailyReportSummary(20, startDate, endDate);
+
+        assertThat(result.getAccountId()).isEqualTo(20);
+        assertThat(fakeRepository.getCapturedStartDate()).isEqualTo(startDate);
+        assertThat(fakeRepository.getCapturedEndDate()).isEqualTo(endDate);
+    }
+
     private static class FakeRepository {
         private List<DailyAccountReportEntity> dailyReportList = Collections.emptyList();
         private Integer capturedAccountId;

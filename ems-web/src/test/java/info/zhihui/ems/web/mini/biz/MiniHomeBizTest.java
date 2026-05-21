@@ -15,7 +15,9 @@ import info.zhihui.ems.business.order.service.core.OrderQueryService;
 import info.zhihui.ems.business.report.bo.AccountDailyReportBo;
 import info.zhihui.ems.business.report.bo.AccountDailyReportSummaryBo;
 import info.zhihui.ems.business.report.service.query.AccountDailyReportQueryService;
+import info.zhihui.ems.common.constant.ResultCode;
 import info.zhihui.ems.common.enums.ElectricAccountTypeEnum;
+import info.zhihui.ems.common.exception.BusinessRuntimeException;
 import info.zhihui.ems.common.paging.PageParam;
 import info.zhihui.ems.common.paging.PageResult;
 import info.zhihui.ems.components.context.RequestContext;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -165,6 +168,63 @@ class MiniHomeBizTest {
     }
 
     @Test
+    void getSummary_WhenLatestOrderMissing_ShouldReturnNullLatestRechargeOrder() {
+        when(requestContext.getAccountId()).thenReturn(20);
+        when(accountInfoService.getById(20)).thenReturn(new AccountBo()
+                .setId(20)
+                .setOwnerName("星河家园 2 栋住户账")
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED));
+        when(accountAdditionalInfoService.findElectricBalanceAmountMap(any()))
+                .thenReturn(Map.of(20, BigDecimal.ZERO));
+        when(electricMeterInfoService.findList(any())).thenReturn(List.of());
+        when(accountDailyReportQueryService.getAccountDailyReportSummary(any(), any(), any()))
+                .thenReturn(new AccountDailyReportSummaryBo()
+                        .setConsumePower(BigDecimal.ZERO)
+                        .setResolvedChargeAmount(BigDecimal.ZERO));
+        when(orderQueryService.findOrdersPage(any(), any())).thenReturn(new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(1)
+                .setTotal(0L)
+                .setList(List.of()));
+
+        MiniHomeSummaryVo result = miniHomeBiz.getSummary();
+
+        assertThat(result.getLatestRechargeOrder()).isNull();
+    }
+
+    @Test
+    void getSummary_WhenLatestOrderServiceAmountMissing_ShouldUseOrderAmountAsTopUpAmount() {
+        when(requestContext.getAccountId()).thenReturn(20);
+        when(accountInfoService.getById(20)).thenReturn(new AccountBo()
+                .setId(20)
+                .setOwnerName("星河家园 2 栋住户账")
+                .setElectricAccountType(ElectricAccountTypeEnum.MERGED));
+        when(accountAdditionalInfoService.findElectricBalanceAmountMap(any()))
+                .thenReturn(Map.of(20, BigDecimal.ZERO));
+        when(electricMeterInfoService.findList(any())).thenReturn(List.of());
+        when(accountDailyReportQueryService.getAccountDailyReportSummary(any(), any(), any()))
+                .thenReturn(new AccountDailyReportSummaryBo()
+                        .setConsumePower(BigDecimal.ZERO)
+                        .setResolvedChargeAmount(BigDecimal.ZERO));
+        when(orderQueryService.findOrdersPage(any(), any())).thenReturn(new PageResult<OrderListDto>()
+                .setPageNum(1)
+                .setPageSize(1)
+                .setTotal(1L)
+                .setList(List.of(new OrderListDto()
+                        .setOrderSn("RC202605110003")
+                        .setUserPayAmount(new BigDecimal("200"))
+                        .setOrderAmount(new BigDecimal("200"))
+                        .setServiceAmount(null)
+                        .setOrderStatus(OrderStatusEnum.SUCCESS))));
+
+        MiniHomeSummaryVo result = miniHomeBiz.getSummary();
+
+        assertThat(result.getLatestRechargeOrder().getTopUpAmount()).isEqualByComparingTo("200");
+        assertThat(result.getLatestRechargeOrder().getTopUpAmountText()).isEqualTo("200.00");
+        assertThat(result.getLatestRechargeOrder().getServiceFeeAmountText()).isEqualTo("0.00");
+    }
+
+    @Test
     void getTrend_ShouldReturnLastSevenCompletedDaysAndFillMissingDates() {
         when(requestContext.getAccountId()).thenReturn(20);
         LocalDate endDate = LocalDate.now().minusDays(1);
@@ -214,5 +274,29 @@ class MiniHomeBizTest {
         assertThat(result.getUnit()).isEqualTo("元");
         assertThat(result.getList()).hasSize(7);
         assertThat(result.getList().get(0).getValue()).isEqualByComparingTo("12.34");
+    }
+
+    @Test
+    void getTrend_WhenAllValuesAreZero_ShouldReturnNoTrendTip() {
+        when(requestContext.getAccountId()).thenReturn(20);
+        LocalDate endDate = LocalDate.now().minusDays(1);
+        LocalDate startDate = endDate.minusDays(6);
+        when(accountDailyReportQueryService.findAccountDailyReportList(20, startDate, endDate))
+                .thenReturn(List.of());
+
+        MiniHomeTrendVo result = miniHomeBiz.getTrend("energy");
+
+        assertThat(result.getList()).hasSize(7);
+        assertThat(result.getList()).allSatisfy(point -> assertThat(point.getValue()).isEqualByComparingTo(BigDecimal.ZERO));
+        assertThat(result.getTip()).isEqualTo("暂无趋势数据");
+    }
+
+    @Test
+    void getTrend_WhenMetricInvalid_ShouldThrowParameterError() {
+        assertThatThrownBy(() -> miniHomeBiz.getTrend("unknown"))
+                .isInstanceOfSatisfying(BusinessRuntimeException.class, exception -> {
+                    assertThat(exception.getCode()).isEqualTo(ResultCode.PARAMETER_ERROR.getCode());
+                    assertThat(exception.getMessage()).isEqualTo(ResultCode.PARAMETER_ERROR.getMessage());
+                });
     }
 }
