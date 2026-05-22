@@ -567,6 +567,9 @@ class ChannelManagerTest {
             releaseLoop0.countDown();
             firstFuture.get(3, TimeUnit.SECONDS);
             secondFuture.get(3, TimeUnit.SECONDS);
+            loop0.submit(() -> null).syncUninterruptibly();
+            loop1.submit(() -> null).syncUninterruptibly();
+            loop2.submit(() -> null).syncUninterruptibly();
 
             Field sessionsField = ChannelManager.class.getDeclaredField("sessions");
             sessionsField.setAccessible(true);

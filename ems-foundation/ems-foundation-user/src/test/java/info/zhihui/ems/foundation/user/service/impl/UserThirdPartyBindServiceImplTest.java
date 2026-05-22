@@ -87,6 +87,7 @@ class UserThirdPartyBindServiceImplTest {
         assertThat(updatedEntity.get().getUserId()).isEqualTo(7);
         assertThat(updatedEntity.get().getAppId()).isEqualTo("mini-app-id");
         assertThat(updatedEntity.get().getThirdPartyUserId()).isEqualTo("openid-001");
+        assertThat(updatedEntity.get().getUpdateTime()).isNotNull();
     }
 
     @Test

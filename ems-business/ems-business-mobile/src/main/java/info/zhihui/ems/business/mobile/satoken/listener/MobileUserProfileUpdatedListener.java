@@ -1,8 +1,7 @@
 package info.zhihui.ems.business.mobile.satoken.listener;
 
-import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.exception.NotLoginException;
 import info.zhihui.ems.business.mobile.utils.MobileStpUtil;
-import info.zhihui.ems.foundation.user.constants.LoginConstant;
 import info.zhihui.ems.foundation.user.event.UserProfileUpdatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,13 +17,12 @@ public class MobileUserProfileUpdatedListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onUserProfileUpdated(UserProfileUpdatedEvent event) {
-        SaSession loginSession = MobileStpUtil.getStpLogic().getSessionByLoginId(event.getUserId(), false);
-        if (loginSession == null) {
-            return;
+        try {
+            MobileStpUtil.getStpLogic().logout(event.getUserId());
+        } catch (NotLoginException ignore) {
+            // 用户没有移动端登录态时无需处理
+        } catch (Exception e) {
+            log.warn("用户资料更新后强制移动端用户下线异常, userId={}", event.getUserId(), e);
         }
-
-        loginSession.set(LoginConstant.LOGIN_USER_REAL_NAME, event.getUserRealName());
-        loginSession.set(LoginConstant.LOGIN_USER_PHONE, event.getUserPhone());
-        log.debug("移动端用户会话数据已刷新, userId={}", event.getUserId());
     }
 }

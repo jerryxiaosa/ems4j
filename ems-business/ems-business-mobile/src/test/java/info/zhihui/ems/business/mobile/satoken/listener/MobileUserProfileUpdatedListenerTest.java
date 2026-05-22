@@ -14,11 +14,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MobileUserProfileUpdatedListenerTest {
 
     @Test
-    void onUserProfileUpdated_WhenMobileSessionExists_ShouldRefreshBaseUserInfo() {
+    void onUserProfileUpdated_WhenMobileSessionExists_ShouldLogoutMobileSession() {
         SaTokenContextMockUtil.setMockContext(() -> {
             loginMobile(11);
             MobileStpUtil.getSession().set(LoginConstant.LOGIN_USER_REAL_NAME, "旧姓名");
@@ -27,9 +28,7 @@ class MobileUserProfileUpdatedListenerTest {
 
             listener.onUserProfileUpdated(new UserProfileUpdatedEvent(11, "新姓名", "13900139000"));
 
-            assertThat(MobileStpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo("新姓名");
-            assertThat(MobileStpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo("13900139000");
-            logoutMobileQuietly();
+            assertThatThrownBy(MobileStpUtil::getLoginIdAsInt).isInstanceOf(NotLoginException.class);
         });
     }
 
@@ -42,7 +41,7 @@ class MobileUserProfileUpdatedListenerTest {
     }
 
     @Test
-    void onUserProfileUpdated_WhenWebAndMobileSessionsExist_ShouldOnlyRefreshMobileSession() {
+    void onUserProfileUpdated_WhenWebAndMobileSessionsExist_ShouldOnlyLogoutMobileSession() {
         SaTokenContextMockUtil.setMockContext(() -> {
             SaManager.getConfig().setJwtSecretKey("mobile-user-profile-listener-test-secret");
             String webToken = null;
@@ -58,8 +57,7 @@ class MobileUserProfileUpdatedListenerTest {
 
                 listener.onUserProfileUpdated(new UserProfileUpdatedEvent(13, "新姓名", "13900139000"));
 
-                assertThat(MobileStpUtil.getSession().get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo("新姓名");
-                assertThat(MobileStpUtil.getSession().get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo("13900139000");
+                assertThatThrownBy(MobileStpUtil::getLoginIdAsInt).isInstanceOf(NotLoginException.class);
                 SaSession webSession = StpUtil.getStpLogic().getSessionByLoginId(13, false);
                 assertThat(webSession.get(LoginConstant.LOGIN_USER_REAL_NAME)).isEqualTo("Web旧姓名");
                 assertThat(webSession.get(LoginConstant.LOGIN_USER_PHONE)).isEqualTo("13700137000");

@@ -80,14 +80,17 @@ public class UserThirdPartyBindServiceImpl implements UserThirdPartyBindService 
     }
 
     private UserThirdPartyBindEntity toEntity(UserThirdPartyBindDto dto) {
-        return new UserThirdPartyBindEntity()
+        LocalDateTime now = LocalDateTime.now();
+        UserThirdPartyBindEntity entity = new UserThirdPartyBindEntity()
                 .setUserId(dto.getUserId())
                 .setPlatform(dto.getPlatform().getCode())
                 .setAppId(dto.getAppId())
                 .setThirdPartyUserId(dto.getThirdPartyUserId())
                 .setThirdPartyUnionId(dto.getThirdPartyUnionId())
                 .setPhone(dto.getPhone())
-                .setLastLoginTime(LocalDateTime.now());
+                .setLastLoginTime(now);
+        entity.setUpdateTime(now);
+        return entity;
     }
 
     private UserThirdPartyBindBo toBo(UserThirdPartyBindEntity entity) {
